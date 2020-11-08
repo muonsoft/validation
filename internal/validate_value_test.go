@@ -33,7 +33,7 @@ var validateTestCases = []ValidateTestCase{
 		name:            "IsNotBlank violation on nil",
 		isApplicableFor: anyValueType,
 		options:         []validation.Option{it.IsNotBlank()},
-		assert:          assertIsViolation(code.NotBlank, message.NotBlank, ""),
+		assert:          assertHasOneViolation(code.NotBlank, message.NotBlank, ""),
 	},
 	{
 		name:            "IsNotBlank violation on empty value",
@@ -42,7 +42,7 @@ var validateTestCases = []ValidateTestCase{
 		floatValue:      floatValue(0),
 		stringValue:     stringValue(""),
 		options:         []validation.Option{it.IsNotBlank()},
-		assert:          assertIsViolation(code.NotBlank, message.NotBlank, ""),
+		assert:          assertHasOneViolation(code.NotBlank, message.NotBlank, ""),
 	},
 	{
 		name:            "IsNotBlank violation on empty value when condition is true",
@@ -51,7 +51,7 @@ var validateTestCases = []ValidateTestCase{
 		floatValue:      floatValue(0),
 		stringValue:     stringValue(""),
 		options:         []validation.Option{it.IsNotBlank().When(true)},
-		assert:          assertIsViolation(code.NotBlank, message.NotBlank, ""),
+		assert:          assertHasOneViolation(code.NotBlank, message.NotBlank, ""),
 	},
 	{
 		name:            "IsNotBlank violation on nil with custom path",
@@ -62,13 +62,13 @@ var validateTestCases = []ValidateTestCase{
 			validation.PropertyName("value"),
 			it.IsNotBlank(),
 		},
-		assert: assertIsViolation(code.NotBlank, message.NotBlank, customPath),
+		assert: assertHasOneViolation(code.NotBlank, message.NotBlank, customPath),
 	},
 	{
 		name:            "IsNotBlank violation on nil with custom message",
 		isApplicableFor: anyValueType,
 		options:         []validation.Option{it.IsNotBlank().Message(customMessage)},
-		assert:          assertIsViolation(code.NotBlank, customMessage, ""),
+		assert:          assertHasOneViolation(code.NotBlank, customMessage, ""),
 	},
 	{
 		name:            "IsNotBlank passes on value",
@@ -100,7 +100,7 @@ var validateTestCases = []ValidateTestCase{
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
 		options:         []validation.Option{it.IsBlank()},
-		assert:          assertIsViolation(code.Blank, message.Blank, ""),
+		assert:          assertHasOneViolation(code.Blank, message.Blank, ""),
 	},
 	{
 		name:            "IsBlank violation on value when condition is true",
@@ -109,7 +109,7 @@ var validateTestCases = []ValidateTestCase{
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
 		options:         []validation.Option{it.IsBlank().When(true)},
-		assert:          assertIsViolation(code.Blank, message.Blank, ""),
+		assert:          assertHasOneViolation(code.Blank, message.Blank, ""),
 	},
 	{
 		name:            "IsBlank violation on value with custom path",
@@ -123,7 +123,7 @@ var validateTestCases = []ValidateTestCase{
 			validation.PropertyName("value"),
 			it.IsBlank(),
 		},
-		assert: assertIsViolation(code.Blank, message.Blank, customPath),
+		assert: assertHasOneViolation(code.Blank, message.Blank, customPath),
 	},
 	{
 		name:            "IsBlank violation on value with custom message",
@@ -132,7 +132,7 @@ var validateTestCases = []ValidateTestCase{
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
 		options:         []validation.Option{it.IsBlank().Message(customMessage)},
-		assert:          assertIsViolation(code.Blank, customMessage, ""),
+		assert:          assertHasOneViolation(code.Blank, customMessage, ""),
 	},
 	{
 		name:            "IsBlank passes on nil",
@@ -206,14 +206,16 @@ func anyValueType(valueType string) bool {
 	return true
 }
 
-func assertIsViolation(code, message, path string) func(t *testing.T, err error) {
+func assertHasOneViolation(code, message, path string) func(t *testing.T, err error) {
 	return func(t *testing.T, err error) {
-		validationtest.AssertIsViolation(t, err, func(t *testing.T, violation validation.Violation) bool {
-			assert.Equal(t, code, violation.GetCode())
-			assert.Equal(t, message, violation.GetMessage())
-			assert.Equal(t, path, violation.GetPropertyPath().Format())
+		validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
+			if assert.Len(t, violations, 1) {
+				return assert.Equal(t, code, violations[0].GetCode()) &&
+					assert.Equal(t, message, violations[0].GetMessage()) &&
+					assert.Equal(t, path, violations[0].GetPropertyPath().Format())
+			}
 
-			return true
+			return false
 		})
 	}
 }

@@ -9,6 +9,8 @@ func NewValidator() *Validator {
 
 var validator = NewValidator()
 
+type validateByConstraintFunc func(constraint Constraint, options Options) error
+
 func (validator *Validator) Validate(violations ...error) error {
 	filteredViolations := make(ViolationList, 0, len(violations))
 
@@ -30,61 +32,64 @@ func (validator *Validator) Validate(violations ...error) error {
 }
 
 func (validator *Validator) ValidateString(value *string, options ...Option) error {
-	opts, err := collectOptions(options)
-	if err != nil {
-		return err
-	}
-
-	for _, constraint := range opts.Constraints {
+	return validator.executeValidation(options, func(constraint Constraint, options Options) (err error) {
 		if constraintValidator, ok := constraint.(StringConstraint); ok {
-			err := constraintValidator.ValidateString(value, *opts)
-			if err != nil {
-				return err
-			}
+			err = constraintValidator.ValidateString(value, options)
 		} else {
-			return &ErrInapplicableConstraint{Code: constraint.Code(), Type: "string"}
+			err = &ErrInapplicableConstraint{Code: constraint.Code(), Type: "string"}
 		}
-	}
 
-	return nil
+		return err
+	})
 }
 
 func (validator *Validator) ValidateInt(value *int, options ...Option) error {
-	opts, err := collectOptions(options)
-	if err != nil {
-		return err
-	}
-
-	for _, constraint := range opts.Constraints {
+	return validator.executeValidation(options, func(constraint Constraint, options Options) (err error) {
 		if constraintValidator, ok := constraint.(IntConstraint); ok {
-			err := constraintValidator.ValidateInt(value, *opts)
-			if err != nil {
-				return err
-			}
+			err = constraintValidator.ValidateInt(value, options)
 		} else {
-			return &ErrInapplicableConstraint{Code: constraint.Code(), Type: "int"}
+			err = &ErrInapplicableConstraint{Code: constraint.Code(), Type: "int"}
 		}
-	}
 
-	return nil
+		return err
+	})
 }
 
 func (validator *Validator) ValidateFloat(value *float64, options ...Option) error {
+	return validator.executeValidation(options, func(constraint Constraint, options Options) (err error) {
+		if constraintValidator, ok := constraint.(FloatConstraint); ok {
+			err = constraintValidator.ValidateFloat(value, options)
+		} else {
+			err = &ErrInapplicableConstraint{Code: constraint.Code(), Type: "float"}
+		}
+
+		return err
+	})
+}
+
+func (validator *Validator) executeValidation(options []Option, validate validateByConstraintFunc) error {
 	opts, err := collectOptions(options)
 	if err != nil {
 		return err
 	}
 
+	violations := make(ViolationList, 0, len(opts.Constraints))
+
 	for _, constraint := range opts.Constraints {
-		if constraintValidator, ok := constraint.(FloatConstraint); ok {
-			err := constraintValidator.ValidateFloat(value, *opts)
-			if err != nil {
-				return err
-			}
-		} else {
-			return &ErrInapplicableConstraint{Code: constraint.Code(), Type: "float"}
+		err := validate(constraint, *opts)
+
+		if violation, ok := UnwrapViolation(err); ok {
+			violations = append(violations, violation)
+		} else if violationList, ok := UnwrapViolationList(err); ok {
+			violations = append(violations, violationList...)
+		} else if err != nil {
+			return err
 		}
 	}
 
-	return nil
+	if len(violations) == 0 {
+		return nil
+	}
+
+	return violations
 }
