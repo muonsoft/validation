@@ -16,6 +16,13 @@ type Violation interface {
 
 type ViolationList []Violation
 
+type NewViolationFunc func(
+	code,
+	messageTemplate string,
+	parameters map[string]string,
+	propertyPath PropertyPath,
+) Violation
+
 func (violations ViolationList) Error() string {
 	var s strings.Builder
 	s.Grow(32 * len(violations))
@@ -34,63 +41,24 @@ func (violations ViolationList) Error() string {
 	return s.String()
 }
 
-func NewViolation(
-	code,
-	messageTemplate string,
-	parameters map[string]string,
-	propertyPath PropertyPath,
-) Violation {
-	return &internalViolation{
-		code:            code,
-		message:         renderMessage(messageTemplate, parameters),
-		messageTemplate: messageTemplate,
-		parameters:      parameters,
-		propertyPath:    propertyPath,
+func (violations *ViolationList) AddFromError(err error) error {
+	if violation, ok := UnwrapViolation(err); ok {
+		*violations = append(*violations, violation)
+	} else if violationList, ok := UnwrapViolationList(err); ok {
+		*violations = append(*violations, violationList...)
+	} else if err != nil {
+		return err
 	}
+
+	return nil
 }
 
-type internalViolation struct {
-	code            string
-	message         string
-	messageTemplate string
-	parameters      map[string]string
-	propertyPath    PropertyPath
-}
-
-func (v internalViolation) Error() string {
-	var s strings.Builder
-	s.Grow(32)
-	v.writeToBuilder(&s)
-
-	return s.String()
-}
-
-func (v internalViolation) writeToBuilder(s *strings.Builder) {
-	s.WriteString("violation")
-	if len(v.propertyPath) > 0 {
-		s.WriteString(" at '" + v.propertyPath.Format() + "'")
+func (violations ViolationList) AsError() error {
+	if len(violations) == 0 {
+		return nil
 	}
-	s.WriteString(": " + v.message)
-}
 
-func (v internalViolation) GetCode() string {
-	return v.code
-}
-
-func (v internalViolation) GetMessage() string {
-	return v.message
-}
-
-func (v internalViolation) GetMessageTemplate() string {
-	return v.messageTemplate
-}
-
-func (v internalViolation) GetParameters() map[string]string {
-	return v.parameters
-}
-
-func (v internalViolation) GetPropertyPath() PropertyPath {
-	return v.propertyPath
+	return violations
 }
 
 func IsViolation(err error) bool {
@@ -119,4 +87,63 @@ func UnwrapViolationList(err error) (ViolationList, bool) {
 	as := errors.As(err, &violation)
 
 	return violation, as
+}
+
+func NewViolation(
+	code,
+	messageTemplate string,
+	parameters map[string]string,
+	propertyPath PropertyPath,
+) Violation {
+	return &internalViolation{
+		Code:            code,
+		Message:         renderMessage(messageTemplate, parameters),
+		MessageTemplate: messageTemplate,
+		Parameters:      parameters,
+		PropertyPath:    propertyPath,
+	}
+}
+
+type internalViolation struct {
+	Code            string
+	Message         string
+	MessageTemplate string
+	Parameters      map[string]string
+	PropertyPath    PropertyPath
+}
+
+func (v internalViolation) Error() string {
+	var s strings.Builder
+	s.Grow(32)
+	v.writeToBuilder(&s)
+
+	return s.String()
+}
+
+func (v internalViolation) writeToBuilder(s *strings.Builder) {
+	s.WriteString("violation")
+	if len(v.PropertyPath) > 0 {
+		s.WriteString(" at '" + v.PropertyPath.Format() + "'")
+	}
+	s.WriteString(": " + v.Message)
+}
+
+func (v internalViolation) GetCode() string {
+	return v.Code
+}
+
+func (v internalViolation) GetMessage() string {
+	return v.Message
+}
+
+func (v internalViolation) GetMessageTemplate() string {
+	return v.MessageTemplate
+}
+
+func (v internalViolation) GetParameters() map[string]string {
+	return v.Parameters
+}
+
+func (v internalViolation) GetPropertyPath() PropertyPath {
+	return v.PropertyPath
 }

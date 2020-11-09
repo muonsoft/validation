@@ -41,8 +41,16 @@ func (c NotBlankConstraint) Set(options *validation.Options) error {
 	return nil
 }
 
-func (c NotBlankConstraint) Code() string {
+func (c NotBlankConstraint) GetCode() string {
 	return c.code
+}
+
+func (c NotBlankConstraint) GetMessageTemplate() string {
+	return c.messageTemplate
+}
+
+func (c NotBlankConstraint) GetParameters() map[string]string {
+	return nil
 }
 
 func (c NotBlankConstraint) ValidateString(value *string, options validation.Options) error {
@@ -58,7 +66,7 @@ func (c NotBlankConstraint) ValidateString(value *string, options validation.Opt
 		return nil
 	}
 
-	return c.createViolation(options)
+	return options.NewConstraintViolation(c)
 }
 
 func (c NotBlankConstraint) ValidateInt(value *int, options validation.Options) error {
@@ -74,7 +82,7 @@ func (c NotBlankConstraint) ValidateInt(value *int, options validation.Options) 
 		return nil
 	}
 
-	return c.createViolation(options)
+	return options.NewConstraintViolation(c)
 }
 
 func (c NotBlankConstraint) ValidateFloat(value *float64, options validation.Options) error {
@@ -90,16 +98,7 @@ func (c NotBlankConstraint) ValidateFloat(value *float64, options validation.Opt
 		return nil
 	}
 
-	return c.createViolation(options)
-}
-
-func (c NotBlankConstraint) createViolation(options validation.Options) validation.Violation {
-	return validation.NewViolation(
-		c.code,
-		c.messageTemplate,
-		nil,
-		options.PropertyPath,
-	)
+	return options.NewConstraintViolation(c)
 }
 
 type BlankConstraint struct {
@@ -121,8 +120,16 @@ func (c BlankConstraint) Set(options *validation.Options) error {
 	return nil
 }
 
-func (c BlankConstraint) Code() string {
+func (c BlankConstraint) GetCode() string {
 	return c.code
+}
+
+func (c BlankConstraint) GetMessageTemplate() string {
+	return c.messageTemplate
+}
+
+func (c BlankConstraint) GetParameters() map[string]string {
+	return nil
 }
 
 func (c BlankConstraint) When(condition bool) BlankConstraint {
@@ -140,7 +147,7 @@ func (c BlankConstraint) ValidateString(value *string, options validation.Option
 		return nil
 	}
 
-	return c.createViolation(options)
+	return options.NewConstraintViolation(c)
 }
 
 func (c BlankConstraint) ValidateInt(value *int, options validation.Options) error {
@@ -148,7 +155,7 @@ func (c BlankConstraint) ValidateInt(value *int, options validation.Options) err
 		return nil
 	}
 
-	return c.createViolation(options)
+	return options.NewConstraintViolation(c)
 }
 
 func (c BlankConstraint) ValidateFloat(value *float64, options validation.Options) error {
@@ -156,14 +163,5 @@ func (c BlankConstraint) ValidateFloat(value *float64, options validation.Option
 		return nil
 	}
 
-	return c.createViolation(options)
-}
-
-func (c BlankConstraint) createViolation(options validation.Options) validation.Violation {
-	return validation.NewViolation(
-		c.code,
-		c.messageTemplate,
-		nil,
-		options.PropertyPath,
-	)
+	return options.NewConstraintViolation(c)
 }

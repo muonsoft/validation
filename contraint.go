@@ -2,7 +2,9 @@ package validation
 
 type Constraint interface {
 	Option
-	Code() string
+	GetCode() string
+	GetMessageTemplate() string
+	GetParameters() map[string]string
 }
 
 type StringConstraint interface {

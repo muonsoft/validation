@@ -6,6 +6,11 @@ type Options struct {
 	Context      context.Context
 	PropertyPath PropertyPath
 	Constraints  []Constraint
+	NewViolation NewViolationFunc
+}
+
+func (o Options) NewConstraintViolation(c Constraint) Violation {
+	return o.NewViolation(c.GetCode(), c.GetMessageTemplate(), c.GetParameters(), o.PropertyPath)
 }
 
 type Option interface {
@@ -14,47 +19,30 @@ type Option interface {
 
 type OptionFunc func(options *Options) error
 
+func (f OptionFunc) Set(options *Options) error {
+	return f(options)
+}
+
 func Context(ctx context.Context) Option {
-	return optionSetter{option: func(options *Options) error {
+	return OptionFunc(func(options *Options) error {
 		options.Context = ctx
 
 		return nil
-	}}
+	})
 }
 
 func PropertyName(propertyName string) Option {
-	return optionSetter{option: func(options *Options) error {
+	return OptionFunc(func(options *Options) error {
 		options.PropertyPath = append(options.PropertyPath, PropertyNameElement{propertyName})
 
 		return nil
-	}}
+	})
 }
 
 func ArrayIndex(index int) Option {
-	return optionSetter{option: func(options *Options) error {
+	return OptionFunc(func(options *Options) error {
 		options.PropertyPath = append(options.PropertyPath, ArrayIndexElement{index})
 
 		return nil
-	}}
-}
-
-type optionSetter struct {
-	option OptionFunc
-}
-
-func (set optionSetter) Set(options *Options) error {
-	return set.option(options)
-}
-
-func collectOptions(options []Option) (*Options, error) {
-	opts := &Options{}
-
-	for _, option := range options {
-		err := option.Set(opts)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return opts, nil
+	})
 }

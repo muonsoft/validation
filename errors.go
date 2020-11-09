@@ -8,5 +8,5 @@ type ErrInapplicableConstraint struct {
 }
 
 func (err *ErrInapplicableConstraint) Error() string {
-	return fmt.Sprintf("constraint with code '%s' cannot be applied to %s", err.Code, err.Type)
+	return fmt.Sprintf("constraint with GetCode '%s' cannot be applied to %s", err.Code, err.Type)
 }
