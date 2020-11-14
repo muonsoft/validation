@@ -53,7 +53,15 @@ func (c NotBlankConstraint) GetParameters() map[string]string {
 	return nil
 }
 
-func (c NotBlankConstraint) ValidateString(value *string, options validation.Options) error {
+func (c NotBlankConstraint) ValidateNil(options validation.Options) error {
+	if c.isIgnored || c.allowNil {
+		return nil
+	}
+
+	return options.NewConstraintViolation(c)
+}
+
+func (c NotBlankConstraint) ValidateInt(value *int64, options validation.Options) error {
 	if c.isIgnored {
 		return nil
 	}
@@ -62,14 +70,14 @@ func (c NotBlankConstraint) ValidateString(value *string, options validation.Opt
 		if c.allowNil {
 			return nil
 		}
-	} else if *value != "" {
+	} else if *value != 0 {
 		return nil
 	}
 
 	return options.NewConstraintViolation(c)
 }
 
-func (c NotBlankConstraint) ValidateInt(value *int, options validation.Options) error {
+func (c NotBlankConstraint) ValidateUint(value *uint64, options validation.Options) error {
 	if c.isIgnored {
 		return nil
 	}
@@ -95,6 +103,22 @@ func (c NotBlankConstraint) ValidateFloat(value *float64, options validation.Opt
 			return nil
 		}
 	} else if *value != 0 {
+		return nil
+	}
+
+	return options.NewConstraintViolation(c)
+}
+
+func (c NotBlankConstraint) ValidateString(value *string, options validation.Options) error {
+	if c.isIgnored {
+		return nil
+	}
+
+	if value == nil {
+		if c.allowNil {
+			return nil
+		}
+	} else if *value != "" {
 		return nil
 	}
 
@@ -142,15 +166,19 @@ func (c BlankConstraint) Message(message string) BlankConstraint {
 	return c
 }
 
-func (c BlankConstraint) ValidateString(value *string, options validation.Options) error {
-	if c.isIgnored || value == nil || *value == "" {
+func (c BlankConstraint) ValidateNil(options validation.Options) error {
+	return nil
+}
+
+func (c BlankConstraint) ValidateInt(value *int64, options validation.Options) error {
+	if c.isIgnored || value == nil || *value == 0 {
 		return nil
 	}
 
 	return options.NewConstraintViolation(c)
 }
 
-func (c BlankConstraint) ValidateInt(value *int, options validation.Options) error {
+func (c BlankConstraint) ValidateUint(value *uint64, options validation.Options) error {
 	if c.isIgnored || value == nil || *value == 0 {
 		return nil
 	}
@@ -160,6 +188,14 @@ func (c BlankConstraint) ValidateInt(value *int, options validation.Options) err
 
 func (c BlankConstraint) ValidateFloat(value *float64, options validation.Options) error {
 	if c.isIgnored || value == nil || *value == 0 {
+		return nil
+	}
+
+	return options.NewConstraintViolation(c)
+}
+
+func (c BlankConstraint) ValidateString(value *string, options validation.Options) error {
+	if c.isIgnored || value == nil || *value == "" {
 		return nil
 	}
 

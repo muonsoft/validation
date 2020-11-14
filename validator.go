@@ -1,5 +1,9 @@
 package validation
 
+import (
+	"reflect"
+)
+
 type Validator struct {
 	defaultOptions Options
 }
@@ -24,41 +28,81 @@ func OverrideNewViolation(violationFunc NewViolationFunc) ValidatorOption {
 	}
 }
 
+func OverrideDefaults(options ...ValidatorOption) {
+	for _, setOption := range options {
+		setOption(&validator.defaultOptions)
+	}
+}
+
 var validator = NewValidator()
 
 type validateByConstraintFunc func(constraint Constraint, options Options) error
 
-func (validator *Validator) Validate(violations ...error) error {
-	filteredViolations := make(ViolationList, 0, len(violations))
+func (validator *Validator) Validate(value interface{}, options ...Option) error {
+	v := reflect.ValueOf(value)
 
-	for _, err := range violations {
-		addErr := filteredViolations.AddFromError(err)
-		if addErr != nil {
-			return addErr
-		}
+	switch v.Kind() {
+	case reflect.Ptr:
+		return validator.validatePointer(v, options)
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		i := v.Int()
+		return validator.ValidateInt(&i, options...)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		u := v.Uint()
+		return validator.ValidateUint(&u, options...)
+	case reflect.Float32, reflect.Float64:
+		f := v.Float()
+		return validator.ValidateFloat(&f, options...)
+	case reflect.String:
+		s := v.String()
+		return validator.ValidateString(&s, options...)
 	}
 
-	return filteredViolations.AsError()
+	return &ErrNotValidatable{Value: v}
 }
 
-func (validator *Validator) ValidateString(value *string, options ...Option) error {
+func (validator *Validator) validatePointer(v reflect.Value, options []Option) error {
+	p := v.Elem()
+	if v.IsNil() {
+		return validator.validateNil(options...)
+	}
+
+	switch p.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		i := p.Int()
+		return validator.ValidateInt(&i, options...)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		u := p.Uint()
+		return validator.ValidateUint(&u, options...)
+	case reflect.Float32, reflect.Float64:
+		f := p.Float()
+		return validator.ValidateFloat(&f, options...)
+	case reflect.String:
+		s := p.String()
+		return validator.ValidateString(&s, options...)
+	}
+
+	return &ErrNotValidatable{Value: v}
+}
+
+func (validator *Validator) ValidateInt(value *int64, options ...Option) error {
 	return validator.executeValidation(options, func(constraint Constraint, options Options) (err error) {
-		if constraintValidator, ok := constraint.(StringConstraint); ok {
-			err = constraintValidator.ValidateString(value, options)
+		if constraintValidator, ok := constraint.(IntConstraint); ok {
+			err = constraintValidator.ValidateInt(value, options)
 		} else {
-			err = &ErrInapplicableConstraint{Code: constraint.GetCode(), Type: "string"}
+			err = &ErrInapplicableConstraint{Code: constraint.GetCode(), Type: "int"}
 		}
 
 		return err
 	})
 }
 
-func (validator *Validator) ValidateInt(value *int, options ...Option) error {
+func (validator *Validator) ValidateUint(value *uint64, options ...Option) error {
 	return validator.executeValidation(options, func(constraint Constraint, options Options) (err error) {
-		if constraintValidator, ok := constraint.(IntConstraint); ok {
-			err = constraintValidator.ValidateInt(value, options)
+		if constraintValidator, ok := constraint.(UintConstraint); ok {
+			err = constraintValidator.ValidateUint(value, options)
 		} else {
-			err = &ErrInapplicableConstraint{Code: constraint.GetCode(), Type: "int"}
+			err = &ErrInapplicableConstraint{Code: constraint.GetCode(), Type: "uint"}
 		}
 
 		return err
@@ -74,6 +118,28 @@ func (validator *Validator) ValidateFloat(value *float64, options ...Option) err
 		}
 
 		return err
+	})
+}
+
+func (validator *Validator) ValidateString(value *string, options ...Option) error {
+	return validator.executeValidation(options, func(constraint Constraint, options Options) (err error) {
+		if constraintValidator, ok := constraint.(StringConstraint); ok {
+			err = constraintValidator.ValidateString(value, options)
+		} else {
+			err = &ErrInapplicableConstraint{Code: constraint.GetCode(), Type: "string"}
+		}
+
+		return err
+	})
+}
+
+func (validator *Validator) validateNil(options ...Option) error {
+	return validator.executeValidation(options, func(constraint Constraint, options Options) error {
+		if constraintValidator, ok := constraint.(NilConstraint); ok {
+			return constraintValidator.ValidateNil(options)
+		}
+
+		return nil
 	})
 }
 

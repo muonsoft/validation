@@ -7,12 +7,20 @@ type Constraint interface {
 	GetParameters() map[string]string
 }
 
+type NilConstraint interface {
+	ValidateNil(options Options) error
+}
+
 type StringConstraint interface {
 	ValidateString(value *string, options Options) error
 }
 
 type IntConstraint interface {
-	ValidateInt(value *int, options Options) error
+	ValidateInt(value *int64, options Options) error
+}
+
+type UintConstraint interface {
+	ValidateUint(value *uint64, options Options) error
 }
 
 type FloatConstraint interface {
