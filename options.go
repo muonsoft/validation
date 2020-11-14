@@ -46,3 +46,20 @@ func ArrayIndex(index int) Option {
 		return nil
 	})
 }
+
+func PassOptions(passedOptions []Option) Option {
+	return OptionFunc(func(options *Options) error {
+		for _, setOption := range passedOptions {
+			if _, isConstraint := setOption.(Constraint); isConstraint {
+				continue
+			}
+
+			err := setOption.Set(options)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}

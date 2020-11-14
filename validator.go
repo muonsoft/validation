@@ -39,6 +39,10 @@ var validator = NewValidator()
 type validateByConstraintFunc func(constraint Constraint, options Options) error
 
 func (validator *Validator) Validate(value interface{}, options ...Option) error {
+	if validatable, ok := value.(Validatable); ok {
+		return validatable.Validate(options...)
+	}
+
 	v := reflect.ValueOf(value)
 
 	switch v.Kind() {

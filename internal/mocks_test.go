@@ -1,6 +1,9 @@
 package internal
 
-import "github.com/muonsoft/validation"
+import (
+	"github.com/muonsoft/validation"
+	"github.com/muonsoft/validation/it"
+)
 
 var (
 	nilInt    *int64
@@ -67,4 +70,17 @@ func mockNewViolationFunc() func(
 	return func(code, messageTemplate string, parameters map[string]string, propertyPath validation.PropertyPath) validation.Violation {
 		return &mockViolation{code: code, messageTemplate: messageTemplate, parameters: parameters, propertyPath: propertyPath}
 	}
+}
+
+type mockValidatable struct {
+	value string
+}
+
+func (mock mockValidatable) Validate(options ...validation.Option) error {
+	return validation.ValidateString(
+		&mock.value,
+		validation.PassOptions(options),
+		validation.PropertyName("value"),
+		it.IsNotBlank(),
+	)
 }

@@ -44,6 +44,18 @@ func TestValidate_GivenValueOfType_ValueValidated(t *testing.T) {
 	}
 }
 
+func TestValidate_Validatable_ValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
+	validatable := mockValidatable{value: ""}
+
+	err := validation.Validate(
+		validatable,
+		validation.PropertyName("top"),
+		it.IsNotBlank().Message("ignored"),
+	)
+
+	assertHasOneViolation(code.NotBlank, message.NotBlank, "top.value")(t, err)
+}
+
 func TestFilter_NoViolations_Nil(t *testing.T) {
 	err := validation.Filter(nil, nil)
 
