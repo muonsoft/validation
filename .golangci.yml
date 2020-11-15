@@ -1,0 +1,76 @@
+linters:
+  enable:
+    - asciicheck
+    - bodyclose
+    - deadcode
+    - depguard
+    - dogsled
+    - dupl
+    - errcheck
+#    - exhaustive
+    - funlen
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - godox
+    - goerr113
+    - gofmt
+    - goimports
+    - golint
+    - gomodguard
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacer
+    - lll
+    - maligned
+    - misspell
+    - nakedret
+    - nestif
+    - noctx
+    - nolintlint
+    - prealloc
+    - rowserrcheck
+    - scopelint
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - whitespace
+
+issues:
+  exclude-rules:
+    # Exclude some linters from running on tests files.
+    - path: _test\.go
+      linters:
+        - dogsled
+        - dupl
+        - errcheck
+        - funlen
+        - gochecknoglobals
+        - gocyclo
+        - goerr113
+        - gosec
+        - lll
+        - scopelint
+    - path: test
+      linters:
+        - dogsled
+        - dupl
+        - errcheck
+        - funlen
+        - gochecknoglobals
+        - gocyclo
+        - goerr113
+        - gosec
+        - lll
+        - scopelint

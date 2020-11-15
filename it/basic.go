@@ -3,8 +3,8 @@ package it
 import (
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
+	"github.com/muonsoft/validation/generic"
 	"github.com/muonsoft/validation/message"
-	"github.com/muonsoft/validation/pseudo"
 )
 
 type NotBlankConstraint struct {
@@ -62,7 +62,7 @@ func (c NotBlankConstraint) ValidateNil(options validation.Options) error {
 	return options.NewConstraintViolation(c)
 }
 
-func (c NotBlankConstraint) ValidateNumber(value pseudo.Number, options validation.Options) error {
+func (c NotBlankConstraint) ValidateNumber(value generic.Number, options validation.Options) error {
 	if c.isIgnored {
 		return nil
 	}
@@ -139,7 +139,7 @@ func (c BlankConstraint) ValidateNil(options validation.Options) error {
 	return nil
 }
 
-func (c BlankConstraint) ValidateNumber(value pseudo.Number, options validation.Options) error {
+func (c BlankConstraint) ValidateNumber(value generic.Number, options validation.Options) error {
 	if c.isIgnored || value.IsNil() || value.IsZero() {
 		return nil
 	}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/muonsoft/validation/pseudo"
+	"github.com/muonsoft/validation/generic"
 )
 
 type Validator struct {
@@ -85,7 +85,7 @@ func (validator *Validator) validatePointer(v reflect.Value, options []Option) e
 }
 
 func (validator *Validator) ValidateNumber(value interface{}, options ...Option) error {
-	number, err := pseudo.NewNumber(value)
+	number, err := generic.NewNumber(value)
 	if err != nil {
 		return fmt.Errorf("cannot convert value '%v' to number: %w", value, err)
 	}

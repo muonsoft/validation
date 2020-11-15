@@ -1,6 +1,8 @@
 package validation
 
-import "github.com/muonsoft/validation/pseudo"
+import (
+	"github.com/muonsoft/validation/generic"
+)
 
 type Constraint interface {
 	Option
@@ -16,7 +18,7 @@ type NilConstraint interface {
 }
 
 type NumberConstraint interface {
-	ValidateNumber(value pseudo.Number, options Options) error
+	ValidateNumber(value generic.Number, options Options) error
 }
 
 type StringConstraint interface {

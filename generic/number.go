@@ -1,4 +1,4 @@
-package pseudo
+package generic
 
 import (
 	"reflect"
