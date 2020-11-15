@@ -6,11 +6,16 @@ import (
 )
 
 var (
+	nilBool   *bool
 	nilInt    *int64
 	nilUint   *uint64
 	nilFloat  *float64
 	nilString *string
 )
+
+func boolValue(b bool) *bool {
+	return &b
+}
 
 func intValue(i int64) *int64 {
 	return &i

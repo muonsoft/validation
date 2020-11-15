@@ -53,6 +53,9 @@ func (validator *Validator) Validate(value interface{}, options ...Option) error
 	switch v.Kind() {
 	case reflect.Ptr:
 		return validator.validatePointer(v, options)
+	case reflect.Bool:
+		b := v.Bool()
+		return validator.ValidateBool(&b, options...)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
 		reflect.Float32, reflect.Float64:
@@ -72,6 +75,9 @@ func (validator *Validator) validatePointer(v reflect.Value, options []Option) e
 	}
 
 	switch p.Kind() {
+	case reflect.Bool:
+		b := p.Bool()
+		return validator.ValidateBool(&b, options...)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
 		reflect.Float32, reflect.Float64:
@@ -82,6 +88,18 @@ func (validator *Validator) validatePointer(v reflect.Value, options []Option) e
 	}
 
 	return &ErrNotValidatable{Value: v}
+}
+
+func (validator *Validator) ValidateBool(value *bool, options ...Option) error {
+	return validator.executeValidation(options, func(constraint Constraint, options Options) (err error) {
+		if constraintValidator, ok := constraint.(BoolConstraint); ok {
+			err = constraintValidator.ValidateBool(value, options)
+		} else {
+			err = &ErrInapplicableConstraint{Code: constraint.GetCode(), Type: "bool"}
+		}
+
+		return err
+	})
 }
 
 func (validator *Validator) ValidateNumber(value interface{}, options ...Option) error {

@@ -17,14 +17,17 @@ func TestValidate_GivenValueOfType_ValueValidated(t *testing.T) {
 		name  string
 		value interface{}
 	}{
+		{"bool", false},
 		{"int8", int8(0)},
 		{"uint8", uint8(0)},
 		{"float32", float32(0)},
 		{"string", ""},
+		{"bool pointer", boolValue(false)},
 		{"int64 pointer", intValue(0)},
 		{"uint64 pointer", uintValue(0)},
 		{"float64 pointer", floatValue(0)},
 		{"string pointer", stringValue("")},
+		{"bool nil", nilBool},
 		{"int64 nil", nilInt},
 		{"uint64 nil", nilUint},
 		{"float64 nil", nilFloat},

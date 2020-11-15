@@ -17,6 +17,10 @@ type NilConstraint interface {
 	ValidateNil(options Options) error
 }
 
+type BoolConstraint interface {
+	ValidateBool(value *bool, options Options) error
+}
+
 type NumberConstraint interface {
 	ValidateNumber(value generic.Number, options Options) error
 }

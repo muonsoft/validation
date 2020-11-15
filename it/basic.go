@@ -62,6 +62,22 @@ func (c NotBlankConstraint) ValidateNil(options validation.Options) error {
 	return options.NewConstraintViolation(c)
 }
 
+func (c NotBlankConstraint) ValidateBool(value *bool, options validation.Options) error {
+	if c.isIgnored {
+		return nil
+	}
+
+	if value == nil {
+		if c.allowNil {
+			return nil
+		}
+	} else if *value {
+		return nil
+	}
+
+	return options.NewConstraintViolation(c)
+}
+
 func (c NotBlankConstraint) ValidateNumber(value generic.Number, options validation.Options) error {
 	if c.isIgnored {
 		return nil
@@ -137,6 +153,14 @@ func (c BlankConstraint) Message(message string) BlankConstraint {
 
 func (c BlankConstraint) ValidateNil(options validation.Options) error {
 	return nil
+}
+
+func (c BlankConstraint) ValidateBool(value *bool, options validation.Options) error {
+	if c.isIgnored || value == nil || !*value {
+		return nil
+	}
+
+	return options.NewConstraintViolation(c)
 }
 
 func (c BlankConstraint) ValidateNumber(value generic.Number, options validation.Options) error {

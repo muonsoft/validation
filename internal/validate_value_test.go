@@ -1,15 +1,12 @@
 package internal
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
-	"github.com/muonsoft/validation/validationtest"
-	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -20,6 +17,7 @@ const (
 type ValidateTestCase struct {
 	name            string
 	isApplicableFor func(valueType string) bool
+	boolValue       *bool
 	intValue        *int64
 	floatValue      *float64
 	stringValue     *string
@@ -38,6 +36,7 @@ var validateTestCases = []ValidateTestCase{
 	{
 		name:            "IsNotBlank violation on empty value",
 		isApplicableFor: anyValueType,
+		boolValue:       boolValue(false),
 		intValue:        intValue(0),
 		floatValue:      floatValue(0),
 		stringValue:     stringValue(""),
@@ -47,6 +46,7 @@ var validateTestCases = []ValidateTestCase{
 	{
 		name:            "IsNotBlank violation on empty value when condition is true",
 		isApplicableFor: anyValueType,
+		boolValue:       boolValue(false),
 		intValue:        intValue(0),
 		floatValue:      floatValue(0),
 		stringValue:     stringValue(""),
@@ -73,6 +73,7 @@ var validateTestCases = []ValidateTestCase{
 	{
 		name:            "IsNotBlank passes on value",
 		isApplicableFor: anyValueType,
+		boolValue:       boolValue(true),
 		intValue:        intValue(1),
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
@@ -96,6 +97,7 @@ var validateTestCases = []ValidateTestCase{
 	{
 		name:            "IsBlank violation on value",
 		isApplicableFor: anyValueType,
+		boolValue:       boolValue(true),
 		intValue:        intValue(1),
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
@@ -105,6 +107,7 @@ var validateTestCases = []ValidateTestCase{
 	{
 		name:            "IsBlank violation on value when condition is true",
 		isApplicableFor: anyValueType,
+		boolValue:       boolValue(true),
 		intValue:        intValue(1),
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
@@ -114,6 +117,7 @@ var validateTestCases = []ValidateTestCase{
 	{
 		name:            "IsBlank violation on value with custom path",
 		isApplicableFor: anyValueType,
+		boolValue:       boolValue(true),
 		intValue:        intValue(1),
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
@@ -128,6 +132,7 @@ var validateTestCases = []ValidateTestCase{
 	{
 		name:            "IsBlank violation on value with custom message",
 		isApplicableFor: anyValueType,
+		boolValue:       boolValue(true),
 		intValue:        intValue(1),
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
@@ -143,6 +148,7 @@ var validateTestCases = []ValidateTestCase{
 	{
 		name:            "IsBlank passes on empty value",
 		isApplicableFor: anyValueType,
+		boolValue:       boolValue(false),
 		intValue:        intValue(0),
 		floatValue:      floatValue(0.0),
 		stringValue:     stringValue(""),
@@ -152,12 +158,30 @@ var validateTestCases = []ValidateTestCase{
 	{
 		name:            "IsBlank passes on value when condition is false",
 		isApplicableFor: anyValueType,
+		boolValue:       boolValue(true),
 		intValue:        intValue(1),
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
 		options:         []validation.Option{it.IsBlank().When(false)},
 		assert:          assertNoError,
 	},
+}
+
+func TestValidateBool(t *testing.T) {
+	tests := make([]ValidateTestCase, 0)
+	for _, test := range validateTestCases {
+		if test.isApplicableFor("bool") {
+			tests = append(tests, test)
+		}
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := validation.ValidateBool(test.boolValue, test.options...)
+
+			test.assert(t, err)
+		})
+	}
 }
 
 func TestValidateNumber_AsInt(t *testing.T) {
@@ -229,43 +253,4 @@ func TestValidateNil(t *testing.T) {
 
 func anyValueType(valueType string) bool {
 	return true
-}
-
-func assertIsViolation(code, message, path string) func(t *testing.T, err error) {
-	return func(t *testing.T, err error) {
-		validationtest.AssertIsViolation(t, err, func(t *testing.T, violation validation.Violation) bool {
-			return assert.Equal(t, code, violation.GetCode()) &&
-				assert.Equal(t, message, violation.GetMessage()) &&
-				assert.Equal(t, path, violation.GetPropertyPath().Format())
-		})
-	}
-}
-
-func assertHasOneViolation(code, message, path string) func(t *testing.T, err error) {
-	return func(t *testing.T, err error) {
-		validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
-			if assert.Len(t, violations, 1) {
-				return assert.Equal(t, code, violations[0].GetCode()) &&
-					assert.Equal(t, message, violations[0].GetMessage()) &&
-					assert.Equal(t, path, violations[0].GetPropertyPath().Format())
-			}
-
-			return false
-		})
-	}
-}
-
-func assertNoError(t *testing.T, err error) {
-	assert.NoError(t, err)
-}
-
-func assertIsInapplicableConstraintError(t *testing.T, err error, valueType string) {
-	var inapplicableConstraint *validation.ErrInapplicableConstraint
-
-	if !errors.As(err, &inapplicableConstraint) {
-		t.Errorf("failed asserting that error is ErrInapplicableConstraint")
-		return
-	}
-
-	assert.Equal(t, valueType, inapplicableConstraint.Type)
 }

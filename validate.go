@@ -8,6 +8,10 @@ func Validate(value interface{}, options ...Option) error {
 	return validator.Validate(value, options...)
 }
 
+func ValidateBool(value *bool, options ...Option) error {
+	return validator.ValidateBool(value, options...)
+}
+
 func ValidateNumber(value interface{}, options ...Option) error {
 	return validator.ValidateNumber(value, options...)
 }
