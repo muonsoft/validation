@@ -24,6 +24,10 @@ func ValidateFloat(value *float64, options ...Option) error {
 	return validator.ValidateFloat(value, options...)
 }
 
+func WithOptions(options ...Option) (*Validator, error) {
+	return validator.WithOptions(options...)
+}
+
 func Filter(violations ...error) error {
 	filteredViolations := make(ViolationList, 0, len(violations))
 

@@ -40,7 +40,9 @@ type validateByConstraintFunc func(constraint Constraint, options Options) error
 
 func (validator *Validator) Validate(value interface{}, options ...Option) error {
 	if validatable, ok := value.(Validatable); ok {
-		return validatable.Validate(options...)
+		return validatable.Validate(
+			extendAndPassOptions(&validator.defaultOptions, options...),
+		)
 	}
 
 	v := reflect.ValueOf(value)
@@ -137,6 +139,16 @@ func (validator *Validator) ValidateString(value *string, options ...Option) err
 	})
 }
 
+func (validator *Validator) WithOptions(options ...Option) (*Validator, error) {
+	newOptions := validator.defaultOptions
+	err := newOptions.applyNonConstraints(options...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Validator{defaultOptions: newOptions}, nil
+}
+
 func (validator *Validator) validateNil(options ...Option) error {
 	return validator.executeValidation(options, func(constraint Constraint, options Options) error {
 		if constraintValidator, ok := constraint.(NilConstraint); ok {
@@ -167,12 +179,9 @@ func (validator *Validator) executeValidation(options []Option, validate validat
 
 func (validator *Validator) createOptionsFromDefaults(options []Option) (*Options, error) {
 	opts := validator.defaultOptions
-
-	for _, option := range options {
-		err := option.Set(&opts)
-		if err != nil {
-			return nil, err
-		}
+	err := opts.apply(options...)
+	if err != nil {
+		return nil, err
 	}
 
 	return &opts, nil

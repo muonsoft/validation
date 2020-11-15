@@ -2,6 +2,16 @@ package validation
 
 import "context"
 
+type Option interface {
+	Set(options *Options) error
+}
+
+type OptionFunc func(options *Options) error
+
+func (f OptionFunc) Set(options *Options) error {
+	return f(options)
+}
+
 type Options struct {
 	Context      context.Context
 	PropertyPath PropertyPath
@@ -13,14 +23,30 @@ func (o Options) NewConstraintViolation(c Constraint) Violation {
 	return o.NewViolation(c.GetCode(), c.GetMessageTemplate(), c.GetParameters(), o.PropertyPath)
 }
 
-type Option interface {
-	Set(options *Options) error
+func (o *Options) apply(options ...Option) error {
+	for _, option := range options {
+		err := option.Set(o)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-type OptionFunc func(options *Options) error
+func (o *Options) applyNonConstraints(options ...Option) error {
+	for _, option := range options {
+		if _, isConstraint := option.(Constraint); isConstraint {
+			continue
+		}
 
-func (f OptionFunc) Set(options *Options) error {
-	return f(options)
+		err := option.Set(o)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func Context(ctx context.Context) Option {
@@ -49,17 +75,16 @@ func ArrayIndex(index int) Option {
 
 func PassOptions(passedOptions []Option) Option {
 	return OptionFunc(func(options *Options) error {
-		for _, setOption := range passedOptions {
-			if _, isConstraint := setOption.(Constraint); isConstraint {
-				continue
-			}
+		return options.applyNonConstraints(passedOptions...)
+	})
+}
 
-			err := setOption.Set(options)
-			if err != nil {
-				return err
-			}
-		}
+func extendAndPassOptions(extendedOptions *Options, passedOptions ...Option) Option {
+	return OptionFunc(func(options *Options) error {
+		options.Context = extendedOptions.Context
+		options.PropertyPath = append(options.PropertyPath, extendedOptions.PropertyPath...)
+		options.NewViolation = extendedOptions.NewViolation
 
-		return nil
+		return options.applyNonConstraints(passedOptions...)
 	})
 }

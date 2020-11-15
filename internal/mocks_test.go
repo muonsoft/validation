@@ -72,15 +72,53 @@ func mockNewViolationFunc() func(
 	}
 }
 
-type mockValidatable struct {
+type mockValidatableString struct {
 	value string
 }
 
-func (mock mockValidatable) Validate(options ...validation.Option) error {
-	return validation.ValidateString(
-		&mock.value,
-		validation.PassOptions(options),
-		validation.PropertyName("value"),
-		it.IsNotBlank(),
+func (mock mockValidatableString) Validate(options ...validation.Option) error {
+	return validation.Filter(
+		validation.ValidateString(
+			&mock.value,
+			validation.PassOptions(options),
+			validation.PropertyName("value"),
+			it.IsNotBlank(),
+		),
+	)
+}
+
+type mockValidatableStruct struct {
+	intValue    int64
+	floatValue  float64
+	stringValue string
+	structValue mockValidatableString
+}
+
+func (mock mockValidatableStruct) Validate(options ...validation.Option) error {
+	validator, err := validation.WithOptions(options...)
+	if err != nil {
+		return err
+	}
+
+	return validation.Filter(
+		validator.ValidateInt(
+			&mock.intValue,
+			validation.PropertyName("intValue"),
+			it.IsNotBlank(),
+		),
+		validator.ValidateFloat(
+			&mock.floatValue,
+			validation.PropertyName("floatValue"),
+			it.IsNotBlank(),
+		),
+		validator.ValidateString(
+			&mock.stringValue,
+			validation.PropertyName("stringValue"),
+			it.IsNotBlank(),
+		),
+		validator.Validate(
+			&mock.structValue,
+			validation.PropertyName("structValue"),
+		),
 	)
 }

@@ -44,8 +44,8 @@ func TestValidate_GivenValueOfType_ValueValidated(t *testing.T) {
 	}
 }
 
-func TestValidate_Validatable_ValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
-	validatable := mockValidatable{value: ""}
+func TestValidate_ValidatableString_ValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
+	validatable := mockValidatableString{value: ""}
 
 	err := validation.Validate(
 		validatable,
@@ -54,6 +54,26 @@ func TestValidate_Validatable_ValidationExecutedWithPassedOptionsWithoutConstrai
 	)
 
 	assertHasOneViolation(code.NotBlank, message.NotBlank, "top.value")(t, err)
+}
+
+func TestValidate_ValidatableStruct_ValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
+	validatable := mockValidatableStruct{}
+
+	err := validation.Validate(
+		validatable,
+		validation.PropertyName("top"),
+		it.IsNotBlank().Message("ignored"),
+	)
+
+	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
+		if assert.Len(t, violations, 4) {
+			assert.Equal(t, "top.intValue", violations[0].GetPropertyPath().Format())
+			assert.Equal(t, "top.floatValue", violations[1].GetPropertyPath().Format())
+			assert.Equal(t, "top.stringValue", violations[2].GetPropertyPath().Format())
+			assert.Equal(t, "top.structValue.value", violations[3].GetPropertyPath().Format())
+		}
+		return true
+	})
 }
 
 func TestFilter_NoViolations_Nil(t *testing.T) {
