@@ -4,6 +4,7 @@ import (
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/message"
+	"github.com/muonsoft/validation/pseudo"
 )
 
 type NotBlankConstraint struct {
@@ -61,48 +62,16 @@ func (c NotBlankConstraint) ValidateNil(options validation.Options) error {
 	return options.NewConstraintViolation(c)
 }
 
-func (c NotBlankConstraint) ValidateInt(value *int64, options validation.Options) error {
+func (c NotBlankConstraint) ValidateNumber(value pseudo.Number, options validation.Options) error {
 	if c.isIgnored {
 		return nil
 	}
 
-	if value == nil {
+	if value.IsNil() {
 		if c.allowNil {
 			return nil
 		}
-	} else if *value != 0 {
-		return nil
-	}
-
-	return options.NewConstraintViolation(c)
-}
-
-func (c NotBlankConstraint) ValidateUint(value *uint64, options validation.Options) error {
-	if c.isIgnored {
-		return nil
-	}
-
-	if value == nil {
-		if c.allowNil {
-			return nil
-		}
-	} else if *value != 0 {
-		return nil
-	}
-
-	return options.NewConstraintViolation(c)
-}
-
-func (c NotBlankConstraint) ValidateFloat(value *float64, options validation.Options) error {
-	if c.isIgnored {
-		return nil
-	}
-
-	if value == nil {
-		if c.allowNil {
-			return nil
-		}
-	} else if *value != 0 {
+	} else if !value.IsZero() {
 		return nil
 	}
 
@@ -170,24 +139,8 @@ func (c BlankConstraint) ValidateNil(options validation.Options) error {
 	return nil
 }
 
-func (c BlankConstraint) ValidateInt(value *int64, options validation.Options) error {
-	if c.isIgnored || value == nil || *value == 0 {
-		return nil
-	}
-
-	return options.NewConstraintViolation(c)
-}
-
-func (c BlankConstraint) ValidateUint(value *uint64, options validation.Options) error {
-	if c.isIgnored || value == nil || *value == 0 {
-		return nil
-	}
-
-	return options.NewConstraintViolation(c)
-}
-
-func (c BlankConstraint) ValidateFloat(value *float64, options validation.Options) error {
-	if c.isIgnored || value == nil || *value == 0 {
+func (c BlankConstraint) ValidateNumber(value pseudo.Number, options validation.Options) error {
+	if c.isIgnored || value.IsNil() || value.IsZero() {
 		return nil
 	}
 

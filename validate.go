@@ -8,20 +8,12 @@ func Validate(value interface{}, options ...Option) error {
 	return validator.Validate(value, options...)
 }
 
+func ValidateNumber(value interface{}, options ...Option) error {
+	return validator.ValidateNumber(value, options...)
+}
+
 func ValidateString(value *string, options ...Option) error {
 	return validator.ValidateString(value, options...)
-}
-
-func ValidateInt(value *int64, options ...Option) error {
-	return validator.ValidateInt(value, options...)
-}
-
-func ValidateUint(value *uint64, options ...Option) error {
-	return validator.ValidateUint(value, options...)
-}
-
-func ValidateFloat(value *float64, options ...Option) error {
-	return validator.ValidateFloat(value, options...)
 }
 
 func WithOptions(options ...Option) (*Validator, error) {

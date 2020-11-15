@@ -101,13 +101,13 @@ func (mock mockValidatableStruct) Validate(options ...validation.Option) error {
 	}
 
 	return validation.Filter(
-		validator.ValidateInt(
-			&mock.intValue,
+		validator.ValidateNumber(
+			mock.intValue,
 			validation.PropertyName("intValue"),
 			it.IsNotBlank(),
 		),
-		validator.ValidateFloat(
-			&mock.floatValue,
+		validator.ValidateNumber(
+			mock.floatValue,
 			validation.PropertyName("floatValue"),
 			it.IsNotBlank(),
 		),

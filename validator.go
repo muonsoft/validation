@@ -1,7 +1,10 @@
 package validation
 
 import (
+	"fmt"
 	"reflect"
+
+	"github.com/muonsoft/validation/pseudo"
 )
 
 type Validator struct {
@@ -50,15 +53,10 @@ func (validator *Validator) Validate(value interface{}, options ...Option) error
 	switch v.Kind() {
 	case reflect.Ptr:
 		return validator.validatePointer(v, options)
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		i := v.Int()
-		return validator.ValidateInt(&i, options...)
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		u := v.Uint()
-		return validator.ValidateUint(&u, options...)
-	case reflect.Float32, reflect.Float64:
-		f := v.Float()
-		return validator.ValidateFloat(&f, options...)
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+		reflect.Float32, reflect.Float64:
+		return validator.ValidateNumber(value, options...)
 	case reflect.String:
 		s := v.String()
 		return validator.ValidateString(&s, options...)
@@ -74,15 +72,10 @@ func (validator *Validator) validatePointer(v reflect.Value, options []Option) e
 	}
 
 	switch p.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		i := p.Int()
-		return validator.ValidateInt(&i, options...)
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		u := p.Uint()
-		return validator.ValidateUint(&u, options...)
-	case reflect.Float32, reflect.Float64:
-		f := p.Float()
-		return validator.ValidateFloat(&f, options...)
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+		reflect.Float32, reflect.Float64:
+		return validator.ValidateNumber(p.Interface(), options...)
 	case reflect.String:
 		s := p.String()
 		return validator.ValidateString(&s, options...)
@@ -91,36 +84,17 @@ func (validator *Validator) validatePointer(v reflect.Value, options []Option) e
 	return &ErrNotValidatable{Value: v}
 }
 
-func (validator *Validator) ValidateInt(value *int64, options ...Option) error {
+func (validator *Validator) ValidateNumber(value interface{}, options ...Option) error {
+	number, err := pseudo.NewNumber(value)
+	if err != nil {
+		return fmt.Errorf("cannot convert value '%v' to number: %w", value, err)
+	}
+
 	return validator.executeValidation(options, func(constraint Constraint, options Options) (err error) {
-		if constraintValidator, ok := constraint.(IntConstraint); ok {
-			err = constraintValidator.ValidateInt(value, options)
+		if constraintValidator, ok := constraint.(NumberConstraint); ok {
+			err = constraintValidator.ValidateNumber(*number, options)
 		} else {
-			err = &ErrInapplicableConstraint{Code: constraint.GetCode(), Type: "int"}
-		}
-
-		return err
-	})
-}
-
-func (validator *Validator) ValidateUint(value *uint64, options ...Option) error {
-	return validator.executeValidation(options, func(constraint Constraint, options Options) (err error) {
-		if constraintValidator, ok := constraint.(UintConstraint); ok {
-			err = constraintValidator.ValidateUint(value, options)
-		} else {
-			err = &ErrInapplicableConstraint{Code: constraint.GetCode(), Type: "uint"}
-		}
-
-		return err
-	})
-}
-
-func (validator *Validator) ValidateFloat(value *float64, options ...Option) error {
-	return validator.executeValidation(options, func(constraint Constraint, options Options) (err error) {
-		if constraintValidator, ok := constraint.(FloatConstraint); ok {
-			err = constraintValidator.ValidateFloat(value, options)
-		} else {
-			err = &ErrInapplicableConstraint{Code: constraint.GetCode(), Type: "float"}
+			err = &ErrInapplicableConstraint{Code: constraint.GetCode(), Type: "number"}
 		}
 
 		return err
