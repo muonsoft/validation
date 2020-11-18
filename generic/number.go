@@ -46,7 +46,7 @@ func numberFromValue(v reflect.Value) (*Number, error) {
 		return &Number{int: i, float: f, isInt: f == float64(i)}, nil
 	}
 
-	return nil, ErrNotNumeric{value: v}
+	return nil, NotNumericError{value: v}
 }
 
 func (n Number) IsNil() bool {

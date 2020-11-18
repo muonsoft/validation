@@ -1,0 +1,104 @@
+package generic
+
+import (
+	"fmt"
+	"reflect"
+	"strconv"
+)
+
+type Key interface {
+	IsIndex() bool
+	fmt.Stringer
+}
+
+type Iterable interface {
+	Iterate(next func(key Key, value interface{}))
+	Count() int
+}
+
+func NewIterable(value interface{}) (Iterable, error) {
+	v := reflect.ValueOf(value)
+	switch v.Kind() {
+	case reflect.Map:
+		return &iterableMap{value: v}, nil
+	case reflect.Slice, reflect.Array:
+		return &iterableArray{value: v}, nil
+	}
+
+	return nil, NotIterableError{value: v}
+}
+
+type intKey int
+
+func (k intKey) IsIndex() bool {
+	return true
+}
+
+func (k intKey) String() string {
+	return strconv.Itoa(int(k))
+}
+
+type stringKey string
+
+func (s stringKey) IsIndex() bool {
+	return false
+}
+
+func (s stringKey) String() string {
+	return string(s)
+}
+
+type iterableArray struct {
+	value reflect.Value
+}
+
+func (iterable *iterableArray) Iterate(next func(key Key, value interface{})) {
+	for i := 0; i < iterable.value.Len(); i++ {
+		v := iterable.value.Index(i)
+		next(intKey(i), getInterface(v))
+	}
+}
+
+func (iterable *iterableArray) Count() int {
+	return iterable.value.Len()
+}
+
+type iterableMap struct {
+	value reflect.Value
+}
+
+func (iterable *iterableMap) Iterate(next func(key Key, value interface{})) {
+	for _, k := range iterable.value.MapKeys() {
+		key := getString(k)
+		value := getInterface(iterable.value.MapIndex(k))
+		next(stringKey(key), value)
+	}
+}
+
+func (iterable *iterableMap) Count() int {
+	return iterable.value.Len()
+}
+
+func getInterface(value reflect.Value) interface{} {
+	switch value.Kind() {
+	case reflect.Ptr, reflect.Interface:
+		if value.IsNil() {
+			return nil
+		}
+		return value.Elem().Interface()
+	}
+
+	return value.Interface()
+}
+
+func getString(value reflect.Value) string {
+	switch value.Kind() {
+	case reflect.Ptr, reflect.Interface:
+		if value.IsNil() {
+			return ""
+		}
+		return value.Elem().String()
+	}
+
+	return value.String()
+}

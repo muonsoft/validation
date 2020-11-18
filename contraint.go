@@ -28,3 +28,11 @@ type NumberConstraint interface {
 type StringConstraint interface {
 	ValidateString(value *string, options Options) error
 }
+
+type IterableConstraint interface {
+	ValidateIterable(value generic.Iterable, options Options) error
+}
+
+type CountableConstraint interface {
+	ValidateCountable(count int, options Options) error
+}
