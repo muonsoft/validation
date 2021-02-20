@@ -5,19 +5,26 @@ import (
 	"reflect"
 )
 
-type ErrInapplicableConstraint struct {
+type InapplicableConstraintError struct {
 	Code string
 	Type string
 }
 
-func (err *ErrInapplicableConstraint) Error() string {
-	return fmt.Sprintf("constraint with GetCode '%s' cannot be applied to %s", err.Code, err.Type)
+func (err *InapplicableConstraintError) Error() string {
+	return fmt.Sprintf("constraint with code '%s' cannot be applied to %s", err.Code, err.Type)
 }
 
-type ErrNotValidatable struct {
+func newInapplicableConstraintError(constraint Constraint, valueType string) *InapplicableConstraintError {
+	return &InapplicableConstraintError{
+		Code: constraint.GetCode(),
+		Type: valueType,
+	}
+}
+
+type NotValidatableError struct {
 	Value reflect.Value
 }
 
-func (err *ErrNotValidatable) Error() string {
+func (err *NotValidatableError) Error() string {
 	return fmt.Sprintf("value of type %v is not validatable", err.Value.Kind())
 }

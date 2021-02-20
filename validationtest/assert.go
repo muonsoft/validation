@@ -11,6 +11,7 @@ type AssertViolationFunc func(t *testing.T, violation validation.Violation) bool
 type AssertViolationListFunc func(t *testing.T, violations validation.ViolationList) bool
 
 func AssertIsViolation(t *testing.T, err error, assert AssertViolationFunc) bool {
+	t.Helper()
 	if err == nil {
 		t.Errorf("err is nil, but expected to be a Violation")
 		return false
@@ -25,6 +26,7 @@ func AssertIsViolation(t *testing.T, err error, assert AssertViolationFunc) bool
 }
 
 func AssertIsViolationList(t *testing.T, err error, assert AssertViolationListFunc) bool {
+	t.Helper()
 	if err == nil {
 		t.Errorf("err is nil, but expected to be a ViolationList")
 		return false

@@ -65,7 +65,7 @@ func (validator *Validator) Validate(value interface{}, options ...Option) error
 		return validator.ValidateString(&s, options...)
 	}
 
-	return &ErrNotValidatable{Value: v}
+	return &NotValidatableError{Value: v}
 }
 
 func (validator *Validator) validatePointer(v reflect.Value, options []Option) error {
@@ -87,7 +87,7 @@ func (validator *Validator) validatePointer(v reflect.Value, options []Option) e
 		return validator.ValidateString(&s, options...)
 	}
 
-	return &ErrNotValidatable{Value: v}
+	return &NotValidatableError{Value: v}
 }
 
 func (validator *Validator) ValidateBool(value *bool, options ...Option) error {
@@ -95,7 +95,7 @@ func (validator *Validator) ValidateBool(value *bool, options ...Option) error {
 		if constraintValidator, ok := constraint.(BoolConstraint); ok {
 			err = constraintValidator.ValidateBool(value, options)
 		} else {
-			err = &ErrInapplicableConstraint{Code: constraint.GetCode(), Type: "bool"}
+			err = newInapplicableConstraintError(constraint, "bool")
 		}
 
 		return err
@@ -112,7 +112,7 @@ func (validator *Validator) ValidateNumber(value interface{}, options ...Option)
 		if constraintValidator, ok := constraint.(NumberConstraint); ok {
 			err = constraintValidator.ValidateNumber(*number, options)
 		} else {
-			err = &ErrInapplicableConstraint{Code: constraint.GetCode(), Type: "number"}
+			err = newInapplicableConstraintError(constraint, "number")
 		}
 
 		return err
@@ -124,7 +124,7 @@ func (validator *Validator) ValidateString(value *string, options ...Option) err
 		if constraintValidator, ok := constraint.(StringConstraint); ok {
 			err = constraintValidator.ValidateString(value, options)
 		} else {
-			err = &ErrInapplicableConstraint{Code: constraint.GetCode(), Type: "string"}
+			err = newInapplicableConstraintError(constraint, "string")
 		}
 
 		return err

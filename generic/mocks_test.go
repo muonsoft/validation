@@ -23,5 +23,5 @@ func stringPointer(s string) *string {
 }
 
 type mapKey struct {
-	key string
+	Key string
 }

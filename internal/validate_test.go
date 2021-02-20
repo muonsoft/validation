@@ -38,6 +38,7 @@ func TestValidate_GivenValueOfType_ValueValidated(t *testing.T) {
 			err := validation.Validate(test.value, validation.PropertyName("property"), it.IsNotBlank())
 
 			validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
+				t.Helper()
 				if assert.Len(t, violations, 1) {
 					assertHasOneViolation(code.NotBlank, message.NotBlank, "property")(t, err)
 				}
@@ -69,6 +70,7 @@ func TestValidate_ValidatableStruct_ValidationExecutedWithPassedOptionsWithoutCo
 	)
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
+		t.Helper()
 		if assert.Len(t, violations, 4) {
 			assert.Equal(t, "top.intValue", violations[0].GetPropertyPath().Format())
 			assert.Equal(t, "top.floatValue", violations[1].GetPropertyPath().Format())
@@ -92,6 +94,7 @@ func TestFilter_SingleViolation_ViolationInList(t *testing.T) {
 	err := validation.Filter(nil, wrapped)
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
+		t.Helper()
 		return assert.Len(t, violations, 1) && assert.Equal(t, violation, violations[0])
 	})
 }
@@ -104,6 +107,7 @@ func TestFilter_ViolationList_ViolationsInList(t *testing.T) {
 	err := validation.Filter(nil, wrapped)
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
+		t.Helper()
 		return assert.Len(t, violations, 1) && assert.Equal(t, violation, violations[0])
 	})
 }

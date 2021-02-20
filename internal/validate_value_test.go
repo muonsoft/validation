@@ -25,8 +25,7 @@ type ValidateTestCase struct {
 	assert          func(t *testing.T, err error)
 }
 
-var validateTestCases = []ValidateTestCase{
-	// IsNotBlank
+var isNotBlankTestCases = []ValidateTestCase{
 	{
 		name:            "IsNotBlank violation on nil",
 		isApplicableFor: anyValueType,
@@ -92,8 +91,9 @@ var validateTestCases = []ValidateTestCase{
 		options:         []validation.Option{it.IsNotBlank().When(false)},
 		assert:          assertNoError,
 	},
+}
 
-	// IsBlank
+var isBlankTestCases = []ValidateTestCase{
 	{
 		name:            "IsBlank violation on value",
 		isApplicableFor: anyValueType,
@@ -166,6 +166,11 @@ var validateTestCases = []ValidateTestCase{
 		assert:          assertNoError,
 	},
 }
+
+var validateTestCases = mergeTestCases(
+	isNotBlankTestCases,
+	isBlankTestCases,
+)
 
 func TestValidateBool(t *testing.T) {
 	tests := make([]ValidateTestCase, 0)
@@ -253,4 +258,14 @@ func TestValidateNil(t *testing.T) {
 
 func anyValueType(valueType string) bool {
 	return true
+}
+
+func mergeTestCases(testCases ...[]ValidateTestCase) []ValidateTestCase {
+	merged := make([]ValidateTestCase, 0)
+
+	for _, testCase := range testCases {
+		merged = append(merged, testCase...)
+	}
+
+	return merged
 }

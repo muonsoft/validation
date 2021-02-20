@@ -8,6 +8,7 @@ linters:
     - dupl
     - errcheck
 #    - exhaustive
+    - forbidigo
     - funlen
     - gochecknoinits
     - gocognit
@@ -28,6 +29,7 @@ linters:
     - ineffassign
     - interfacer
     - lll
+    - makezero
     - maligned
     - misspell
     - nakedret
@@ -40,6 +42,7 @@ linters:
     - staticcheck
     - structcheck
     - stylecheck
+    - thelper
     - typecheck
     - unconvert
     - unparam

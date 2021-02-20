@@ -100,7 +100,7 @@ func TestNewIterable(t *testing.T) {
 		},
 		{
 			name:            "map of string pointers with struct key",
-			value:           map[mapKey]string{mapKey{key: "key"}: "value"},
+			value:           map[mapKey]string{{Key: "key"}: "value"},
 			expectedKey:     "<generic.mapKey Value>",
 			expectedIsIndex: false,
 			expectedValue:   "value",
