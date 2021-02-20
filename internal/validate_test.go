@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestValidate_GivenValueOfType_ValueValidated(t *testing.T) {
+func TestValidate_WhenValueOfType_ExpectValueValidated(t *testing.T) {
 	tests := []struct {
 		name  string
 		value interface{}
@@ -32,6 +32,12 @@ func TestValidate_GivenValueOfType_ValueValidated(t *testing.T) {
 		{"uint64 nil", nilUint},
 		{"float64 nil", nilFloat},
 		{"string nil", nilString},
+		{"empty array", emptyArray},
+		{"empty slice", emptySlice},
+		{"empty map", emptyMap},
+		{"empty array pointer", &emptyArray},
+		{"empty slice pointer", &emptySlice},
+		{"empty map pointer", &emptyMap},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -48,7 +54,7 @@ func TestValidate_GivenValueOfType_ValueValidated(t *testing.T) {
 	}
 }
 
-func TestValidate_ValidatableString_ValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
+func TestValidate_WhenValidatableString_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
 	validatable := mockValidatableString{value: ""}
 
 	err := validation.Validate(
@@ -60,7 +66,7 @@ func TestValidate_ValidatableString_ValidationExecutedWithPassedOptionsWithoutCo
 	assertHasOneViolation(code.NotBlank, message.NotBlank, "top.value")(t, err)
 }
 
-func TestValidate_ValidatableStruct_ValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
+func TestValidate_WhenValidatableStruct_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
 	validatable := mockValidatableStruct{}
 
 	err := validation.Validate(
@@ -81,13 +87,13 @@ func TestValidate_ValidatableStruct_ValidationExecutedWithPassedOptionsWithoutCo
 	})
 }
 
-func TestFilter_NoViolations_Nil(t *testing.T) {
+func TestFilter_WhenNoViolations_ExpectNil(t *testing.T) {
 	err := validation.Filter(nil, nil)
 
 	assert.NoError(t, err)
 }
 
-func TestFilter_SingleViolation_ViolationInList(t *testing.T) {
+func TestFilter_WhenSingleViolation_ExpectViolationInList(t *testing.T) {
 	violation := validation.NewViolation("code", "message", nil, nil)
 	wrapped := fmt.Errorf("error: %w", violation)
 
@@ -99,7 +105,7 @@ func TestFilter_SingleViolation_ViolationInList(t *testing.T) {
 	})
 }
 
-func TestFilter_ViolationList_ViolationsInList(t *testing.T) {
+func TestFilter_WhenViolationList_ExpectViolationsInList(t *testing.T) {
 	violation := validation.NewViolation("code", "message", nil, nil)
 	violations := validation.ViolationList{violation}
 	wrapped := fmt.Errorf("error: %w", violations)
@@ -112,7 +118,7 @@ func TestFilter_ViolationList_ViolationsInList(t *testing.T) {
 	})
 }
 
-func TestFilter_UnexpectedError_Error(t *testing.T) {
+func TestFilter_WhenUnexpectedError_ExpectError(t *testing.T) {
 	unexpectedError := fmt.Errorf("error")
 
 	err := validation.Filter(unexpectedError)

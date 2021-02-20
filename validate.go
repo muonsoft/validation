@@ -20,6 +20,14 @@ func ValidateString(value *string, options ...Option) error {
 	return validator.ValidateString(value, options...)
 }
 
+func ValidateIterable(value interface{}, options ...Option) error {
+	return validator.ValidateIterable(value, options...)
+}
+
+func ValidateCountable(count int, options ...Option) error {
+	return validator.ValidateCountable(count, options...)
+}
+
 func WithOptions(options ...Option) (*Validator, error) {
 	return validator.WithOptions(options...)
 }

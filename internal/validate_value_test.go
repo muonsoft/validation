@@ -21,6 +21,8 @@ type ValidateTestCase struct {
 	intValue        *int64
 	floatValue      *float64
 	stringValue     *string
+	sliceValue      []string
+	mapValue        map[string]string
 	options         []validation.Option
 	assert          func(t *testing.T, err error)
 }
@@ -39,6 +41,8 @@ var isNotBlankTestCases = []ValidateTestCase{
 		intValue:        intValue(0),
 		floatValue:      floatValue(0),
 		stringValue:     stringValue(""),
+		sliceValue:      []string{},
+		mapValue:        map[string]string{},
 		options:         []validation.Option{it.IsNotBlank()},
 		assert:          assertHasOneViolation(code.NotBlank, message.NotBlank, ""),
 	},
@@ -49,6 +53,8 @@ var isNotBlankTestCases = []ValidateTestCase{
 		intValue:        intValue(0),
 		floatValue:      floatValue(0),
 		stringValue:     stringValue(""),
+		sliceValue:      []string{},
+		mapValue:        map[string]string{},
 		options:         []validation.Option{it.IsNotBlank().When(true)},
 		assert:          assertHasOneViolation(code.NotBlank, message.NotBlank, ""),
 	},
@@ -76,18 +82,20 @@ var isNotBlankTestCases = []ValidateTestCase{
 		intValue:        intValue(1),
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
+		sliceValue:      []string{"a"},
+		mapValue:        map[string]string{"a": "a"},
 		options:         []validation.Option{it.IsNotBlank()},
 		assert:          assertNoError,
 	},
 	{
 		name:            "IsNotBlank passes on nil when allowed",
-		isApplicableFor: anyValueType,
+		isApplicableFor: exceptValueTypes("countable"),
 		options:         []validation.Option{it.IsNotBlank().AllowNil()},
 		assert:          assertNoError,
 	},
 	{
 		name:            "IsNotBlank passes on nil when condition is false",
-		isApplicableFor: anyValueType,
+		isApplicableFor: exceptValueTypes("countable"),
 		options:         []validation.Option{it.IsNotBlank().When(false)},
 		assert:          assertNoError,
 	},
@@ -101,6 +109,8 @@ var isBlankTestCases = []ValidateTestCase{
 		intValue:        intValue(1),
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
+		sliceValue:      []string{"a"},
+		mapValue:        map[string]string{"a": "a"},
 		options:         []validation.Option{it.IsBlank()},
 		assert:          assertHasOneViolation(code.Blank, message.Blank, ""),
 	},
@@ -111,6 +121,8 @@ var isBlankTestCases = []ValidateTestCase{
 		intValue:        intValue(1),
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
+		sliceValue:      []string{"a"},
+		mapValue:        map[string]string{"a": "a"},
 		options:         []validation.Option{it.IsBlank().When(true)},
 		assert:          assertHasOneViolation(code.Blank, message.Blank, ""),
 	},
@@ -121,6 +133,8 @@ var isBlankTestCases = []ValidateTestCase{
 		intValue:        intValue(1),
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
+		sliceValue:      []string{"a"},
+		mapValue:        map[string]string{"a": "a"},
 		options: []validation.Option{
 			validation.PropertyName("properties"),
 			validation.ArrayIndex(0),
@@ -136,6 +150,8 @@ var isBlankTestCases = []ValidateTestCase{
 		intValue:        intValue(1),
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
+		sliceValue:      []string{"a"},
+		mapValue:        map[string]string{"a": "a"},
 		options:         []validation.Option{it.IsBlank().Message(customMessage)},
 		assert:          assertHasOneViolation(code.Blank, customMessage, ""),
 	},
@@ -152,6 +168,8 @@ var isBlankTestCases = []ValidateTestCase{
 		intValue:        intValue(0),
 		floatValue:      floatValue(0.0),
 		stringValue:     stringValue(""),
+		sliceValue:      []string{},
+		mapValue:        map[string]string{},
 		options:         []validation.Option{it.IsBlank()},
 		assert:          assertNoError,
 	},
@@ -162,6 +180,8 @@ var isBlankTestCases = []ValidateTestCase{
 		intValue:        intValue(1),
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
+		sliceValue:      []string{"a"},
+		mapValue:        map[string]string{"a": "a"},
 		options:         []validation.Option{it.IsBlank().When(false)},
 		assert:          assertNoError,
 	},
@@ -231,6 +251,52 @@ func TestValidateString(t *testing.T) {
 	}
 }
 
+func TestValidateIterable_AsSlice(t *testing.T) {
+	for _, test := range validateTestCases {
+		t.Run(test.name, func(t *testing.T) {
+			err := validation.ValidateIterable(test.sliceValue, test.options...)
+
+			if test.isApplicableFor("iterable") {
+				test.assert(t, err)
+			} else {
+				assertIsInapplicableConstraintError(t, err, "iterable")
+			}
+		})
+	}
+}
+
+func TestValidateIterable_AsMap(t *testing.T) {
+	for _, test := range validateTestCases {
+		t.Run(test.name, func(t *testing.T) {
+			err := validation.ValidateIterable(test.mapValue, test.options...)
+
+			if test.isApplicableFor("iterable") {
+				test.assert(t, err)
+			} else {
+				assertIsInapplicableConstraintError(t, err, "iterable")
+			}
+		})
+	}
+}
+
+func TestValidateCountable(t *testing.T) {
+	for _, test := range validateTestCases {
+		if !test.isApplicableFor("countable") {
+			continue
+		}
+
+		t.Run(test.name, func(t *testing.T) {
+			err := validation.ValidateCountable(len(test.sliceValue), test.options...)
+
+			if test.isApplicableFor("countable") {
+				test.assert(t, err)
+			} else {
+				assertIsInapplicableConstraintError(t, err, "countable")
+			}
+		})
+	}
+}
+
 func TestValidateNil(t *testing.T) {
 	tests := []struct {
 		name          string
@@ -258,6 +324,18 @@ func TestValidateNil(t *testing.T) {
 
 func anyValueType(valueType string) bool {
 	return true
+}
+
+func exceptValueTypes(types ...string) func(valueType string) bool {
+	return func(valueType string) bool {
+		for _, t := range types {
+			if valueType == t {
+				return false
+			}
+		}
+
+		return true
+	}
 }
 
 func mergeTestCases(testCases ...[]ValidateTestCase) []ValidateTestCase {

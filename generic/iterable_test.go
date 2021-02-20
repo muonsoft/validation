@@ -13,6 +13,26 @@ func TestNewIterable_WhenNotIterable_ExpectNotIterableError(t *testing.T) {
 	assert.EqualError(t, err, "value of type int is not iterable")
 }
 
+func TestNewIterable_WhenNilSlice_ExpectIsNil(t *testing.T) {
+	var slice []string
+
+	iterable, err := NewIterable(slice)
+
+	if assert.NoError(t, err) {
+		assert.True(t, iterable.IsNil())
+	}
+}
+
+func TestNewIterable_WhenNilMap_ExpectIsNil(t *testing.T) {
+	var value map[string]string
+
+	iterable, err := NewIterable(value)
+
+	if assert.NoError(t, err) {
+		assert.True(t, iterable.IsNil())
+	}
+}
+
 func TestNewIterable(t *testing.T) {
 	tests := []struct {
 		name            string
@@ -112,6 +132,7 @@ func TestNewIterable(t *testing.T) {
 
 			if assert.NoError(t, err) {
 				assert.Equal(t, 1, iterable.Count())
+				assert.False(t, iterable.IsNil())
 				i := 0
 				iterable.Iterate(func(key Key, value interface{}) {
 					assert.Equal(t, test.expectedKey, key.String())

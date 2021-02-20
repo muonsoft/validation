@@ -66,12 +66,10 @@ func (c NotBlankConstraint) ValidateBool(value *bool, options validation.Options
 	if c.isIgnored {
 		return nil
 	}
-
-	if value == nil {
-		if c.allowNil {
-			return nil
-		}
-	} else if *value {
+	if c.allowNil && value == nil {
+		return nil
+	}
+	if value != nil && *value {
 		return nil
 	}
 
@@ -82,12 +80,10 @@ func (c NotBlankConstraint) ValidateNumber(value generic.Number, options validat
 	if c.isIgnored {
 		return nil
 	}
-
-	if value.IsNil() {
-		if c.allowNil {
-			return nil
-		}
-	} else if !value.IsZero() {
+	if c.allowNil && value.IsNil() {
+		return nil
+	}
+	if !value.IsNil() && !value.IsZero() {
 		return nil
 	}
 
@@ -98,12 +94,32 @@ func (c NotBlankConstraint) ValidateString(value *string, options validation.Opt
 	if c.isIgnored {
 		return nil
 	}
+	if c.allowNil && value == nil {
+		return nil
+	}
+	if value != nil && *value != "" {
+		return nil
+	}
 
-	if value == nil {
-		if c.allowNil {
-			return nil
-		}
-	} else if *value != "" {
+	return options.NewConstraintViolation(c)
+}
+
+func (c NotBlankConstraint) ValidateIterable(value generic.Iterable, options validation.Options) error {
+	if c.isIgnored {
+		return nil
+	}
+	if c.allowNil && value.IsNil() {
+		return nil
+	}
+	if value.Count() > 0 {
+		return nil
+	}
+
+	return options.NewConstraintViolation(c)
+}
+
+func (c NotBlankConstraint) ValidateCountable(count int, options validation.Options) error {
+	if c.isIgnored || count > 0 {
 		return nil
 	}
 
@@ -173,6 +189,22 @@ func (c BlankConstraint) ValidateNumber(value generic.Number, options validation
 
 func (c BlankConstraint) ValidateString(value *string, options validation.Options) error {
 	if c.isIgnored || value == nil || *value == "" {
+		return nil
+	}
+
+	return options.NewConstraintViolation(c)
+}
+
+func (c BlankConstraint) ValidateIterable(value generic.Iterable, options validation.Options) error {
+	if c.isIgnored || value.Count() == 0 {
+		return nil
+	}
+
+	return options.NewConstraintViolation(c)
+}
+
+func (c BlankConstraint) ValidateCountable(count int, options validation.Options) error {
+	if c.isIgnored || count == 0 {
 		return nil
 	}
 

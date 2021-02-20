@@ -14,6 +14,7 @@ type Key interface {
 type Iterable interface {
 	Iterate(next func(key Key, value interface{}))
 	Count() int
+	IsNil() bool
 }
 
 func NewIterable(value interface{}) (Iterable, error) {
@@ -63,6 +64,10 @@ func (iterable *iterableArray) Count() int {
 	return iterable.value.Len()
 }
 
+func (iterable *iterableArray) IsNil() bool {
+	return iterable.value.Kind() == reflect.Slice && iterable.value.IsNil()
+}
+
 type iterableMap struct {
 	value reflect.Value
 }
@@ -77,6 +82,10 @@ func (iterable *iterableMap) Iterate(next func(key Key, value interface{})) {
 
 func (iterable *iterableMap) Count() int {
 	return iterable.value.Len()
+}
+
+func (iterable *iterableMap) IsNil() bool {
+	return iterable.value.IsNil()
 }
 
 func getInterface(value reflect.Value) interface{} {

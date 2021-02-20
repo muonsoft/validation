@@ -6,11 +6,14 @@ import (
 )
 
 var (
-	nilBool   *bool
-	nilInt    *int64
-	nilUint   *uint64
-	nilFloat  *float64
-	nilString *string
+	nilBool    *bool
+	nilInt     *int64
+	nilUint    *uint64
+	nilFloat   *float64
+	nilString  *string
+	emptyArray [0]string
+	emptySlice []string
+	emptyMap   map[string]string
 )
 
 func boolValue(b bool) *bool {

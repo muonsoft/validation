@@ -63,6 +63,8 @@ func (validator *Validator) Validate(value interface{}, options ...Option) error
 	case reflect.String:
 		s := v.String()
 		return validator.ValidateString(&s, options...)
+	case reflect.Array, reflect.Slice, reflect.Map:
+		return validator.ValidateIterable(value, options...)
 	}
 
 	return &NotValidatableError{Value: v}
@@ -85,6 +87,8 @@ func (validator *Validator) validatePointer(v reflect.Value, options []Option) e
 	case reflect.String:
 		s := p.String()
 		return validator.ValidateString(&s, options...)
+	case reflect.Array, reflect.Slice, reflect.Map:
+		return validator.ValidateIterable(p.Interface(), options...)
 	}
 
 	return &NotValidatableError{Value: v}
@@ -125,6 +129,35 @@ func (validator *Validator) ValidateString(value *string, options ...Option) err
 			err = constraintValidator.ValidateString(value, options)
 		} else {
 			err = newInapplicableConstraintError(constraint, "string")
+		}
+
+		return err
+	})
+}
+
+func (validator *Validator) ValidateIterable(value interface{}, options ...Option) error {
+	iterable, err := generic.NewIterable(value)
+	if err != nil {
+		return fmt.Errorf("cannot convert value '%v' to iterable: %w", value, err)
+	}
+
+	return validator.executeValidation(options, func(constraint Constraint, options Options) (err error) {
+		if constraintValidator, ok := constraint.(IterableConstraint); ok {
+			err = constraintValidator.ValidateIterable(iterable, options)
+		} else {
+			err = newInapplicableConstraintError(constraint, "iterable")
+		}
+
+		return err
+	})
+}
+
+func (validator *Validator) ValidateCountable(count int, options ...Option) error {
+	return validator.executeValidation(options, func(constraint Constraint, options Options) (err error) {
+		if constraintValidator, ok := constraint.(CountableConstraint); ok {
+			err = constraintValidator.ValidateCountable(count, options)
+		} else {
+			err = newInapplicableConstraintError(constraint, "countable")
 		}
 
 		return err
