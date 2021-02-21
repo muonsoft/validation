@@ -15,15 +15,16 @@ type Iterable interface {
 	Iterate(next func(key Key, value interface{}))
 	Count() int
 	IsNil() bool
+	IsElementImplements(reflectType reflect.Type) bool
 }
 
 func NewIterable(value interface{}) (Iterable, error) {
 	v := reflect.ValueOf(value)
 	switch v.Kind() {
 	case reflect.Map:
-		return &iterableMap{value: v}, nil
+		return &iterableMap{value: v, valueType: reflect.TypeOf(value)}, nil
 	case reflect.Slice, reflect.Array:
-		return &iterableArray{value: v}, nil
+		return &iterableArray{value: v, valueType: reflect.TypeOf(value)}, nil
 	}
 
 	return nil, NotIterableError{value: v}
@@ -50,7 +51,8 @@ func (s stringKey) String() string {
 }
 
 type iterableArray struct {
-	value reflect.Value
+	value     reflect.Value
+	valueType reflect.Type
 }
 
 func (iterable *iterableArray) Iterate(next func(key Key, value interface{})) {
@@ -68,8 +70,13 @@ func (iterable *iterableArray) IsNil() bool {
 	return iterable.value.Kind() == reflect.Slice && iterable.value.IsNil()
 }
 
+func (iterable *iterableArray) IsElementImplements(reflectType reflect.Type) bool {
+	return iterable.valueType.Elem().Implements(reflectType)
+}
+
 type iterableMap struct {
-	value reflect.Value
+	value     reflect.Value
+	valueType reflect.Type
 }
 
 func (iterable *iterableMap) Iterate(next func(key Key, value interface{})) {
@@ -86,6 +93,10 @@ func (iterable *iterableMap) Count() int {
 
 func (iterable *iterableMap) IsNil() bool {
 	return iterable.value.IsNil()
+}
+
+func (iterable *iterableMap) IsElementImplements(reflectType reflect.Type) bool {
+	return iterable.valueType.Elem().Implements(reflectType)
 }
 
 func getInterface(value reflect.Value) interface{} {

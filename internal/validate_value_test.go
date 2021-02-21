@@ -12,6 +12,14 @@ import (
 const (
 	customMessage = "Custom message."
 	customPath    = "properties[0].value"
+
+	// Value types.
+	boolType      = "bool"
+	intType       = "int"
+	floatType     = "float"
+	stringType    = "string"
+	iterableType  = "iterable"
+	countableType = "countable"
 )
 
 type ValidateTestCase struct {
@@ -27,180 +35,18 @@ type ValidateTestCase struct {
 	assert          func(t *testing.T, err error)
 }
 
-var isNotBlankTestCases = []ValidateTestCase{
-	{
-		name:            "IsNotBlank violation on nil",
-		isApplicableFor: anyValueType,
-		options:         []validation.Option{it.IsNotBlank()},
-		assert:          assertHasOneViolation(code.NotBlank, message.NotBlank, ""),
-	},
-	{
-		name:            "IsNotBlank violation on empty value",
-		isApplicableFor: anyValueType,
-		boolValue:       boolValue(false),
-		intValue:        intValue(0),
-		floatValue:      floatValue(0),
-		stringValue:     stringValue(""),
-		sliceValue:      []string{},
-		mapValue:        map[string]string{},
-		options:         []validation.Option{it.IsNotBlank()},
-		assert:          assertHasOneViolation(code.NotBlank, message.NotBlank, ""),
-	},
-	{
-		name:            "IsNotBlank violation on empty value when condition is true",
-		isApplicableFor: anyValueType,
-		boolValue:       boolValue(false),
-		intValue:        intValue(0),
-		floatValue:      floatValue(0),
-		stringValue:     stringValue(""),
-		sliceValue:      []string{},
-		mapValue:        map[string]string{},
-		options:         []validation.Option{it.IsNotBlank().When(true)},
-		assert:          assertHasOneViolation(code.NotBlank, message.NotBlank, ""),
-	},
-	{
-		name:            "IsNotBlank violation on nil with custom path",
-		isApplicableFor: anyValueType,
-		options: []validation.Option{
-			validation.PropertyName("properties"),
-			validation.ArrayIndex(0),
-			validation.PropertyName("value"),
-			it.IsNotBlank(),
-		},
-		assert: assertHasOneViolation(code.NotBlank, message.NotBlank, customPath),
-	},
-	{
-		name:            "IsNotBlank violation on nil with custom message",
-		isApplicableFor: anyValueType,
-		options:         []validation.Option{it.IsNotBlank().Message(customMessage)},
-		assert:          assertHasOneViolation(code.NotBlank, customMessage, ""),
-	},
-	{
-		name:            "IsNotBlank passes on value",
-		isApplicableFor: anyValueType,
-		boolValue:       boolValue(true),
-		intValue:        intValue(1),
-		floatValue:      floatValue(0.1),
-		stringValue:     stringValue("a"),
-		sliceValue:      []string{"a"},
-		mapValue:        map[string]string{"a": "a"},
-		options:         []validation.Option{it.IsNotBlank()},
-		assert:          assertNoError,
-	},
-	{
-		name:            "IsNotBlank passes on nil when allowed",
-		isApplicableFor: exceptValueTypes("countable"),
-		options:         []validation.Option{it.IsNotBlank().AllowNil()},
-		assert:          assertNoError,
-	},
-	{
-		name:            "IsNotBlank passes on nil when condition is false",
-		isApplicableFor: exceptValueTypes("countable"),
-		options:         []validation.Option{it.IsNotBlank().When(false)},
-		assert:          assertNoError,
-	},
-}
-
-var isBlankTestCases = []ValidateTestCase{
-	{
-		name:            "IsBlank violation on value",
-		isApplicableFor: anyValueType,
-		boolValue:       boolValue(true),
-		intValue:        intValue(1),
-		floatValue:      floatValue(0.1),
-		stringValue:     stringValue("a"),
-		sliceValue:      []string{"a"},
-		mapValue:        map[string]string{"a": "a"},
-		options:         []validation.Option{it.IsBlank()},
-		assert:          assertHasOneViolation(code.Blank, message.Blank, ""),
-	},
-	{
-		name:            "IsBlank violation on value when condition is true",
-		isApplicableFor: anyValueType,
-		boolValue:       boolValue(true),
-		intValue:        intValue(1),
-		floatValue:      floatValue(0.1),
-		stringValue:     stringValue("a"),
-		sliceValue:      []string{"a"},
-		mapValue:        map[string]string{"a": "a"},
-		options:         []validation.Option{it.IsBlank().When(true)},
-		assert:          assertHasOneViolation(code.Blank, message.Blank, ""),
-	},
-	{
-		name:            "IsBlank violation on value with custom path",
-		isApplicableFor: anyValueType,
-		boolValue:       boolValue(true),
-		intValue:        intValue(1),
-		floatValue:      floatValue(0.1),
-		stringValue:     stringValue("a"),
-		sliceValue:      []string{"a"},
-		mapValue:        map[string]string{"a": "a"},
-		options: []validation.Option{
-			validation.PropertyName("properties"),
-			validation.ArrayIndex(0),
-			validation.PropertyName("value"),
-			it.IsBlank(),
-		},
-		assert: assertHasOneViolation(code.Blank, message.Blank, customPath),
-	},
-	{
-		name:            "IsBlank violation on value with custom message",
-		isApplicableFor: anyValueType,
-		boolValue:       boolValue(true),
-		intValue:        intValue(1),
-		floatValue:      floatValue(0.1),
-		stringValue:     stringValue("a"),
-		sliceValue:      []string{"a"},
-		mapValue:        map[string]string{"a": "a"},
-		options:         []validation.Option{it.IsBlank().Message(customMessage)},
-		assert:          assertHasOneViolation(code.Blank, customMessage, ""),
-	},
-	{
-		name:            "IsBlank passes on nil",
-		isApplicableFor: anyValueType,
-		options:         []validation.Option{it.IsBlank()},
-		assert:          assertNoError,
-	},
-	{
-		name:            "IsBlank passes on empty value",
-		isApplicableFor: anyValueType,
-		boolValue:       boolValue(false),
-		intValue:        intValue(0),
-		floatValue:      floatValue(0.0),
-		stringValue:     stringValue(""),
-		sliceValue:      []string{},
-		mapValue:        map[string]string{},
-		options:         []validation.Option{it.IsBlank()},
-		assert:          assertNoError,
-	},
-	{
-		name:            "IsBlank passes on value when condition is false",
-		isApplicableFor: anyValueType,
-		boolValue:       boolValue(true),
-		intValue:        intValue(1),
-		floatValue:      floatValue(0.1),
-		stringValue:     stringValue("a"),
-		sliceValue:      []string{"a"},
-		mapValue:        map[string]string{"a": "a"},
-		options:         []validation.Option{it.IsBlank().When(false)},
-		assert:          assertNoError,
-	},
-}
-
 var validateTestCases = mergeTestCases(
 	isNotBlankTestCases,
 	isBlankTestCases,
+	countTestCases,
 )
 
 func TestValidateBool(t *testing.T) {
-	tests := make([]ValidateTestCase, 0)
 	for _, test := range validateTestCases {
-		if test.isApplicableFor("bool") {
-			tests = append(tests, test)
+		if !test.isApplicableFor(boolType) {
+			continue
 		}
-	}
 
-	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			err := validation.ValidateBool(test.boolValue, test.options...)
 
@@ -214,10 +60,10 @@ func TestValidateNumber_AsInt(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			err := validation.ValidateNumber(test.intValue, test.options...)
 
-			if test.isApplicableFor("int") {
+			if test.isApplicableFor(intType) {
 				test.assert(t, err)
 			} else {
-				assertIsInapplicableConstraintError(t, err, "int")
+				assertIsInapplicableConstraintError(t, err, "number")
 			}
 		})
 	}
@@ -228,10 +74,10 @@ func TestValidateNumber_AsFloat(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			err := validation.ValidateNumber(test.floatValue, test.options...)
 
-			if test.isApplicableFor("float") {
+			if test.isApplicableFor(floatType) {
 				test.assert(t, err)
 			} else {
-				assertIsInapplicableConstraintError(t, err, "float")
+				assertIsInapplicableConstraintError(t, err, "number")
 			}
 		})
 	}
@@ -242,10 +88,10 @@ func TestValidateString(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			err := validation.ValidateString(test.stringValue, test.options...)
 
-			if test.isApplicableFor("string") {
+			if test.isApplicableFor(stringType) {
 				test.assert(t, err)
 			} else {
-				assertIsInapplicableConstraintError(t, err, "string")
+				assertIsInapplicableConstraintError(t, err, stringType)
 			}
 		})
 	}
@@ -256,10 +102,10 @@ func TestValidateIterable_AsSlice(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			err := validation.ValidateIterable(test.sliceValue, test.options...)
 
-			if test.isApplicableFor("iterable") {
+			if test.isApplicableFor(iterableType) {
 				test.assert(t, err)
 			} else {
-				assertIsInapplicableConstraintError(t, err, "iterable")
+				assertIsInapplicableConstraintError(t, err, iterableType)
 			}
 		})
 	}
@@ -270,10 +116,10 @@ func TestValidateIterable_AsMap(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			err := validation.ValidateIterable(test.mapValue, test.options...)
 
-			if test.isApplicableFor("iterable") {
+			if test.isApplicableFor(iterableType) {
 				test.assert(t, err)
 			} else {
-				assertIsInapplicableConstraintError(t, err, "iterable")
+				assertIsInapplicableConstraintError(t, err, iterableType)
 			}
 		})
 	}
@@ -281,17 +127,17 @@ func TestValidateIterable_AsMap(t *testing.T) {
 
 func TestValidateCountable(t *testing.T) {
 	for _, test := range validateTestCases {
-		if !test.isApplicableFor("countable") {
+		if !test.isApplicableFor(countableType) {
 			continue
 		}
 
 		t.Run(test.name, func(t *testing.T) {
 			err := validation.ValidateCountable(len(test.sliceValue), test.options...)
 
-			if test.isApplicableFor("countable") {
+			if test.isApplicableFor(countableType) {
 				test.assert(t, err)
 			} else {
-				assertIsInapplicableConstraintError(t, err, "countable")
+				assertIsInapplicableConstraintError(t, err, countableType)
 			}
 		})
 	}
@@ -324,6 +170,18 @@ func TestValidateNil(t *testing.T) {
 
 func anyValueType(valueType string) bool {
 	return true
+}
+
+func specificValueTypes(types ...string) func(valueType string) bool {
+	return func(valueType string) bool {
+		for _, t := range types {
+			if valueType == t {
+				return true
+			}
+		}
+
+		return false
+	}
 }
 
 func exceptValueTypes(types ...string) func(valueType string) bool {

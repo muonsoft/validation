@@ -25,3 +25,7 @@ func stringPointer(s string) *string {
 type mapKey struct {
 	Key string
 }
+
+type testInterface interface {
+	Do() error
+}

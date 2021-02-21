@@ -46,20 +46,12 @@ func (c NotBlankConstraint) GetCode() string {
 	return c.code
 }
 
-func (c NotBlankConstraint) GetMessageTemplate() string {
-	return c.messageTemplate
-}
-
-func (c NotBlankConstraint) GetParameters() map[string]string {
-	return nil
-}
-
 func (c NotBlankConstraint) ValidateNil(options validation.Options) error {
 	if c.isIgnored || c.allowNil {
 		return nil
 	}
 
-	return options.NewConstraintViolation(c)
+	return options.NewConstraintViolation(c, c.messageTemplate, nil)
 }
 
 func (c NotBlankConstraint) ValidateBool(value *bool, options validation.Options) error {
@@ -73,7 +65,7 @@ func (c NotBlankConstraint) ValidateBool(value *bool, options validation.Options
 		return nil
 	}
 
-	return options.NewConstraintViolation(c)
+	return options.NewConstraintViolation(c, c.messageTemplate, nil)
 }
 
 func (c NotBlankConstraint) ValidateNumber(value generic.Number, options validation.Options) error {
@@ -87,7 +79,7 @@ func (c NotBlankConstraint) ValidateNumber(value generic.Number, options validat
 		return nil
 	}
 
-	return options.NewConstraintViolation(c)
+	return options.NewConstraintViolation(c, c.messageTemplate, nil)
 }
 
 func (c NotBlankConstraint) ValidateString(value *string, options validation.Options) error {
@@ -101,7 +93,7 @@ func (c NotBlankConstraint) ValidateString(value *string, options validation.Opt
 		return nil
 	}
 
-	return options.NewConstraintViolation(c)
+	return options.NewConstraintViolation(c, c.messageTemplate, nil)
 }
 
 func (c NotBlankConstraint) ValidateIterable(value generic.Iterable, options validation.Options) error {
@@ -115,7 +107,7 @@ func (c NotBlankConstraint) ValidateIterable(value generic.Iterable, options val
 		return nil
 	}
 
-	return options.NewConstraintViolation(c)
+	return options.NewConstraintViolation(c, c.messageTemplate, nil)
 }
 
 func (c NotBlankConstraint) ValidateCountable(count int, options validation.Options) error {
@@ -123,7 +115,7 @@ func (c NotBlankConstraint) ValidateCountable(count int, options validation.Opti
 		return nil
 	}
 
-	return options.NewConstraintViolation(c)
+	return options.NewConstraintViolation(c, c.messageTemplate, nil)
 }
 
 type BlankConstraint struct {
@@ -149,14 +141,6 @@ func (c BlankConstraint) GetCode() string {
 	return c.code
 }
 
-func (c BlankConstraint) GetMessageTemplate() string {
-	return c.messageTemplate
-}
-
-func (c BlankConstraint) GetParameters() map[string]string {
-	return nil
-}
-
 func (c BlankConstraint) When(condition bool) BlankConstraint {
 	c.isIgnored = !condition
 	return c
@@ -176,7 +160,7 @@ func (c BlankConstraint) ValidateBool(value *bool, options validation.Options) e
 		return nil
 	}
 
-	return options.NewConstraintViolation(c)
+	return options.NewConstraintViolation(c, c.messageTemplate, nil)
 }
 
 func (c BlankConstraint) ValidateNumber(value generic.Number, options validation.Options) error {
@@ -184,7 +168,7 @@ func (c BlankConstraint) ValidateNumber(value generic.Number, options validation
 		return nil
 	}
 
-	return options.NewConstraintViolation(c)
+	return options.NewConstraintViolation(c, c.messageTemplate, nil)
 }
 
 func (c BlankConstraint) ValidateString(value *string, options validation.Options) error {
@@ -192,7 +176,7 @@ func (c BlankConstraint) ValidateString(value *string, options validation.Option
 		return nil
 	}
 
-	return options.NewConstraintViolation(c)
+	return options.NewConstraintViolation(c, c.messageTemplate, nil)
 }
 
 func (c BlankConstraint) ValidateIterable(value generic.Iterable, options validation.Options) error {
@@ -200,7 +184,7 @@ func (c BlankConstraint) ValidateIterable(value generic.Iterable, options valida
 		return nil
 	}
 
-	return options.NewConstraintViolation(c)
+	return options.NewConstraintViolation(c, c.messageTemplate, nil)
 }
 
 func (c BlankConstraint) ValidateCountable(count int, options validation.Options) error {
@@ -208,5 +192,5 @@ func (c BlankConstraint) ValidateCountable(count int, options validation.Options
 		return nil
 	}
 
-	return options.NewConstraintViolation(c)
+	return options.NewConstraintViolation(c, c.messageTemplate, nil)
 }
