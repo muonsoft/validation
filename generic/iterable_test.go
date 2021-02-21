@@ -1,6 +1,7 @@
 package generic
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -58,12 +59,45 @@ func TestNewIterable_WhenMapElementImplementsInterface_ExpectTrue(t *testing.T) 
 	}
 }
 
+func TestIterableArray_Iterate_WhenBreakAtFirstElement_ExpectCountIsOne(t *testing.T) {
+	count := 0
+	iterable, err := NewIterable([]string{"a", "b", "c"})
+	if err != nil {
+		t.Fatal("failed to initialize iterable from slice")
+	}
+
+	err = iterable.Iterate(func(key Key, value interface{}) error {
+		count++
+		return fmt.Errorf("error")
+	})
+
+	assert.EqualError(t, err, "error")
+	assert.Equal(t, 1, count)
+}
+
+func TestIterableMap_Iterate_WhenBreakAtFirstElement_ExpectCountIsOne(t *testing.T) {
+	count := 0
+	iterable, err := NewIterable(map[string]string{"a": "a", "b": "b", "c": "c"})
+	if err != nil {
+		t.Fatal("failed to initialize iterable from map")
+	}
+
+	err = iterable.Iterate(func(key Key, value interface{}) error {
+		count++
+		return fmt.Errorf("error")
+	})
+
+	assert.EqualError(t, err, "error")
+	assert.Equal(t, 1, count)
+}
+
 func TestNewIterable(t *testing.T) {
 	tests := []struct {
 		name            string
 		value           interface{}
 		expectedKey     string
 		expectedIsIndex bool
+		expectedIndex   int
 		expectedValue   interface{}
 	}{
 		{
@@ -71,6 +105,7 @@ func TestNewIterable(t *testing.T) {
 			value:           [...]string{"value"},
 			expectedKey:     "0",
 			expectedIsIndex: true,
+			expectedIndex:   0,
 			expectedValue:   "value",
 		},
 		{
@@ -78,6 +113,7 @@ func TestNewIterable(t *testing.T) {
 			value:           [...]*string{stringPointer("value")},
 			expectedKey:     "0",
 			expectedIsIndex: true,
+			expectedIndex:   0,
 			expectedValue:   "value",
 		},
 		{
@@ -85,6 +121,7 @@ func TestNewIterable(t *testing.T) {
 			value:           [...]*string{nil},
 			expectedKey:     "0",
 			expectedIsIndex: true,
+			expectedIndex:   0,
 			expectedValue:   nil,
 		},
 		{
@@ -92,6 +129,7 @@ func TestNewIterable(t *testing.T) {
 			value:           []string{"value"},
 			expectedKey:     "0",
 			expectedIsIndex: true,
+			expectedIndex:   0,
 			expectedValue:   "value",
 		},
 		{
@@ -99,6 +137,7 @@ func TestNewIterable(t *testing.T) {
 			value:           []*string{stringPointer("value")},
 			expectedKey:     "0",
 			expectedIsIndex: true,
+			expectedIndex:   0,
 			expectedValue:   "value",
 		},
 		{
@@ -106,6 +145,7 @@ func TestNewIterable(t *testing.T) {
 			value:           []*string{nil},
 			expectedKey:     "0",
 			expectedIsIndex: true,
+			expectedIndex:   0,
 			expectedValue:   nil,
 		},
 		{
@@ -113,6 +153,7 @@ func TestNewIterable(t *testing.T) {
 			value:           map[string]string{"key": "value"},
 			expectedKey:     "key",
 			expectedIsIndex: false,
+			expectedIndex:   -1,
 			expectedValue:   "value",
 		},
 		{
@@ -120,6 +161,7 @@ func TestNewIterable(t *testing.T) {
 			value:           map[string]*string{"key": stringPointer("value")},
 			expectedKey:     "key",
 			expectedIsIndex: false,
+			expectedIndex:   -1,
 			expectedValue:   "value",
 		},
 		{
@@ -127,6 +169,7 @@ func TestNewIterable(t *testing.T) {
 			value:           map[string]*string{"key": nil},
 			expectedKey:     "key",
 			expectedIsIndex: false,
+			expectedIndex:   -1,
 			expectedValue:   nil,
 		},
 		{
@@ -134,6 +177,7 @@ func TestNewIterable(t *testing.T) {
 			value:           map[*string]*string{stringPointer("key"): nil},
 			expectedKey:     "key",
 			expectedIsIndex: false,
+			expectedIndex:   -1,
 			expectedValue:   nil,
 		},
 		{
@@ -141,6 +185,7 @@ func TestNewIterable(t *testing.T) {
 			value:           map[*string]*string{nil: nil},
 			expectedKey:     "",
 			expectedIsIndex: false,
+			expectedIndex:   -1,
 			expectedValue:   nil,
 		},
 		{
@@ -148,6 +193,7 @@ func TestNewIterable(t *testing.T) {
 			value:           map[mapKey]string{{Key: "key"}: "value"},
 			expectedKey:     "<generic.mapKey Value>",
 			expectedIsIndex: false,
+			expectedIndex:   -1,
 			expectedValue:   "value",
 		},
 	}
@@ -159,12 +205,16 @@ func TestNewIterable(t *testing.T) {
 				assert.Equal(t, 1, iterable.Count())
 				assert.False(t, iterable.IsNil())
 				i := 0
-				iterable.Iterate(func(key Key, value interface{}) {
+				err = iterable.Iterate(func(key Key, value interface{}) error {
 					assert.Equal(t, test.expectedKey, key.String())
 					assert.Equal(t, test.expectedIsIndex, key.IsIndex())
+					assert.Equal(t, test.expectedIndex, key.Index())
 					assert.Equal(t, test.expectedValue, value)
 					i++
+
+					return nil
 				})
+				assert.NoError(t, err)
 				assert.Equal(t, 1, i)
 			}
 		})

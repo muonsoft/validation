@@ -79,6 +79,13 @@ func PassOptions(passedOptions []Option) Option {
 	})
 }
 
+func newDefaultOptions() Options {
+	defaultOptions := Options{
+		NewViolation: NewViolation,
+	}
+	return defaultOptions
+}
+
 func extendAndPassOptions(extendedOptions *Options, passedOptions ...Option) Option {
 	return OptionFunc(func(options *Options) error {
 		options.Context = extendedOptions.Context
