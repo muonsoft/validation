@@ -8,7 +8,6 @@ import (
 )
 
 type NotBlankConstraint struct {
-	code            string
 	messageTemplate string
 	isIgnored       bool
 	allowNil        bool
@@ -16,7 +15,6 @@ type NotBlankConstraint struct {
 
 func IsNotBlank() NotBlankConstraint {
 	return NotBlankConstraint{
-		code:            code.NotBlank,
 		messageTemplate: message.NotBlank,
 	}
 }
@@ -42,8 +40,8 @@ func (c NotBlankConstraint) Set(options *validation.Options) error {
 	return nil
 }
 
-func (c NotBlankConstraint) GetCode() string {
-	return c.code
+func (c NotBlankConstraint) GetName() string {
+	return "NotBlankConstraint"
 }
 
 func (c NotBlankConstraint) ValidateNil(options validation.Options) error {
@@ -51,7 +49,7 @@ func (c NotBlankConstraint) ValidateNil(options validation.Options) error {
 		return nil
 	}
 
-	return options.NewConstraintViolation(c, c.messageTemplate, nil)
+	return c.newViolation(options)
 }
 
 func (c NotBlankConstraint) ValidateBool(value *bool, options validation.Options) error {
@@ -65,7 +63,7 @@ func (c NotBlankConstraint) ValidateBool(value *bool, options validation.Options
 		return nil
 	}
 
-	return options.NewConstraintViolation(c, c.messageTemplate, nil)
+	return c.newViolation(options)
 }
 
 func (c NotBlankConstraint) ValidateNumber(value generic.Number, options validation.Options) error {
@@ -79,7 +77,7 @@ func (c NotBlankConstraint) ValidateNumber(value generic.Number, options validat
 		return nil
 	}
 
-	return options.NewConstraintViolation(c, c.messageTemplate, nil)
+	return c.newViolation(options)
 }
 
 func (c NotBlankConstraint) ValidateString(value *string, options validation.Options) error {
@@ -93,7 +91,7 @@ func (c NotBlankConstraint) ValidateString(value *string, options validation.Opt
 		return nil
 	}
 
-	return options.NewConstraintViolation(c, c.messageTemplate, nil)
+	return c.newViolation(options)
 }
 
 func (c NotBlankConstraint) ValidateIterable(value generic.Iterable, options validation.Options) error {
@@ -107,7 +105,7 @@ func (c NotBlankConstraint) ValidateIterable(value generic.Iterable, options val
 		return nil
 	}
 
-	return options.NewConstraintViolation(c, c.messageTemplate, nil)
+	return c.newViolation(options)
 }
 
 func (c NotBlankConstraint) ValidateCountable(count int, options validation.Options) error {
@@ -115,18 +113,20 @@ func (c NotBlankConstraint) ValidateCountable(count int, options validation.Opti
 		return nil
 	}
 
-	return options.NewConstraintViolation(c, c.messageTemplate, nil)
+	return c.newViolation(options)
+}
+
+func (c NotBlankConstraint) newViolation(options validation.Options) validation.Violation {
+	return options.NewViolation(code.NotBlank, c.messageTemplate, nil, options.PropertyPath)
 }
 
 type BlankConstraint struct {
-	code            string
 	messageTemplate string
 	isIgnored       bool
 }
 
 func IsBlank() BlankConstraint {
 	return BlankConstraint{
-		code:            code.Blank,
 		messageTemplate: message.Blank,
 	}
 }
@@ -137,8 +137,8 @@ func (c BlankConstraint) Set(options *validation.Options) error {
 	return nil
 }
 
-func (c BlankConstraint) GetCode() string {
-	return c.code
+func (c BlankConstraint) GetName() string {
+	return "BlankConstraint"
 }
 
 func (c BlankConstraint) When(condition bool) BlankConstraint {
@@ -160,7 +160,7 @@ func (c BlankConstraint) ValidateBool(value *bool, options validation.Options) e
 		return nil
 	}
 
-	return options.NewConstraintViolation(c, c.messageTemplate, nil)
+	return c.newViolation(options)
 }
 
 func (c BlankConstraint) ValidateNumber(value generic.Number, options validation.Options) error {
@@ -168,7 +168,7 @@ func (c BlankConstraint) ValidateNumber(value generic.Number, options validation
 		return nil
 	}
 
-	return options.NewConstraintViolation(c, c.messageTemplate, nil)
+	return c.newViolation(options)
 }
 
 func (c BlankConstraint) ValidateString(value *string, options validation.Options) error {
@@ -176,7 +176,7 @@ func (c BlankConstraint) ValidateString(value *string, options validation.Option
 		return nil
 	}
 
-	return options.NewConstraintViolation(c, c.messageTemplate, nil)
+	return c.newViolation(options)
 }
 
 func (c BlankConstraint) ValidateIterable(value generic.Iterable, options validation.Options) error {
@@ -184,7 +184,7 @@ func (c BlankConstraint) ValidateIterable(value generic.Iterable, options valida
 		return nil
 	}
 
-	return options.NewConstraintViolation(c, c.messageTemplate, nil)
+	return c.newViolation(options)
 }
 
 func (c BlankConstraint) ValidateCountable(count int, options validation.Options) error {
@@ -192,5 +192,9 @@ func (c BlankConstraint) ValidateCountable(count int, options validation.Options
 		return nil
 	}
 
-	return options.NewConstraintViolation(c, c.messageTemplate, nil)
+	return c.newViolation(options)
+}
+
+func (c BlankConstraint) newViolation(options validation.Options) validation.Violation {
+	return options.NewViolation(code.Blank, c.messageTemplate, nil, options.PropertyPath)
 }

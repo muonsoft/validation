@@ -10,7 +10,6 @@ import (
 )
 
 type CountConstraint struct {
-	code                 string
 	isIgnored            bool
 	checkMin             bool
 	checkMax             bool
@@ -23,14 +22,13 @@ type CountConstraint struct {
 
 func newCountConstraint(min int, max int, checkMin bool, checkMax bool) CountConstraint {
 	return CountConstraint{
-		code:                 code.Count,
 		min:                  min,
 		max:                  max,
 		checkMin:             checkMin,
 		checkMax:             checkMax,
-		minMessageTemplate:   message.MinCount,
-		maxMessageTemplate:   message.MaxCount,
-		exactMessageTemplate: message.ExactCount,
+		minMessageTemplate:   message.CountTooFew,
+		maxMessageTemplate:   message.CountTooMany,
+		exactMessageTemplate: message.CountExact,
 	}
 }
 
@@ -79,28 +77,13 @@ func (c CountConstraint) ValidateCountable(count int, options validation.Options
 		return nil
 	}
 	if c.checkMax && count > c.max {
-		return c.newViolation(count, c.max, c.maxMessageTemplate, options)
+		return c.newViolation(count, c.max, code.CountTooMany, c.maxMessageTemplate, options)
 	}
 	if c.checkMin && count < c.min {
-		return c.newViolation(count, c.min, c.minMessageTemplate, options)
+		return c.newViolation(count, c.min, code.CountTooFew, c.minMessageTemplate, options)
 	}
 
 	return nil
-}
-
-func (c CountConstraint) newViolation(
-	count, limit int,
-	message string,
-	options validation.Options,
-) validation.Violation {
-	if c.checkMin && c.checkMax && c.min == c.max {
-		message = c.exactMessageTemplate
-	}
-
-	return options.NewConstraintViolation(c, message, map[string]string{
-		"{{ count }}": strconv.Itoa(count),
-		"{{ limit }}": strconv.Itoa(limit),
-	})
 }
 
 func (c CountConstraint) Set(options *validation.Options) error {
@@ -109,6 +92,24 @@ func (c CountConstraint) Set(options *validation.Options) error {
 	return nil
 }
 
-func (c CountConstraint) GetCode() string {
-	return c.code
+func (c CountConstraint) GetName() string {
+	return "CountConstraint"
+}
+
+func (c CountConstraint) newViolation(
+	count, limit int,
+	violationCode, message string,
+	options validation.Options,
+) validation.Violation {
+	if c.checkMin && c.checkMax && c.min == c.max {
+		message = c.exactMessageTemplate
+		violationCode = code.CountExact
+	}
+
+	parameters := map[string]string{
+		"{{ count }}": strconv.Itoa(count),
+		"{{ limit }}": strconv.Itoa(limit),
+	}
+
+	return options.NewViolation(violationCode, message, parameters, options.PropertyPath)
 }
