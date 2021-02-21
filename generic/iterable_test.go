@@ -1,6 +1,7 @@
 package generic
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -30,6 +31,30 @@ func TestNewIterable_WhenNilMap_ExpectIsNil(t *testing.T) {
 
 	if assert.NoError(t, err) {
 		assert.True(t, iterable.IsNil())
+	}
+}
+
+func TestNewIterable_WhenSliceElementImplementsInterface_ExpectTrue(t *testing.T) {
+	var value []testInterface
+	interfaceType := reflect.TypeOf((*testInterface)(nil)).Elem()
+
+	iterable, err := NewIterable(value)
+
+	if assert.NoError(t, err) {
+		implements := iterable.IsElementImplements(interfaceType)
+		assert.True(t, implements)
+	}
+}
+
+func TestNewIterable_WhenMapElementImplementsInterface_ExpectTrue(t *testing.T) {
+	var value map[string]testInterface
+	interfaceType := reflect.TypeOf((*testInterface)(nil)).Elem()
+
+	iterable, err := NewIterable(value)
+
+	if assert.NoError(t, err) {
+		implements := iterable.IsElementImplements(interfaceType)
+		assert.True(t, implements)
 	}
 }
 

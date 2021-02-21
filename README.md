@@ -1,3 +1,3 @@
-# Golang validation
+# Golang validation framework
 
-Golang validation package
+Golang validation framework. Inspired by Symfony Validator component.
