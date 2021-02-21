@@ -1,5 +1,7 @@
 package validation
 
+import "reflect"
+
 type Validatable interface {
 	Validate(options ...Option) error
 }
@@ -44,3 +46,5 @@ func Filter(violations ...error) error {
 
 	return filteredViolations.AsError()
 }
+
+var validatableType = reflect.TypeOf((*Validatable)(nil)).Elem()

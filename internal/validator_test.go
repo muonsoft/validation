@@ -11,6 +11,7 @@ import (
 
 func TestWhenGlobalValidatorWithOverriddenNewViolation_ExpectCustomViolation(t *testing.T) {
 	validation.OverrideDefaults(validation.OverrideNewViolation(mockNewViolationFunc()))
+	defer validation.ResetDefaults()
 
 	err := validation.ValidateString(nil, it.IsNotBlank())
 

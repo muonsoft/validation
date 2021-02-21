@@ -8,11 +8,16 @@ import (
 
 type Key interface {
 	IsIndex() bool
+	Index() int
 	fmt.Stringer
 }
 
+// NextElementFunc used to iterate over iterable via closure. To break cycle closure function needs
+// to return error.
+type NextElementFunc func(key Key, value interface{}) error
+
 type Iterable interface {
-	Iterate(next func(key Key, value interface{}))
+	Iterate(next NextElementFunc) error
 	Count() int
 	IsNil() bool
 	IsElementImplements(reflectType reflect.Type) bool
@@ -36,6 +41,10 @@ func (k intKey) IsIndex() bool {
 	return true
 }
 
+func (k intKey) Index() int {
+	return int(k)
+}
+
 func (k intKey) String() string {
 	return strconv.Itoa(int(k))
 }
@@ -44,6 +53,10 @@ type stringKey string
 
 func (s stringKey) IsIndex() bool {
 	return false
+}
+
+func (s stringKey) Index() int {
+	return -1
 }
 
 func (s stringKey) String() string {
@@ -55,11 +68,16 @@ type iterableArray struct {
 	valueType reflect.Type
 }
 
-func (iterable *iterableArray) Iterate(next func(key Key, value interface{})) {
+func (iterable *iterableArray) Iterate(next NextElementFunc) error {
 	for i := 0; i < iterable.value.Len(); i++ {
 		v := iterable.value.Index(i)
-		next(intKey(i), getInterface(v))
+		err := next(intKey(i), getInterface(v))
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 func (iterable *iterableArray) Count() int {
@@ -79,12 +97,17 @@ type iterableMap struct {
 	valueType reflect.Type
 }
 
-func (iterable *iterableMap) Iterate(next func(key Key, value interface{})) {
+func (iterable *iterableMap) Iterate(next NextElementFunc) error {
 	for _, k := range iterable.value.MapKeys() {
 		key := getString(k)
 		value := getInterface(iterable.value.MapIndex(k))
-		next(stringKey(key), value)
+		err := next(stringKey(key), value)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 func (iterable *iterableMap) Count() int {

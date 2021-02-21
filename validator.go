@@ -14,9 +14,7 @@ type Validator struct {
 type ValidatorOption func(options *Options)
 
 func NewValidator(options ...ValidatorOption) *Validator {
-	defaultOptions := Options{
-		NewViolation: NewViolation,
-	}
+	defaultOptions := newDefaultOptions()
 
 	for _, setOption := range options {
 		setOption(&defaultOptions)
@@ -35,6 +33,10 @@ func OverrideDefaults(options ...ValidatorOption) {
 	for _, setOption := range options {
 		setOption(&validator.defaultOptions)
 	}
+}
+
+func ResetDefaults() {
+	validator.defaultOptions = newDefaultOptions()
 }
 
 var validator = NewValidator()
@@ -95,7 +97,7 @@ func (validator *Validator) validatePointer(v reflect.Value, options []Option) e
 }
 
 func (validator *Validator) ValidateBool(value *bool, options ...Option) error {
-	return validator.executeValidation(options, func(constraint Constraint, options Options) (err error) {
+	return validator.executeValidationAndHandleError(options, func(constraint Constraint, options Options) (err error) {
 		if constraintValidator, ok := constraint.(BoolConstraint); ok {
 			err = constraintValidator.ValidateBool(value, options)
 		} else {
@@ -112,7 +114,7 @@ func (validator *Validator) ValidateNumber(value interface{}, options ...Option)
 		return fmt.Errorf("cannot convert value '%v' to number: %w", value, err)
 	}
 
-	return validator.executeValidation(options, func(constraint Constraint, options Options) (err error) {
+	return validator.executeValidationAndHandleError(options, func(constraint Constraint, options Options) (err error) {
 		if constraintValidator, ok := constraint.(NumberConstraint); ok {
 			err = constraintValidator.ValidateNumber(*number, options)
 		} else {
@@ -124,7 +126,7 @@ func (validator *Validator) ValidateNumber(value interface{}, options ...Option)
 }
 
 func (validator *Validator) ValidateString(value *string, options ...Option) error {
-	return validator.executeValidation(options, func(constraint Constraint, options Options) (err error) {
+	return validator.executeValidationAndHandleError(options, func(constraint Constraint, options Options) (err error) {
 		if constraintValidator, ok := constraint.(StringConstraint); ok {
 			err = constraintValidator.ValidateString(value, options)
 		} else {
@@ -141,7 +143,7 @@ func (validator *Validator) ValidateIterable(value interface{}, options ...Optio
 		return fmt.Errorf("cannot convert value '%v' to iterable: %w", value, err)
 	}
 
-	return validator.executeValidation(options, func(constraint Constraint, options Options) (err error) {
+	violations, err := validator.executeValidation(options, func(constraint Constraint, options Options) (err error) {
 		if constraintValidator, ok := constraint.(IterableConstraint); ok {
 			err = constraintValidator.ValidateIterable(iterable, options)
 		} else {
@@ -150,10 +152,23 @@ func (validator *Validator) ValidateIterable(value interface{}, options ...Optio
 
 		return err
 	})
+	if err != nil {
+		return err
+	}
+
+	if iterable.IsElementImplements(validatableType) {
+		elementViolations, err := validator.validateIterableOfValidatables(iterable, options)
+		if err != nil {
+			return err
+		}
+		violations = append(violations, elementViolations...)
+	}
+
+	return violations.AsError()
 }
 
 func (validator *Validator) ValidateCountable(count int, options ...Option) error {
-	return validator.executeValidation(options, func(constraint Constraint, options Options) (err error) {
+	return validator.executeValidationAndHandleError(options, func(constraint Constraint, options Options) (err error) {
 		if constraintValidator, ok := constraint.(CountableConstraint); ok {
 			err = constraintValidator.ValidateCountable(count, options)
 		} else {
@@ -175,7 +190,7 @@ func (validator *Validator) WithOptions(options ...Option) (*Validator, error) {
 }
 
 func (validator *Validator) validateNil(options ...Option) error {
-	return validator.executeValidation(options, func(constraint Constraint, options Options) error {
+	return validator.executeValidationAndHandleError(options, func(constraint Constraint, options Options) error {
 		if constraintValidator, ok := constraint.(NilConstraint); ok {
 			return constraintValidator.ValidateNil(options)
 		}
@@ -184,10 +199,49 @@ func (validator *Validator) validateNil(options ...Option) error {
 	})
 }
 
-func (validator *Validator) executeValidation(options []Option, validate validateByConstraintFunc) error {
-	opts, err := validator.createOptionsFromDefaults(options)
+func (validator *Validator) validateIterableOfValidatables(
+	iterable generic.Iterable,
+	options []Option,
+) (ViolationList, error) {
+	violations := make(ViolationList, 0)
+
+	err := iterable.Iterate(func(key generic.Key, value interface{}) error {
+		// todo: what about default options?
+		passingOptions := make([]Option, 0, len(options)+1)
+		for _, option := range options {
+			if _, isConstraint := option.(Constraint); isConstraint {
+				continue
+			}
+			passingOptions = append(passingOptions, option)
+		}
+		if key.IsIndex() {
+			passingOptions = append(passingOptions, ArrayIndex(key.Index()))
+		} else {
+			passingOptions = append(passingOptions, PropertyName(key.String()))
+		}
+
+		err := value.(Validatable).Validate(passingOptions...)
+		return violations.AddFromError(err)
+	})
+
+	return violations, err
+}
+
+func (validator *Validator) executeValidationAndHandleError(options []Option, validate validateByConstraintFunc) error {
+	violations, err := validator.executeValidation(options, validate)
 	if err != nil {
 		return err
+	}
+	return violations.AsError()
+}
+
+func (validator *Validator) executeValidation(
+	options []Option,
+	validate validateByConstraintFunc,
+) (ViolationList, error) {
+	opts, err := validator.createOptionsFromDefaults(options)
+	if err != nil {
+		return nil, err
 	}
 
 	violations := make(ViolationList, 0, len(opts.Constraints))
@@ -195,11 +249,11 @@ func (validator *Validator) executeValidation(options []Option, validate validat
 	for _, constraint := range opts.Constraints {
 		err := violations.AddFromError(validate(constraint, *opts))
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return violations.AsError()
+	return violations, nil
 }
 
 func (validator *Validator) createOptionsFromDefaults(options []Option) (*Options, error) {
