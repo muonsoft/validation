@@ -24,11 +24,15 @@ func TestValidate_WhenStructWithComplexRules_ExpectViolations(t *testing.T) {
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 		t.Helper()
-		if assert.Len(t, violations, 2) {
+		if assert.Len(t, violations, 4) {
 			assert.Equal(t, code.NotBlank, violations[0].GetCode())
 			assert.Equal(t, "name", violations[0].GetPropertyPath().Format())
-			assert.Equal(t, code.NotBlank, violations[1].GetCode())
-			assert.Equal(t, "components[0].name", violations[1].GetPropertyPath().Format())
+			assert.Equal(t, code.CountTooFew, violations[1].GetCode())
+			assert.Equal(t, "tags", violations[1].GetPropertyPath().Format())
+			assert.Equal(t, code.NotBlank, violations[2].GetCode())
+			assert.Equal(t, "components[0].name", violations[2].GetPropertyPath().Format())
+			assert.Equal(t, code.CountTooFew, violations[3].GetCode())
+			assert.Equal(t, "components[0].tags", violations[3].GetPropertyPath().Format())
 		}
 		return true
 	})

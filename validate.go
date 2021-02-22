@@ -30,6 +30,18 @@ func ValidateCountable(count int, options ...Option) error {
 	return validator.ValidateCountable(count, options...)
 }
 
+func ValidateValidatable(validatable Validatable, options ...Option) error {
+	return validator.ValidateValidatable(validatable, options...)
+}
+
+func ValidateEach(value interface{}, options ...Option) error {
+	return validator.ValidateEach(value, options...)
+}
+
+func ValidateEachString(strings []string, options ...Option) error {
+	return validator.ValidateEachString(strings, options...)
+}
+
 func WithOptions(options ...Option) (*Validator, error) {
 	return validator.WithOptions(options...)
 }

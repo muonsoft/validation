@@ -66,6 +66,18 @@ func TestValidate_WhenValidatableString_ExpectValidationExecutedWithPassedOption
 	assertHasOneViolation(code.NotBlank, message.NotBlank, "top.value")(t, err)
 }
 
+func TestValidateValidatable_WhenValidatableString_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
+	validatable := mockValidatableString{value: ""}
+
+	err := validation.ValidateValidatable(
+		validatable,
+		validation.PropertyName("top"),
+		it.IsNotBlank().Message("ignored"),
+	)
+
+	assertHasOneViolation(code.NotBlank, message.NotBlank, "top.value")(t, err)
+}
+
 func TestValidate_WhenValidatableStruct_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
 	validatable := mockValidatableStruct{}
 
