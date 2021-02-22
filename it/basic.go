@@ -117,7 +117,7 @@ func (c NotBlankConstraint) ValidateCountable(count int, options validation.Opti
 }
 
 func (c NotBlankConstraint) newViolation(options validation.Options) validation.Violation {
-	return options.NewViolation(code.NotBlank, c.messageTemplate, nil, options.PropertyPath)
+	return options.BuildViolation(code.NotBlank, c.messageTemplate).GetViolation()
 }
 
 type BlankConstraint struct {
@@ -196,5 +196,5 @@ func (c BlankConstraint) ValidateCountable(count int, options validation.Options
 }
 
 func (c BlankConstraint) newViolation(options validation.Options) validation.Violation {
-	return options.NewViolation(code.Blank, c.messageTemplate, nil, options.PropertyPath)
+	return options.BuildViolation(code.Blank, c.messageTemplate).GetViolation()
 }

@@ -106,10 +106,10 @@ func (c CountConstraint) newViolation(
 		violationCode = code.CountExact
 	}
 
-	parameters := map[string]string{
-		"{{ count }}": strconv.Itoa(count),
-		"{{ limit }}": strconv.Itoa(limit),
-	}
-
-	return options.NewViolation(violationCode, message, parameters, options.PropertyPath)
+	return options.BuildViolation(violationCode, message).
+		SetParameters(map[string]string{
+			"{{ count }}": strconv.Itoa(count),
+			"{{ limit }}": strconv.Itoa(limit),
+		}).
+		GetViolation()
 }

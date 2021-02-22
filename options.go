@@ -19,6 +19,14 @@ type Options struct {
 	NewViolation NewViolationFunc
 }
 
+func (o *Options) BuildViolation(code string, message string) *ViolationBuilder {
+	b := BuildViolation(code, message)
+	b.SetNewViolationFunc(o.NewViolation)
+	b.SetPropertyPath(o.PropertyPath)
+
+	return b
+}
+
 func (o *Options) apply(options ...Option) error {
 	for _, option := range options {
 		err := option.Set(o)
@@ -76,10 +84,9 @@ func PassOptions(passedOptions []Option) Option {
 }
 
 func newDefaultOptions() Options {
-	defaultOptions := Options{
+	return Options{
 		NewViolation: NewViolation,
 	}
-	return defaultOptions
 }
 
 func extendAndPassOptions(extendedOptions *Options, passedOptions ...Option) Option {
