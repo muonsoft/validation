@@ -33,7 +33,7 @@ func TestValidateIterable_WhenSliceOfValidatableWithConstraints_ExpectCollection
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 		t.Helper()
 		if assert.Len(t, violations, 2) {
-			assert.Equal(t, code.Count, violations[0].GetCode())
+			assert.Equal(t, code.CountTooFew, violations[0].GetCode())
 			assert.Equal(t, "", violations[0].GetPropertyPath().Format())
 			assert.Equal(t, code.NotBlank, violations[1].GetCode())
 			assert.Equal(t, "[0].value", violations[1].GetPropertyPath().Format())
@@ -65,7 +65,7 @@ func TestValidateIterable_WhenMapOfValidatableWithConstraints_ExpectCollectionVi
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 		t.Helper()
 		if assert.Len(t, violations, 2) {
-			assert.Equal(t, code.Count, violations[0].GetCode())
+			assert.Equal(t, code.CountTooFew, violations[0].GetCode())
 			assert.Equal(t, "", violations[0].GetPropertyPath().Format())
 			assert.Equal(t, code.NotBlank, violations[1].GetCode())
 			assert.Equal(t, "key.value", violations[1].GetPropertyPath().Format())

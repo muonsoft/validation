@@ -19,10 +19,6 @@ type Options struct {
 	NewViolation NewViolationFunc
 }
 
-func (o Options) NewConstraintViolation(c Constraint, message string, parameters map[string]string) Violation {
-	return o.NewViolation(c.GetCode(), message, parameters, o.PropertyPath)
-}
-
 func (o *Options) apply(options ...Option) error {
 	for _, option := range options {
 		err := option.Set(o)

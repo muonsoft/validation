@@ -6,7 +6,7 @@ import (
 
 type Constraint interface {
 	Option
-	GetCode() string
+	GetName() string
 }
 
 // NilConstraint is used for constraints that needs to check value for nil. In common case

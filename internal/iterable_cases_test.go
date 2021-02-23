@@ -12,7 +12,7 @@ var countTestCases = []ValidateTestCase{
 		isApplicableFor: specificValueTypes(iterableType, countableType),
 		options:         []validation.Option{it.HasMinCount(1)},
 		assert: assertHasOneViolation(
-			code.Count,
+			code.CountTooFew,
 			"This collection should contain 1 elements or more.",
 			"",
 		),
@@ -28,7 +28,7 @@ var countTestCases = []ValidateTestCase{
 		isApplicableFor: specificValueTypes(iterableType, countableType),
 		options:         []validation.Option{it.HasMinCount(1).When(true)},
 		assert: assertHasOneViolation(
-			code.Count,
+			code.CountTooFew,
 			"This collection should contain 1 elements or more.",
 			"",
 		),
@@ -43,7 +43,7 @@ var countTestCases = []ValidateTestCase{
 			it.HasMinCount(1),
 		},
 		assert: assertHasOneViolation(
-			code.Count,
+			code.CountTooFew,
 			"This collection should contain 1 elements or more.",
 			customPath,
 		),
@@ -54,7 +54,7 @@ var countTestCases = []ValidateTestCase{
 		options: []validation.Option{
 			it.HasMinCount(1).MinMessage(customMessage),
 		},
-		assert: assertHasOneViolation(code.Count, customMessage, ""),
+		assert: assertHasOneViolation(code.CountTooFew, customMessage, ""),
 	},
 	{
 		name:            "HasMinCount violation on small collection",
@@ -63,7 +63,7 @@ var countTestCases = []ValidateTestCase{
 		mapValue:        map[string]string{"a": "a", "b": "b"},
 		options:         []validation.Option{it.HasMinCount(3)},
 		assert: assertHasOneViolation(
-			code.Count,
+			code.CountTooFew,
 			"This collection should contain 3 elements or more.",
 			"",
 		),
@@ -83,7 +83,7 @@ var countTestCases = []ValidateTestCase{
 		mapValue:        map[string]string{"a": "a", "b": "b"},
 		options:         []validation.Option{it.HasMaxCount(1)},
 		assert: assertHasOneViolation(
-			code.Count,
+			code.CountTooMany,
 			"This collection should contain 1 elements or less.",
 			"",
 		),
@@ -102,7 +102,7 @@ var countTestCases = []ValidateTestCase{
 		sliceValue:      []string{"a", "b"},
 		mapValue:        map[string]string{"a": "a", "b": "b"},
 		options:         []validation.Option{it.HasMaxCount(1).MaxMessage(customMessage)},
-		assert:          assertHasOneViolation(code.Count, customMessage, ""),
+		assert:          assertHasOneViolation(code.CountTooMany, customMessage, ""),
 	},
 	{
 		name:            "HasCountBetween passes on valid collection",
@@ -125,7 +125,7 @@ var countTestCases = []ValidateTestCase{
 		isApplicableFor: specificValueTypes(iterableType, countableType),
 		options:         []validation.Option{it.HasExactCount(1)},
 		assert: assertHasOneViolation(
-			code.Count,
+			code.CountExact,
 			"This collection should contain exactly 1 element.",
 			"",
 		),
@@ -134,6 +134,6 @@ var countTestCases = []ValidateTestCase{
 		name:            "HasExactCount violation on nil with custom message",
 		isApplicableFor: specificValueTypes(iterableType, countableType),
 		options:         []validation.Option{it.HasExactCount(1).ExactMessage(customMessage)},
-		assert:          assertHasOneViolation(code.Count, customMessage, ""),
+		assert:          assertHasOneViolation(code.CountExact, customMessage, ""),
 	},
 }

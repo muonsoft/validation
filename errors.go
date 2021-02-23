@@ -6,18 +6,18 @@ import (
 )
 
 type InapplicableConstraintError struct {
-	Code string
-	Type string
+	Constraint Constraint
+	ValueType  string
 }
 
 func (err *InapplicableConstraintError) Error() string {
-	return fmt.Sprintf("constraint with code '%s' cannot be applied to %s", err.Code, err.Type)
+	return fmt.Sprintf("%s cannot be applied to %s", err.Constraint.GetName(), err.ValueType)
 }
 
 func newInapplicableConstraintError(constraint Constraint, valueType string) *InapplicableConstraintError {
 	return &InapplicableConstraintError{
-		Code: constraint.GetCode(),
-		Type: valueType,
+		Constraint: constraint,
+		ValueType:  valueType,
 	}
 }
 

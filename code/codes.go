@@ -1,7 +1,9 @@
 package code
 
 const (
-	NotBlank = "notBlank"
-	Blank    = "blank"
-	Count    = "count"
+	NotBlank     = "notBlank"
+	Blank        = "blank"
+	CountTooFew  = "countTooFew"
+	CountTooMany = "countTooMany"
+	CountExact   = "countExact"
 )

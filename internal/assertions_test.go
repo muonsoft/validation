@@ -53,5 +53,5 @@ func assertIsInapplicableConstraintError(t *testing.T, err error, valueType stri
 		return
 	}
 
-	assert.Equal(t, valueType, inapplicableConstraint.Type)
+	assert.Equal(t, valueType, inapplicableConstraint.ValueType)
 }
