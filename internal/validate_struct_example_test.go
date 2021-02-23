@@ -26,8 +26,14 @@ func (p Product) Validate(options ...validation.Option) error {
 			it.IsNotBlank(),
 		),
 		validator.ValidateIterable(
+			p.Tags,
+			validation.PropertyName("tags"),
+			it.HasMinCount(1),
+		),
+		validator.ValidateIterable(
 			p.Components,
 			validation.PropertyName("components"),
+			it.HasMinCount(1),
 		),
 	)
 }
@@ -35,6 +41,7 @@ func (p Product) Validate(options ...validation.Option) error {
 type Component struct {
 	ID   int
 	Name string
+	Tags []string
 }
 
 func (c Component) Validate(options ...validation.Option) error {
@@ -48,6 +55,11 @@ func (c Component) Validate(options ...validation.Option) error {
 			&c.Name,
 			validation.PropertyName("name"),
 			it.IsNotBlank(),
+		),
+		validator.ValidateIterable(
+			c.Tags,
+			validation.PropertyName("tags"),
+			it.HasMinCount(1),
 		),
 	)
 }
@@ -66,5 +78,5 @@ func ExampleValidate() {
 	err := validation.Validate(p)
 
 	fmt.Println(err)
-	// Output: violation at 'name': This value should not be blank.; violation at 'components[0].name': This value should not be blank.
+	// Output: violation at 'name': This value should not be blank.; violation at 'tags': This collection should contain 1 elements or more.; violation at 'components[0].name': This value should not be blank.; violation at 'components[0].tags': This collection should contain 1 elements or more.
 }

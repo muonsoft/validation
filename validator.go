@@ -45,9 +45,7 @@ type validateByConstraintFunc func(constraint Constraint, options Options) error
 
 func (validator *Validator) Validate(value interface{}, options ...Option) error {
 	if validatable, ok := value.(Validatable); ok {
-		return validatable.Validate(
-			extendAndPassOptions(&validator.defaultOptions, options...),
-		)
+		return validator.ValidateValidatable(validatable, options...)
 	}
 
 	v := reflect.ValueOf(value)
@@ -179,6 +177,50 @@ func (validator *Validator) ValidateCountable(count int, options ...Option) erro
 	})
 }
 
+func (validator *Validator) ValidateValidatable(validatable Validatable, options ...Option) error {
+	return validatable.Validate(extendAndPassOptions(&validator.defaultOptions, options...))
+}
+
+func (validator *Validator) ValidateEach(value interface{}, options ...Option) error {
+	iterable, err := generic.NewIterable(value)
+	if err != nil {
+		return fmt.Errorf("cannot convert value '%v' to iterable: %w", value, err)
+	}
+
+	violations := make(ViolationList, 0)
+
+	err = iterable.Iterate(func(key generic.Key, value interface{}) error {
+		opts := options
+		if key.IsIndex() {
+			opts = append(opts, ArrayIndex(key.Index()))
+		} else {
+			opts = append(opts, PropertyName(key.String()))
+		}
+
+		err := validator.Validate(value, opts...)
+		return violations.AddFromError(err)
+	})
+	if err != nil {
+		return err
+	}
+
+	return violations.AsError()
+}
+
+func (validator *Validator) ValidateEachString(strings []string, options ...Option) error {
+	violations := make(ViolationList, 0)
+
+	for i := range strings {
+		opts := append(options, ArrayIndex(i))
+		err := violations.AddFromError(validator.ValidateString(&strings[i], opts...))
+		if err != nil {
+			return err
+		}
+	}
+
+	return violations.AsError()
+}
+
 func (validator *Validator) WithOptions(options ...Option) (*Validator, error) {
 	newOptions := validator.defaultOptions
 	err := newOptions.applyNonConstraints(options...)
@@ -206,21 +248,19 @@ func (validator *Validator) validateIterableOfValidatables(
 	violations := make(ViolationList, 0)
 
 	err := iterable.Iterate(func(key generic.Key, value interface{}) error {
-		// todo: what about default options?
-		passingOptions := make([]Option, 0, len(options)+1)
-		for _, option := range options {
-			if _, isConstraint := option.(Constraint); isConstraint {
-				continue
-			}
-			passingOptions = append(passingOptions, option)
-		}
+		opts := options
 		if key.IsIndex() {
-			passingOptions = append(passingOptions, ArrayIndex(key.Index()))
+			opts = append(opts, ArrayIndex(key.Index()))
 		} else {
-			passingOptions = append(passingOptions, PropertyName(key.String()))
+			opts = append(opts, PropertyName(key.String()))
 		}
 
-		err := value.(Validatable).Validate(passingOptions...)
+		elementValidator, err := validator.WithOptions(opts...)
+		if err != nil {
+			return err
+		}
+
+		err = elementValidator.ValidateValidatable(value.(Validatable))
 		return violations.AddFromError(err)
 	})
 
