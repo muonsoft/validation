@@ -1,6 +1,10 @@
 package validation
 
-import "context"
+import (
+	"context"
+
+	"golang.org/x/text/language"
+)
 
 type Option interface {
 	Set(options *Options) error
@@ -15,6 +19,7 @@ func (f OptionFunc) Set(options *Options) error {
 type Options struct {
 	Context      context.Context
 	PropertyPath PropertyPath
+	Language     language.Tag
 	Constraints  []Constraint
 	NewViolation NewViolationFunc
 }
@@ -23,6 +28,7 @@ func (o *Options) BuildViolation(code string, message string) *ViolationBuilder 
 	b := BuildViolation(code, message)
 	b.SetNewViolationFunc(o.NewViolation)
 	b.SetPropertyPath(o.PropertyPath)
+	b.SetLanguage(o.Language)
 
 	return b
 }
@@ -77,16 +83,19 @@ func ArrayIndex(index int) Option {
 	})
 }
 
+// Language option sets current language for translation of violation message.
+func Language(tag language.Tag) Option {
+	return OptionFunc(func(options *Options) error {
+		options.Language = tag
+
+		return nil
+	})
+}
+
 func PassOptions(passedOptions []Option) Option {
 	return OptionFunc(func(options *Options) error {
 		return options.applyNonConstraints(passedOptions...)
 	})
-}
-
-func newDefaultOptions() Options {
-	return Options{
-		NewViolation: NewViolation,
-	}
 }
 
 func extendAndPassOptions(extendedOptions *Options, passedOptions ...Option) Option {

@@ -22,11 +22,14 @@ func TestWhenGlobalValidatorWithOverriddenNewViolation_ExpectCustomViolation(t *
 }
 
 func TestWhenValidatorWithOverriddenNewViolation_ExpectCustomViolation(t *testing.T) {
-	validator := validation.NewValidator(
+	validator, err := validation.NewValidator(
 		validation.OverrideNewViolation(mockNewViolationFunc()),
 	)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	err := validator.ValidateString(nil, it.IsNotBlank())
+	err = validator.ValidateString(nil, it.IsNotBlank())
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 		t.Helper()

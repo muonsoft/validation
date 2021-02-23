@@ -13,7 +13,7 @@ var countTestCases = []ValidateTestCase{
 		options:         []validation.Option{it.HasMinCount(1)},
 		assert: assertHasOneViolation(
 			code.CountTooFew,
-			"This collection should contain 1 elements or more.",
+			"This collection should contain 1 element or more.",
 			"",
 		),
 	},
@@ -29,7 +29,7 @@ var countTestCases = []ValidateTestCase{
 		options:         []validation.Option{it.HasMinCount(1).When(true)},
 		assert: assertHasOneViolation(
 			code.CountTooFew,
-			"This collection should contain 1 elements or more.",
+			"This collection should contain 1 element or more.",
 			"",
 		),
 	},
@@ -44,7 +44,7 @@ var countTestCases = []ValidateTestCase{
 		},
 		assert: assertHasOneViolation(
 			code.CountTooFew,
-			"This collection should contain 1 elements or more.",
+			"This collection should contain 1 element or more.",
 			customPath,
 		),
 	},
@@ -84,7 +84,7 @@ var countTestCases = []ValidateTestCase{
 		options:         []validation.Option{it.HasMaxCount(1)},
 		assert: assertHasOneViolation(
 			code.CountTooMany,
-			"This collection should contain 1 elements or less.",
+			"This collection should contain 1 element or less.",
 			"",
 		),
 	},

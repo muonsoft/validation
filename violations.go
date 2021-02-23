@@ -3,6 +3,8 @@ package validation
 import (
 	"errors"
 	"strings"
+
+	"golang.org/x/text/language"
 )
 
 type Violation interface {
@@ -19,8 +21,10 @@ type ViolationList []Violation
 type NewViolationFunc func(
 	code,
 	messageTemplate string,
+	plural int,
 	parameters map[string]string,
 	propertyPath PropertyPath,
+	lang language.Tag,
 ) Violation
 
 func (violations ViolationList) Error() string {
@@ -92,16 +96,12 @@ func UnwrapViolationList(err error) (ViolationList, bool) {
 func NewViolation(
 	code,
 	messageTemplate string,
+	plural int,
 	parameters map[string]string,
 	propertyPath PropertyPath,
+	lang language.Tag,
 ) Violation {
-	return &internalViolation{
-		Code:            code,
-		Message:         renderMessage(messageTemplate, parameters),
-		MessageTemplate: messageTemplate,
-		Parameters:      parameters,
-		PropertyPath:    propertyPath,
-	}
+	return validator.NewViolation(code, messageTemplate, plural, parameters, propertyPath, lang)
 }
 
 type internalViolation struct {
@@ -151,9 +151,12 @@ func (v internalViolation) GetPropertyPath() PropertyPath {
 type ViolationBuilder struct {
 	code            string
 	messageTemplate string
+	plural          int
 	parameters      map[string]string
 	propertyPath    PropertyPath
-	newViolation    NewViolationFunc
+	language        language.Tag
+
+	newViolation NewViolationFunc
 }
 
 func BuildViolation(code string, message string) *ViolationBuilder {
@@ -185,6 +188,18 @@ func (b *ViolationBuilder) SetPropertyPath(path PropertyPath) *ViolationBuilder 
 	return b
 }
 
+func (b *ViolationBuilder) SetPlural(plural int) *ViolationBuilder {
+	b.plural = plural
+
+	return b
+}
+
+func (b *ViolationBuilder) SetLanguage(tag language.Tag) *ViolationBuilder {
+	b.language = tag
+
+	return b
+}
+
 func (b *ViolationBuilder) SetNewViolationFunc(violationFunc NewViolationFunc) *ViolationBuilder {
 	b.newViolation = violationFunc
 
@@ -192,5 +207,5 @@ func (b *ViolationBuilder) SetNewViolationFunc(violationFunc NewViolationFunc) *
 }
 
 func (b *ViolationBuilder) GetViolation() Violation {
-	return b.newViolation(b.code, b.messageTemplate, b.parameters, b.propertyPath)
+	return b.newViolation(b.code, b.messageTemplate, b.plural, b.parameters, b.propertyPath, b.language)
 }
