@@ -21,7 +21,7 @@ type ViolationList []Violation
 type NewViolationFunc func(
 	code,
 	messageTemplate string,
-	plural int,
+	pluralCount int,
 	parameters map[string]string,
 	propertyPath PropertyPath,
 	lang language.Tag,
@@ -96,12 +96,12 @@ func UnwrapViolationList(err error) (ViolationList, bool) {
 func NewViolation(
 	code,
 	messageTemplate string,
-	plural int,
+	pluralCount int,
 	parameters map[string]string,
 	propertyPath PropertyPath,
 	lang language.Tag,
 ) Violation {
-	return validator.NewViolation(code, messageTemplate, plural, parameters, propertyPath, lang)
+	return validator.NewViolation(code, messageTemplate, pluralCount, parameters, propertyPath, lang)
 }
 
 type internalViolation struct {
@@ -151,7 +151,7 @@ func (v internalViolation) GetPropertyPath() PropertyPath {
 type ViolationBuilder struct {
 	code            string
 	messageTemplate string
-	plural          int
+	pluralCount     int
 	parameters      map[string]string
 	propertyPath    PropertyPath
 	language        language.Tag
@@ -188,8 +188,8 @@ func (b *ViolationBuilder) SetPropertyPath(path PropertyPath) *ViolationBuilder 
 	return b
 }
 
-func (b *ViolationBuilder) SetPlural(plural int) *ViolationBuilder {
-	b.plural = plural
+func (b *ViolationBuilder) SetPluralCount(pluralCount int) *ViolationBuilder {
+	b.pluralCount = pluralCount
 
 	return b
 }
@@ -207,5 +207,5 @@ func (b *ViolationBuilder) SetNewViolationFunc(violationFunc NewViolationFunc) *
 }
 
 func (b *ViolationBuilder) GetViolation() Violation {
-	return b.newViolation(b.code, b.messageTemplate, b.plural, b.parameters, b.propertyPath, b.language)
+	return b.newViolation(b.code, b.messageTemplate, b.pluralCount, b.parameters, b.propertyPath, b.language)
 }

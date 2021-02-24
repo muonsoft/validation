@@ -267,12 +267,12 @@ func (validator *Validator) ValidateEachString(strings []string, options ...Opti
 func (validator *Validator) NewViolation(
 	code,
 	messageTemplate string,
-	plural int,
+	pluralCount int,
 	parameters map[string]string,
 	propertyPath PropertyPath,
 	lang language.Tag,
 ) Violation {
-	message := validator.translator.translate(lang, messageTemplate, plural)
+	message := validator.translator.translate(lang, messageTemplate, pluralCount)
 
 	return &internalViolation{
 		Code:            code,

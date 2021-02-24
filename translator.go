@@ -50,7 +50,7 @@ func (translator *Translator) loadMessages(messages map[language.Tag]map[string]
 	return nil
 }
 
-func (translator *Translator) translate(tag language.Tag, msg string, plural int) string {
+func (translator *Translator) translate(tag language.Tag, msg string, pluralCount int) string {
 	if tag == language.Und {
 		tag = translator.defaultLanguage
 	}
@@ -59,5 +59,5 @@ func (translator *Translator) translate(tag language.Tag, msg string, plural int
 		printer = translator.printers[translator.fallbackLanguage]
 	}
 
-	return printer.Sprintf(msg, plural)
+	return printer.Sprintf(msg, pluralCount)
 }

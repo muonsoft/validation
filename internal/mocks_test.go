@@ -73,14 +73,14 @@ func (mock *mockViolation) GetPropertyPath() validation.PropertyPath {
 func mockNewViolationFunc() func(
 	code string,
 	messageTemplate string,
-	plural int,
+	pluralCount int,
 	parameters map[string]string,
 	propertyPath validation.PropertyPath,
 	lang language.Tag,
 ) validation.Violation {
 	return func(
 		code, messageTemplate string,
-		plural int,
+		pluralCount int,
 		parameters map[string]string,
 		propertyPath validation.PropertyPath,
 		lang language.Tag,

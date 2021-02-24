@@ -107,7 +107,7 @@ func (c CountConstraint) newViolation(
 	}
 
 	return options.BuildViolation(violationCode, message).
-		SetPlural(limit).
+		SetPluralCount(limit).
 		SetParameters(map[string]string{
 			"{{ count }}": strconv.Itoa(count),
 			"{{ limit }}": strconv.Itoa(limit),
