@@ -31,7 +31,7 @@ func (violations ViolationList) Error() string {
 		if i > 0 {
 			s.WriteString("; ")
 		}
-		if iv, ok := v.(internalViolation); ok {
+		if iv, ok := v.(*internalViolation); ok {
 			iv.writeToBuilder(&s)
 		} else {
 			s.WriteString(v.Error())
@@ -146,4 +146,51 @@ func (v internalViolation) GetParameters() map[string]string {
 
 func (v internalViolation) GetPropertyPath() PropertyPath {
 	return v.PropertyPath
+}
+
+type ViolationBuilder struct {
+	code            string
+	messageTemplate string
+	parameters      map[string]string
+	propertyPath    PropertyPath
+	newViolation    NewViolationFunc
+}
+
+func BuildViolation(code string, message string) *ViolationBuilder {
+	return &ViolationBuilder{
+		code:            code,
+		messageTemplate: message,
+		newViolation:    NewViolation,
+	}
+}
+
+func (b *ViolationBuilder) SetParameters(parameters map[string]string) *ViolationBuilder {
+	b.parameters = parameters
+
+	return b
+}
+
+func (b *ViolationBuilder) SetParameter(name string, value string) *ViolationBuilder {
+	if b.parameters == nil {
+		b.parameters = make(map[string]string)
+	}
+	b.parameters[name] = value
+
+	return b
+}
+
+func (b *ViolationBuilder) SetPropertyPath(path PropertyPath) *ViolationBuilder {
+	b.propertyPath = path
+
+	return b
+}
+
+func (b *ViolationBuilder) SetNewViolationFunc(violationFunc NewViolationFunc) *ViolationBuilder {
+	b.newViolation = violationFunc
+
+	return b
+}
+
+func (b *ViolationBuilder) GetViolation() Violation {
+	return b.newViolation(b.code, b.messageTemplate, b.parameters, b.propertyPath)
 }
