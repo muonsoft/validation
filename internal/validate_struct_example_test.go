@@ -78,5 +78,5 @@ func ExampleValidate() {
 	err := validation.Validate(p)
 
 	fmt.Println(err)
-	// Output: violation at 'name': This value should not be blank.; violation at 'tags': This collection should contain 1 elements or more.; violation at 'components[0].name': This value should not be blank.; violation at 'components[0].tags': This collection should contain 1 elements or more.
+	// Output: violation at 'name': This value should not be blank.; violation at 'tags': This collection should contain 1 element or more.; violation at 'components[0].name': This value should not be blank.; violation at 'components[0].tags': This collection should contain 1 element or more.
 }

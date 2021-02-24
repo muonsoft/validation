@@ -5,41 +5,84 @@ import (
 	"reflect"
 
 	"github.com/muonsoft/validation/generic"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message/catalog"
 )
 
 type Validator struct {
 	defaultOptions Options
+	translator     *Translator
 }
 
-type ValidatorOption func(options *Options)
+type ValidatorOption func(validator *Validator) error
 
-func NewValidator(options ...ValidatorOption) *Validator {
-	defaultOptions := newDefaultOptions()
+func NewValidator(options ...ValidatorOption) (*Validator, error) {
+	newValidator := &Validator{defaultOptions: Options{}}
+	newValidator.defaultOptions.NewViolation = newValidator.NewViolation
+	newValidator.translator = &Translator{}
 
 	for _, setOption := range options {
-		setOption(&defaultOptions)
+		err := setOption(newValidator)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return &Validator{defaultOptions: defaultOptions}
+	err := newValidator.translator.init()
+	if err != nil {
+		return nil, err
+	}
+
+	return newValidator, nil
+}
+
+func DefaultLanguage(tag language.Tag) ValidatorOption {
+	return func(validator *Validator) error {
+		validator.translator.defaultLanguage = tag
+		return nil
+	}
+}
+
+func FallbackLanguage(tag language.Tag) ValidatorOption {
+	return func(validator *Validator) error {
+		validator.translator.fallbackLanguage = tag
+		return nil
+	}
+}
+
+func Translations(messages map[language.Tag]map[string]catalog.Message) ValidatorOption {
+	return func(validator *Validator) error {
+		return validator.translator.loadMessages(messages)
+	}
 }
 
 func OverrideNewViolation(violationFunc NewViolationFunc) ValidatorOption {
-	return func(options *Options) {
-		options.NewViolation = violationFunc
+	return func(validator *Validator) error {
+		validator.defaultOptions.NewViolation = violationFunc
+
+		return nil
 	}
 }
 
-func OverrideDefaults(options ...ValidatorOption) {
+func OverrideDefaults(options ...ValidatorOption) error {
 	for _, setOption := range options {
-		setOption(&validator.defaultOptions)
+		err := setOption(validator)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 func ResetDefaults() {
-	validator.defaultOptions = newDefaultOptions()
+	validator.defaultOptions = Options{}
+	validator.defaultOptions.NewViolation = validator.NewViolation
+	validator.translator.defaultLanguage = language.English
+	validator.translator.fallbackLanguage = language.English
 }
 
-var validator = NewValidator()
+var validator, _ = NewValidator()
 
 type validateByConstraintFunc func(constraint Constraint, options Options) error
 
@@ -219,6 +262,25 @@ func (validator *Validator) ValidateEachString(strings []string, options ...Opti
 	}
 
 	return violations.AsError()
+}
+
+func (validator *Validator) NewViolation(
+	code,
+	messageTemplate string,
+	pluralCount int,
+	parameters map[string]string,
+	propertyPath PropertyPath,
+	lang language.Tag,
+) Violation {
+	message := validator.translator.translate(lang, messageTemplate, pluralCount)
+
+	return &internalViolation{
+		Code:            code,
+		Message:         renderMessage(message, parameters),
+		MessageTemplate: messageTemplate,
+		Parameters:      parameters,
+		PropertyPath:    propertyPath,
+	}
 }
 
 func (validator *Validator) WithOptions(options ...Option) (*Validator, error) {

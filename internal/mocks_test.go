@@ -3,6 +3,7 @@ package internal
 import (
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/it"
+	"golang.org/x/text/language"
 )
 
 var (
@@ -72,11 +73,24 @@ func (mock *mockViolation) GetPropertyPath() validation.PropertyPath {
 func mockNewViolationFunc() func(
 	code string,
 	messageTemplate string,
+	pluralCount int,
 	parameters map[string]string,
 	propertyPath validation.PropertyPath,
+	lang language.Tag,
 ) validation.Violation {
-	return func(code, messageTemplate string, parameters map[string]string, propertyPath validation.PropertyPath) validation.Violation {
-		return &mockViolation{code: code, messageTemplate: messageTemplate, parameters: parameters, propertyPath: propertyPath}
+	return func(
+		code, messageTemplate string,
+		pluralCount int,
+		parameters map[string]string,
+		propertyPath validation.PropertyPath,
+		lang language.Tag,
+	) validation.Violation {
+		return &mockViolation{
+			code:            code,
+			messageTemplate: messageTemplate,
+			parameters:      parameters,
+			propertyPath:    propertyPath,
+		}
 	}
 }
 

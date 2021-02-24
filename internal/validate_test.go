@@ -10,6 +10,7 @@ import (
 	"github.com/muonsoft/validation/message"
 	"github.com/muonsoft/validation/validationtest"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/text/language"
 )
 
 func TestValidate_WhenValueOfType_ExpectValueValidated(t *testing.T) {
@@ -106,7 +107,7 @@ func TestFilter_WhenNoViolations_ExpectNil(t *testing.T) {
 }
 
 func TestFilter_WhenSingleViolation_ExpectViolationInList(t *testing.T) {
-	violation := validation.NewViolation("code", "message", nil, nil)
+	violation := validation.NewViolation("code", "message", 0, nil, nil, language.Und)
 	wrapped := fmt.Errorf("error: %w", violation)
 
 	err := validation.Filter(nil, wrapped)
@@ -118,7 +119,7 @@ func TestFilter_WhenSingleViolation_ExpectViolationInList(t *testing.T) {
 }
 
 func TestFilter_WhenViolationList_ExpectViolationsInList(t *testing.T) {
-	violation := validation.NewViolation("code", "message", nil, nil)
+	violation := validation.NewViolation("code", "message", 0, nil, nil, language.Und)
 	violations := validation.ViolationList{violation}
 	wrapped := fmt.Errorf("error: %w", violations)
 
