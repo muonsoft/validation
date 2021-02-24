@@ -5,6 +5,7 @@ import (
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/generic"
 	"github.com/muonsoft/validation/message"
+	"time"
 )
 
 type NotBlankConstraint struct {
@@ -116,6 +117,20 @@ func (c NotBlankConstraint) ValidateCountable(count int, options validation.Opti
 	return c.newViolation(options)
 }
 
+func (c NotBlankConstraint) ValidateTime(time *time.Time, options validation.Options) error {
+	if c.isIgnored {
+		return nil
+	}
+	if c.allowNil && time == nil {
+		return nil
+	}
+	if time != nil {
+		return nil
+	}
+
+	return c.newViolation(options)
+}
+
 func (c NotBlankConstraint) newViolation(options validation.Options) validation.Violation {
 	return options.BuildViolation(code.NotBlank, c.messageTemplate).GetViolation()
 }
@@ -193,6 +208,15 @@ func (c BlankConstraint) ValidateCountable(count int, options validation.Options
 	}
 
 	return c.newViolation(options)
+}
+
+func (c BlankConstraint) ValidateTime(time *time.Time, options validation.Options) error {
+	if c.isIgnored || time == nil {
+		return nil
+	}
+
+	return c.newViolation(options)
+
 }
 
 func (c BlankConstraint) newViolation(options validation.Options) validation.Violation {

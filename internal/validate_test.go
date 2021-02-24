@@ -33,6 +33,7 @@ func TestValidate_WhenValueOfType_ExpectValueValidated(t *testing.T) {
 		{"uint64 nil", nilUint},
 		{"float64 nil", nilFloat},
 		{"string nil", nilString},
+		{"time nil", nilTime},
 		{"empty array", emptyArray},
 		{"empty slice", emptySlice},
 		{"empty map", emptyMap},

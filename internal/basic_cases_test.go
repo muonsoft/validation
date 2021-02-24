@@ -5,6 +5,7 @@ import (
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
+	timeType "time"
 )
 
 var isNotBlankTestCases = []ValidateTestCase{
@@ -63,6 +64,7 @@ var isNotBlankTestCases = []ValidateTestCase{
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
 		sliceValue:      []string{"a"},
+		timeValue:       timeValue(timeType.Now()),
 		mapValue:        map[string]string{"a": "a"},
 		options:         []validation.Option{it.IsNotBlank()},
 		assert:          assertNoError,
@@ -90,6 +92,7 @@ var isBlankTestCases = []ValidateTestCase{
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
 		sliceValue:      []string{"a"},
+		timeValue:       timeValue(timeType.Now()),
 		mapValue:        map[string]string{"a": "a"},
 		options:         []validation.Option{it.IsBlank()},
 		assert:          assertHasOneViolation(code.Blank, message.Blank, ""),
@@ -102,6 +105,7 @@ var isBlankTestCases = []ValidateTestCase{
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
 		sliceValue:      []string{"a"},
+		timeValue:       timeValue(timeType.Now()),
 		mapValue:        map[string]string{"a": "a"},
 		options:         []validation.Option{it.IsBlank().When(true)},
 		assert:          assertHasOneViolation(code.Blank, message.Blank, ""),
@@ -114,6 +118,7 @@ var isBlankTestCases = []ValidateTestCase{
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
 		sliceValue:      []string{"a"},
+		timeValue:       timeValue(timeType.Now()),
 		mapValue:        map[string]string{"a": "a"},
 		options: []validation.Option{
 			validation.PropertyName("properties"),
@@ -131,6 +136,7 @@ var isBlankTestCases = []ValidateTestCase{
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
 		sliceValue:      []string{"a"},
+		timeValue:       timeValue(timeType.Now()),
 		mapValue:        map[string]string{"a": "a"},
 		options:         []validation.Option{it.IsBlank().Message(customMessage)},
 		assert:          assertHasOneViolation(code.Blank, customMessage, ""),
@@ -161,6 +167,7 @@ var isBlankTestCases = []ValidateTestCase{
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
 		sliceValue:      []string{"a"},
+		timeValue:       timeValue(timeType.Now()),
 		mapValue:        map[string]string{"a": "a"},
 		options:         []validation.Option{it.IsBlank().When(false)},
 		assert:          assertNoError,

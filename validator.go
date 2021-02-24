@@ -3,6 +3,7 @@ package validation
 import (
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/muonsoft/validation/generic"
 	"golang.org/x/text/language"
@@ -214,6 +215,18 @@ func (validator *Validator) ValidateCountable(count int, options ...Option) erro
 			err = constraintValidator.ValidateCountable(count, options)
 		} else {
 			err = newInapplicableConstraintError(constraint, "countable")
+		}
+
+		return err
+	})
+}
+
+func (validator *Validator) ValidateTime(time *time.Time, options ...Option) error {
+	return validator.executeValidationAndHandleError(options, func(constraint Constraint, options Options) (err error) {
+		if constraintValidator, ok := constraint.(TimeConstraint); ok {
+			err = constraintValidator.ValidateTime(time, options)
+		} else {
+			err = newInapplicableConstraintError(constraint, "time")
 		}
 
 		return err

@@ -2,6 +2,7 @@ package internal
 
 import (
 	"testing"
+	timeType "time"
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
@@ -20,6 +21,7 @@ const (
 	stringType    = "string"
 	iterableType  = "iterable"
 	countableType = "countable"
+	time          = "time"
 )
 
 type ValidateTestCase struct {
@@ -30,6 +32,7 @@ type ValidateTestCase struct {
 	floatValue      *float64
 	stringValue     *string
 	sliceValue      []string
+	timeValue       *timeType.Time
 	mapValue        map[string]string
 	options         []validation.Option
 	assert          func(t *testing.T, err error)
@@ -138,6 +141,24 @@ func TestValidateCountable(t *testing.T) {
 				test.assert(t, err)
 			} else {
 				assertIsInapplicableConstraintError(t, err, countableType)
+			}
+		})
+	}
+}
+
+func TestValidateTime(t *testing.T) {
+	for _, test := range validateTestCases {
+		if !test.isApplicableFor(time) {
+			continue
+		}
+
+		t.Run(test.name, func(t *testing.T) {
+			err := validation.ValidateTime(test.timeValue, test.options...)
+
+			if test.isApplicableFor(time) {
+				test.assert(t, err)
+			} else {
+				assertIsInapplicableConstraintError(t, err, time)
 			}
 		})
 	}
