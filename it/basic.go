@@ -5,6 +5,7 @@ import (
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/generic"
 	"github.com/muonsoft/validation/message"
+
 	"time"
 )
 
@@ -216,7 +217,6 @@ func (c BlankConstraint) ValidateTime(time *time.Time, options validation.Option
 	}
 
 	return c.newViolation(options)
-
 }
 
 func (c BlankConstraint) newViolation(options validation.Options) validation.Violation {
