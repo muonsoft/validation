@@ -11,10 +11,9 @@ import (
 )
 
 type Translator struct {
-	fallbackLanguage language.Tag
-	defaultLanguage  language.Tag
-	messages         *catalog.Builder
-	printers         map[language.Tag]*message.Printer
+	defaultLanguage language.Tag
+	messages        *catalog.Builder
+	printers        map[language.Tag]*message.Printer
 }
 
 func (translator *Translator) init() error {
@@ -56,7 +55,13 @@ func (translator *Translator) translate(tag language.Tag, msg string, pluralCoun
 	}
 	printer := translator.printers[tag]
 	if printer == nil {
-		printer = translator.printers[translator.fallbackLanguage]
+		printer = translator.printers[tag.Parent()]
+	}
+	if printer == nil {
+		printer = translator.printers[translator.defaultLanguage]
+	}
+	if printer == nil {
+		return msg
 	}
 
 	return printer.Sprintf(msg, pluralCount)

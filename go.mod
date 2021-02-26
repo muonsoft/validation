@@ -3,6 +3,7 @@ module github.com/muonsoft/validation
 go 1.13
 
 require (
+	github.com/muonsoft/language v0.1.0
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.6.1
 	golang.org/x/text v0.3.5
