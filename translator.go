@@ -26,7 +26,7 @@ func (translator *Translator) init() error {
 		return err
 	}
 
-	return nil
+	return translator.checkDefaultLanguageIsLoaded()
 }
 
 func (translator *Translator) loadMessages(messages map[language.Tag]map[string]catalog.Message) error {
@@ -65,4 +65,16 @@ func (translator *Translator) translate(tag language.Tag, msg string, pluralCoun
 	}
 
 	return printer.Sprintf(msg, pluralCount)
+}
+
+func (translator *Translator) checkDefaultLanguageIsLoaded() error {
+	languages := translator.messages.Languages()
+
+	for _, tag := range languages {
+		if tag == translator.defaultLanguage {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("%w: missing messages for language '%s'", errDefaultLanguageNotLoaded, translator.defaultLanguage)
 }

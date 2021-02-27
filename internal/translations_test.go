@@ -101,25 +101,11 @@ func TestValidator_Validate_WhenCustomDefaultLanguageAndUndefinedTranslationLang
 	})
 }
 
-func TestValidator_Validate_WhenDefaultLanguageIsNotLoaded_ExpectNoTranslation(t *testing.T) {
-	validator, err := validation.NewValidator(
-		validation.DefaultLanguage(language.Russian),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
+func TestValidator_Validate_WhenDefaultLanguageIsNotLoaded_ExpectError(t *testing.T) {
+	validator, err := validation.NewValidator(validation.DefaultLanguage(language.Russian))
 
-	err = validator.ValidateString(
-		stringValue(""),
-		it.IsNotBlank(),
-		validation.Language(language.Afrikaans),
-	)
-
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
-		t.Helper()
-		return assert.Len(t, violations, 1) &&
-			assert.Equal(t, "This value should not be blank.", violations[0].GetMessage())
-	})
+	assert.Nil(t, validator)
+	assert.EqualError(t, err, "default language is not loaded: missing messages for language 'ru'")
 }
 
 func TestValidate_WhenTranslationsLoadedAfterInit_ExpectTranslationsWorking(t *testing.T) {

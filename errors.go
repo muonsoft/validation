@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 )
@@ -28,3 +29,5 @@ type NotValidatableError struct {
 func (err *NotValidatableError) Error() string {
 	return fmt.Sprintf("value of type %v is not validatable", err.Value.Kind())
 }
+
+var errDefaultLanguageNotLoaded = errors.New("default language is not loaded")
