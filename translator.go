@@ -11,10 +11,9 @@ import (
 )
 
 type Translator struct {
-	fallbackLanguage language.Tag
-	defaultLanguage  language.Tag
-	messages         *catalog.Builder
-	printers         map[language.Tag]*message.Printer
+	defaultLanguage language.Tag
+	messages        *catalog.Builder
+	printers        map[language.Tag]*message.Printer
 }
 
 func (translator *Translator) init() error {
@@ -27,7 +26,7 @@ func (translator *Translator) init() error {
 		return err
 	}
 
-	return nil
+	return translator.checkDefaultLanguageIsLoaded()
 }
 
 func (translator *Translator) loadMessages(messages map[language.Tag]map[string]catalog.Message) error {
@@ -56,8 +55,26 @@ func (translator *Translator) translate(tag language.Tag, msg string, pluralCoun
 	}
 	printer := translator.printers[tag]
 	if printer == nil {
-		printer = translator.printers[translator.fallbackLanguage]
+		printer = translator.printers[tag.Parent()]
+	}
+	if printer == nil {
+		printer = translator.printers[translator.defaultLanguage]
+	}
+	if printer == nil {
+		return msg
 	}
 
 	return printer.Sprintf(msg, pluralCount)
+}
+
+func (translator *Translator) checkDefaultLanguageIsLoaded() error {
+	languages := translator.messages.Languages()
+
+	for _, tag := range languages {
+		if tag == translator.defaultLanguage {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("%w: missing messages for language '%s'", errDefaultLanguageNotLoaded, translator.defaultLanguage)
 }

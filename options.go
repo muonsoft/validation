@@ -3,6 +3,7 @@ package validation
 import (
 	"context"
 
+	languagepkg "github.com/muonsoft/language"
 	"golang.org/x/text/language"
 )
 
@@ -28,7 +29,12 @@ func (o *Options) BuildViolation(code string, message string) *ViolationBuilder 
 	b := BuildViolation(code, message)
 	b.SetNewViolationFunc(o.NewViolation)
 	b.SetPropertyPath(o.PropertyPath)
-	b.SetLanguage(o.Language)
+
+	if o.Language != language.Und {
+		b.SetLanguage(o.Language)
+	} else if o.Context != nil {
+		b.SetLanguage(languagepkg.FromContext(o.Context))
+	}
 
 	return b
 }
@@ -96,6 +102,10 @@ func PassOptions(passedOptions []Option) Option {
 	return OptionFunc(func(options *Options) error {
 		return options.applyNonConstraints(passedOptions...)
 	})
+}
+
+func newOptions() Options {
+	return Options{Context: context.Background()}
 }
 
 func extendAndPassOptions(extendedOptions *Options, passedOptions ...Option) Option {

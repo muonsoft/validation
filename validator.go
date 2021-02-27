@@ -17,7 +17,7 @@ type Validator struct {
 type ValidatorOption func(validator *Validator) error
 
 func NewValidator(options ...ValidatorOption) (*Validator, error) {
-	newValidator := &Validator{defaultOptions: Options{}}
+	newValidator := &Validator{defaultOptions: newOptions()}
 	newValidator.defaultOptions.NewViolation = newValidator.NewViolation
 	newValidator.translator = &Translator{}
 
@@ -39,13 +39,6 @@ func NewValidator(options ...ValidatorOption) (*Validator, error) {
 func DefaultLanguage(tag language.Tag) ValidatorOption {
 	return func(validator *Validator) error {
 		validator.translator.defaultLanguage = tag
-		return nil
-	}
-}
-
-func FallbackLanguage(tag language.Tag) ValidatorOption {
-	return func(validator *Validator) error {
-		validator.translator.fallbackLanguage = tag
 		return nil
 	}
 }
@@ -76,10 +69,9 @@ func OverrideDefaults(options ...ValidatorOption) error {
 }
 
 func ResetDefaults() {
-	validator.defaultOptions = Options{}
+	validator.defaultOptions = newOptions()
 	validator.defaultOptions.NewViolation = validator.NewViolation
 	validator.translator.defaultLanguage = language.English
-	validator.translator.fallbackLanguage = language.English
 }
 
 var validator, _ = NewValidator()
