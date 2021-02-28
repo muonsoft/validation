@@ -5,7 +5,7 @@ import (
 	"github.com/muonsoft/validation/it"
 	"golang.org/x/text/language"
 
-	timeType "time"
+	"time"
 )
 
 var (
@@ -14,7 +14,7 @@ var (
 	nilUint    *uint64
 	nilFloat   *float64
 	nilString  *string
-	nilTime    *timeType.Time
+	nilTime    *time.Time
 	emptyArray [0]string
 	emptySlice []string
 	emptyMap   map[string]string
@@ -40,7 +40,7 @@ func stringValue(s string) *string {
 	return &s
 }
 
-func timeValue(t timeType.Time) *timeType.Time {
+func timeValue(t time.Time) *time.Time {
 	return &t
 }
 

@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-	"testing"
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
@@ -11,6 +10,8 @@ import (
 	"github.com/muonsoft/validation/validationtest"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/text/language"
+
+	"testing"
 )
 
 func TestValidate_WhenValueOfType_ExpectValueValidated(t *testing.T) {

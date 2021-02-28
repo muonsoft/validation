@@ -92,6 +92,10 @@ func (validator *Validator) Validate(value interface{}, options ...Option) error
 		return validator.ValidateValidatable(validatable, options...)
 	}
 
+	if t, ok := value.(*time.Time); ok {
+		return validator.ValidateTime(t, options...)
+	}
+
 	v := reflect.ValueOf(value)
 
 	switch v.Kind() {
