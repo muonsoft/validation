@@ -10,30 +10,30 @@ import (
 )
 
 type Validator struct {
-	defaultOptions Options
-	translator     *Translator
+	scope      Scope
+	translator *Translator
 }
 
 type ValidatorOption func(validator *Validator) error
 
 func NewValidator(options ...ValidatorOption) (*Validator, error) {
-	newValidator := &Validator{defaultOptions: newOptions()}
-	newValidator.defaultOptions.NewViolation = newValidator.NewViolation
-	newValidator.translator = &Translator{}
+	validator := &Validator{scope: newScope()}
+	validator.translator = &Translator{}
+	validator.scope.violationFactory = newViolationFactory(validator.translator)
 
 	for _, setOption := range options {
-		err := setOption(newValidator)
+		err := setOption(validator)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	err := newValidator.translator.init()
+	err := validator.translator.init()
 	if err != nil {
 		return nil, err
 	}
 
-	return newValidator, nil
+	return validator, nil
 }
 
 func DefaultLanguage(tag language.Tag) ValidatorOption {
@@ -49,9 +49,9 @@ func Translations(messages map[language.Tag]map[string]catalog.Message) Validato
 	}
 }
 
-func OverrideNewViolation(violationFunc NewViolationFunc) ValidatorOption {
+func OverrideViolationFactory(factory ViolationFactory) ValidatorOption {
 	return func(validator *Validator) error {
-		validator.defaultOptions.NewViolation = violationFunc
+		validator.scope.violationFactory = factory
 
 		return nil
 	}
@@ -69,16 +69,16 @@ func OverrideDefaults(options ...ValidatorOption) error {
 }
 
 func ResetDefaults() {
-	validator.defaultOptions = newOptions()
-	validator.defaultOptions.NewViolation = validator.NewViolation
+	validator.scope = newScope()
 	validator.translator.defaultLanguage = language.English
+	validator.scope.violationFactory = newViolationFactory(validator.translator)
 }
 
 var validator, _ = NewValidator()
 
-type validateByConstraintFunc func(constraint Constraint, options Options) error
+type validateByConstraintFunc func(constraint Constraint, scope Scope) error
 
-func (validator *Validator) Validate(value interface{}, options ...Option) error {
+func (validator *Validator) ValidateValue(value interface{}, options ...Option) error {
 	if validatable, ok := value.(Validatable); ok {
 		return validator.ValidateValidatable(validatable, options...)
 	}
@@ -130,9 +130,9 @@ func (validator *Validator) validatePointer(v reflect.Value, options []Option) e
 }
 
 func (validator *Validator) ValidateBool(value *bool, options ...Option) error {
-	return validator.executeValidationAndHandleError(options, func(constraint Constraint, options Options) (err error) {
+	return validator.executeValidationAndHandleError(options, func(constraint Constraint, scope Scope) (err error) {
 		if constraintValidator, ok := constraint.(BoolConstraint); ok {
-			err = constraintValidator.ValidateBool(value, options)
+			err = constraintValidator.ValidateBool(value, scope)
 		} else {
 			err = newInapplicableConstraintError(constraint, "bool")
 		}
@@ -147,9 +147,9 @@ func (validator *Validator) ValidateNumber(value interface{}, options ...Option)
 		return fmt.Errorf("cannot convert value '%v' to number: %w", value, err)
 	}
 
-	return validator.executeValidationAndHandleError(options, func(constraint Constraint, options Options) (err error) {
+	return validator.executeValidationAndHandleError(options, func(constraint Constraint, scope Scope) (err error) {
 		if constraintValidator, ok := constraint.(NumberConstraint); ok {
-			err = constraintValidator.ValidateNumber(*number, options)
+			err = constraintValidator.ValidateNumber(*number, scope)
 		} else {
 			err = newInapplicableConstraintError(constraint, "number")
 		}
@@ -159,9 +159,9 @@ func (validator *Validator) ValidateNumber(value interface{}, options ...Option)
 }
 
 func (validator *Validator) ValidateString(value *string, options ...Option) error {
-	return validator.executeValidationAndHandleError(options, func(constraint Constraint, options Options) (err error) {
+	return validator.executeValidationAndHandleError(options, func(constraint Constraint, scope Scope) (err error) {
 		if constraintValidator, ok := constraint.(StringConstraint); ok {
-			err = constraintValidator.ValidateString(value, options)
+			err = constraintValidator.ValidateString(value, scope)
 		} else {
 			err = newInapplicableConstraintError(constraint, "string")
 		}
@@ -176,9 +176,9 @@ func (validator *Validator) ValidateIterable(value interface{}, options ...Optio
 		return fmt.Errorf("cannot convert value '%v' to iterable: %w", value, err)
 	}
 
-	violations, err := validator.executeValidation(options, func(constraint Constraint, options Options) (err error) {
+	violations, err := validator.executeValidation(options, func(constraint Constraint, scope Scope) (err error) {
 		if constraintValidator, ok := constraint.(IterableConstraint); ok {
-			err = constraintValidator.ValidateIterable(iterable, options)
+			err = constraintValidator.ValidateIterable(iterable, scope)
 		} else {
 			err = newInapplicableConstraintError(constraint, "iterable")
 		}
@@ -201,9 +201,9 @@ func (validator *Validator) ValidateIterable(value interface{}, options ...Optio
 }
 
 func (validator *Validator) ValidateCountable(count int, options ...Option) error {
-	return validator.executeValidationAndHandleError(options, func(constraint Constraint, options Options) (err error) {
+	return validator.executeValidationAndHandleError(options, func(constraint Constraint, scope Scope) (err error) {
 		if constraintValidator, ok := constraint.(CountableConstraint); ok {
-			err = constraintValidator.ValidateCountable(count, options)
+			err = constraintValidator.ValidateCountable(count, scope)
 		} else {
 			err = newInapplicableConstraintError(constraint, "countable")
 		}
@@ -213,7 +213,7 @@ func (validator *Validator) ValidateCountable(count int, options ...Option) erro
 }
 
 func (validator *Validator) ValidateValidatable(validatable Validatable, options ...Option) error {
-	return validatable.Validate(extendAndPassOptions(&validator.defaultOptions, options...))
+	return validatable.Validate(extendAndPassOptions(&validator.scope, options...))
 }
 
 func (validator *Validator) ValidateEach(value interface{}, options ...Option) error {
@@ -232,7 +232,7 @@ func (validator *Validator) ValidateEach(value interface{}, options ...Option) e
 			opts = append(opts, PropertyName(key.String()))
 		}
 
-		err := validator.Validate(value, opts...)
+		err := validator.ValidateValue(value, opts...)
 		return violations.AddFromError(err)
 	})
 	if err != nil {
@@ -256,39 +256,24 @@ func (validator *Validator) ValidateEachString(strings []string, options ...Opti
 	return violations.AsError()
 }
 
-func (validator *Validator) NewViolation(
-	code,
-	messageTemplate string,
-	pluralCount int,
-	parameters map[string]string,
-	propertyPath PropertyPath,
-	lang language.Tag,
-) Violation {
-	message := validator.translator.translate(lang, messageTemplate, pluralCount)
-
-	return &internalViolation{
-		Code:            code,
-		Message:         renderMessage(message, parameters),
-		MessageTemplate: messageTemplate,
-		Parameters:      parameters,
-		PropertyPath:    propertyPath,
-	}
+func (validator *Validator) GetScope() Scope {
+	return validator.scope
 }
 
 func (validator *Validator) WithOptions(options ...Option) (*Validator, error) {
-	newOptions := validator.defaultOptions
+	newOptions := validator.scope
 	err := newOptions.applyNonConstraints(options...)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Validator{defaultOptions: newOptions}, nil
+	return &Validator{scope: newOptions}, nil
 }
 
 func (validator *Validator) validateNil(options ...Option) error {
-	return validator.executeValidationAndHandleError(options, func(constraint Constraint, options Options) error {
+	return validator.executeValidationAndHandleError(options, func(constraint Constraint, scope Scope) error {
 		if constraintValidator, ok := constraint.(NilConstraint); ok {
-			return constraintValidator.ValidateNil(options)
+			return constraintValidator.ValidateNil(scope)
 		}
 
 		return nil
@@ -333,15 +318,15 @@ func (validator *Validator) executeValidation(
 	options []Option,
 	validate validateByConstraintFunc,
 ) (ViolationList, error) {
-	opts, err := validator.createOptionsFromDefaults(options)
+	scope, err := validator.createScopeFromOptions(options)
 	if err != nil {
 		return nil, err
 	}
 
-	violations := make(ViolationList, 0, len(opts.Constraints))
+	violations := make(ViolationList, 0, len(scope.constraints))
 
-	for _, constraint := range opts.Constraints {
-		err := violations.AddFromError(validate(constraint, *opts))
+	for _, constraint := range scope.constraints {
+		err := violations.AddFromError(validate(constraint, *scope))
 		if err != nil {
 			return nil, err
 		}
@@ -350,12 +335,12 @@ func (validator *Validator) executeValidation(
 	return violations, nil
 }
 
-func (validator *Validator) createOptionsFromDefaults(options []Option) (*Options, error) {
-	opts := validator.defaultOptions
-	err := opts.apply(options...)
+func (validator *Validator) createScopeFromOptions(options []Option) (*Scope, error) {
+	scope := validator.scope
+	err := scope.applyOptions(options...)
 	if err != nil {
 		return nil, err
 	}
 
-	return &opts, nil
+	return &scope, nil
 }
