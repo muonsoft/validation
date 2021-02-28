@@ -218,9 +218,9 @@ func (validator *Validator) ValidateCountable(count int, options ...Option) erro
 }
 
 func (validator *Validator) ValidateTime(time *time.Time, options ...Option) error {
-	return validator.executeValidationAndHandleError(options, func(constraint Constraint, options Options) (err error) {
+	return validator.executeValidationAndHandleError(options, func(constraint Constraint, scope Scope) (err error) {
 		if constraintValidator, ok := constraint.(TimeConstraint); ok {
-			err = constraintValidator.ValidateTime(time, options)
+			err = constraintValidator.ValidateTime(time, scope)
 		} else {
 			err = newInapplicableConstraintError(constraint, "time")
 		}

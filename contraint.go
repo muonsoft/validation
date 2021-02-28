@@ -38,5 +38,5 @@ type CountableConstraint interface {
 }
 
 type TimeConstraint interface {
-	ValidateTime(time *time.Time, options Options) error
+	ValidateTime(time *time.Time, scope Scope) error
 }
