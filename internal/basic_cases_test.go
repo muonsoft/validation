@@ -155,6 +155,7 @@ var isBlankTestCases = []ValidateTestCase{
 		intValue:        intValue(0),
 		floatValue:      floatValue(0.0),
 		stringValue:     stringValue(""),
+		timeValue:       timeValue(time.Time{}),
 		sliceValue:      []string{},
 		mapValue:        map[string]string{},
 		options:         []validation.Option{it.IsBlank()},

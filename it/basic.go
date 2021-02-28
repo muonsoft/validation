@@ -214,7 +214,8 @@ func (c BlankConstraint) ValidateCountable(count int, scope validation.Scope) er
 }
 
 func (c BlankConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
-	if c.isIgnored || value == nil {
+	var empty time.Time
+	if c.isIgnored || value == nil || *value == empty {
 		return nil
 	}
 
