@@ -16,6 +16,18 @@ type Violation interface {
 	GetPropertyPath() PropertyPath
 }
 
+type ViolationFactory interface {
+	BuildViolation(code, message string) *ViolationBuilder
+	CreateViolation(
+		code,
+		messageTemplate string,
+		pluralCount int,
+		parameters map[string]string,
+		propertyPath PropertyPath,
+		lang language.Tag,
+	) Violation
+}
+
 type ViolationList []Violation
 
 type NewViolationFunc func(
@@ -26,6 +38,21 @@ type NewViolationFunc func(
 	propertyPath PropertyPath,
 	lang language.Tag,
 ) Violation
+
+func (f NewViolationFunc) BuildViolation(code, message string) *ViolationBuilder {
+	return newViolationBuilder(f, code, message)
+}
+
+func (f NewViolationFunc) CreateViolation(
+	code,
+	messageTemplate string,
+	pluralCount int,
+	parameters map[string]string,
+	propertyPath PropertyPath,
+	lang language.Tag,
+) Violation {
+	return f(code, messageTemplate, pluralCount, parameters, propertyPath, lang)
+}
 
 func (violations ViolationList) Error() string {
 	var s strings.Builder
@@ -93,17 +120,6 @@ func UnwrapViolationList(err error) (ViolationList, bool) {
 	return violation, as
 }
 
-func NewViolation(
-	code,
-	messageTemplate string,
-	pluralCount int,
-	parameters map[string]string,
-	propertyPath PropertyPath,
-	lang language.Tag,
-) Violation {
-	return validator.NewViolation(code, messageTemplate, pluralCount, parameters, propertyPath, lang)
-}
-
 type internalViolation struct {
 	Code            string
 	Message         string
@@ -148,6 +164,37 @@ func (v internalViolation) GetPropertyPath() PropertyPath {
 	return v.PropertyPath
 }
 
+type internalViolationFactory struct {
+	translator *Translator
+}
+
+func newViolationFactory(translator *Translator) *internalViolationFactory {
+	return &internalViolationFactory{translator: translator}
+}
+
+func (factory *internalViolationFactory) CreateViolation(
+	code,
+	messageTemplate string,
+	pluralCount int,
+	parameters map[string]string,
+	propertyPath PropertyPath,
+	lang language.Tag,
+) Violation {
+	message := factory.translator.translate(lang, messageTemplate, pluralCount)
+
+	return &internalViolation{
+		Code:            code,
+		Message:         renderMessage(message, parameters),
+		MessageTemplate: messageTemplate,
+		Parameters:      parameters,
+		PropertyPath:    propertyPath,
+	}
+}
+
+func (factory *internalViolationFactory) BuildViolation(code, message string) *ViolationBuilder {
+	return newViolationBuilder(factory, code, message)
+}
+
 type ViolationBuilder struct {
 	code            string
 	messageTemplate string
@@ -156,14 +203,14 @@ type ViolationBuilder struct {
 	propertyPath    PropertyPath
 	language        language.Tag
 
-	newViolation NewViolationFunc
+	violationFactory ViolationFactory
 }
 
-func BuildViolation(code string, message string) *ViolationBuilder {
+func newViolationBuilder(factory ViolationFactory, code, message string) *ViolationBuilder {
 	return &ViolationBuilder{
-		code:            code,
-		messageTemplate: message,
-		newViolation:    NewViolation,
+		code:             code,
+		messageTemplate:  message,
+		violationFactory: factory,
 	}
 }
 
@@ -173,7 +220,7 @@ func (b *ViolationBuilder) SetParameters(parameters map[string]string) *Violatio
 	return b
 }
 
-func (b *ViolationBuilder) SetParameter(name string, value string) *ViolationBuilder {
+func (b *ViolationBuilder) SetParameter(name, value string) *ViolationBuilder {
 	if b.parameters == nil {
 		b.parameters = make(map[string]string)
 	}
@@ -200,12 +247,13 @@ func (b *ViolationBuilder) SetLanguage(tag language.Tag) *ViolationBuilder {
 	return b
 }
 
-func (b *ViolationBuilder) SetNewViolationFunc(violationFunc NewViolationFunc) *ViolationBuilder {
-	b.newViolation = violationFunc
-
-	return b
-}
-
 func (b *ViolationBuilder) GetViolation() Violation {
-	return b.newViolation(b.code, b.messageTemplate, b.pluralCount, b.parameters, b.propertyPath, b.language)
+	return b.violationFactory.CreateViolation(
+		b.code,
+		b.messageTemplate,
+		b.pluralCount,
+		b.parameters,
+		b.propertyPath,
+		b.language,
+	)
 }

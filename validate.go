@@ -6,8 +6,8 @@ type Validatable interface {
 	Validate(options ...Option) error
 }
 
-func Validate(value interface{}, options ...Option) error {
-	return validator.Validate(value, options...)
+func ValidateValue(value interface{}, options ...Option) error {
+	return validator.ValidateValue(value, options...)
 }
 
 func ValidateBool(value *bool, options ...Option) error {

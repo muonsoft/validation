@@ -10,10 +10,9 @@ import (
 	"github.com/muonsoft/validation/message"
 	"github.com/muonsoft/validation/validationtest"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/text/language"
 )
 
-func TestValidate_WhenValueOfType_ExpectValueValidated(t *testing.T) {
+func TestValidateValue_WhenValueOfType_ExpectValueValidated(t *testing.T) {
 	tests := []struct {
 		name  string
 		value interface{}
@@ -42,7 +41,7 @@ func TestValidate_WhenValueOfType_ExpectValueValidated(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := validation.Validate(test.value, validation.PropertyName("property"), it.IsNotBlank())
+			err := validation.ValidateValue(test.value, validation.PropertyName("property"), it.IsNotBlank())
 
 			validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 				t.Helper()
@@ -58,7 +57,7 @@ func TestValidate_WhenValueOfType_ExpectValueValidated(t *testing.T) {
 func TestValidate_WhenValidatableString_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
 	validatable := mockValidatableString{value: ""}
 
-	err := validation.Validate(
+	err := validation.ValidateValue(
 		validatable,
 		validation.PropertyName("top"),
 		it.IsNotBlank().Message("ignored"),
@@ -82,7 +81,7 @@ func TestValidateValidatable_WhenValidatableString_ExpectValidationExecutedWithP
 func TestValidate_WhenValidatableStruct_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
 	validatable := mockValidatableStruct{}
 
-	err := validation.Validate(
+	err := validation.ValidateValue(
 		validatable,
 		validation.PropertyName("top"),
 		it.IsNotBlank().Message("ignored"),
@@ -107,7 +106,7 @@ func TestFilter_WhenNoViolations_ExpectNil(t *testing.T) {
 }
 
 func TestFilter_WhenSingleViolation_ExpectViolationInList(t *testing.T) {
-	violation := validation.NewViolation("code", "message", 0, nil, nil, language.Und)
+	violation := validation.GetScope().BuildViolation("code", "message").GetViolation()
 	wrapped := fmt.Errorf("error: %w", violation)
 
 	err := validation.Filter(nil, wrapped)
@@ -119,7 +118,7 @@ func TestFilter_WhenSingleViolation_ExpectViolationInList(t *testing.T) {
 }
 
 func TestFilter_WhenViolationList_ExpectViolationsInList(t *testing.T) {
-	violation := validation.NewViolation("code", "message", 0, nil, nil, language.Und)
+	violation := validation.GetScope().BuildViolation("code", "message").GetViolation()
 	violations := validation.ViolationList{violation}
 	wrapped := fmt.Errorf("error: %w", violations)
 

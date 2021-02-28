@@ -70,15 +70,8 @@ func (mock *mockViolation) GetPropertyPath() validation.PropertyPath {
 	return mock.propertyPath
 }
 
-func mockNewViolationFunc() func(
-	code string,
-	messageTemplate string,
-	pluralCount int,
-	parameters map[string]string,
-	propertyPath validation.PropertyPath,
-	lang language.Tag,
-) validation.Violation {
-	return func(
+func mockNewViolationFunc() validation.ViolationFactory {
+	return validation.NewViolationFunc(func(
 		code, messageTemplate string,
 		pluralCount int,
 		parameters map[string]string,
@@ -91,7 +84,7 @@ func mockNewViolationFunc() func(
 			parameters:      parameters,
 			propertyPath:    propertyPath,
 		}
-	}
+	})
 }
 
 type mockValidatableString struct {
@@ -138,7 +131,7 @@ func (mock mockValidatableStruct) Validate(options ...validation.Option) error {
 			validation.PropertyName("stringValue"),
 			it.IsNotBlank(),
 		),
-		validator.Validate(
+		validator.ValidateValue(
 			&mock.structValue,
 			validation.PropertyName("structValue"),
 		),

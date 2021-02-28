@@ -10,7 +10,7 @@ import (
 )
 
 func TestWhenGlobalValidatorWithOverriddenNewViolation_ExpectCustomViolation(t *testing.T) {
-	validation.OverrideDefaults(validation.OverrideNewViolation(mockNewViolationFunc()))
+	validation.OverrideDefaults(validation.OverrideViolationFactory(mockNewViolationFunc()))
 	defer validation.ResetDefaults()
 
 	err := validation.ValidateString(nil, it.IsNotBlank())
@@ -23,7 +23,7 @@ func TestWhenGlobalValidatorWithOverriddenNewViolation_ExpectCustomViolation(t *
 
 func TestWhenValidatorWithOverriddenNewViolation_ExpectCustomViolation(t *testing.T) {
 	validator, err := validation.NewValidator(
-		validation.OverrideNewViolation(mockNewViolationFunc()),
+		validation.OverrideViolationFactory(mockNewViolationFunc()),
 	)
 	if err != nil {
 		t.Fatal(err)

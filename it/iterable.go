@@ -68,26 +68,26 @@ func (c CountConstraint) ExactMessage(message string) CountConstraint {
 	return c
 }
 
-func (c CountConstraint) ValidateIterable(value generic.Iterable, options validation.Options) error {
-	return c.ValidateCountable(value.Count(), options)
+func (c CountConstraint) ValidateIterable(value generic.Iterable, scope validation.Scope) error {
+	return c.ValidateCountable(value.Count(), scope)
 }
 
-func (c CountConstraint) ValidateCountable(count int, options validation.Options) error {
+func (c CountConstraint) ValidateCountable(count int, scope validation.Scope) error {
 	if c.isIgnored {
 		return nil
 	}
 	if c.checkMax && count > c.max {
-		return c.newViolation(count, c.max, code.CountTooMany, c.maxMessageTemplate, options)
+		return c.newViolation(count, c.max, code.CountTooMany, c.maxMessageTemplate, scope)
 	}
 	if c.checkMin && count < c.min {
-		return c.newViolation(count, c.min, code.CountTooFew, c.minMessageTemplate, options)
+		return c.newViolation(count, c.min, code.CountTooFew, c.minMessageTemplate, scope)
 	}
 
 	return nil
 }
 
-func (c CountConstraint) Set(options *validation.Options) error {
-	options.Constraints = append(options.Constraints, c)
+func (c CountConstraint) Set(scope *validation.Scope) error {
+	scope.AddConstraint(c)
 
 	return nil
 }
@@ -99,14 +99,14 @@ func (c CountConstraint) GetName() string {
 func (c CountConstraint) newViolation(
 	count, limit int,
 	violationCode, message string,
-	options validation.Options,
+	scope validation.Scope,
 ) validation.Violation {
 	if c.checkMin && c.checkMax && c.min == c.max {
 		message = c.exactMessageTemplate
 		violationCode = code.CountExact
 	}
 
-	return options.BuildViolation(violationCode, message).
+	return scope.BuildViolation(violationCode, message).
 		SetPluralCount(limit).
 		SetParameters(map[string]string{
 			"{{ count }}": strconv.Itoa(count),

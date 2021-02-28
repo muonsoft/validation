@@ -19,12 +19,12 @@ func TestViolation_Error_MessageOnly_ErrorWithMessage(t *testing.T) {
 func TestViolation_Error_MessageAndPropertyPath_ErrorWithPropertyPathAndMessage(t *testing.T) {
 	violation := internalViolation{
 		Message:      "Message",
-		PropertyPath: PropertyPath{PropertyNameElement{"PropertyPath"}},
+		PropertyPath: PropertyPath{PropertyNameElement{"propertyPath"}},
 	}
 
 	err := violation.Error()
 
-	assert.Equal(t, "violation at 'PropertyPath': Message", err)
+	assert.Equal(t, "violation at 'propertyPath': Message", err)
 }
 
 func TestViolationList_Error_CoupleOfViolations_JoinedMessage(t *testing.T) {
