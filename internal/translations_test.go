@@ -168,3 +168,22 @@ func TestValidator_Validate_WhenTranslationLanguageParsedFromAcceptLanguageHeade
 			assert.Equal(t, "Значение не должно быть пустым.", violations[0].GetMessage())
 	})
 }
+
+func TestValidator_Validate_WhenRecursiveValidation_ExpectViolationTranslated(t *testing.T) {
+	validator, err := validation.NewValidator(
+		validation.DefaultLanguage(language.Russian),
+		validation.Translations(russian.Messages),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	values := []mockValidatableString{{value: ""}}
+
+	err = validator.ValidateIterable(values, it.IsNotBlank())
+
+	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
+		t.Helper()
+		return assert.Len(t, violations, 1) &&
+			assert.Equal(t, "Значение не должно быть пустым.", violations[0].GetMessage())
+	})
+}
