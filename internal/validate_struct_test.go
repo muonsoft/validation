@@ -20,7 +20,7 @@ func TestValidate_WhenStructWithComplexRules_ExpectViolations(t *testing.T) {
 		},
 	}
 
-	err := validation.Validate(p)
+	err := validation.ValidateValue(p)
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 		t.Helper()

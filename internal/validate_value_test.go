@@ -180,9 +180,7 @@ func TestValidateNil(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := test.nilConstraint.ValidateNil(validation.Options{
-				NewViolation: validation.NewViolation,
-			})
+			err := test.nilConstraint.ValidateNil(validation.GetScope())
 
 			test.assert(t, err)
 		})
