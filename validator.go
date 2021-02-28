@@ -261,13 +261,13 @@ func (validator *Validator) GetScope() Scope {
 }
 
 func (validator *Validator) WithOptions(options ...Option) (*Validator, error) {
-	newOptions := validator.scope
-	err := newOptions.applyNonConstraints(options...)
+	scope := validator.scope
+	err := scope.applyNonConstraints(options...)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Validator{scope: newOptions}, nil
+	return &Validator{scope: scope}, nil
 }
 
 func (validator *Validator) validateNil(options ...Option) error {
