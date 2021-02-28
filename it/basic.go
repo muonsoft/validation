@@ -118,14 +118,16 @@ func (c NotBlankConstraint) ValidateCountable(count int, scope validation.Scope)
 	return c.newViolation(scope)
 }
 
-func (c NotBlankConstraint) ValidateTime(time *time.Time, scope validation.Scope) error {
+func (c NotBlankConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
 	if c.isIgnored {
 		return nil
 	}
-	if c.allowNil && time == nil {
+	if c.allowNil && value == nil {
 		return nil
 	}
-	if time != nil {
+
+	var empty time.Time
+	if value != nil && *value != empty {
 		return nil
 	}
 
@@ -211,8 +213,8 @@ func (c BlankConstraint) ValidateCountable(count int, scope validation.Scope) er
 	return c.newViolation(scope)
 }
 
-func (c BlankConstraint) ValidateTime(time *time.Time, scope validation.Scope) error {
-	if c.isIgnored || time == nil {
+func (c BlankConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
+	if c.isIgnored || value == nil {
 		return nil
 	}
 
