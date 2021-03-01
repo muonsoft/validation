@@ -34,13 +34,14 @@ func TestValidateValue_WhenValueOfType_ExpectValueValidated(t *testing.T) {
 		{"float64 nil", nilFloat},
 		{"string nil", nilString},
 		{"time nil", nilTime},
-		{"empty time", timeValue(time.Time{})},
+		{"empty time", time.Time{}},
 		{"empty array", emptyArray},
 		{"empty slice", emptySlice},
 		{"empty map", emptyMap},
 		{"empty array pointer", &emptyArray},
 		{"empty slice pointer", &emptySlice},
 		{"empty map pointer", &emptyMap},
+		{"empty time pointer", timeValue(time.Time{})},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -57,7 +58,7 @@ func TestValidateValue_WhenValueOfType_ExpectValueValidated(t *testing.T) {
 	}
 }
 
-func TestValidate_WhenValidatableString_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
+func TestValidateValue_WhenValidatableString_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
 	validatable := mockValidatableString{value: ""}
 
 	err := validation.ValidateValue(

@@ -87,8 +87,6 @@ func (c CountConstraint) ValidateCountable(count int, scope validation.Scope) er
 }
 
 func (c CountConstraint) Set(scope *validation.Scope) error {
-	scope.AddConstraint(c)
-
 	return nil
 }
 

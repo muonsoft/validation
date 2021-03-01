@@ -6,7 +6,15 @@ import (
 )
 
 type Validatable interface {
-	Validate(options ...Option) error
+	Validate(scope Scope) error
+}
+
+func Validate(arguments ...Argument) error {
+	return validator.Validate(arguments...)
+}
+
+func InScope(scope Scope) *Validator {
+	return validator.InScope(scope)
 }
 
 func ValidateValue(value interface{}, options ...Option) error {
@@ -33,8 +41,8 @@ func ValidateCountable(count int, options ...Option) error {
 	return validator.ValidateCountable(count, options...)
 }
 
-func ValidateTime(time *time.Time, options ...Option) error {
-	return validator.ValidateTime(time, options...)
+func ValidateTime(value *time.Time, options ...Option) error {
+	return validator.ValidateTime(value, options...)
 }
 
 func ValidateValidatable(validatable Validatable, options ...Option) error {
@@ -47,10 +55,6 @@ func ValidateEach(value interface{}, options ...Option) error {
 
 func ValidateEachString(strings []string, options ...Option) error {
 	return validator.ValidateEachString(strings, options...)
-}
-
-func WithOptions(options ...Option) (*Validator, error) {
-	return validator.WithOptions(options...)
 }
 
 func Filter(violations ...error) error {

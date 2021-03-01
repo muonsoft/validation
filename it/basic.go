@@ -37,8 +37,6 @@ func (c NotBlankConstraint) Message(message string) NotBlankConstraint {
 }
 
 func (c NotBlankConstraint) Set(scope *validation.Scope) error {
-	scope.AddConstraint(c)
-
 	return nil
 }
 
@@ -150,8 +148,6 @@ func IsBlank() BlankConstraint {
 }
 
 func (c BlankConstraint) Set(scope *validation.Scope) error {
-	scope.AddConstraint(c)
-
 	return nil
 }
 

@@ -7,7 +7,7 @@ import (
 )
 
 func TestPropertyPath_Format(t *testing.T) {
-	path := PropertyPath{PropertyNameElement{"array"}, ArrayIndexElement{1}, PropertyNameElement{"property"}}
+	path := PropertyPath{PropertyNameElement("array"), ArrayIndexElement(1), PropertyNameElement("property")}
 
 	formatted := path.Format()
 
