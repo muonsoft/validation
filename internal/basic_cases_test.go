@@ -5,6 +5,8 @@ import (
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
+
+	"time"
 )
 
 var isNotBlankTestCases = []ValidateTestCase{
@@ -62,6 +64,7 @@ var isNotBlankTestCases = []ValidateTestCase{
 		intValue:        intValue(1),
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
+		timeValue:       timeValue(time.Now()),
 		sliceValue:      []string{"a"},
 		mapValue:        map[string]string{"a": "a"},
 		options:         []validation.Option{it.IsNotBlank()},
@@ -89,6 +92,7 @@ var isBlankTestCases = []ValidateTestCase{
 		intValue:        intValue(1),
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
+		timeValue:       timeValue(time.Now()),
 		sliceValue:      []string{"a"},
 		mapValue:        map[string]string{"a": "a"},
 		options:         []validation.Option{it.IsBlank()},
@@ -101,6 +105,7 @@ var isBlankTestCases = []ValidateTestCase{
 		intValue:        intValue(1),
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
+		timeValue:       timeValue(time.Now()),
 		sliceValue:      []string{"a"},
 		mapValue:        map[string]string{"a": "a"},
 		options:         []validation.Option{it.IsBlank().When(true)},
@@ -113,6 +118,7 @@ var isBlankTestCases = []ValidateTestCase{
 		intValue:        intValue(1),
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
+		timeValue:       timeValue(time.Now()),
 		sliceValue:      []string{"a"},
 		mapValue:        map[string]string{"a": "a"},
 		options: []validation.Option{
@@ -130,6 +136,7 @@ var isBlankTestCases = []ValidateTestCase{
 		intValue:        intValue(1),
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
+		timeValue:       timeValue(time.Now()),
 		sliceValue:      []string{"a"},
 		mapValue:        map[string]string{"a": "a"},
 		options:         []validation.Option{it.IsBlank().Message(customMessage)},
@@ -148,6 +155,7 @@ var isBlankTestCases = []ValidateTestCase{
 		intValue:        intValue(0),
 		floatValue:      floatValue(0.0),
 		stringValue:     stringValue(""),
+		timeValue:       timeValue(time.Time{}),
 		sliceValue:      []string{},
 		mapValue:        map[string]string{},
 		options:         []validation.Option{it.IsBlank()},
@@ -160,6 +168,7 @@ var isBlankTestCases = []ValidateTestCase{
 		intValue:        intValue(1),
 		floatValue:      floatValue(0.1),
 		stringValue:     stringValue("a"),
+		timeValue:       timeValue(time.Now()),
 		sliceValue:      []string{"a"},
 		mapValue:        map[string]string{"a": "a"},
 		options:         []validation.Option{it.IsBlank().When(false)},

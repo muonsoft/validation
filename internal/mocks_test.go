@@ -4,6 +4,8 @@ import (
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/it"
 	"golang.org/x/text/language"
+
+	"time"
 )
 
 var (
@@ -12,6 +14,7 @@ var (
 	nilUint    *uint64
 	nilFloat   *float64
 	nilString  *string
+	nilTime    *time.Time
 	emptyArray [0]string
 	emptySlice []string
 	emptyMap   map[string]string
@@ -35,6 +38,10 @@ func floatValue(f float64) *float64 {
 
 func stringValue(s string) *string {
 	return &s
+}
+
+func timeValue(t time.Time) *time.Time {
+	return &t
 }
 
 type mockViolation struct {

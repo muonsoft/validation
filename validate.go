@@ -1,6 +1,9 @@
 package validation
 
-import "reflect"
+import (
+	"reflect"
+	"time"
+)
 
 type Validatable interface {
 	Validate(options ...Option) error
@@ -28,6 +31,10 @@ func ValidateIterable(value interface{}, options ...Option) error {
 
 func ValidateCountable(count int, options ...Option) error {
 	return validator.ValidateCountable(count, options...)
+}
+
+func ValidateTime(time *time.Time, options ...Option) error {
+	return validator.ValidateTime(time, options...)
 }
 
 func ValidateValidatable(validatable Validatable, options ...Option) error {

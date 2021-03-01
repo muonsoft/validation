@@ -2,6 +2,8 @@ package validation
 
 import (
 	"github.com/muonsoft/validation/generic"
+
+	"time"
 )
 
 type Constraint interface {
@@ -33,4 +35,8 @@ type IterableConstraint interface {
 
 type CountableConstraint interface {
 	ValidateCountable(count int, scope Scope) error
+}
+
+type TimeConstraint interface {
+	ValidateTime(value *time.Time, scope Scope) error
 }

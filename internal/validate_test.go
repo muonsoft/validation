@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
@@ -32,6 +33,8 @@ func TestValidateValue_WhenValueOfType_ExpectValueValidated(t *testing.T) {
 		{"uint64 nil", nilUint},
 		{"float64 nil", nilFloat},
 		{"string nil", nilString},
+		{"time nil", nilTime},
+		{"empty time", timeValue(time.Time{})},
 		{"empty array", emptyArray},
 		{"empty slice", emptySlice},
 		{"empty map", emptyMap},

@@ -5,6 +5,8 @@ import (
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/generic"
 	"github.com/muonsoft/validation/message"
+
+	"time"
 )
 
 type NotBlankConstraint struct {
@@ -116,6 +118,22 @@ func (c NotBlankConstraint) ValidateCountable(count int, scope validation.Scope)
 	return c.newViolation(scope)
 }
 
+func (c NotBlankConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
+	if c.isIgnored {
+		return nil
+	}
+	if c.allowNil && value == nil {
+		return nil
+	}
+
+	var empty time.Time
+	if value != nil && *value != empty {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
 func (c NotBlankConstraint) newViolation(scope validation.Scope) validation.Violation {
 	return scope.BuildViolation(code.NotBlank, c.messageTemplate).GetViolation()
 }
@@ -189,6 +207,15 @@ func (c BlankConstraint) ValidateIterable(value generic.Iterable, scope validati
 
 func (c BlankConstraint) ValidateCountable(count int, scope validation.Scope) error {
 	if c.isIgnored || count == 0 {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
+func (c BlankConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
+	var empty time.Time
+	if c.isIgnored || value == nil || *value == empty {
 		return nil
 	}
 
