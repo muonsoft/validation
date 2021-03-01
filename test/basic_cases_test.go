@@ -1,4 +1,4 @@
-package internal
+package test
 
 import (
 	"github.com/muonsoft/validation"
