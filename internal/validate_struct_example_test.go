@@ -13,24 +13,19 @@ type Product struct {
 	Components []Component
 }
 
-func (p Product) Validate(options ...validation.Option) error {
-	validator, err := validation.WithOptions(options...)
-	if err != nil {
-		return err
-	}
-
-	return validation.Filter(
-		validator.ValidateString(
+func (p Product) Validate(scope validation.Scope) error {
+	return validation.InScope(scope).Validate(
+		validation.String(
 			&p.Name,
 			validation.PropertyName("name"),
 			it.IsNotBlank(),
 		),
-		validator.ValidateIterable(
+		validation.Iterable(
 			p.Tags,
 			validation.PropertyName("tags"),
 			it.HasMinCount(1),
 		),
-		validator.ValidateIterable(
+		validation.Iterable(
 			p.Components,
 			validation.PropertyName("components"),
 			it.HasMinCount(1),
@@ -44,19 +39,14 @@ type Component struct {
 	Tags []string
 }
 
-func (c Component) Validate(options ...validation.Option) error {
-	validator, err := validation.WithOptions(options...)
-	if err != nil {
-		return err
-	}
-
-	return validation.Filter(
-		validator.ValidateString(
+func (c Component) Validate(scope validation.Scope) error {
+	return validation.InScope(scope).Validate(
+		validation.String(
 			&c.Name,
 			validation.PropertyName("name"),
 			it.IsNotBlank(),
 		),
-		validator.ValidateIterable(
+		validation.Iterable(
 			c.Tags,
 			validation.PropertyName("tags"),
 			it.HasMinCount(1),

@@ -11,28 +11,24 @@ type PropertyPathElement interface {
 	fmt.Stringer
 }
 
-type PropertyNameElement struct {
-	Value string
-}
+type PropertyNameElement string
 
 func (p PropertyNameElement) IsIndex() bool {
 	return false
 }
 
 func (p PropertyNameElement) String() string {
-	return p.Value
+	return string(p)
 }
 
-type ArrayIndexElement struct {
-	Value int
-}
+type ArrayIndexElement int
 
 func (a ArrayIndexElement) IsIndex() bool {
 	return true
 }
 
 func (a ArrayIndexElement) String() string {
-	return strconv.Itoa(a.Value)
+	return strconv.Itoa(int(a))
 }
 
 type PropertyPath []PropertyPathElement

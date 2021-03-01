@@ -98,11 +98,10 @@ type mockValidatableString struct {
 	value string
 }
 
-func (mock mockValidatableString) Validate(options ...validation.Option) error {
-	return validation.Filter(
-		validation.ValidateString(
+func (mock mockValidatableString) Validate(scope validation.Scope) error {
+	return validation.InScope(scope).Validate(
+		validation.String(
 			&mock.value,
-			validation.PassOptions(options),
 			validation.PropertyName("value"),
 			it.IsNotBlank(),
 		),
@@ -116,29 +115,24 @@ type mockValidatableStruct struct {
 	structValue mockValidatableString
 }
 
-func (mock mockValidatableStruct) Validate(options ...validation.Option) error {
-	validator, err := validation.WithOptions(options...)
-	if err != nil {
-		return err
-	}
-
-	return validation.Filter(
-		validator.ValidateNumber(
+func (mock mockValidatableStruct) Validate(scope validation.Scope) error {
+	return validation.InScope(scope).Validate(
+		validation.Number(
 			mock.intValue,
 			validation.PropertyName("intValue"),
 			it.IsNotBlank(),
 		),
-		validator.ValidateNumber(
+		validation.Number(
 			mock.floatValue,
 			validation.PropertyName("floatValue"),
 			it.IsNotBlank(),
 		),
-		validator.ValidateString(
+		validation.String(
 			&mock.stringValue,
 			validation.PropertyName("stringValue"),
 			it.IsNotBlank(),
 		),
-		validator.ValidateValue(
+		validation.Value(
 			&mock.structValue,
 			validation.PropertyName("structValue"),
 		),

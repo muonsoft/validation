@@ -26,7 +26,7 @@ func Context(ctx context.Context) Option {
 
 func PropertyName(propertyName string) Option {
 	return OptionFunc(func(scope *Scope) error {
-		scope.propertyPath = append(scope.propertyPath, PropertyNameElement{propertyName})
+		scope.propertyPath = append(scope.propertyPath, PropertyNameElement(propertyName))
 
 		return nil
 	})
@@ -34,7 +34,7 @@ func PropertyName(propertyName string) Option {
 
 func ArrayIndex(index int) Option {
 	return OptionFunc(func(scope *Scope) error {
-		scope.propertyPath = append(scope.propertyPath, ArrayIndexElement{index})
+		scope.propertyPath = append(scope.propertyPath, ArrayIndexElement(index))
 
 		return nil
 	})
@@ -46,11 +46,5 @@ func Language(tag language.Tag) Option {
 		scope.language = tag
 
 		return nil
-	})
-}
-
-func PassOptions(passedOptions []Option) Option {
-	return OptionFunc(func(scope *Scope) error {
-		return scope.applyNonConstraints(passedOptions...)
 	})
 }

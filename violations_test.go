@@ -19,7 +19,7 @@ func TestViolation_Error_MessageOnly_ErrorWithMessage(t *testing.T) {
 func TestViolation_Error_MessageAndPropertyPath_ErrorWithPropertyPathAndMessage(t *testing.T) {
 	violation := internalViolation{
 		Message:      "Message",
-		PropertyPath: PropertyPath{PropertyNameElement{"propertyPath"}},
+		PropertyPath: PropertyPath{PropertyNameElement("propertyPath")},
 	}
 
 	err := violation.Error()
@@ -31,11 +31,11 @@ func TestViolationList_Error_CoupleOfViolations_JoinedMessage(t *testing.T) {
 	violations := ViolationList{
 		internalViolation{
 			Message:      "first Message",
-			PropertyPath: PropertyPath{PropertyNameElement{"path"}, ArrayIndexElement{0}},
+			PropertyPath: PropertyPath{PropertyNameElement("path"), ArrayIndexElement(0)},
 		},
 		internalViolation{
 			Message:      "second Message",
-			PropertyPath: PropertyPath{PropertyNameElement{"path"}, ArrayIndexElement{1}},
+			PropertyPath: PropertyPath{PropertyNameElement("path"), ArrayIndexElement(1)},
 		},
 	}
 

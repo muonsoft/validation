@@ -1,11 +1,8 @@
 package validation
 
 import (
-	"fmt"
-	"reflect"
 	"time"
 
-	"github.com/muonsoft/validation/generic"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message/catalog"
 )
@@ -79,285 +76,74 @@ var validator, _ = NewValidator()
 
 type validateByConstraintFunc func(constraint Constraint, scope Scope) error
 
-func (validator *Validator) ValidateValue(value interface{}, options ...Option) error {
-	if validatable, ok := value.(Validatable); ok {
-		return validator.ValidateValidatable(validatable, options...)
+func (validator *Validator) Validate(arguments ...Argument) error {
+	args := &Arguments{scope: validator.scope}
+	for _, argument := range arguments {
+		err := argument.set(args)
+		if err != nil {
+			return err
+		}
 	}
 
-	if t, ok := value.(*time.Time); ok {
-		return validator.ValidateTime(t, options...)
+	violations := make(ViolationList, 0)
+	for _, validate := range args.validators {
+		vs, err := validate(args.scope)
+		if err != nil {
+			return err
+		}
+		violations = append(violations, vs...)
 	}
 
-	v := reflect.ValueOf(value)
-
-	switch v.Kind() {
-	case reflect.Ptr:
-		return validator.validatePointer(v, options)
-	case reflect.Bool:
-		b := v.Bool()
-		return validator.ValidateBool(&b, options...)
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
-		reflect.Float32, reflect.Float64:
-		return validator.ValidateNumber(value, options...)
-	case reflect.String:
-		s := v.String()
-		return validator.ValidateString(&s, options...)
-	case reflect.Array, reflect.Slice, reflect.Map:
-		return validator.ValidateIterable(value, options...)
-	}
-
-	return &NotValidatableError{Value: v}
+	return violations.AsError()
 }
 
-func (validator *Validator) validatePointer(v reflect.Value, options []Option) error {
-	p := v.Elem()
-	if v.IsNil() {
-		return validator.validateNil(options...)
+func (validator *Validator) InScope(scope Scope) *Validator {
+	return &Validator{
+		scope:      scope,
+		translator: validator.translator,
 	}
+}
 
-	switch p.Kind() {
-	case reflect.Bool:
-		b := p.Bool()
-		return validator.ValidateBool(&b, options...)
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
-		reflect.Float32, reflect.Float64:
-		return validator.ValidateNumber(p.Interface(), options...)
-	case reflect.String:
-		s := p.String()
-		return validator.ValidateString(&s, options...)
-	case reflect.Array, reflect.Slice, reflect.Map:
-		return validator.ValidateIterable(p.Interface(), options...)
-	}
-
-	return &NotValidatableError{Value: v}
+func (validator *Validator) ValidateValue(value interface{}, options ...Option) error {
+	return validator.Validate(Value(value, options...))
 }
 
 func (validator *Validator) ValidateBool(value *bool, options ...Option) error {
-	return validator.executeValidationAndHandleError(options, func(constraint Constraint, scope Scope) (err error) {
-		if constraintValidator, ok := constraint.(BoolConstraint); ok {
-			err = constraintValidator.ValidateBool(value, scope)
-		} else {
-			err = newInapplicableConstraintError(constraint, "bool")
-		}
-
-		return err
-	})
+	return validator.Validate(Bool(value, options...))
 }
 
 func (validator *Validator) ValidateNumber(value interface{}, options ...Option) error {
-	number, err := generic.NewNumber(value)
-	if err != nil {
-		return fmt.Errorf("cannot convert value '%v' to number: %w", value, err)
-	}
-
-	return validator.executeValidationAndHandleError(options, func(constraint Constraint, scope Scope) (err error) {
-		if constraintValidator, ok := constraint.(NumberConstraint); ok {
-			err = constraintValidator.ValidateNumber(*number, scope)
-		} else {
-			err = newInapplicableConstraintError(constraint, "number")
-		}
-
-		return err
-	})
+	return validator.Validate(Number(value, options...))
 }
 
 func (validator *Validator) ValidateString(value *string, options ...Option) error {
-	return validator.executeValidationAndHandleError(options, func(constraint Constraint, scope Scope) (err error) {
-		if constraintValidator, ok := constraint.(StringConstraint); ok {
-			err = constraintValidator.ValidateString(value, scope)
-		} else {
-			err = newInapplicableConstraintError(constraint, "string")
-		}
-
-		return err
-	})
+	return validator.Validate(String(value, options...))
 }
 
 func (validator *Validator) ValidateIterable(value interface{}, options ...Option) error {
-	iterable, err := generic.NewIterable(value)
-	if err != nil {
-		return fmt.Errorf("cannot convert value '%v' to iterable: %w", value, err)
-	}
-
-	violations, err := validator.executeValidation(options, func(constraint Constraint, scope Scope) (err error) {
-		if constraintValidator, ok := constraint.(IterableConstraint); ok {
-			err = constraintValidator.ValidateIterable(iterable, scope)
-		} else {
-			err = newInapplicableConstraintError(constraint, "iterable")
-		}
-
-		return err
-	})
-	if err != nil {
-		return err
-	}
-
-	if iterable.IsElementImplements(validatableType) {
-		elementViolations, err := validator.validateIterableOfValidatables(iterable, options)
-		if err != nil {
-			return err
-		}
-		violations = append(violations, elementViolations...)
-	}
-
-	return violations.AsError()
+	return validator.Validate(Iterable(value, options...))
 }
 
 func (validator *Validator) ValidateCountable(count int, options ...Option) error {
-	return validator.executeValidationAndHandleError(options, func(constraint Constraint, scope Scope) (err error) {
-		if constraintValidator, ok := constraint.(CountableConstraint); ok {
-			err = constraintValidator.ValidateCountable(count, scope)
-		} else {
-			err = newInapplicableConstraintError(constraint, "countable")
-		}
-
-		return err
-	})
+	return validator.Validate(Countable(count, options...))
 }
 
-func (validator *Validator) ValidateTime(time *time.Time, options ...Option) error {
-	return validator.executeValidationAndHandleError(options, func(constraint Constraint, scope Scope) (err error) {
-		if constraintValidator, ok := constraint.(TimeConstraint); ok {
-			err = constraintValidator.ValidateTime(time, scope)
-		} else {
-			err = newInapplicableConstraintError(constraint, "time")
-		}
-
-		return err
-	})
+func (validator *Validator) ValidateTime(value *time.Time, options ...Option) error {
+	return validator.Validate(Time(value, options...))
 }
 
 func (validator *Validator) ValidateValidatable(validatable Validatable, options ...Option) error {
-	return validatable.Validate(extendAndPassOptions(&validator.scope, options...))
+	return validator.Validate(Valid(validatable, options...))
 }
 
 func (validator *Validator) ValidateEach(value interface{}, options ...Option) error {
-	iterable, err := generic.NewIterable(value)
-	if err != nil {
-		return fmt.Errorf("cannot convert value '%v' to iterable: %w", value, err)
-	}
-
-	violations := make(ViolationList, 0)
-
-	err = iterable.Iterate(func(key generic.Key, value interface{}) error {
-		opts := options
-		if key.IsIndex() {
-			opts = append(opts, ArrayIndex(key.Index()))
-		} else {
-			opts = append(opts, PropertyName(key.String()))
-		}
-
-		err := validator.ValidateValue(value, opts...)
-		return violations.AddFromError(err)
-	})
-	if err != nil {
-		return err
-	}
-
-	return violations.AsError()
+	return validator.Validate(Each(value, options...))
 }
 
-func (validator *Validator) ValidateEachString(strings []string, options ...Option) error {
-	violations := make(ViolationList, 0)
-
-	for i := range strings {
-		opts := append(options, ArrayIndex(i))
-		err := violations.AddFromError(validator.ValidateString(&strings[i], opts...))
-		if err != nil {
-			return err
-		}
-	}
-
-	return violations.AsError()
+func (validator *Validator) ValidateEachString(values []string, options ...Option) error {
+	return validator.Validate(EachString(values, options...))
 }
 
 func (validator *Validator) GetScope() Scope {
 	return validator.scope
-}
-
-func (validator *Validator) WithOptions(options ...Option) (*Validator, error) {
-	scope := validator.scope
-	err := scope.applyNonConstraints(options...)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Validator{scope: scope}, nil
-}
-
-func (validator *Validator) validateNil(options ...Option) error {
-	return validator.executeValidationAndHandleError(options, func(constraint Constraint, scope Scope) error {
-		if constraintValidator, ok := constraint.(NilConstraint); ok {
-			return constraintValidator.ValidateNil(scope)
-		}
-
-		return nil
-	})
-}
-
-func (validator *Validator) validateIterableOfValidatables(
-	iterable generic.Iterable,
-	options []Option,
-) (ViolationList, error) {
-	violations := make(ViolationList, 0)
-
-	err := iterable.Iterate(func(key generic.Key, value interface{}) error {
-		opts := options
-		if key.IsIndex() {
-			opts = append(opts, ArrayIndex(key.Index()))
-		} else {
-			opts = append(opts, PropertyName(key.String()))
-		}
-
-		elementValidator, err := validator.WithOptions(opts...)
-		if err != nil {
-			return err
-		}
-
-		err = elementValidator.ValidateValidatable(value.(Validatable))
-		return violations.AddFromError(err)
-	})
-
-	return violations, err
-}
-
-func (validator *Validator) executeValidationAndHandleError(options []Option, validate validateByConstraintFunc) error {
-	violations, err := validator.executeValidation(options, validate)
-	if err != nil {
-		return err
-	}
-	return violations.AsError()
-}
-
-func (validator *Validator) executeValidation(
-	options []Option,
-	validate validateByConstraintFunc,
-) (ViolationList, error) {
-	scope, err := validator.createScopeFromOptions(options)
-	if err != nil {
-		return nil, err
-	}
-
-	violations := make(ViolationList, 0, len(scope.constraints))
-
-	for _, constraint := range scope.constraints {
-		err := violations.AddFromError(validate(constraint, *scope))
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return violations, nil
-}
-
-func (validator *Validator) createScopeFromOptions(options []Option) (*Scope, error) {
-	scope := validator.scope
-	err := scope.applyOptions(options...)
-	if err != nil {
-		return nil, err
-	}
-
-	return &scope, nil
 }
