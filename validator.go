@@ -122,16 +122,6 @@ func (validator *Validator) ValidateString(value *string, options ...Option) err
 
 func (validator *Validator) ValidateIterable(value interface{}, options ...Option) error {
 	return validator.Validate(Iterable(value, options...))
-
-	// if iterable.IsElementImplements(validatableType) {
-	// 	elementViolations, err := validator.validateIterableOfValidatables(iterable, options)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	violations = append(violations, elementViolations...)
-	// }
-	//
-	// return violations.AsError()
 }
 
 func (validator *Validator) ValidateCountable(count int, options ...Option) error {
