@@ -24,7 +24,7 @@ const (
 	timeType      = "time"
 )
 
-type ValidateTestCase struct {
+type ConstraintValidationTestCase struct {
 	name            string
 	isApplicableFor func(valueType string) bool
 	boolValue       *bool
@@ -39,9 +39,9 @@ type ValidateTestCase struct {
 }
 
 var validateTestCases = mergeTestCases(
-	isNotBlankTestCases,
-	isBlankTestCases,
-	countTestCases,
+	isNotBlankConstraintTestCases,
+	isBlankConstraintTestCases,
+	countConstraintTestCases,
 )
 
 func TestValidateBool(t *testing.T) {
@@ -215,8 +215,8 @@ func exceptValueTypes(types ...string) func(valueType string) bool {
 	}
 }
 
-func mergeTestCases(testCases ...[]ValidateTestCase) []ValidateTestCase {
-	merged := make([]ValidateTestCase, 0)
+func mergeTestCases(testCases ...[]ConstraintValidationTestCase) []ConstraintValidationTestCase {
+	merged := make([]ConstraintValidationTestCase, 0)
 
 	for _, testCase := range testCases {
 		merged = append(merged, testCase...)
