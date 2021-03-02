@@ -20,12 +20,27 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package message
+package english
 
-const (
-	NotBlank     = "This value should not be blank."
-	Blank        = "This value should be blank."
-	CountTooFew  = "This collection should contain {{ limit }} element(s) or more."
-	CountTooMany = "This collection should contain {{ limit }} element(s) or less."
-	CountExact   = "This collection should contain exactly {{ limit }} element(s)."
+import (
+	"github.com/muonsoft/validation/message"
+	"golang.org/x/text/feature/plural"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message/catalog"
 )
+
+var Messages = map[language.Tag]map[string]catalog.Message{
+	language.English: {
+		message.NotBlank: catalog.String(message.NotBlank),
+		message.Blank:    catalog.String(message.Blank),
+		message.CountTooFew: plural.Selectf(1, "",
+			plural.One, "This collection should contain {{ limit }} element or more.",
+			plural.Other, "This collection should contain {{ limit }} elements or more."),
+		message.CountTooMany: plural.Selectf(1, "",
+			plural.One, "This collection should contain {{ limit }} element or less.",
+			plural.Other, "This collection should contain {{ limit }} elements or less."),
+		message.CountExact: plural.Selectf(1, "",
+			plural.One, "This collection should contain exactly {{ limit }} element.",
+			plural.Other, "This collection should contain exactly {{ limit }} elements."),
+	},
+}
