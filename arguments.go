@@ -41,12 +41,20 @@ func Value(value interface{}, options ...Option) Argument {
 	})
 }
 
+func PropertyValue(name string, value interface{}, options ...Option) Argument {
+	return Value(value, append([]Option{PropertyName(name)}, options...)...)
+}
+
 func Bool(value *bool, options ...Option) Argument {
 	return ArgumentFunc(func(arguments *Arguments) error {
 		arguments.addValidator(newBoolValidator(value, options))
 
 		return nil
 	})
+}
+
+func BoolProperty(name string, value *bool, options ...Option) Argument {
+	return Bool(value, append([]Option{PropertyName(name)}, options...)...)
 }
 
 func Number(value interface{}, options ...Option) Argument {
@@ -62,12 +70,20 @@ func Number(value interface{}, options ...Option) Argument {
 	})
 }
 
+func NumberProperty(name string, value interface{}, options ...Option) Argument {
+	return Number(value, append([]Option{PropertyName(name)}, options...)...)
+}
+
 func String(value *string, options ...Option) Argument {
 	return ArgumentFunc(func(arguments *Arguments) error {
 		arguments.addValidator(newStringValidator(value, options))
 
 		return nil
 	})
+}
+
+func StringProperty(name string, value *string, options ...Option) Argument {
+	return String(value, append([]Option{PropertyName(name)}, options...)...)
 }
 
 func Iterable(value interface{}, options ...Option) Argument {
@@ -83,6 +99,10 @@ func Iterable(value interface{}, options ...Option) Argument {
 	})
 }
 
+func IterableProperty(name string, value interface{}, options ...Option) Argument {
+	return Iterable(value, append([]Option{PropertyName(name)}, options...)...)
+}
+
 func Countable(count int, options ...Option) Argument {
 	return ArgumentFunc(func(arguments *Arguments) error {
 		arguments.addValidator(newCountableValidator(count, options))
@@ -91,12 +111,20 @@ func Countable(count int, options ...Option) Argument {
 	})
 }
 
+func CountableProperty(name string, count int, options ...Option) Argument {
+	return Countable(count, append([]Option{PropertyName(name)}, options...)...)
+}
+
 func Time(value *time.Time, options ...Option) Argument {
 	return ArgumentFunc(func(arguments *Arguments) error {
 		arguments.addValidator(newTimeValidator(value, options))
 
 		return nil
 	})
+}
+
+func TimeProperty(name string, value *time.Time, options ...Option) Argument {
+	return Time(value, append([]Option{PropertyName(name)}, options...)...)
 }
 
 func Each(value interface{}, options ...Option) Argument {
@@ -112,6 +140,10 @@ func Each(value interface{}, options ...Option) Argument {
 	})
 }
 
+func EachProperty(name string, value interface{}, options ...Option) Argument {
+	return Each(value, append([]Option{PropertyName(name)}, options...)...)
+}
+
 func EachString(values []string, options ...Option) Argument {
 	return ArgumentFunc(func(arguments *Arguments) error {
 		arguments.addValidator(newEachStringValidator(values, options))
@@ -120,10 +152,18 @@ func EachString(values []string, options ...Option) Argument {
 	})
 }
 
+func EachStringProperty(name string, values []string, options ...Option) Argument {
+	return EachString(values, append([]Option{PropertyName(name)}, options...)...)
+}
+
 func Valid(value Validatable, options ...Option) Argument {
 	return ArgumentFunc(func(arguments *Arguments) error {
 		arguments.addValidator(newValidValidator(value, options))
 
 		return nil
 	})
+}
+
+func ValidProperty(name string, value Validatable, options ...Option) Argument {
+	return Valid(value, append([]Option{PropertyName(name)}, options...)...)
 }
