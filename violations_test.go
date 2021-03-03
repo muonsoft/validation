@@ -129,7 +129,6 @@ func TestMarshalInternalViolationToJSON(t *testing.T) {
 			data, err := json.Marshal(test.violation)
 
 			if assert.NoError(t, err) {
-				fmt.Println(string(data))
 				assert.JSONEq(t, test.expectedJSON, string(data))
 			}
 		})
