@@ -7,13 +7,14 @@ import (
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/validationtest"
+	"github.com/muonsoft/validation/validator"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestValidateEach_WhenSliceOfStrings_ExpectViolationOnEachElement(t *testing.T) {
 	strings := []string{"", ""}
 
-	err := newValidator(t).ValidateEach(strings, it.IsNotBlank())
+	err := validator.ValidateEach(strings, it.IsNotBlank())
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 		t.Helper()
@@ -30,7 +31,7 @@ func TestValidateEach_WhenSliceOfStrings_ExpectViolationOnEachElement(t *testing
 func TestValidateEach_WhenMapOfStrings_ExpectViolationOnEachElement(t *testing.T) {
 	strings := map[string]string{"key1": "", "key2": ""}
 
-	err := newValidator(t).ValidateEach(strings, it.IsNotBlank())
+	err := validator.ValidateEach(strings, it.IsNotBlank())
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 		t.Helper()
@@ -47,7 +48,7 @@ func TestValidateEach_WhenMapOfStrings_ExpectViolationOnEachElement(t *testing.T
 func TestValidateEachString_WhenSliceOfStrings_ExpectViolationOnEachElement(t *testing.T) {
 	strings := []string{"", ""}
 
-	err := newValidator(t).ValidateEachString(strings, it.IsNotBlank())
+	err := validator.ValidateEachString(strings, it.IsNotBlank())
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 		t.Helper()

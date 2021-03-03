@@ -7,6 +7,7 @@ import (
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/validationtest"
+	"github.com/muonsoft/validation/validator"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,7 +29,7 @@ func TestValidate_WhenArgumentForGivenType_ExpectValidationExecuted(t *testing.T
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := newValidator(t).Validate(test.argument)
+			err := validator.Validate(test.argument)
 
 			validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 				t.Helper()
@@ -59,7 +60,7 @@ func TestValidate_WhenPropertyArgument_ExpectValidPathInViolation(t *testing.T) 
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := newValidator(t).Validate(test.argument)
+			err := validator.Validate(test.argument)
 
 			validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 				t.Helper()

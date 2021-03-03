@@ -70,7 +70,7 @@ func TestValidateValue_WhenStructWithComplexRules_ExpectViolations(t *testing.T)
 		},
 	}
 
-	err := newValidator(t).ValidateValue(p)
+	err := validator.ValidateValue(p)
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 		t.Helper()
@@ -91,7 +91,7 @@ func TestValidateValue_WhenStructWithComplexRules_ExpectViolations(t *testing.T)
 func TestValidateValue_WhenValidatableString_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
 	validatable := mockValidatableString{value: ""}
 
-	err := newValidator(t).ValidateValue(
+	err := validator.ValidateValue(
 		validatable,
 		validation.PropertyName("top"),
 		it.IsNotBlank().Message("ignored"),
@@ -103,7 +103,7 @@ func TestValidateValue_WhenValidatableString_ExpectValidationExecutedWithPassedO
 func TestValidateValidatable_WhenValidatableString_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
 	validatable := mockValidatableString{value: ""}
 
-	err := newValidator(t).ValidateValidatable(
+	err := validator.ValidateValidatable(
 		validatable,
 		validation.PropertyName("top"),
 		it.IsNotBlank().Message("ignored"),
@@ -115,7 +115,7 @@ func TestValidateValidatable_WhenValidatableString_ExpectValidationExecutedWithP
 func TestValidateValue_WhenValidatableStruct_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
 	validatable := mockValidatableStruct{}
 
-	err := newValidator(t).ValidateValue(
+	err := validator.ValidateValue(
 		validatable,
 		validation.PropertyName("top"),
 		it.IsNotBlank().Message("ignored"),
