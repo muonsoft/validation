@@ -121,11 +121,11 @@ func UnwrapViolationList(err error) (ViolationList, bool) {
 }
 
 type internalViolation struct {
-	Code            string
-	Message         string
-	MessageTemplate string
-	Parameters      map[string]string
-	PropertyPath    PropertyPath
+	Code            string            `json:"code"`
+	Message         string            `json:"message"`
+	MessageTemplate string            `json:"-"`
+	Parameters      map[string]string `json:"-"`
+	PropertyPath    PropertyPath      `json:"propertyPath,omitempty"`
 }
 
 func (v internalViolation) Error() string {
