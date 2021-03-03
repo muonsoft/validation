@@ -2,225 +2,56 @@ package test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
+	"github.com/muonsoft/validation/validationtest"
+	"github.com/stretchr/testify/assert"
 )
 
-const (
-	customMessage = "Custom message."
-	customPath    = "properties[0].value"
-
-	// Value types.
-	boolType      = "bool"
-	intType       = "int"
-	floatType     = "float"
-	stringType    = "string"
-	iterableType  = "iterable"
-	countableType = "countable"
-	timeType      = "time"
-)
-
-type ValidateTestCase struct {
-	name            string
-	isApplicableFor func(valueType string) bool
-	boolValue       *bool
-	intValue        *int64
-	floatValue      *float64
-	stringValue     *string
-	timeValue       *time.Time
-	sliceValue      []string
-	mapValue        map[string]string
-	options         []validation.Option
-	assert          func(t *testing.T, err error)
-}
-
-var validateTestCases = mergeTestCases(
-	isNotBlankTestCases,
-	isBlankTestCases,
-	countTestCases,
-)
-
-func TestValidateBool(t *testing.T) {
-	for _, test := range validateTestCases {
-		if !test.isApplicableFor(boolType) {
-			continue
-		}
-
-		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateBool(test.boolValue, test.options...)
-
-			test.assert(t, err)
-		})
-	}
-}
-
-func TestValidateNumber_AsInt(t *testing.T) {
-	for _, test := range validateTestCases {
-		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateNumber(test.intValue, test.options...)
-
-			if test.isApplicableFor(intType) {
-				test.assert(t, err)
-			} else {
-				assertIsInapplicableConstraintError(t, err, "number")
-			}
-		})
-	}
-}
-
-func TestValidateNumber_AsFloat(t *testing.T) {
-	for _, test := range validateTestCases {
-		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateNumber(test.floatValue, test.options...)
-
-			if test.isApplicableFor(floatType) {
-				test.assert(t, err)
-			} else {
-				assertIsInapplicableConstraintError(t, err, "number")
-			}
-		})
-	}
-}
-
-func TestValidateString(t *testing.T) {
-	for _, test := range validateTestCases {
-		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateString(test.stringValue, test.options...)
-
-			if test.isApplicableFor(stringType) {
-				test.assert(t, err)
-			} else {
-				assertIsInapplicableConstraintError(t, err, stringType)
-			}
-		})
-	}
-}
-
-func TestValidateIterable_AsSlice(t *testing.T) {
-	for _, test := range validateTestCases {
-		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateIterable(test.sliceValue, test.options...)
-
-			if test.isApplicableFor(iterableType) {
-				test.assert(t, err)
-			} else {
-				assertIsInapplicableConstraintError(t, err, iterableType)
-			}
-		})
-	}
-}
-
-func TestValidateIterable_AsMap(t *testing.T) {
-	for _, test := range validateTestCases {
-		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateIterable(test.mapValue, test.options...)
-
-			if test.isApplicableFor(iterableType) {
-				test.assert(t, err)
-			} else {
-				assertIsInapplicableConstraintError(t, err, iterableType)
-			}
-		})
-	}
-}
-
-func TestValidateCountable(t *testing.T) {
-	for _, test := range validateTestCases {
-		if !test.isApplicableFor(countableType) {
-			continue
-		}
-
-		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateCountable(len(test.sliceValue), test.options...)
-
-			if test.isApplicableFor(countableType) {
-				test.assert(t, err)
-			} else {
-				assertIsInapplicableConstraintError(t, err, countableType)
-			}
-		})
-	}
-}
-
-func TestValidateTime(t *testing.T) {
-	for _, test := range validateTestCases {
-		if !test.isApplicableFor(timeType) {
-			continue
-		}
-
-		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateTime(test.timeValue, test.options...)
-
-			if test.isApplicableFor(timeType) {
-				test.assert(t, err)
-			} else {
-				assertIsInapplicableConstraintError(t, err, timeType)
-			}
-		})
-	}
-}
-
-func TestValidateNil(t *testing.T) {
+func TestValidateValue_WhenValueOfType_ExpectValueValidated(t *testing.T) {
 	tests := []struct {
-		name          string
-		nilConstraint validation.NilConstraint
-		assert        func(t *testing.T, err error)
+		name  string
+		value interface{}
 	}{
-		{"not blank", it.IsNotBlank(), assertIsViolation(code.NotBlank, message.NotBlank, "")},
-		{"not blank when true", it.IsNotBlank().When(true), assertIsViolation(code.NotBlank, message.NotBlank, "")},
-		{"not blank when false", it.IsNotBlank().When(false), assertNoError},
-		{"not blank when nil allowed", it.IsNotBlank().AllowNil(), assertNoError},
-		{"blank", it.IsBlank(), assertNoError},
-		{"blank when true", it.IsBlank().When(true), assertNoError},
-		{"blank when false", it.IsBlank().When(false), assertNoError},
+		{"bool", false},
+		{"int8", int8(0)},
+		{"uint8", uint8(0)},
+		{"float32", float32(0)},
+		{"string", ""},
+		{"bool pointer", boolValue(false)},
+		{"int64 pointer", intValue(0)},
+		{"uint64 pointer", uintValue(0)},
+		{"float64 pointer", floatValue(0)},
+		{"string pointer", stringValue("")},
+		{"bool nil", nilBool},
+		{"int64 nil", nilInt},
+		{"uint64 nil", nilUint},
+		{"float64 nil", nilFloat},
+		{"string nil", nilString},
+		{"time nil", nilTime},
+		{"empty time", emptyTime},
+		{"empty array", emptyArray},
+		{"empty slice", emptySlice},
+		{"empty map", emptyMap},
+		{"empty array pointer", &emptyArray},
+		{"empty slice pointer", &emptySlice},
+		{"empty map pointer", &emptyMap},
+		{"empty time pointer", &emptyTime},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := test.nilConstraint.ValidateNil(validation.GetScope())
+			err := validation.ValidateValue(test.value, validation.PropertyName("property"), it.IsNotBlank())
 
-			test.assert(t, err)
+			validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
+				t.Helper()
+				if assert.Len(t, violations, 1) {
+					assertHasOneViolation(code.NotBlank, message.NotBlank, "property")(t, err)
+				}
+				return true
+			})
 		})
 	}
-}
-
-func anyValueType(valueType string) bool {
-	return true
-}
-
-func specificValueTypes(types ...string) func(valueType string) bool {
-	return func(valueType string) bool {
-		for _, t := range types {
-			if valueType == t {
-				return true
-			}
-		}
-
-		return false
-	}
-}
-
-func exceptValueTypes(types ...string) func(valueType string) bool {
-	return func(valueType string) bool {
-		for _, t := range types {
-			if valueType == t {
-				return false
-			}
-		}
-
-		return true
-	}
-}
-
-func mergeTestCases(testCases ...[]ValidateTestCase) []ValidateTestCase {
-	merged := make([]ValidateTestCase, 0)
-
-	for _, testCase := range testCases {
-		merged = append(merged, testCase...)
-	}
-
-	return merged
 }

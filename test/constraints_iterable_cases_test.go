@@ -6,7 +6,7 @@ import (
 	"github.com/muonsoft/validation/it"
 )
 
-var countTestCases = []ValidateTestCase{
+var countConstraintTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "HasMinCount violation on nil",
 		isApplicableFor: specificValueTypes(iterableType, countableType),

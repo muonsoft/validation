@@ -1,4 +1,4 @@
-package test
+package examples
 
 import (
 	"fmt"
@@ -54,7 +54,7 @@ func (c Component) Validate(scope validation.Scope) error {
 	)
 }
 
-func ExampleValidateValue() {
+func ExampleValidateValidatable_withSingletonValidator() {
 	p := Product{
 		Name: "",
 		Components: []Component{
@@ -65,8 +65,15 @@ func ExampleValidateValue() {
 		},
 	}
 
-	err := validation.ValidateValue(p)
+	err := validation.ValidateValidatable(p)
 
-	fmt.Println(err)
-	// Output: violation at 'name': This value should not be blank.; violation at 'tags': This collection should contain 1 element or more.; violation at 'components[0].name': This value should not be blank.; violation at 'components[0].tags': This collection should contain 1 element or more.
+	violations := err.(validation.ViolationList)
+	for _, violation := range violations {
+		fmt.Println(violation.Error())
+	}
+	// Output:
+	// violation at 'name': This value should not be blank.
+	// violation at 'tags': This collection should contain 1 element or more.
+	// violation at 'components[0].name': This value should not be blank.
+	// violation at 'components[0].tags': This collection should contain 1 element or more.
 }

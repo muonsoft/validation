@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-var isNotBlankTestCases = []ValidateTestCase{
+var isNotBlankConstraintTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsNotBlank violation on nil",
 		isApplicableFor: anyValueType,
@@ -84,7 +84,7 @@ var isNotBlankTestCases = []ValidateTestCase{
 	},
 }
 
-var isBlankTestCases = []ValidateTestCase{
+var isBlankConstraintTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsBlank violation on value",
 		isApplicableFor: anyValueType,

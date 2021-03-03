@@ -18,6 +18,7 @@ var (
 	emptyArray [0]string
 	emptySlice []string
 	emptyMap   map[string]string
+	emptyTime  time.Time
 )
 
 func boolValue(b bool) *bool {
