@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -48,4 +49,8 @@ func (path PropertyPath) Format() string {
 	}
 
 	return s.String()
+}
+
+func (path PropertyPath) MarshalJSON() ([]byte, error) {
+	return json.Marshal(path.Format())
 }

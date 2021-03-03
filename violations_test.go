@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"testing"
@@ -94,4 +95,42 @@ func TestUnwrapViolationList_WrappedViolationList_UnwrappedViolationList(t *test
 
 	assert.True(t, ok)
 	assert.Equal(t, wrapped, unwrapped)
+}
+
+func TestMarshalInternalViolationToJSON(t *testing.T) {
+	tests := []struct {
+		name         string
+		violation    internalViolation
+		expectedJSON string
+	}{
+		{
+			name: "full data",
+			violation: internalViolation{
+				Code:            "code",
+				Message:         "message",
+				MessageTemplate: "messageTemplate",
+				Parameters:      map[string]string{"name": "value"},
+				PropertyPath:    PropertyPath{PropertyNameElement("properties"), ArrayIndexElement(1), PropertyNameElement("name")},
+			},
+			expectedJSON: `{
+				"code": "code",
+				"message": "message",
+				"propertyPath": "properties[1].name"
+			}`,
+		},
+		{
+			name:         "empty data",
+			violation:    internalViolation{},
+			expectedJSON: `{"code": "", "message": ""}`,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			data, err := json.Marshal(test.violation)
+
+			if assert.NoError(t, err) {
+				assert.JSONEq(t, test.expectedJSON, string(data))
+			}
+		})
+	}
 }
