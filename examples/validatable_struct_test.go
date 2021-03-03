@@ -5,6 +5,7 @@ import (
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/it"
+	"github.com/muonsoft/validation/validator"
 )
 
 type Product struct {
@@ -14,7 +15,7 @@ type Product struct {
 }
 
 func (p Product) Validate(scope validation.Scope) error {
-	return validation.InScope(scope).Validate(
+	return validator.InScope(scope).Validate(
 		validation.String(
 			&p.Name,
 			validation.PropertyName("name"),
@@ -40,7 +41,7 @@ type Component struct {
 }
 
 func (c Component) Validate(scope validation.Scope) error {
-	return validation.InScope(scope).Validate(
+	return validator.InScope(scope).Validate(
 		validation.String(
 			&c.Name,
 			validation.PropertyName("name"),
@@ -65,7 +66,7 @@ func ExampleValidateValidatable_withSingletonValidator() {
 		},
 	}
 
-	err := validation.ValidateValidatable(p)
+	err := validator.ValidateValidatable(p)
 
 	violations := err.(validation.ViolationList)
 	for _, violation := range violations {

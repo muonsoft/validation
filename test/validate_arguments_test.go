@@ -28,7 +28,7 @@ func TestValidate_WhenArgumentForGivenType_ExpectValidationExecuted(t *testing.T
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := validation.Validate(test.argument)
+			err := newValidator(t).Validate(test.argument)
 
 			validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 				t.Helper()
@@ -59,7 +59,7 @@ func TestValidate_WhenPropertyArgument_ExpectValidPathInViolation(t *testing.T) 
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := validation.Validate(test.argument)
+			err := newValidator(t).Validate(test.argument)
 
 			validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 				t.Helper()

@@ -16,7 +16,7 @@ func TestFilter_WhenNoViolations_ExpectNil(t *testing.T) {
 }
 
 func TestFilter_WhenSingleViolation_ExpectViolationInList(t *testing.T) {
-	violation := validation.GetScope().BuildViolation("code", "message").GetViolation()
+	violation := newValidator(t).GetScope().BuildViolation("code", "message").GetViolation()
 	wrapped := fmt.Errorf("error: %w", violation)
 
 	err := validation.Filter(nil, wrapped)
@@ -28,7 +28,7 @@ func TestFilter_WhenSingleViolation_ExpectViolationInList(t *testing.T) {
 }
 
 func TestFilter_WhenViolationList_ExpectViolationsInList(t *testing.T) {
-	violation := validation.GetScope().BuildViolation("code", "message").GetViolation()
+	violation := newValidator(t).GetScope().BuildViolation("code", "message").GetViolation()
 	violations := validation.ViolationList{violation}
 	wrapped := fmt.Errorf("error: %w", violations)
 

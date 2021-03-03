@@ -47,32 +47,13 @@ func Translations(messages map[language.Tag]map[string]catalog.Message) Validato
 	}
 }
 
-func OverrideViolationFactory(factory ViolationFactory) ValidatorOption {
+func SetViolationFactory(factory ViolationFactory) ValidatorOption {
 	return func(validator *Validator) error {
 		validator.scope.violationFactory = factory
 
 		return nil
 	}
 }
-
-func OverrideDefaults(options ...ValidatorOption) error {
-	for _, setOption := range options {
-		err := setOption(validator)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func ResetDefaults() {
-	validator.scope = newScope()
-	validator.translator.defaultLanguage = language.English
-	validator.scope.violationFactory = newViolationFactory(validator.translator)
-}
-
-var validator, _ = NewValidator()
 
 type validateByConstraintFunc func(constraint Constraint, scope Scope) error
 

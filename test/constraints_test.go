@@ -51,7 +51,7 @@ func TestValidateBool(t *testing.T) {
 		}
 
 		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateBool(test.boolValue, test.options...)
+			err := newValidator(t).ValidateBool(test.boolValue, test.options...)
 
 			test.assert(t, err)
 		})
@@ -61,7 +61,7 @@ func TestValidateBool(t *testing.T) {
 func TestValidateNumber_AsInt(t *testing.T) {
 	for _, test := range validateTestCases {
 		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateNumber(test.intValue, test.options...)
+			err := newValidator(t).ValidateNumber(test.intValue, test.options...)
 
 			if test.isApplicableFor(intType) {
 				test.assert(t, err)
@@ -75,7 +75,7 @@ func TestValidateNumber_AsInt(t *testing.T) {
 func TestValidateNumber_AsFloat(t *testing.T) {
 	for _, test := range validateTestCases {
 		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateNumber(test.floatValue, test.options...)
+			err := newValidator(t).ValidateNumber(test.floatValue, test.options...)
 
 			if test.isApplicableFor(floatType) {
 				test.assert(t, err)
@@ -89,7 +89,7 @@ func TestValidateNumber_AsFloat(t *testing.T) {
 func TestValidateString(t *testing.T) {
 	for _, test := range validateTestCases {
 		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateString(test.stringValue, test.options...)
+			err := newValidator(t).ValidateString(test.stringValue, test.options...)
 
 			if test.isApplicableFor(stringType) {
 				test.assert(t, err)
@@ -103,7 +103,7 @@ func TestValidateString(t *testing.T) {
 func TestValidateIterable_AsSlice(t *testing.T) {
 	for _, test := range validateTestCases {
 		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateIterable(test.sliceValue, test.options...)
+			err := newValidator(t).ValidateIterable(test.sliceValue, test.options...)
 
 			if test.isApplicableFor(iterableType) {
 				test.assert(t, err)
@@ -117,7 +117,7 @@ func TestValidateIterable_AsSlice(t *testing.T) {
 func TestValidateIterable_AsMap(t *testing.T) {
 	for _, test := range validateTestCases {
 		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateIterable(test.mapValue, test.options...)
+			err := newValidator(t).ValidateIterable(test.mapValue, test.options...)
 
 			if test.isApplicableFor(iterableType) {
 				test.assert(t, err)
@@ -135,7 +135,7 @@ func TestValidateCountable(t *testing.T) {
 		}
 
 		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateCountable(len(test.sliceValue), test.options...)
+			err := newValidator(t).ValidateCountable(len(test.sliceValue), test.options...)
 
 			if test.isApplicableFor(countableType) {
 				test.assert(t, err)
@@ -153,7 +153,7 @@ func TestValidateTime(t *testing.T) {
 		}
 
 		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateTime(test.timeValue, test.options...)
+			err := newValidator(t).ValidateTime(test.timeValue, test.options...)
 
 			if test.isApplicableFor(timeType) {
 				test.assert(t, err)
@@ -180,7 +180,7 @@ func TestValidateNil(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := test.nilConstraint.ValidateNil(validation.GetScope())
+			err := test.nilConstraint.ValidateNil(newValidator(t).GetScope())
 
 			test.assert(t, err)
 		})

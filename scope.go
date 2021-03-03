@@ -31,10 +31,6 @@ func (s Scope) BuildViolation(code, message string) *ViolationBuilder {
 	return b
 }
 
-func GetScope() Scope {
-	return validator.GetScope()
-}
-
 func (s *Scope) applyOptions(options ...Option) error {
 	for _, option := range options {
 		err := option.Set(s)

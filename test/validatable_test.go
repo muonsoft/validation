@@ -8,6 +8,7 @@ import (
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
 	"github.com/muonsoft/validation/validationtest"
+	"github.com/muonsoft/validation/validator"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +19,7 @@ type Product struct {
 }
 
 func (p Product) Validate(scope validation.Scope) error {
-	return validation.InScope(scope).Validate(
+	return validator.InScope(scope).Validate(
 		validation.String(
 			&p.Name,
 			validation.PropertyName("name"),
@@ -44,7 +45,7 @@ type Component struct {
 }
 
 func (c Component) Validate(scope validation.Scope) error {
-	return validation.InScope(scope).Validate(
+	return validator.InScope(scope).Validate(
 		validation.String(
 			&c.Name,
 			validation.PropertyName("name"),
@@ -69,7 +70,7 @@ func TestValidateValue_WhenStructWithComplexRules_ExpectViolations(t *testing.T)
 		},
 	}
 
-	err := validation.ValidateValue(p)
+	err := newValidator(t).ValidateValue(p)
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 		t.Helper()
@@ -90,7 +91,7 @@ func TestValidateValue_WhenStructWithComplexRules_ExpectViolations(t *testing.T)
 func TestValidateValue_WhenValidatableString_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
 	validatable := mockValidatableString{value: ""}
 
-	err := validation.ValidateValue(
+	err := newValidator(t).ValidateValue(
 		validatable,
 		validation.PropertyName("top"),
 		it.IsNotBlank().Message("ignored"),
@@ -102,7 +103,7 @@ func TestValidateValue_WhenValidatableString_ExpectValidationExecutedWithPassedO
 func TestValidateValidatable_WhenValidatableString_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
 	validatable := mockValidatableString{value: ""}
 
-	err := validation.ValidateValidatable(
+	err := newValidator(t).ValidateValidatable(
 		validatable,
 		validation.PropertyName("top"),
 		it.IsNotBlank().Message("ignored"),
@@ -114,7 +115,7 @@ func TestValidateValidatable_WhenValidatableString_ExpectValidationExecutedWithP
 func TestValidateValue_WhenValidatableStruct_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
 	validatable := mockValidatableStruct{}
 
-	err := validation.ValidateValue(
+	err := newValidator(t).ValidateValue(
 		validatable,
 		validation.PropertyName("top"),
 		it.IsNotBlank().Message("ignored"),

@@ -43,7 +43,7 @@ func TestValidateValue_WhenValueOfType_ExpectValueValidated(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateValue(test.value, validation.PropertyName("property"), it.IsNotBlank())
+			err := newValidator(t).ValidateValue(test.value, validation.PropertyName("property"), it.IsNotBlank())
 
 			validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 				t.Helper()
