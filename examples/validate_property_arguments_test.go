@@ -5,10 +5,11 @@ import (
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/it"
+	"github.com/muonsoft/validation/validator"
 )
 
 func ValidatePropertyArguments(p Product) error {
-	return validation.Validate(
+	return validator.Validate(
 		validation.StringProperty("name", &p.Name, it.IsNotBlank()),
 		validation.IterableProperty("tags", p.Tags, it.HasMinCount(1)),
 		validation.IterableProperty("components", p.Components, it.HasMinCount(1)),

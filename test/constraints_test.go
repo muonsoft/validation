@@ -8,6 +8,7 @@ import (
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
+	"github.com/muonsoft/validation/validator"
 )
 
 const (
@@ -51,7 +52,7 @@ func TestValidateBool(t *testing.T) {
 		}
 
 		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateBool(test.boolValue, test.options...)
+			err := validator.ValidateBool(test.boolValue, test.options...)
 
 			test.assert(t, err)
 		})
@@ -61,7 +62,7 @@ func TestValidateBool(t *testing.T) {
 func TestValidateNumber_AsInt(t *testing.T) {
 	for _, test := range validateTestCases {
 		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateNumber(test.intValue, test.options...)
+			err := validator.ValidateNumber(test.intValue, test.options...)
 
 			if test.isApplicableFor(intType) {
 				test.assert(t, err)
@@ -75,7 +76,7 @@ func TestValidateNumber_AsInt(t *testing.T) {
 func TestValidateNumber_AsFloat(t *testing.T) {
 	for _, test := range validateTestCases {
 		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateNumber(test.floatValue, test.options...)
+			err := validator.ValidateNumber(test.floatValue, test.options...)
 
 			if test.isApplicableFor(floatType) {
 				test.assert(t, err)
@@ -89,7 +90,7 @@ func TestValidateNumber_AsFloat(t *testing.T) {
 func TestValidateString(t *testing.T) {
 	for _, test := range validateTestCases {
 		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateString(test.stringValue, test.options...)
+			err := validator.ValidateString(test.stringValue, test.options...)
 
 			if test.isApplicableFor(stringType) {
 				test.assert(t, err)
@@ -103,7 +104,7 @@ func TestValidateString(t *testing.T) {
 func TestValidateIterable_AsSlice(t *testing.T) {
 	for _, test := range validateTestCases {
 		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateIterable(test.sliceValue, test.options...)
+			err := validator.ValidateIterable(test.sliceValue, test.options...)
 
 			if test.isApplicableFor(iterableType) {
 				test.assert(t, err)
@@ -117,7 +118,7 @@ func TestValidateIterable_AsSlice(t *testing.T) {
 func TestValidateIterable_AsMap(t *testing.T) {
 	for _, test := range validateTestCases {
 		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateIterable(test.mapValue, test.options...)
+			err := validator.ValidateIterable(test.mapValue, test.options...)
 
 			if test.isApplicableFor(iterableType) {
 				test.assert(t, err)
@@ -135,7 +136,7 @@ func TestValidateCountable(t *testing.T) {
 		}
 
 		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateCountable(len(test.sliceValue), test.options...)
+			err := validator.ValidateCountable(len(test.sliceValue), test.options...)
 
 			if test.isApplicableFor(countableType) {
 				test.assert(t, err)
@@ -153,7 +154,7 @@ func TestValidateTime(t *testing.T) {
 		}
 
 		t.Run(test.name, func(t *testing.T) {
-			err := validation.ValidateTime(test.timeValue, test.options...)
+			err := validator.ValidateTime(test.timeValue, test.options...)
 
 			if test.isApplicableFor(timeType) {
 				test.assert(t, err)
@@ -180,7 +181,7 @@ func TestValidateNil(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := test.nilConstraint.ValidateNil(validation.GetScope())
+			err := test.nilConstraint.ValidateNil(validator.GetScope())
 
 			test.assert(t, err)
 		})

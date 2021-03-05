@@ -3,6 +3,7 @@ package test
 import (
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/it"
+	"github.com/muonsoft/validation/validator"
 	"golang.org/x/text/language"
 
 	"time"
@@ -100,7 +101,7 @@ type mockValidatableString struct {
 }
 
 func (mock mockValidatableString) Validate(scope validation.Scope) error {
-	return validation.InScope(scope).Validate(
+	return validator.InScope(scope).Validate(
 		validation.String(
 			&mock.value,
 			validation.PropertyName("value"),
@@ -117,7 +118,7 @@ type mockValidatableStruct struct {
 }
 
 func (mock mockValidatableStruct) Validate(scope validation.Scope) error {
-	return validation.InScope(scope).Validate(
+	return validator.InScope(scope).Validate(
 		validation.Number(
 			mock.intValue,
 			validation.PropertyName("intValue"),
