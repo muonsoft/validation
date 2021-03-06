@@ -14,8 +14,8 @@ type Product struct {
 	Components []Component
 }
 
-func (p Product) Validate(scope validation.Scope) error {
-	return validator.InScope(scope).Validate(
+func (p Product) Validate(validator *validation.Validator) error {
+	return validator.Validate(
 		validation.String(
 			&p.Name,
 			validation.PropertyName("name"),
@@ -40,8 +40,8 @@ type Component struct {
 	Tags []string
 }
 
-func (c Component) Validate(scope validation.Scope) error {
-	return validator.InScope(scope).Validate(
+func (c Component) Validate(validator *validation.Validator) error {
+	return validator.Validate(
 		validation.String(
 			&c.Name,
 			validation.PropertyName("name"),

@@ -5,7 +5,7 @@ import (
 )
 
 type Validatable interface {
-	Validate(scope Scope) error
+	Validate(validator *Validator) error
 }
 
 func Filter(violations ...error) error {
