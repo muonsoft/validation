@@ -11,6 +11,7 @@ type Scope struct {
 	context          context.Context
 	propertyPath     PropertyPath
 	language         language.Tag
+	translator       *Translator
 	violationFactory ViolationFactory
 }
 
@@ -42,6 +43,24 @@ func (s *Scope) applyOptions(options ...Option) error {
 	return nil
 }
 
+func (s Scope) atProperty(name string) Scope {
+	s.propertyPath = append(s.propertyPath, PropertyNameElement(name))
+
+	return s
+}
+
+func (s Scope) atIndex(index int) Scope {
+	s.propertyPath = append(s.propertyPath, ArrayIndexElement(index))
+
+	return s
+}
+
 func newScope() Scope {
-	return Scope{context: context.Background()}
+	translator := newTranslator()
+
+	return Scope{
+		context:          context.Background(),
+		translator:       translator,
+		violationFactory: newViolationFactory(translator),
+	}
 }

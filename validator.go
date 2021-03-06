@@ -8,16 +8,13 @@ import (
 )
 
 type Validator struct {
-	scope      Scope
-	translator *Translator
+	scope Scope
 }
 
 type ValidatorOption func(validator *Validator) error
 
 func NewValidator(options ...ValidatorOption) (*Validator, error) {
 	validator := &Validator{scope: newScope()}
-	validator.translator = &Translator{}
-	validator.scope.violationFactory = newViolationFactory(validator.translator)
 
 	for _, setOption := range options {
 		err := setOption(validator)
@@ -26,7 +23,7 @@ func NewValidator(options ...ValidatorOption) (*Validator, error) {
 		}
 	}
 
-	err := validator.translator.init()
+	err := validator.scope.translator.init()
 	if err != nil {
 		return nil, err
 	}
@@ -34,16 +31,20 @@ func NewValidator(options ...ValidatorOption) (*Validator, error) {
 	return validator, nil
 }
 
+func newScopedValidator(scope Scope) *Validator {
+	return &Validator{scope: scope}
+}
+
 func DefaultLanguage(tag language.Tag) ValidatorOption {
 	return func(validator *Validator) error {
-		validator.translator.defaultLanguage = tag
+		validator.scope.translator.defaultLanguage = tag
 		return nil
 	}
 }
 
 func Translations(messages map[language.Tag]map[string]catalog.Message) ValidatorOption {
 	return func(validator *Validator) error {
-		return validator.translator.loadMessages(messages)
+		return validator.scope.translator.loadMessages(messages)
 	}
 }
 
@@ -76,13 +77,6 @@ func (validator *Validator) Validate(arguments ...Argument) error {
 	}
 
 	return violations.AsError()
-}
-
-func (validator *Validator) InScope(scope Scope) *Validator {
-	return &Validator{
-		scope:      scope,
-		translator: validator.translator,
-	}
 }
 
 func (validator *Validator) ValidateValue(value interface{}, options ...Option) error {
@@ -125,6 +119,14 @@ func (validator *Validator) ValidateEachString(values []string, options ...Optio
 	return validator.Validate(EachString(values, options...))
 }
 
-func (validator *Validator) GetScope() Scope {
-	return validator.scope
+func (validator *Validator) AtProperty(name string) *Validator {
+	return newScopedValidator(validator.scope.atProperty(name))
+}
+
+func (validator *Validator) AtIndex(index int) *Validator {
+	return newScopedValidator(validator.scope.atIndex(index))
+}
+
+func (validator *Validator) BuildViolation(code, message string) *ViolationBuilder {
+	return validator.scope.BuildViolation(code, message)
 }

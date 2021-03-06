@@ -172,8 +172,8 @@ func TestValidateNil(t *testing.T) {
 		nilConstraint validation.NilConstraint
 		assert        func(t *testing.T, err error)
 	}{
-		{"not blank", it.IsNotBlank(), assertIsViolation(code.NotBlank, message.NotBlank, "")},
-		{"not blank when true", it.IsNotBlank().When(true), assertIsViolation(code.NotBlank, message.NotBlank, "")},
+		{"not blank", it.IsNotBlank(), assertHasOneViolation(code.NotBlank, message.NotBlank, "")},
+		{"not blank when true", it.IsNotBlank().When(true), assertHasOneViolation(code.NotBlank, message.NotBlank, "")},
 		{"not blank when false", it.IsNotBlank().When(false), assertNoError},
 		{"not blank when nil allowed", it.IsNotBlank().AllowNil(), assertNoError},
 		{"blank", it.IsBlank(), assertNoError},
@@ -182,7 +182,9 @@ func TestValidateNil(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := test.nilConstraint.ValidateNil(validator.GetScope())
+			var v *bool
+
+			err := validator.ValidateValue(v, test.nilConstraint)
 
 			test.assert(t, err)
 		})
