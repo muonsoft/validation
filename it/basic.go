@@ -259,17 +259,6 @@ func (c NotNilConstraint) ValidateNil(scope validation.Scope) error {
 	return c.newViolation(scope)
 }
 
-func (c NotNilConstraint) ValidateBool(value *bool, scope validation.Scope) error {
-	if c.isIgnored {
-		return nil
-	}
-	if value != nil && *value {
-		return nil
-	}
-
-	return c.newViolation(scope)
-}
-
 func (c NotNilConstraint) ValidateNumber(value generic.Number, scope validation.Scope) error {
 	if c.isIgnored {
 		return nil
@@ -286,25 +275,6 @@ func (c NotNilConstraint) ValidateString(value *string, scope validation.Scope) 
 		return nil
 	}
 	if value != nil && *value != "" {
-		return nil
-	}
-
-	return c.newViolation(scope)
-}
-
-func (c NotNilConstraint) ValidateIterable(value generic.Iterable, scope validation.Scope) error {
-	if c.isIgnored {
-		return nil
-	}
-	if value.Count() > 0 {
-		return nil
-	}
-
-	return c.newViolation(scope)
-}
-
-func (c NotNilConstraint) ValidateCountable(count int, scope validation.Scope) error {
-	if c.isIgnored || count > 0 {
 		return nil
 	}
 
