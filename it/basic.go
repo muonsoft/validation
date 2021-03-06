@@ -263,7 +263,7 @@ func (c NotNilConstraint) ValidateNumber(value generic.Number, scope validation.
 	if c.isIgnored {
 		return nil
 	}
-	if !value.IsNil() && !value.IsZero() {
+	if !value.IsNil() {
 		return nil
 	}
 
@@ -274,7 +274,7 @@ func (c NotNilConstraint) ValidateString(value *string, scope validation.Scope) 
 	if c.isIgnored {
 		return nil
 	}
-	if value != nil && *value != "" {
+	if value != nil {
 		return nil
 	}
 
@@ -285,9 +285,18 @@ func (c NotNilConstraint) ValidateTime(value *time.Time, scope validation.Scope)
 	if c.isIgnored {
 		return nil
 	}
+	if value != nil {
+		return nil
+	}
 
-	var empty time.Time
-	if value != nil && *value != empty {
+	return c.newViolation(scope)
+}
+
+func (c NotNilConstraint) ValidateIterable(value generic.Iterable, scope validation.Scope) error {
+	if c.isIgnored {
+		return nil
+	}
+	if !value.IsNil() {
 		return nil
 	}
 
