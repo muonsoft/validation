@@ -9,19 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func assertIsViolation(code, message, path string) func(t *testing.T, err error) {
-	return func(t *testing.T, err error) {
-		t.Helper()
-		validationtest.AssertIsViolation(t, err, func(t *testing.T, violation validation.Violation) bool {
-			t.Helper()
-
-			return assert.Equal(t, code, violation.GetCode()) &&
-				assert.Equal(t, message, violation.GetMessage()) &&
-				assert.Equal(t, path, violation.GetPropertyPath().Format())
-		})
-	}
-}
-
 func assertHasOneViolation(code, message, path string) func(t *testing.T, err error) {
 	return func(t *testing.T, err error) {
 		t.Helper()

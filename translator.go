@@ -3,7 +3,6 @@ package validation
 import (
 	"fmt"
 
-	"github.com/muonsoft/validation/message/translations"
 	"github.com/muonsoft/validation/message/translations/english"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
@@ -16,11 +15,15 @@ type Translator struct {
 	printers        map[language.Tag]*message.Printer
 }
 
-func (translator *Translator) init() error {
-	if translator.defaultLanguage == language.Und {
-		translator.defaultLanguage = language.English
+func newTranslator() *Translator {
+	return &Translator{
+		defaultLanguage: language.English,
+		messages:        catalog.NewBuilder(),
+		printers:        map[language.Tag]*message.Printer{},
 	}
+}
 
+func (translator *Translator) init() error {
 	err := translator.loadMessages(english.Messages)
 	if err != nil {
 		return err
@@ -30,20 +33,26 @@ func (translator *Translator) init() error {
 }
 
 func (translator *Translator) loadMessages(messages map[language.Tag]map[string]catalog.Message) error {
-	if translator.messages == nil {
-		translator.messages = catalog.NewBuilder()
-	}
-	if translator.printers == nil {
-		translator.printers = make(map[language.Tag]*message.Printer, len(messages))
-	}
-
-	err := translations.LoadMessages(translator.messages, messages)
+	err := translator.setMessagesToCatalog(messages)
 	if err != nil {
 		return fmt.Errorf("failed to load translations: %w", err)
 	}
 
 	for tag := range messages {
 		translator.printers[tag] = message.NewPrinter(tag, message.Catalog(translator.messages))
+	}
+
+	return nil
+}
+
+func (translator *Translator) setMessagesToCatalog(messages map[language.Tag]map[string]catalog.Message) error {
+	for tag, tagMessages := range messages {
+		for key, msg := range tagMessages {
+			err := translator.messages.Set(tag, key, msg)
+			if err != nil {
+				return fmt.Errorf("failed to set message '%s' for language %s: %w", key, tag, err)
+			}
+		}
 	}
 
 	return nil

@@ -23,16 +23,8 @@ func Reset() {
 	validator, _ = validation.NewValidator()
 }
 
-func GetScope() validation.Scope {
-	return validator.GetScope()
-}
-
 func Validate(arguments ...validation.Argument) error {
 	return validator.Validate(arguments...)
-}
-
-func InScope(scope validation.Scope) *validation.Validator {
-	return validator.InScope(scope)
 }
 
 func ValidateValue(value interface{}, options ...validation.Option) error {
@@ -73,4 +65,16 @@ func ValidateEach(value interface{}, options ...validation.Option) error {
 
 func ValidateEachString(strings []string, options ...validation.Option) error {
 	return validator.ValidateEachString(strings, options...)
+}
+
+func AtProperty(name string) *validation.Validator {
+	return validator.AtProperty(name)
+}
+
+func AtIndex(index int) *validation.Validator {
+	return validator.AtIndex(index)
+}
+
+func BuildViolation(code, message string) *validation.ViolationBuilder {
+	return validator.BuildViolation(code, message)
 }

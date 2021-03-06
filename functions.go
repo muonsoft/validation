@@ -228,7 +228,7 @@ func newValidValidator(value Validatable, options []Option) validateFunc {
 			return nil, err
 		}
 
-		err = value.Validate(scope)
+		err = value.Validate(newScopedValidator(scope))
 		violations, ok := UnwrapViolationList(err)
 		if ok {
 			return violations, nil
@@ -270,9 +270,9 @@ func validateIterableOfValidatables(scope Scope, iterable generic.Iterable) (Vio
 	err := iterable.Iterate(func(key generic.Key, value interface{}) error {
 		s := scope
 		if key.IsIndex() {
-			s.propertyPath = append(s.propertyPath, ArrayIndexElement(key.Index()))
+			s = s.atIndex(key.Index())
 		} else {
-			s.propertyPath = append(s.propertyPath, PropertyNameElement(key.String()))
+			s = s.atProperty(key.String())
 		}
 
 		validate := newValidValidator(value.(Validatable), nil)
