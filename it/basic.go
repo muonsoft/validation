@@ -221,3 +221,88 @@ func (c BlankConstraint) ValidateTime(value *time.Time, scope validation.Scope) 
 func (c BlankConstraint) newViolation(scope validation.Scope) validation.Violation {
 	return scope.BuildViolation(code.Blank, c.messageTemplate).GetViolation()
 }
+
+type NotNilConstraint struct {
+	messageTemplate string
+	isIgnored       bool
+}
+
+func IsNotNil() NotNilConstraint {
+	return NotNilConstraint{
+		messageTemplate: message.NotNil,
+	}
+}
+
+func (c NotNilConstraint) When(condition bool) NotNilConstraint {
+	c.isIgnored = !condition
+	return c
+}
+
+func (c NotNilConstraint) Message(message string) NotNilConstraint {
+	c.messageTemplate = message
+	return c
+}
+
+func (c NotNilConstraint) Set(scope *validation.Scope) error {
+	return nil
+}
+
+func (c NotNilConstraint) GetName() string {
+	return "NotNilConstraint"
+}
+
+func (c NotNilConstraint) ValidateNil(scope validation.Scope) error {
+	if c.isIgnored {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
+func (c NotNilConstraint) ValidateNumber(value generic.Number, scope validation.Scope) error {
+	if c.isIgnored {
+		return nil
+	}
+	if !value.IsNil() {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
+func (c NotNilConstraint) ValidateString(value *string, scope validation.Scope) error {
+	if c.isIgnored {
+		return nil
+	}
+	if value != nil {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
+func (c NotNilConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
+	if c.isIgnored {
+		return nil
+	}
+	if value != nil {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
+func (c NotNilConstraint) ValidateIterable(value generic.Iterable, scope validation.Scope) error {
+	if c.isIgnored {
+		return nil
+	}
+	if !value.IsNil() {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
+func (c NotNilConstraint) newViolation(scope validation.Scope) validation.Violation {
+	return scope.BuildViolation(code.NotNil, c.messageTemplate).GetViolation()
+}

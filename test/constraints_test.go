@@ -42,6 +42,7 @@ type ConstraintValidationTestCase struct {
 var validateTestCases = mergeTestCases(
 	isNotBlankConstraintTestCases,
 	isBlankConstraintTestCases,
+	isNotNilConstraintTestCases,
 	countConstraintTestCases,
 )
 
