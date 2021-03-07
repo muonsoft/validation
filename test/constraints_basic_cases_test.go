@@ -184,7 +184,7 @@ var isNotNilConstraintTestCases = []ConstraintValidationTestCase{
 		assert:          assertHasOneViolation(code.NotNil, message.NotNil, ""),
 	},
 	{
-		name:            "isNotNil violation on empty value",
+		name:            "isNotNil passes on empty value",
 		isApplicableFor: specificValueTypes(intType, floatType, stringType, timeType, iterableType),
 		intValue:        intValue(0),
 		floatValue:      floatValue(0),
@@ -196,7 +196,7 @@ var isNotNilConstraintTestCases = []ConstraintValidationTestCase{
 		assert:          assertNoError,
 	},
 	{
-		name:            "isNotNil violation on empty value when condition is true",
+		name:            "isNotNil passes on empty value when condition is true",
 		isApplicableFor: specificValueTypes(intType, floatType, stringType, timeType, iterableType),
 		intValue:        intValue(0),
 		floatValue:      floatValue(0),
