@@ -43,6 +43,12 @@ func (s *Scope) applyOptions(options ...Option) error {
 	return nil
 }
 
+func (s Scope) withContext(ctx context.Context) Scope {
+	s.context = ctx
+
+	return s
+}
+
 func (s Scope) atProperty(name string) Scope {
 	s.propertyPath = append(s.propertyPath, PropertyNameElement(name))
 

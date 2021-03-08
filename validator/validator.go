@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"context"
 	"time"
 
 	"github.com/muonsoft/validation"
@@ -65,6 +66,10 @@ func ValidateEach(value interface{}, options ...validation.Option) error {
 
 func ValidateEachString(strings []string, options ...validation.Option) error {
 	return validator.ValidateEachString(strings, options...)
+}
+
+func WithContext(ctx context.Context) *validation.Validator {
+	return validator.WithContext(ctx)
 }
 
 func AtProperty(name string) *validation.Validator {
