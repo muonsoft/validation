@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"context"
 	"time"
 
 	"golang.org/x/text/language"
@@ -107,16 +108,20 @@ func (validator *Validator) ValidateTime(value *time.Time, options ...Option) er
 	return validator.Validate(Time(value, options...))
 }
 
-func (validator *Validator) ValidateValidatable(validatable Validatable, options ...Option) error {
-	return validator.Validate(Valid(validatable, options...))
-}
-
 func (validator *Validator) ValidateEach(value interface{}, options ...Option) error {
 	return validator.Validate(Each(value, options...))
 }
 
 func (validator *Validator) ValidateEachString(values []string, options ...Option) error {
 	return validator.Validate(EachString(values, options...))
+}
+
+func (validator *Validator) ValidateValidatable(validatable Validatable, options ...Option) error {
+	return validator.Validate(Valid(validatable, options...))
+}
+
+func (validator Validator) WithContext(ctx context.Context) *Validator {
+	return newScopedValidator(validator.scope.withContext(ctx))
 }
 
 func (validator *Validator) AtProperty(name string) *Validator {
