@@ -124,6 +124,10 @@ func (validator Validator) WithContext(ctx context.Context) *Validator {
 	return newScopedValidator(validator.scope.withContext(ctx))
 }
 
+func (validator Validator) WithLanguage(tag language.Tag) *Validator {
+	return newScopedValidator(validator.scope.withLanguage(tag))
+}
+
 func (validator *Validator) AtProperty(name string) *Validator {
 	return newScopedValidator(validator.scope.atProperty(name))
 }

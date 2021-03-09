@@ -44,7 +44,7 @@ func TestValidator_Validate_WhenRussianIsDefaultLanguage_ExpectViolationTranslat
 	}
 }
 
-func TestValidator_Validate_WhenRussianIsPassedViaOption_ExpectViolationTranslated(t *testing.T) {
+func TestValidator_Validate_WhenRussianIsPassedViaArgument_ExpectViolationTranslated(t *testing.T) {
 	v := newValidator(t, validation.Translations(russian.Messages))
 
 	tests := []struct {
@@ -58,10 +58,9 @@ func TestValidator_Validate_WhenRussianIsPassedViaOption_ExpectViolationTranslat
 	}
 	for _, test := range tests {
 		t.Run("plural form for "+strconv.Itoa(test.maxCount), func(t *testing.T) {
-			err := v.ValidateCountable(
-				10,
-				it.HasMaxCount(test.maxCount),
+			err := v.Validate(
 				validation.Language(language.Russian),
+				validation.Countable(10, it.HasMaxCount(test.maxCount)),
 			)
 
 			validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
@@ -80,10 +79,9 @@ func TestValidator_Validate_WhenCustomDefaultLanguageAndUndefinedTranslationLang
 		validation.Translations(russian.Messages),
 	)
 
-	err := v.ValidateString(
-		stringValue(""),
-		it.IsNotBlank(),
+	err := v.Validate(
 		validation.Language(language.Afrikaans),
+		validation.String(stringValue(""), it.IsNotBlank()),
 	)
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
@@ -100,15 +98,26 @@ func TestValidator_Validate_WhenDefaultLanguageIsNotLoaded_ExpectError(t *testin
 	assert.EqualError(t, err, "default language is not loaded: missing messages for language 'ru'")
 }
 
-func TestValidator_Validate_WhenTranslationLanguageInContextOption_ExpectTranslationLanguageUsed(t *testing.T) {
+func TestValidator_Validate_WhenTranslationLanguageInContextArgument_ExpectTranslationLanguageUsed(t *testing.T) {
 	v := newValidator(t, validation.Translations(russian.Messages))
 
 	ctx := languagepkg.WithContext(context.Background(), language.Russian)
-	err := v.ValidateString(
-		stringValue(""),
-		it.IsNotBlank(),
+	err := v.Validate(
 		validation.Context(ctx),
+		validation.String(stringValue(""), it.IsNotBlank()),
 	)
+
+	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
+		t.Helper()
+		return assert.Len(t, violations, 1) &&
+			assert.Equal(t, "Значение не должно быть пустым.", violations[0].GetMessage())
+	})
+}
+
+func TestValidator_Validate_WhenTranslationLanguageInScopedValidator_ExpectTranslationLanguageUsed(t *testing.T) {
+	v := newValidator(t, validation.Translations(russian.Messages)).WithLanguage(language.Russian)
+
+	err := v.ValidateString(stringValue(""), it.IsNotBlank())
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 		t.Helper()
@@ -136,10 +145,9 @@ func TestValidator_Validate_WhenTranslationLanguageParsedFromAcceptLanguageHeade
 	matcher := language.NewMatcher([]language.Tag{language.Russian})
 	tag, _ := language.MatchStrings(matcher, "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7")
 	ctx := languagepkg.WithContext(context.Background(), tag)
-	err := v.ValidateString(
-		stringValue(""),
-		it.IsNotBlank(),
+	err := v.Validate(
 		validation.Context(ctx),
+		validation.String(stringValue(""), it.IsNotBlank()),
 	)
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {

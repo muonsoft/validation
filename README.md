@@ -355,7 +355,7 @@ for _, violation := range violations {
 // violation: Значение не должно быть пустым.
 ```
 
-The second way is to use the `validation.Language()` option. Be aware that this method works only on a specific scope.
+The second way is to use the `validation.Language()` argument. Be aware that this method works only on a specific scope. Also, you can use the `validator.WithLanguage()` method to create scoped validator and use it in different places.
 
 ```golang
 validator, _ := validation.NewValidator(
@@ -363,7 +363,10 @@ validator, _ := validation.NewValidator(
 )
 
 s := ""
-err := validator.ValidateString(&s, validation.Language(language.Russian), it.IsNotBlank())
+err := validator.Validate(
+    validation.Language(language.Russian),
+    validation.String(&s, it.IsNotBlank()),
+)
 
 violations := err.(validation.ViolationList)
 for _, violation := range violations {
@@ -373,7 +376,7 @@ for _, violation := range violations {
 // violation: Значение не должно быть пустым.
 ```
 
-The last way is to pass language via context. It is provided by the `github.com/muonsoft/language` package and can be useful in combination with [language middleware](https://github.com/muonsoft/language/blob/main/middleware.go). The recommended way to pass the context is to create scoped validator by calling the `validator.WithContext()` method.
+The last way is to pass language via context. It is provided by the `github.com/muonsoft/language` package and can be useful in combination with [language middleware](https://github.com/muonsoft/language/blob/main/middleware.go). You can pass the context by using the `validation.Context()` argument or by creating a scoped validator with the `validator.WithContext()` method.
 
 ```golang
 // import languagepkg "github.com/muonsoft/language"

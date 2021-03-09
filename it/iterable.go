@@ -9,6 +9,8 @@ import (
 	"github.com/muonsoft/validation/message"
 )
 
+// CountConstraint checks that a given collection's (array, slice or a map) length is between some minimum and
+// maximum value.
 type CountConstraint struct {
 	isIgnored            bool
 	checkMin             bool
@@ -86,7 +88,7 @@ func (c CountConstraint) ValidateCountable(count int, scope validation.Scope) er
 	return nil
 }
 
-func (c CountConstraint) Set(scope *validation.Scope) error {
+func (c CountConstraint) SetUp(scope *validation.Scope) error {
 	return nil
 }
 
