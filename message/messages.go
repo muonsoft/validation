@@ -23,10 +23,13 @@
 package message
 
 const (
-	NotBlank     = "This value should not be blank."
-	Blank        = "This value should be blank."
-	NotNil       = "This value should not be nil."
-	CountTooFew  = "This collection should contain {{ limit }} element(s) or more."
-	CountTooMany = "This collection should contain {{ limit }} element(s) or less."
-	CountExact   = "This collection should contain exactly {{ limit }} element(s)."
+	NotBlank      = "This value should not be blank."
+	Blank         = "This value should be blank."
+	NotNil        = "This value should not be nil."
+	CountTooFew   = "This collection should contain {{ limit }} element(s) or more."
+	CountTooMany  = "This collection should contain {{ limit }} element(s) or less."
+	CountExact    = "This collection should contain exactly {{ limit }} element(s)."
+	LengthTooFew  = "This value is too short. It should have {{ limit }} character(s) or more."
+	LengthTooMany = "This value is too long. It should have {{ limit }} character(s) or less."
+	LengthExact   = "This value should have exactly {{ limit }} character(s)."
 )
