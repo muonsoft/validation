@@ -9,6 +9,9 @@ import (
 	"time"
 )
 
+// NotBlankConstraint checks that a value is not blank: not equal to zero, an empty string, an empty
+// slice/array, an empty map, `false` or `nil`. Nil behavior is configurable via AllowNil() method.
+// To check that a value is not nil only use NotNilConstraint.
 type NotBlankConstraint struct {
 	messageTemplate string
 	isIgnored       bool
@@ -36,7 +39,7 @@ func (c NotBlankConstraint) Message(message string) NotBlankConstraint {
 	return c
 }
 
-func (c NotBlankConstraint) Set(scope *validation.Scope) error {
+func (c NotBlankConstraint) SetUp(scope *validation.Scope) error {
 	return nil
 }
 
@@ -136,6 +139,8 @@ func (c NotBlankConstraint) newViolation(scope validation.Scope) validation.Viol
 	return scope.BuildViolation(code.NotBlank, c.messageTemplate).GetViolation()
 }
 
+// BlankConstraint checks that a value is blank: equal to `false`, `nil`, zero, an empty string, an empty
+// slice, array, or a map.
 type BlankConstraint struct {
 	messageTemplate string
 	isIgnored       bool
@@ -147,7 +152,7 @@ func IsBlank() BlankConstraint {
 	}
 }
 
-func (c BlankConstraint) Set(scope *validation.Scope) error {
+func (c BlankConstraint) SetUp(scope *validation.Scope) error {
 	return nil
 }
 
@@ -222,6 +227,8 @@ func (c BlankConstraint) newViolation(scope validation.Scope) validation.Violati
 	return scope.BuildViolation(code.Blank, c.messageTemplate).GetViolation()
 }
 
+// NotNilConstraint checks that a value in not strictly equal to `nil`. To check that values in not blank use
+// NotBlankConstraint.
 type NotNilConstraint struct {
 	messageTemplate string
 	isIgnored       bool
@@ -243,7 +250,7 @@ func (c NotNilConstraint) Message(message string) NotNilConstraint {
 	return c
 }
 
-func (c NotNilConstraint) Set(scope *validation.Scope) error {
+func (c NotNilConstraint) SetUp(scope *validation.Scope) error {
 	return nil
 }
 

@@ -38,10 +38,9 @@ func ExampleValidator_Validate_translationForCustomMessage() {
 	)
 
 	var tags []string
-	err := validator.ValidateIterable(
-		tags,
+	err := validator.Validate(
 		validation.Language(language.Russian),
-		it.HasMinCount(1).MinMessage(customMessage),
+		validation.Iterable(tags, it.HasMinCount(1).MinMessage(customMessage)),
 	)
 
 	violations := err.(validation.ViolationList)

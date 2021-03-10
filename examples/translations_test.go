@@ -28,13 +28,16 @@ func ExampleValidator_Validate_translationsByDefaultLanguage() {
 	// violation: Значение не должно быть пустым.
 }
 
-func ExampleValidator_Validate_translationsByOption() {
+func ExampleValidator_Validate_translationsByArgument() {
 	validator, _ := validation.NewValidator(
 		validation.Translations(russian.Messages),
 	)
 
 	s := ""
-	err := validator.ValidateString(&s, validation.Language(language.Russian), it.IsNotBlank())
+	err := validator.Validate(
+		validation.Language(language.Russian),
+		validation.String(&s, it.IsNotBlank()),
+	)
 
 	violations := err.(validation.ViolationList)
 	for _, violation := range violations {
@@ -44,14 +47,17 @@ func ExampleValidator_Validate_translationsByOption() {
 	// violation: Значение не должно быть пустым.
 }
 
-func ExampleValidator_Validate_translationsByContextOption() {
+func ExampleValidator_Validate_translationsByContextArgument() {
 	validator, _ := validation.NewValidator(
 		validation.Translations(russian.Messages),
 	)
 
 	s := ""
 	ctx := languagepkg.WithContext(context.Background(), language.Russian)
-	err := validator.ValidateString(&s, validation.Context(ctx), it.IsNotBlank())
+	err := validator.Validate(
+		validation.Context(ctx),
+		validation.String(&s, it.IsNotBlank()),
+	)
 
 	violations := err.(validation.ViolationList)
 	for _, violation := range violations {
