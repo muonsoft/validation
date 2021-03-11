@@ -16,21 +16,10 @@ type Product struct {
 
 func (p Product) Validate(validator *validation.Validator) error {
 	return validator.Validate(
-		validation.String(
-			&p.Name,
-			validation.PropertyName("name"),
-			it.IsNotBlank(),
-		),
-		validation.Iterable(
-			p.Tags,
-			validation.PropertyName("tags"),
-			it.HasMinCount(1),
-		),
-		validation.Iterable(
-			p.Components,
-			validation.PropertyName("components"),
-			it.HasMinCount(1),
-		),
+		validation.StringProperty("name", &p.Name, it.IsNotBlank()),
+		validation.IterableProperty("tags", p.Tags, it.HasMinCount(1)),
+		// this also runs validation on each of the components
+		validation.IterableProperty("components", p.Components, it.HasMinCount(1)),
 	)
 }
 
@@ -42,20 +31,12 @@ type Component struct {
 
 func (c Component) Validate(validator *validation.Validator) error {
 	return validator.Validate(
-		validation.String(
-			&c.Name,
-			validation.PropertyName("name"),
-			it.IsNotBlank(),
-		),
-		validation.Iterable(
-			c.Tags,
-			validation.PropertyName("tags"),
-			it.HasMinCount(1),
-		),
+		validation.StringProperty("name", &c.Name, it.IsNotBlank()),
+		validation.CountableProperty("tags", len(c.Tags), it.HasMinCount(1)),
 	)
 }
 
-func ExampleValidateValidatable_withSingletonValidator() {
+func ExampleValidateValidatable() {
 	p := Product{
 		Name: "",
 		Components: []Component{

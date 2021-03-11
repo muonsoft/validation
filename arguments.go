@@ -1,10 +1,12 @@
 package validation
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/muonsoft/validation/generic"
+	"golang.org/x/text/language"
 )
 
 type Argument interface {
@@ -166,4 +168,22 @@ func Valid(value Validatable, options ...Option) Argument {
 
 func ValidProperty(name string, value Validatable, options ...Option) Argument {
 	return Valid(value, append([]Option{PropertyName(name)}, options...)...)
+}
+
+// Context can be used to pass context to validation constraints via Scope.
+func Context(ctx context.Context) Argument {
+	return ArgumentFunc(func(arguments *Arguments) error {
+		arguments.scope.context = ctx
+
+		return nil
+	})
+}
+
+// Language argument sets the current language for translation of violation message.
+func Language(tag language.Tag) Argument {
+	return ArgumentFunc(func(arguments *Arguments) error {
+		arguments.scope.language = tag
+
+		return nil
+	})
 }

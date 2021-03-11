@@ -113,11 +113,11 @@ func UnwrapViolation(err error) (Violation, bool) {
 }
 
 func UnwrapViolationList(err error) (ViolationList, bool) {
-	var violation ViolationList
+	var violations ViolationList
 
-	as := errors.As(err, &violation)
+	as := errors.As(err, &violations)
 
-	return violation, as
+	return violations, as
 }
 
 type internalViolation struct {

@@ -34,13 +34,25 @@ func (s Scope) BuildViolation(code, message string) *ViolationBuilder {
 
 func (s *Scope) applyOptions(options ...Option) error {
 	for _, option := range options {
-		err := option.Set(s)
+		err := option.SetUp(s)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func (s Scope) withContext(ctx context.Context) Scope {
+	s.context = ctx
+
+	return s
+}
+
+func (s Scope) withLanguage(tag language.Tag) Scope {
+	s.language = tag
+
+	return s
 }
 
 func (s Scope) atProperty(name string) Scope {

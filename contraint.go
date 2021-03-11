@@ -11,8 +11,8 @@ type Constraint interface {
 	GetName() string
 }
 
-// NilConstraint is used for constraints that needs to check value for nil. In common case
-// you have no need to implement it in your constraints because nil values should be ignored.
+// NilConstraint is used for constraints that need to check value for nil. In common case
+// you do not need to implement it in your constraints because nil values should be ignored.
 type NilConstraint interface {
 	Constraint
 	ValidateNil(scope Scope) error

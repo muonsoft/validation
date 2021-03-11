@@ -1,9 +1,11 @@
 package validator
 
 import (
+	"context"
 	"time"
 
 	"github.com/muonsoft/validation"
+	"golang.org/x/text/language"
 )
 
 var validator, _ = validation.NewValidator()
@@ -65,6 +67,14 @@ func ValidateEach(value interface{}, options ...validation.Option) error {
 
 func ValidateEachString(strings []string, options ...validation.Option) error {
 	return validator.ValidateEachString(strings, options...)
+}
+
+func WithContext(ctx context.Context) *validation.Validator {
+	return validator.WithContext(ctx)
+}
+
+func WithLanguage(tag language.Tag) *validation.Validator {
+	return validator.WithLanguage(tag)
 }
 
 func AtProperty(name string) *validation.Validator {
