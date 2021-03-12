@@ -1,4 +1,4 @@
-package examples
+package validation_test
 
 import (
 	"fmt"

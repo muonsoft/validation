@@ -4,6 +4,23 @@ The package provides tools for data validation. It is designed to create complex
 
 This project is inspired by [Symfony Validator component](https://symfony.com/index.php/doc/current/validation.html).
 
+## Table of contents
+
+* [Key features](#key-features)
+* [Work-in-progress notice](#work-in-progress-notice)
+* [Installation](#installation)
+* [How to use](#how-to-use)
+  * [Basic concepts](#basic-concepts)
+  * [How to use the validator](#how-to-use-the-validator)
+  * [Processing property paths](#processing-property-paths)
+  * [Validation of structs](#validation-of-structs)
+  * [Conditional validation](#conditional-validation)
+  * [Working with violations and errors](#working-with-violations-and-errors)
+  * [How to use translations](#how-to-use-translations)
+  * [Customizing violation messages](#customizing-violation-messages)
+* [Contributing](#contributing)
+* [License](#license)
+
 ## Key features
 
 * Flexible and customizable API built in mind to use benefits of static typing
@@ -48,7 +65,7 @@ for _, violation := range violations {
 
 List of common [validation arguments](arguments.go)
 
-* `validation.Value()` - passes any value. It uses reflection to detect type of the argument and pass to specific validation method.
+* `validation.Value()` - passes any value. It uses reflection to detect the type of the argument and pass it to a specific validation method.
 * `validation.Bool()` - passes boolean value.
 * `validation.Number()` - passes any numeric value. At the moment it uses reflection for executing validation process.
 * `validation.String()` - passes string value.
@@ -71,8 +88,6 @@ For single value validation, you can use shorthand versions of the validation me
 * `validator.ValidateEach()`
 * `validator.ValidateEachString()`
 * `validator.ValidateValidatable()`
-
-You can see examples in [examples package](examples).
 
 ### How to use the validator
 
@@ -318,7 +333,7 @@ The validation error called violation consists of a few parameters.
 * `message` - translated message with injected values from constraint. It can be used to show a description of a violation to the end-user. Possible values for build-in constraints are defined in the `github.com/muonsoft/validation/message` package and can be changed at any time, even in patch versions.
 * `messageTemplate` - template for rendering message. Alongside `parameters` it can be used to render the message on the client-side of the library.
 * `parameters` is the map of the template variables and their values provided by the specific constraint.
-* `propertyPath` points to violated property as it described in the [previous section](#processing-property-paths).
+* `propertyPath` points to the violated property as it described in the [previous section](#processing-property-paths).
 
 You can hook into process of violation generation by implementing `validation.ViolationFactory` interface and passing it via `validation.SetViolationFactory()` option. Custom violation must implement `validation.Violation` interface.
 

@@ -7,6 +7,10 @@ import (
 	"github.com/muonsoft/validation/generic"
 )
 
+type validateFunc func(scope Scope) (ViolationList, error)
+
+type validateByConstraintFunc func(constraint Constraint, scope Scope) error
+
 func newValueValidator(value interface{}, options []Option) (validateFunc, error) {
 	switch v := value.(type) {
 	case Validatable:
@@ -254,7 +258,7 @@ func validateOnScope(scope Scope, options []Option, validate validateByConstrain
 
 	for _, option := range options {
 		if constraint, ok := option.(Constraint); ok {
-			err := violations.AddFromError(validate(constraint, scope))
+			err := violations.AppendFromError(validate(constraint, scope))
 			if err != nil {
 				return nil, err
 			}

@@ -1,4 +1,4 @@
-package examples
+package validation_test
 
 import (
 	"fmt"
@@ -23,6 +23,7 @@ func ExampleValidator_Validate_basicValidation() {
 }
 
 func ExampleValidator_Validate_singletonValidator() {
+	// import "github.com/muonsoft/validation/validator"
 	s := ""
 
 	err := validator.Validate(validation.String(&s, it.IsNotBlank()))
@@ -35,7 +36,7 @@ func ExampleValidator_Validate_singletonValidator() {
 	// violation: This value should not be blank.
 }
 
-func ExampleValidator_Validate_shorthandAlias() {
+func ExampleValidator_ValidateString_shorthandAlias() {
 	s := ""
 
 	err := validator.ValidateString(&s, it.IsNotBlank())

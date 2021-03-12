@@ -65,9 +65,6 @@ issues:
         - gosec
         - lll
         - scopelint
-    - path: _example_test\.go
-      linters:
-        - forbidigo
     - path: test
       linters:
         - dogsled

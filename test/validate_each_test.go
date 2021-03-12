@@ -20,9 +20,9 @@ func TestValidateEach_WhenSliceOfStrings_ExpectViolationOnEachElement(t *testing
 		t.Helper()
 		if assert.Len(t, violations, 2) {
 			assert.Equal(t, code.NotBlank, violations[0].GetCode())
-			assert.Equal(t, "[0]", violations[0].GetPropertyPath().Format())
+			assert.Equal(t, "[0]", violations[0].GetPropertyPath().String())
 			assert.Equal(t, code.NotBlank, violations[1].GetCode())
-			assert.Equal(t, "[1]", violations[1].GetPropertyPath().Format())
+			assert.Equal(t, "[1]", violations[1].GetPropertyPath().String())
 		}
 		return true
 	})
@@ -37,9 +37,9 @@ func TestValidateEach_WhenMapOfStrings_ExpectViolationOnEachElement(t *testing.T
 		t.Helper()
 		if assert.Len(t, violations, 2) {
 			assert.Equal(t, code.NotBlank, violations[0].GetCode())
-			assert.Contains(t, violations[0].GetPropertyPath().Format(), "key")
+			assert.Contains(t, violations[0].GetPropertyPath().String(), "key")
 			assert.Equal(t, code.NotBlank, violations[1].GetCode())
-			assert.Contains(t, violations[1].GetPropertyPath().Format(), "key")
+			assert.Contains(t, violations[1].GetPropertyPath().String(), "key")
 		}
 		return true
 	})
@@ -54,9 +54,9 @@ func TestValidateEachString_WhenSliceOfStrings_ExpectViolationOnEachElement(t *t
 		t.Helper()
 		if assert.Len(t, violations, 2) {
 			assert.Equal(t, code.NotBlank, violations[0].GetCode())
-			assert.Equal(t, "[0]", violations[0].GetPropertyPath().Format())
+			assert.Equal(t, "[0]", violations[0].GetPropertyPath().String())
 			assert.Equal(t, code.NotBlank, violations[1].GetCode())
-			assert.Equal(t, "[1]", violations[1].GetPropertyPath().Format())
+			assert.Equal(t, "[1]", violations[1].GetPropertyPath().String())
 		}
 		return true
 	})

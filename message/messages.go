@@ -20,16 +20,19 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+
+// Package message contains violation message texts. They are not protected by
+// backward compatibility rules and can be changed at any time, even in patch versions.
 package message
 
 const (
-	NotBlank      = "This value should not be blank."
 	Blank         = "This value should be blank."
-	NotNil        = "This value should not be nil."
+	CountExact    = "This collection should contain exactly {{ limit }} element(s)."
 	CountTooFew   = "This collection should contain {{ limit }} element(s) or more."
 	CountTooMany  = "This collection should contain {{ limit }} element(s) or less."
-	CountExact    = "This collection should contain exactly {{ limit }} element(s)."
+	LengthExact   = "This value should have exactly {{ limit }} character(s)."
 	LengthTooFew  = "This value is too short. It should have {{ limit }} character(s) or more."
 	LengthTooMany = "This value is too long. It should have {{ limit }} character(s) or less."
-	LengthExact   = "This value should have exactly {{ limit }} character(s)."
+	NotBlank      = "This value should not be blank."
+	NotNil        = "This value should not be nil."
 )

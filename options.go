@@ -7,23 +7,25 @@ type Option interface {
 	SetUp(scope *Scope) error
 }
 
-// OptionFunc is an adapter to allow use the use of ordinary functions as validation options.
-type OptionFunc func(scope *Scope) error
+// optionFunc is an adapter to allow use the use of ordinary functions as validation options.
+type optionFunc func(scope *Scope) error
 
-func (f OptionFunc) SetUp(scope *Scope) error {
+func (f optionFunc) SetUp(scope *Scope) error {
 	return f(scope)
 }
 
+// PropertyName option adds name of the given property to current validation Scope.
 func PropertyName(propertyName string) Option {
-	return OptionFunc(func(scope *Scope) error {
+	return optionFunc(func(scope *Scope) error {
 		scope.propertyPath = append(scope.propertyPath, PropertyNameElement(propertyName))
 
 		return nil
 	})
 }
 
+// ArrayIndex option adds index of the given array to current validation Scope.
 func ArrayIndex(index int) Option {
-	return OptionFunc(func(scope *Scope) error {
+	return optionFunc(func(scope *Scope) error {
 		scope.propertyPath = append(scope.propertyPath, ArrayIndexElement(index))
 
 		return nil
