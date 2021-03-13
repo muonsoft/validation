@@ -1,25 +1,12 @@
 # Golang validation framework
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/muonsoft/validation.svg)](https://pkg.go.dev/github.com/muonsoft/validation)
+[![Go Report Card](https://goreportcard.com/badge/github.com/muonsoft/validation)](https://goreportcard.com/report/github.com/muonsoft/validation)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/muonsoft/validation/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/muonsoft/validation/?branch=main)
+
 The package provides tools for data validation. It is designed to create complex validation rules with abilities to hook into the validation process.
 
 This project is inspired by [Symfony Validator component](https://symfony.com/index.php/doc/current/validation.html).
-
-## Table of contents
-
-* [Key features](#key-features)
-* [Work-in-progress notice](#work-in-progress-notice)
-* [Installation](#installation)
-* [How to use](#how-to-use)
-  * [Basic concepts](#basic-concepts)
-  * [How to use the validator](#how-to-use-the-validator)
-  * [Processing property paths](#processing-property-paths)
-  * [Validation of structs](#validation-of-structs)
-  * [Conditional validation](#conditional-validation)
-  * [Working with violations and errors](#working-with-violations-and-errors)
-  * [How to use translations](#how-to-use-translations)
-  * [Customizing violation messages](#customizing-violation-messages)
-* [Contributing](#contributing)
-* [License](#license)
 
 ## Key features
 
