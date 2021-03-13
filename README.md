@@ -1,8 +1,12 @@
 # Golang validation framework
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/muonsoft/validation.svg)](https://pkg.go.dev/github.com/muonsoft/validation)
+![GitHub](https://img.shields.io/github/license/muonsoft/validation)
+[![tests](https://github.com/muonsoft/validation/actions/workflows/tests.yml/badge.svg)](https://github.com/muonsoft/validation/actions/workflows/tests.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/muonsoft/validation)](https://goreportcard.com/report/github.com/muonsoft/validation)
+[![Code Coverage](https://scrutinizer-ci.com/g/muonsoft/validation/badges/coverage.png?b=main)](https://scrutinizer-ci.com/g/muonsoft/validation/?branch=main)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/muonsoft/validation/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/muonsoft/validation/?branch=main)
+[![Maintainability](https://api.codeclimate.com/v1/badges/1385bcb467b6e43bff8d/maintainability)](https://codeclimate.com/github/muonsoft/validation/maintainability)
 
 The package provides tools for data validation. It is designed to create complex validation rules with abilities to hook into the validation process.
 
