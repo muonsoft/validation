@@ -36,7 +36,7 @@ func (c Component) Validate(validator *validation.Validator) error {
 	)
 }
 
-func ExampleValidator_ValidateValidatable() {
+func ExampleValidator_ValidateValidatable_validatableStruct() {
 	p := Product{
 		Name: "",
 		Components: []Component{
