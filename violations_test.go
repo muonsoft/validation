@@ -10,39 +10,39 @@ import (
 )
 
 func TestViolation_Error_MessageOnly_ErrorWithMessage(t *testing.T) {
-	violation := internalViolation{Message: "Message"}
+	violation := internalViolation{message: "message"}
 
 	err := violation.Error()
 
-	assert.Equal(t, "violation: Message", err)
+	assert.Equal(t, "violation: message", err)
 }
 
 func TestViolation_Error_MessageAndPropertyPath_ErrorWithPropertyPathAndMessage(t *testing.T) {
 	violation := internalViolation{
-		Message:      "Message",
-		PropertyPath: PropertyPath{PropertyNameElement("propertyPath")},
+		message:      "message",
+		propertyPath: PropertyPath{PropertyNameElement("propertyPath")},
 	}
 
 	err := violation.Error()
 
-	assert.Equal(t, "violation at 'propertyPath': Message", err)
+	assert.Equal(t, "violation at 'propertyPath': message", err)
 }
 
 func TestViolationList_Error_CoupleOfViolations_JoinedMessage(t *testing.T) {
 	violations := ViolationList{
 		internalViolation{
-			Message:      "first Message",
-			PropertyPath: PropertyPath{PropertyNameElement("path"), ArrayIndexElement(0)},
+			message:      "first message",
+			propertyPath: PropertyPath{PropertyNameElement("path"), ArrayIndexElement(0)},
 		},
 		internalViolation{
-			Message:      "second Message",
-			PropertyPath: PropertyPath{PropertyNameElement("path"), ArrayIndexElement(1)},
+			message:      "second message",
+			propertyPath: PropertyPath{PropertyNameElement("path"), ArrayIndexElement(1)},
 		},
 	}
 
 	err := violations.Error()
 
-	assert.Equal(t, "violation at 'path[0]': first Message; violation at 'path[1]': second Message", err)
+	assert.Equal(t, "violation at 'path[0]': first message; violation at 'path[1]': second message", err)
 }
 
 func TestViolationList_Error_EmptyList_ErrorWithHelpMessage(t *testing.T) {
@@ -62,7 +62,7 @@ func TestIsViolation_CustomError_False(t *testing.T) {
 }
 
 func TestIsViolation_Violation_True(t *testing.T) {
-	err := &internalViolation{Message: "Message"}
+	err := &internalViolation{message: "message"}
 
 	is := IsViolation(err)
 
@@ -78,7 +78,7 @@ func TestIsViolationList_CustomError_False(t *testing.T) {
 }
 
 func TestIsViolationList_Violation_True(t *testing.T) {
-	err := ViolationList{internalViolation{Message: "Message"}}
+	err := ViolationList{internalViolation{message: "message"}}
 
 	is := IsViolationList(err)
 
@@ -86,7 +86,7 @@ func TestIsViolationList_Violation_True(t *testing.T) {
 }
 
 func TestUnwrapViolation_WrappedViolation_UnwrappedViolation(t *testing.T) {
-	wrapped := &internalViolation{Message: "Message"}
+	wrapped := &internalViolation{message: "message"}
 	err := fmt.Errorf("error: %w", wrapped)
 
 	unwrapped, ok := UnwrapViolation(err)
@@ -96,7 +96,7 @@ func TestUnwrapViolation_WrappedViolation_UnwrappedViolation(t *testing.T) {
 }
 
 func TestUnwrapViolationList_WrappedViolationList_UnwrappedViolationList(t *testing.T) {
-	wrapped := ViolationList{internalViolation{Message: "Message"}}
+	wrapped := ViolationList{internalViolation{message: "message"}}
 	err := fmt.Errorf("error: %w", wrapped)
 
 	unwrapped, ok := UnwrapViolationList(err)
@@ -114,11 +114,11 @@ func TestMarshalInternalViolationToJSON(t *testing.T) {
 		{
 			name: "full data",
 			violation: internalViolation{
-				Code:            "code",
-				Message:         "message",
-				MessageTemplate: "messageTemplate",
-				Parameters:      map[string]string{"name": "value"},
-				PropertyPath:    PropertyPath{PropertyNameElement("properties"), ArrayIndexElement(1), PropertyNameElement("name")},
+				code:            "code",
+				message:         "message",
+				messageTemplate: "messageTemplate",
+				parameters:      map[string]string{"name": "value"},
+				propertyPath:    PropertyPath{PropertyNameElement("properties"), ArrayIndexElement(1), PropertyNameElement("name")},
 			},
 			expectedJSON: `{
 				"code": "code",

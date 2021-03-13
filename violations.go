@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"encoding/json"
 	"errors"
 	"strings"
 
@@ -14,33 +15,33 @@ import (
 type Violation interface {
 	error
 
-	// GetCode returns violation code - unique, short, and semantic string that can be used to programmatically
+	// Code is unique, short, and semantic string that can be used to programmatically
 	// test for specific violation. All "code" values are defined in the "github.com/muonsoft/validation/code" package
 	// and are protected by backward compatibility rules.
-	GetCode() string
+	Code() string
 
-	// GetMessage returns translated message with injected values from constraint. It can be used to show
+	// Message is a translated message with injected values from constraint. It can be used to show
 	// a description of a violation to the end-user. Possible values for build-in constraints
 	// are defined in the "github.com/muonsoft/validation/message" package and can be changed at any time,
 	// even in patch versions.
-	GetMessage() string
+	Message() string
 
-	// GetMessageTemplate returns template for rendering message. Alongside parameters it can be used to
+	// MessageTemplate is a template for rendering message. Alongside parameters it can be used to
 	// render the message on the client-side of the library.
-	GetMessageTemplate() string
+	MessageTemplate() string
 
-	// GetParameters returns the map of the template variables and their values provided by the specific constraint.
-	GetParameters() map[string]string
+	// Parameters is the map of the template variables and their values provided by the specific constraint.
+	Parameters() map[string]string
 
-	// GetPropertyPath returns a property path that points to the violated property.
-	// See PropertyPath description for more info.
-	GetPropertyPath() PropertyPath
+	// PropertyPath is a path that points to the violated property.
+	// See PropertyPath type description for more info.
+	PropertyPath() PropertyPath
 }
 
 // ViolationFactory is the abstraction that can be used to create custom violations on the application side.
 // Use the SetViolationFactory option on the NewValidator constructor to inject your own factory into the validator.
 type ViolationFactory interface {
-	BuildViolation(code, message string) *ViolationBuilder
+	// CreateViolation creates a new instance of Violation.
 	CreateViolation(
 		code,
 		messageTemplate string,
@@ -54,6 +55,7 @@ type ViolationFactory interface {
 // ViolationList is a slice of violations. It is the usual type of error that is returned from a validator.
 type ViolationList []Violation
 
+// NewViolationFunc is an adapter that allows you to use ordinary functions as a ViolationFactory.
 type NewViolationFunc func(
 	code,
 	messageTemplate string,
@@ -63,10 +65,7 @@ type NewViolationFunc func(
 	lang language.Tag,
 ) Violation
 
-func (f NewViolationFunc) BuildViolation(code, message string) *ViolationBuilder {
-	return newViolationBuilder(f, code, message)
-}
-
+// CreateViolation creates a new instance of a Violation.
 func (f NewViolationFunc) CreateViolation(
 	code,
 	messageTemplate string,
@@ -168,11 +167,11 @@ func UnwrapViolationList(err error) (ViolationList, bool) {
 }
 
 type internalViolation struct {
-	Code            string            `json:"code"`
-	Message         string            `json:"message"`
-	MessageTemplate string            `json:"-"`
-	Parameters      map[string]string `json:"-"`
-	PropertyPath    PropertyPath      `json:"propertyPath,omitempty"`
+	code            string
+	message         string
+	messageTemplate string
+	parameters      map[string]string
+	propertyPath    PropertyPath
 }
 
 func (v internalViolation) Error() string {
@@ -185,30 +184,42 @@ func (v internalViolation) Error() string {
 
 func (v internalViolation) writeToBuilder(s *strings.Builder) {
 	s.WriteString("violation")
-	if len(v.PropertyPath) > 0 {
-		s.WriteString(" at '" + v.PropertyPath.String() + "'")
+	if len(v.propertyPath) > 0 {
+		s.WriteString(" at '" + v.propertyPath.String() + "'")
 	}
-	s.WriteString(": " + v.Message)
+	s.WriteString(": " + v.message)
 }
 
-func (v internalViolation) GetCode() string {
-	return v.Code
+func (v internalViolation) Code() string {
+	return v.code
 }
 
-func (v internalViolation) GetMessage() string {
-	return v.Message
+func (v internalViolation) Message() string {
+	return v.message
 }
 
-func (v internalViolation) GetMessageTemplate() string {
-	return v.MessageTemplate
+func (v internalViolation) MessageTemplate() string {
+	return v.messageTemplate
 }
 
-func (v internalViolation) GetParameters() map[string]string {
-	return v.Parameters
+func (v internalViolation) Parameters() map[string]string {
+	return v.parameters
 }
 
-func (v internalViolation) GetPropertyPath() PropertyPath {
-	return v.PropertyPath
+func (v internalViolation) PropertyPath() PropertyPath {
+	return v.propertyPath
+}
+
+func (v internalViolation) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Code         string       `json:"code"`
+		Message      string       `json:"message"`
+		PropertyPath PropertyPath `json:"propertyPath,omitempty"`
+	}{
+		Code:         v.code,
+		Message:      v.message,
+		PropertyPath: v.propertyPath,
+	})
 }
 
 type internalViolationFactory struct {
@@ -230,19 +241,15 @@ func (factory *internalViolationFactory) CreateViolation(
 	message := factory.translator.translate(lang, messageTemplate, pluralCount)
 
 	return &internalViolation{
-		Code:            code,
-		Message:         renderMessage(message, parameters),
-		MessageTemplate: messageTemplate,
-		Parameters:      parameters,
-		PropertyPath:    propertyPath,
+		code:            code,
+		message:         renderMessage(message, parameters),
+		messageTemplate: messageTemplate,
+		parameters:      parameters,
+		propertyPath:    propertyPath,
 	}
 }
 
-func (factory *internalViolationFactory) BuildViolation(code, message string) *ViolationBuilder {
-	return newViolationBuilder(factory, code, message)
-}
-
-// ViolationBuilder used to build an internal implementation of Violation interface.
+// ViolationBuilder used to build an instance of a Violation.
 type ViolationBuilder struct {
 	code            string
 	messageTemplate string
@@ -254,11 +261,17 @@ type ViolationBuilder struct {
 	violationFactory ViolationFactory
 }
 
-func newViolationBuilder(factory ViolationFactory, code, message string) *ViolationBuilder {
+// NewViolationBuilder creates a new ViolationBuilder.
+func NewViolationBuilder(factory ViolationFactory) *ViolationBuilder {
+	return &ViolationBuilder{violationFactory: factory}
+}
+
+// BuildViolation creates a new ViolationBuilder for composing Violation object fluently.
+func (b *ViolationBuilder) BuildViolation(code, message string) *ViolationBuilder {
 	return &ViolationBuilder{
 		code:             code,
 		messageTemplate:  message,
-		violationFactory: factory,
+		violationFactory: b.violationFactory,
 	}
 }
 

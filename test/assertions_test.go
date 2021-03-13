@@ -16,9 +16,9 @@ func assertHasOneViolation(code, message, path string) func(t *testing.T, err er
 			t.Helper()
 
 			if assert.Len(t, violations, 1) {
-				return assert.Equal(t, code, violations[0].GetCode()) &&
-					assert.Equal(t, message, violations[0].GetMessage()) &&
-					assert.Equal(t, path, violations[0].GetPropertyPath().String())
+				return assert.Equal(t, code, violations[0].Code()) &&
+					assert.Equal(t, message, violations[0].Message()) &&
+					assert.Equal(t, path, violations[0].PropertyPath().String())
 			}
 
 			return false

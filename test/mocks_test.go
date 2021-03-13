@@ -58,23 +58,23 @@ func (mock *mockViolation) Error() string {
 	return mock.err
 }
 
-func (mock *mockViolation) GetCode() string {
+func (mock *mockViolation) Code() string {
 	return mock.code
 }
 
-func (mock *mockViolation) GetMessage() string {
+func (mock *mockViolation) Message() string {
 	return mock.message
 }
 
-func (mock *mockViolation) GetMessageTemplate() string {
+func (mock *mockViolation) MessageTemplate() string {
 	return mock.messageTemplate
 }
 
-func (mock *mockViolation) GetParameters() map[string]string {
+func (mock *mockViolation) Parameters() map[string]string {
 	return mock.parameters
 }
 
-func (mock *mockViolation) GetPropertyPath() validation.PropertyPath {
+func (mock *mockViolation) PropertyPath() validation.PropertyPath {
 	return mock.propertyPath
 }
 
