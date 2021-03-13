@@ -1,9 +1,8 @@
-package examples
+package validation_test
 
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -72,19 +71,16 @@ func ExampleValidator_Validate_httpHandler() {
 	// middleware set up: we need to set supported languages
 	// detected language will be passed via request context
 	handler = languagepkg.NewMiddleware(handler, languagepkg.SupportedLanguages(language.English, language.Russian))
-	server := httptest.NewServer(handler)
-	defer server.Close()
 
 	// creating request with the language-specific header
-	request, _ := http.NewRequest(http.MethodPost, server.URL, strings.NewReader(`{}`))
+	request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{}`))
 	request.Header.Set("Accept-Language", "ru")
 
-	response, _ := http.DefaultClient.Do(request)
-	defer response.Body.Close()
-	responseBody, _ := ioutil.ReadAll(response.Body)
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
 
-	// response should contain array of violations
-	fmt.Println(string(responseBody))
+	// recorded response should contain array of violations
+	fmt.Println(recorder.Body.String())
 	// Output:
 	// [{"code":"notBlank","message":"Значение не должно быть пустым.","propertyPath":"title"},{"code":"notBlank","message":"Значение не должно быть пустым.","propertyPath":"author"},{"code":"countTooFew","message":"Эта коллекция должна содержать 1 элемент или больше.","propertyPath":"keywords"}]
 }

@@ -7,6 +7,8 @@ import (
 	"golang.org/x/text/language"
 )
 
+// Scope holds the current state of validation. On the client-side of the package,
+// it can be used to build violations.
 type Scope struct {
 	context          context.Context
 	propertyPath     PropertyPath
@@ -15,10 +17,14 @@ type Scope struct {
 	violationFactory ViolationFactory
 }
 
-func (s *Scope) Context() context.Context {
+// Context returns context value that was passed to the validator by Context argument or
+// by creating scoped validator with the validator.WithContext method.
+func (s Scope) Context() context.Context {
 	return s.context
 }
 
+// BuildViolation is used to create violations in validation methods of constraints.
+// This method automatically injects the property path and language of the current validation scope.
 func (s Scope) BuildViolation(code, message string) *ViolationBuilder {
 	b := s.violationFactory.BuildViolation(code, message)
 	b.SetPropertyPath(s.propertyPath)

@@ -6,6 +6,8 @@ import (
 	"reflect"
 )
 
+// InapplicableConstraintError occurs when trying to use constraint on not applicable values.
+// For example, if you are trying to compare slice with a number.
 type InapplicableConstraintError struct {
 	Constraint Constraint
 	ValueType  string
@@ -22,6 +24,8 @@ func newInapplicableConstraintError(constraint Constraint, valueType string) *In
 	}
 }
 
+// NotValidatableError occurs when validator cannot determine type by reflection or it is not supported
+// by validator.
 type NotValidatableError struct {
 	Value reflect.Value
 }

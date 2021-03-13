@@ -1,4 +1,4 @@
-package examples
+package validation_test
 
 import (
 	"fmt"
@@ -36,7 +36,7 @@ func (c Component) Validate(validator *validation.Validator) error {
 	)
 }
 
-func ExampleValidateValidatable() {
+func ExampleValidator_ValidateValidatable() {
 	p := Product{
 		Name: "",
 		Components: []Component{

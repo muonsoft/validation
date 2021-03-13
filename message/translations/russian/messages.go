@@ -20,6 +20,9 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+
+// Package russian contains violation message texts translated into Russian language.
+// Values are not protected by backward compatibility rules and can be changed at any time, even in patch versions.
 package russian
 
 import (

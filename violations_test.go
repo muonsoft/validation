@@ -45,6 +45,14 @@ func TestViolationList_Error_CoupleOfViolations_JoinedMessage(t *testing.T) {
 	assert.Equal(t, "violation at 'path[0]': first Message; violation at 'path[1]': second Message", err)
 }
 
+func TestViolationList_Error_EmptyList_ErrorWithHelpMessage(t *testing.T) {
+	violations := ViolationList{}
+
+	err := violations.Error()
+
+	assert.Equal(t, "the list of violations is empty, it looks like you forgot to use the AsError method somewhere", err)
+}
+
 func TestIsViolation_CustomError_False(t *testing.T) {
 	err := errors.New("error")
 

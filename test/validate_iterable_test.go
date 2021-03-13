@@ -20,7 +20,7 @@ func TestValidateIterable_WhenSliceOfValidatable_ExpectViolationsWithValidPaths(
 		t.Helper()
 		if assert.Len(t, violations, 1) {
 			assert.Equal(t, code.NotBlank, violations[0].GetCode())
-			assert.Equal(t, "[0].value", violations[0].GetPropertyPath().Format())
+			assert.Equal(t, "[0].value", violations[0].GetPropertyPath().String())
 		}
 		return true
 	})
@@ -35,9 +35,9 @@ func TestValidateIterable_WhenSliceOfValidatableWithConstraints_ExpectCollection
 		t.Helper()
 		if assert.Len(t, violations, 2) {
 			assert.Equal(t, code.CountTooFew, violations[0].GetCode())
-			assert.Equal(t, "", violations[0].GetPropertyPath().Format())
+			assert.Equal(t, "", violations[0].GetPropertyPath().String())
 			assert.Equal(t, code.NotBlank, violations[1].GetCode())
-			assert.Equal(t, "[0].value", violations[1].GetPropertyPath().Format())
+			assert.Equal(t, "[0].value", violations[1].GetPropertyPath().String())
 		}
 		return true
 	})
@@ -52,7 +52,7 @@ func TestValidateIterable_WhenMapOfValidatable_ExpectViolationsWithValidPaths(t 
 		t.Helper()
 		if assert.Len(t, violations, 1) {
 			assert.Equal(t, code.NotBlank, violations[0].GetCode())
-			assert.Equal(t, "key.value", violations[0].GetPropertyPath().Format())
+			assert.Equal(t, "key.value", violations[0].GetPropertyPath().String())
 		}
 		return true
 	})
@@ -67,9 +67,9 @@ func TestValidateIterable_WhenMapOfValidatableWithConstraints_ExpectCollectionVi
 		t.Helper()
 		if assert.Len(t, violations, 2) {
 			assert.Equal(t, code.CountTooFew, violations[0].GetCode())
-			assert.Equal(t, "", violations[0].GetPropertyPath().Format())
+			assert.Equal(t, "", violations[0].GetPropertyPath().String())
 			assert.Equal(t, code.NotBlank, violations[1].GetCode())
-			assert.Equal(t, "key.value", violations[1].GetPropertyPath().Format())
+			assert.Equal(t, "key.value", violations[1].GetPropertyPath().String())
 		}
 		return true
 	})

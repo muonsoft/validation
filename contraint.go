@@ -6,8 +6,10 @@ import (
 	"time"
 )
 
+// Constraint is the base interface to build validation constraints.
 type Constraint interface {
 	Option
+	// GetName returns constraint name. This name can be used in internal errors.
 	GetName() string
 }
 
@@ -18,31 +20,43 @@ type NilConstraint interface {
 	ValidateNil(scope Scope) error
 }
 
+// BoolConstraint is used to build constraints for boolean values validation.
 type BoolConstraint interface {
 	Constraint
 	ValidateBool(value *bool, scope Scope) error
 }
 
+// NumberConstraint is used to build constraints for numeric values validation.
+//
+// At this moment working with numbers is based on reflection.
+// Be aware. This constraint is subject to be changed after generics implementation in Go.
 type NumberConstraint interface {
 	Constraint
 	ValidateNumber(value generic.Number, scope Scope) error
 }
 
+// StringConstraint is used to build constraints for string values validation.
 type StringConstraint interface {
 	Constraint
 	ValidateString(value *string, scope Scope) error
 }
 
+// IterableConstraint is used to build constraints for validation of iterables (arrays, slices, or maps).
+//
+// At this moment working with numbers is based on reflection.
+// Be aware. This constraint is subject to be changed after generics implementation in Go.
 type IterableConstraint interface {
 	Constraint
 	ValidateIterable(value generic.Iterable, scope Scope) error
 }
 
+// CountableConstraint is used to build constraints for simpler validation of iterable elements count.
 type CountableConstraint interface {
 	Constraint
 	ValidateCountable(count int, scope Scope) error
 }
 
+// TimeConstraint is used to build constraints for date/time validation.
 type TimeConstraint interface {
 	Constraint
 	ValidateTime(value *time.Time, scope Scope) error

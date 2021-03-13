@@ -65,7 +65,7 @@ func TestValidate_WhenPropertyArgument_ExpectValidPathInViolation(t *testing.T) 
 			validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 				t.Helper()
 				return assert.Len(t, violations, 1) &&
-					assert.Equal(t, test.expectedPath, violations[0].GetPropertyPath().Format())
+					assert.Equal(t, test.expectedPath, violations[0].GetPropertyPath().String())
 			})
 		})
 	}

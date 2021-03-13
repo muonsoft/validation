@@ -1,4 +1,4 @@
-package examples
+package validation_test
 
 import (
 	"fmt"
@@ -22,7 +22,7 @@ func ExampleValidator_Validate_passingPropertyPathViaOptions() {
 	)
 
 	violation := err.(validation.ViolationList)[0]
-	fmt.Println("property path:", violation.GetPropertyPath().Format())
+	fmt.Println("property path:", violation.GetPropertyPath().String())
 	// Output:
 	// property path: properties[1].tag
 }
@@ -37,7 +37,7 @@ func ExampleValidator_Validate_propertyPathWithScopedValidator() {
 		Validate(validation.String(&s, it.IsNotBlank()))
 
 	violation := err.(validation.ViolationList)[0]
-	fmt.Println("property path:", violation.GetPropertyPath().Format())
+	fmt.Println("property path:", violation.GetPropertyPath().String())
 	// Output:
 	// property path: properties[1].tag
 }
@@ -52,7 +52,33 @@ func ExampleValidator_Validate_propertyPathBySpecialArgument() {
 	)
 
 	violation := err.(validation.ViolationList)[0]
-	fmt.Println("property path:", violation.GetPropertyPath().Format())
+	fmt.Println("property path:", violation.GetPropertyPath().String())
 	// Output:
 	// property path: property
+}
+
+func ExampleValidator_AtProperty() {
+	book := &Book{Title: ""}
+
+	err := validator.AtProperty("book").Validate(
+		validation.StringProperty("title", &book.Title, it.IsNotBlank()),
+	)
+
+	violation := err.(validation.ViolationList)[0]
+	fmt.Println("property path:", violation.GetPropertyPath().String())
+	// Output:
+	// property path: book.title
+}
+
+func ExampleValidator_AtIndex() {
+	books := []Book{{Title: ""}}
+
+	err := validator.AtIndex(0).Validate(
+		validation.StringProperty("title", &books[0].Title, it.IsNotBlank()),
+	)
+
+	violation := err.(validation.ViolationList)[0]
+	fmt.Println("property path:", violation.GetPropertyPath().String())
+	// Output:
+	// property path: [0].title
 }

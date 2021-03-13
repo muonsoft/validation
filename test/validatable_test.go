@@ -76,13 +76,13 @@ func TestValidateValue_WhenStructWithComplexRules_ExpectViolations(t *testing.T)
 		t.Helper()
 		if assert.Len(t, violations, 4) {
 			assert.Equal(t, code.NotBlank, violations[0].GetCode())
-			assert.Equal(t, "name", violations[0].GetPropertyPath().Format())
+			assert.Equal(t, "name", violations[0].GetPropertyPath().String())
 			assert.Equal(t, code.CountTooFew, violations[1].GetCode())
-			assert.Equal(t, "tags", violations[1].GetPropertyPath().Format())
+			assert.Equal(t, "tags", violations[1].GetPropertyPath().String())
 			assert.Equal(t, code.NotBlank, violations[2].GetCode())
-			assert.Equal(t, "components[0].name", violations[2].GetPropertyPath().Format())
+			assert.Equal(t, "components[0].name", violations[2].GetPropertyPath().String())
 			assert.Equal(t, code.CountTooFew, violations[3].GetCode())
-			assert.Equal(t, "components[0].tags", violations[3].GetPropertyPath().Format())
+			assert.Equal(t, "components[0].tags", violations[3].GetPropertyPath().String())
 		}
 		return true
 	})
@@ -124,10 +124,10 @@ func TestValidateValue_WhenValidatableStruct_ExpectValidationExecutedWithPassedO
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 		t.Helper()
 		if assert.Len(t, violations, 4) {
-			assert.Equal(t, "top.intValue", violations[0].GetPropertyPath().Format())
-			assert.Equal(t, "top.floatValue", violations[1].GetPropertyPath().Format())
-			assert.Equal(t, "top.stringValue", violations[2].GetPropertyPath().Format())
-			assert.Equal(t, "top.structValue.value", violations[3].GetPropertyPath().Format())
+			assert.Equal(t, "top.intValue", violations[0].GetPropertyPath().String())
+			assert.Equal(t, "top.floatValue", violations[1].GetPropertyPath().String())
+			assert.Equal(t, "top.stringValue", violations[2].GetPropertyPath().String())
+			assert.Equal(t, "top.structValue.value", violations[3].GetPropertyPath().String())
 		}
 		return true
 	})
