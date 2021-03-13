@@ -112,7 +112,7 @@ func WithLanguage(tag language.Tag) *validation.Validator {
 	return validator.WithLanguage(tag)
 }
 
-// AtProperty mthod creates a new scoped validator with injected property name element to scope property path.
+// AtProperty method creates a new scoped validator with injected property name element to scope property path.
 func AtProperty(name string) *validation.Validator {
 	return validator.AtProperty(name)
 }
