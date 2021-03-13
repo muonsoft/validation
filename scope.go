@@ -26,7 +26,7 @@ func (s Scope) Context() context.Context {
 // BuildViolation is used to create violations in validation methods of constraints.
 // This method automatically injects the property path and language of the current validation scope.
 func (s Scope) BuildViolation(code, message string) *ViolationBuilder {
-	b := s.violationFactory.BuildViolation(code, message)
+	b := NewViolationBuilder(s.violationFactory).BuildViolation(code, message)
 	b.SetPropertyPath(s.propertyPath)
 
 	if s.language != language.Und {

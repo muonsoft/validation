@@ -7,7 +7,7 @@ type Option interface {
 	SetUp(scope *Scope) error
 }
 
-// optionFunc is an adapter to allow use the use of ordinary functions as validation options.
+// optionFunc is an adapter that allows you to use ordinary functions as validation options.
 type optionFunc func(scope *Scope) error
 
 func (f optionFunc) SetUp(scope *Scope) error {

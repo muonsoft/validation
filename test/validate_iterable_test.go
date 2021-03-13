@@ -19,8 +19,8 @@ func TestValidateIterable_WhenSliceOfValidatable_ExpectViolationsWithValidPaths(
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 		t.Helper()
 		if assert.Len(t, violations, 1) {
-			assert.Equal(t, code.NotBlank, violations[0].GetCode())
-			assert.Equal(t, "[0].value", violations[0].GetPropertyPath().String())
+			assert.Equal(t, code.NotBlank, violations[0].Code())
+			assert.Equal(t, "[0].value", violations[0].PropertyPath().String())
 		}
 		return true
 	})
@@ -34,10 +34,10 @@ func TestValidateIterable_WhenSliceOfValidatableWithConstraints_ExpectCollection
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 		t.Helper()
 		if assert.Len(t, violations, 2) {
-			assert.Equal(t, code.CountTooFew, violations[0].GetCode())
-			assert.Equal(t, "", violations[0].GetPropertyPath().String())
-			assert.Equal(t, code.NotBlank, violations[1].GetCode())
-			assert.Equal(t, "[0].value", violations[1].GetPropertyPath().String())
+			assert.Equal(t, code.CountTooFew, violations[0].Code())
+			assert.Equal(t, "", violations[0].PropertyPath().String())
+			assert.Equal(t, code.NotBlank, violations[1].Code())
+			assert.Equal(t, "[0].value", violations[1].PropertyPath().String())
 		}
 		return true
 	})
@@ -51,8 +51,8 @@ func TestValidateIterable_WhenMapOfValidatable_ExpectViolationsWithValidPaths(t 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 		t.Helper()
 		if assert.Len(t, violations, 1) {
-			assert.Equal(t, code.NotBlank, violations[0].GetCode())
-			assert.Equal(t, "key.value", violations[0].GetPropertyPath().String())
+			assert.Equal(t, code.NotBlank, violations[0].Code())
+			assert.Equal(t, "key.value", violations[0].PropertyPath().String())
 		}
 		return true
 	})
@@ -66,10 +66,10 @@ func TestValidateIterable_WhenMapOfValidatableWithConstraints_ExpectCollectionVi
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 		t.Helper()
 		if assert.Len(t, violations, 2) {
-			assert.Equal(t, code.CountTooFew, violations[0].GetCode())
-			assert.Equal(t, "", violations[0].GetPropertyPath().String())
-			assert.Equal(t, code.NotBlank, violations[1].GetCode())
-			assert.Equal(t, "key.value", violations[1].GetPropertyPath().String())
+			assert.Equal(t, code.CountTooFew, violations[0].Code())
+			assert.Equal(t, "", violations[0].PropertyPath().String())
+			assert.Equal(t, code.NotBlank, violations[1].Code())
+			assert.Equal(t, "key.value", violations[1].PropertyPath().String())
 		}
 		return true
 	})
