@@ -2,6 +2,7 @@ package validation
 
 import (
 	"context"
+	"fmt"
 
 	languagepkg "github.com/muonsoft/language"
 	"golang.org/x/text/language"
@@ -42,11 +43,26 @@ func (s *Scope) applyOptions(options ...Option) error {
 	for _, option := range options {
 		err := option.SetUp(s)
 		if err != nil {
-			return err
+			return s.describeOptionError(option, err)
 		}
 	}
 
 	return nil
+}
+
+func (s *Scope) describeOptionError(option Option, err error) error {
+	c, ok := option.(Constraint)
+	if !ok {
+		return fmt.Errorf(`failed to set up option: %w`, err)
+	}
+
+	if len(s.propertyPath) == 0 {
+		err = fmt.Errorf(`failed to set up constraint "%s": %w`, c.Name(), err)
+	} else {
+		err = fmt.Errorf(`failed to set up constraint "%s" at path "%s": %w`, c.Name(), s.propertyPath.String(), err)
+	}
+
+	return err
 }
 
 func (s Scope) withContext(ctx context.Context) Scope {

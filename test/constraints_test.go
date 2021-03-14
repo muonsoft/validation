@@ -45,6 +45,7 @@ var validateTestCases = mergeTestCases(
 	isNotNilConstraintTestCases,
 	lengthConstraintTestCases,
 	countConstraintTestCases,
+	choiceConstraintTestCases,
 )
 
 func TestValidateBool(t *testing.T) {
@@ -63,70 +64,70 @@ func TestValidateBool(t *testing.T) {
 
 func TestValidateNumber_AsInt(t *testing.T) {
 	for _, test := range validateTestCases {
+		if !test.isApplicableFor(intType) {
+			continue
+		}
+
 		t.Run(test.name, func(t *testing.T) {
 			err := validator.ValidateNumber(test.intValue, test.options...)
 
-			if test.isApplicableFor(intType) {
-				test.assert(t, err)
-			} else {
-				assertIsInapplicableConstraintError(t, err, "number")
-			}
+			test.assert(t, err)
 		})
 	}
 }
 
 func TestValidateNumber_AsFloat(t *testing.T) {
 	for _, test := range validateTestCases {
+		if !test.isApplicableFor(floatType) {
+			continue
+		}
+
 		t.Run(test.name, func(t *testing.T) {
 			err := validator.ValidateNumber(test.floatValue, test.options...)
 
-			if test.isApplicableFor(floatType) {
-				test.assert(t, err)
-			} else {
-				assertIsInapplicableConstraintError(t, err, "number")
-			}
+			test.assert(t, err)
 		})
 	}
 }
 
 func TestValidateString(t *testing.T) {
 	for _, test := range validateTestCases {
+		if !test.isApplicableFor(stringType) {
+			continue
+		}
+
 		t.Run(test.name, func(t *testing.T) {
 			err := validator.ValidateString(test.stringValue, test.options...)
 
-			if test.isApplicableFor(stringType) {
-				test.assert(t, err)
-			} else {
-				assertIsInapplicableConstraintError(t, err, stringType)
-			}
+			test.assert(t, err)
 		})
 	}
 }
 
 func TestValidateIterable_AsSlice(t *testing.T) {
 	for _, test := range validateTestCases {
+		if !test.isApplicableFor(iterableType) {
+			continue
+		}
+
 		t.Run(test.name, func(t *testing.T) {
 			err := validator.ValidateIterable(test.sliceValue, test.options...)
 
-			if test.isApplicableFor(iterableType) {
-				test.assert(t, err)
-			} else {
-				assertIsInapplicableConstraintError(t, err, iterableType)
-			}
+			test.assert(t, err)
 		})
 	}
 }
 
 func TestValidateIterable_AsMap(t *testing.T) {
 	for _, test := range validateTestCases {
+		if !test.isApplicableFor(iterableType) {
+			continue
+		}
+
 		t.Run(test.name, func(t *testing.T) {
 			err := validator.ValidateIterable(test.mapValue, test.options...)
 
-			if test.isApplicableFor(iterableType) {
-				test.assert(t, err)
-			} else {
-				assertIsInapplicableConstraintError(t, err, iterableType)
-			}
+			test.assert(t, err)
 		})
 	}
 }
@@ -140,11 +141,7 @@ func TestValidateCountable(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			err := validator.ValidateCountable(len(test.sliceValue), test.options...)
 
-			if test.isApplicableFor(countableType) {
-				test.assert(t, err)
-			} else {
-				assertIsInapplicableConstraintError(t, err, countableType)
-			}
+			test.assert(t, err)
 		})
 	}
 }
@@ -158,11 +155,7 @@ func TestValidateTime(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			err := validator.ValidateTime(test.timeValue, test.options...)
 
-			if test.isApplicableFor(timeType) {
-				test.assert(t, err)
-			} else {
-				assertIsInapplicableConstraintError(t, err, timeType)
-			}
+			test.assert(t, err)
 		})
 	}
 }

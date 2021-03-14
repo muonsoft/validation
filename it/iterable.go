@@ -92,7 +92,7 @@ func (c CountConstraint) SetUp(scope *validation.Scope) error {
 	return nil
 }
 
-func (c CountConstraint) GetName() string {
+func (c CountConstraint) Name() string {
 	return "CountConstraint"
 }
 

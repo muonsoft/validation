@@ -50,7 +50,7 @@ func (c *UniqueEntityConstraint) SetUp(scope *validation.Scope) error {
 	return nil
 }
 
-func (c *UniqueEntityConstraint) GetName() string {
+func (c *UniqueEntityConstraint) Name() string {
 	return "UniqueEntityConstraint"
 }
 
