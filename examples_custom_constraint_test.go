@@ -23,7 +23,7 @@ func (c NumericConstraint) SetUp(scope *validation.Scope) error {
 	return nil
 }
 
-func (c NumericConstraint) GetName() string {
+func (c NumericConstraint) Name() string {
 	return "NumericConstraint"
 }
 

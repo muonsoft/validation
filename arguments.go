@@ -87,7 +87,7 @@ func Number(value interface{}, options ...Option) Argument {
 	return argumentFunc(func(arguments *Arguments) error {
 		number, err := generic.NewNumber(value)
 		if err != nil {
-			return fmt.Errorf("cannot convert value '%v' to number: %w", value, err)
+			return fmt.Errorf(`cannot convert value "%v" to number: %w`, value, err)
 		}
 
 		arguments.addValidator(newNumberValidator(*number, options))
@@ -132,7 +132,7 @@ func Iterable(value interface{}, options ...Option) Argument {
 	return argumentFunc(func(arguments *Arguments) error {
 		iterable, err := generic.NewIterable(value)
 		if err != nil {
-			return fmt.Errorf("cannot convert value '%v' to iterable: %w", value, err)
+			return fmt.Errorf(`cannot convert value "%v" to iterable: %w`, value, err)
 		}
 
 		arguments.addValidator(newIterableValidator(iterable, options))
@@ -197,7 +197,7 @@ func Each(value interface{}, options ...Option) Argument {
 	return argumentFunc(func(arguments *Arguments) error {
 		iterable, err := generic.NewIterable(value)
 		if err != nil {
-			return fmt.Errorf("cannot convert value '%v' to iterable: %w", value, err)
+			return fmt.Errorf(`cannot convert value "%v" to iterable: %w`, value, err)
 		}
 
 		arguments.addValidator(newEachValidator(iterable, options))

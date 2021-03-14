@@ -34,9 +34,10 @@ import (
 
 var Messages = map[language.Tag]map[string]catalog.Message{
 	language.English: {
-		message.NotBlank: catalog.String(message.NotBlank),
-		message.Blank:    catalog.String(message.Blank),
-		message.NotNil:   catalog.String(message.NotNil),
+		message.NotBlank:     catalog.String(message.NotBlank),
+		message.Blank:        catalog.String(message.Blank),
+		message.NotNil:       catalog.String(message.NotNil),
+		message.NoSuchChoice: catalog.String(message.NoSuchChoice),
 		message.CountTooFew: plural.Selectf(1, "",
 			plural.One, "This collection should contain {{ limit }} element or more.",
 			plural.Other, "This collection should contain {{ limit }} elements or more."),

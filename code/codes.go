@@ -15,6 +15,7 @@ const (
 	LengthExact   = "lengthExact"
 	LengthTooFew  = "lengthTooFew"
 	LengthTooMany = "lengthTooMany"
+	NoSuchChoice  = "noSuchChoice"
 	NotBlank      = "notBlank"
 	NotNil        = "notNil"
 )

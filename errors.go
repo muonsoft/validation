@@ -14,7 +14,7 @@ type InapplicableConstraintError struct {
 }
 
 func (err *InapplicableConstraintError) Error() string {
-	return fmt.Sprintf("%s cannot be applied to %s", err.Constraint.GetName(), err.ValueType)
+	return fmt.Sprintf("%s cannot be applied to %s", err.Constraint.Name(), err.ValueType)
 }
 
 func newInapplicableConstraintError(constraint Constraint, valueType string) *InapplicableConstraintError {

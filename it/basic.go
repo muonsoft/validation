@@ -43,7 +43,7 @@ func (c NotBlankConstraint) SetUp(scope *validation.Scope) error {
 	return nil
 }
 
-func (c NotBlankConstraint) GetName() string {
+func (c NotBlankConstraint) Name() string {
 	return "NotBlankConstraint"
 }
 
@@ -156,7 +156,7 @@ func (c BlankConstraint) SetUp(scope *validation.Scope) error {
 	return nil
 }
 
-func (c BlankConstraint) GetName() string {
+func (c BlankConstraint) Name() string {
 	return "BlankConstraint"
 }
 
@@ -254,7 +254,7 @@ func (c NotNilConstraint) SetUp(scope *validation.Scope) error {
 	return nil
 }
 
-func (c NotNilConstraint) GetName() string {
+func (c NotNilConstraint) Name() string {
 	return "NotNilConstraint"
 }
 

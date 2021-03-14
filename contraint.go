@@ -9,8 +9,8 @@ import (
 // Constraint is the base interface to build validation constraints.
 type Constraint interface {
 	Option
-	// GetName returns constraint name. This name can be used in internal errors.
-	GetName() string
+	// Name is a constraint name that can be used in internal errors.
+	Name() string
 }
 
 // NilConstraint is used for constraints that need to check value for nil. In common case

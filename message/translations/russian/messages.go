@@ -34,9 +34,10 @@ import (
 
 var Messages = map[language.Tag]map[string]catalog.Message{
 	language.Russian: {
-		message.NotBlank: catalog.String("Значение не должно быть пустым."),
-		message.Blank:    catalog.String("Значение должно быть пустым."),
-		message.NotNil:   catalog.String("Значение не должно быть nil."),
+		message.NotBlank:     catalog.String("Значение не должно быть пустым."),
+		message.Blank:        catalog.String("Значение должно быть пустым."),
+		message.NotNil:       catalog.String("Значение не должно быть nil."),
+		message.NoSuchChoice: catalog.String("Выбранное Вами значение недопустимо."),
 		message.CountTooFew: plural.Selectf(1, "",
 			plural.One, "Эта коллекция должна содержать {{ limit }} элемент или больше.",
 			plural.Few, "Эта коллекция должна содержать {{ limit }} элемента или больше.",

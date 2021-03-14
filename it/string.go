@@ -9,7 +9,7 @@ import (
 	"unicode/utf8"
 )
 
-// LengthConstraint check that a given string length is between some minimum and maximum value.
+// LengthConstraint checks that a given string length is between some minimum and maximum value.
 type LengthConstraint struct {
 	isIgnored            bool
 	checkMin             bool
@@ -53,7 +53,7 @@ func (c LengthConstraint) SetUp(scope *validation.Scope) error {
 	return nil
 }
 
-func (c LengthConstraint) GetName() string {
+func (c LengthConstraint) Name() string {
 	return "LengthConstraint"
 }
 
