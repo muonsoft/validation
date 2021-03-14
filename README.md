@@ -80,6 +80,8 @@ For single value validation, you can use shorthand versions of the validation me
 * `validator.ValidateEachString()`
 * `validator.ValidateValidatable()`
 
+See usage examples in the [documentation](https://pkg.go.dev/github.com/muonsoft/validation#Validator.Validate).
+
 ### How to use the validator
 
 There are two ways to use the validator service. You can build your instance of validator service by using `validation.NewValidator()` or use singleton service from package `github.com/muonsoft/validation/validator`.
@@ -453,13 +455,26 @@ for _, violation := range violations {
 // violation: теги должны содержать 1 элемент и более
 ```
 
+### Creating custom constraints
+
+Everything you need to create a custom constraint is to implement one of the interfaces:
+
+* `BoolConstraint` - for validating boolean values;
+* `NumberConstraint` - for validating numeric values;
+* `StringConstraint` - for validating string values;
+* `IterableConstraint` - for validating iterable values: arrays, slices, or maps;
+* `CountableConstraint` - for validating iterable values based only on the count of elements;
+* `TimeConstraint` - for validating date\time values.
+
+Also, you can combine several types of constraints. See examples for more details.
+
 ## Contributing
 
 You may help this project by
 
 * reporting an [issue](https://github.com/muonsoft/validation/issues);
 * making translations for error messages;
-* suggest an improvement or discuss the usability of the package.
+* suggest an improvement or [discuss](https://github.com/muonsoft/validation/discussions) the usability of the package.
 
 If you'd like to contribute, please fork the repository and use a feature branch. Pull requests are welcome.
 
