@@ -54,6 +54,10 @@ type mockViolation struct {
 	propertyPath    validation.PropertyPath
 }
 
+func (mock *mockViolation) Is(codes ...string) bool {
+	return false
+}
+
 func (mock *mockViolation) Error() string {
 	return mock.err
 }

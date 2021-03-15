@@ -34,7 +34,7 @@ func IsOneOfStrings(values ...string) ChoiceConstraint {
 }
 
 // SetUp will return an error if the list of choices is empty.
-func (c ChoiceConstraint) SetUp(scope *validation.Scope) error {
+func (c ChoiceConstraint) SetUp() error {
 	if len(c.choices) == 0 {
 		return errEmptyChoices
 	}
@@ -78,5 +78,5 @@ func (c ChoiceConstraint) ValidateString(value *string, scope validation.Scope) 
 			"{{ value }}":   *value,
 			"{{ choices }}": c.choicesValue,
 		}).
-		GetViolation()
+		CreateViolation()
 }

@@ -20,6 +20,10 @@ type Violation interface {
 	// and are protected by backward compatibility rules.
 	Code() string
 
+	// Is can be used to check that the violation contains one of the specific codes.
+	// For an empty list, it should always returns false.
+	Is(codes ...string) bool
+
 	// Message is a translated message with injected values from constraint. It can be used to show
 	// a description of a violation to the end-user. Possible values for build-in constraints
 	// are defined in the "github.com/muonsoft/validation/message" package and can be changed at any time,
@@ -124,6 +128,31 @@ func (violations *ViolationList) AppendFromError(err error) error {
 	return nil
 }
 
+// Has can be used to check that at least one of the violations contains one of the specific codes.
+// For an empty list of codes, it should always returns false.
+func (violations ViolationList) Has(codes ...string) bool {
+	for _, violation := range violations {
+		if violation.Is(codes...) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// Filter returns a new list of violations with violations of given codes.
+func (violations ViolationList) Filter(codes ...string) ViolationList {
+	filtered := make(ViolationList, 0, len(violations))
+
+	for _, violation := range violations {
+		if violation.Is(codes...) {
+			filtered = append(filtered, violation)
+		}
+	}
+
+	return filtered
+}
+
 // AsError converts the list of violations to an error. This method correctly handles cases where
 // the list of violations is empty. It returns nil on an empty list, indicating that the validation was successful.
 func (violations ViolationList) AsError() error {
@@ -172,6 +201,16 @@ type internalViolation struct {
 	messageTemplate string
 	parameters      map[string]string
 	propertyPath    PropertyPath
+}
+
+func (v internalViolation) Is(codes ...string) bool {
+	for _, code := range codes {
+		if v.code == code {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (v internalViolation) Error() string {
@@ -313,9 +352,9 @@ func (b *ViolationBuilder) SetLanguage(tag language.Tag) *ViolationBuilder {
 	return b
 }
 
-// GetViolation creates a new violation with given parameters and returns it.
+// CreateViolation creates a new violation with given parameters and returns it.
 // Violation is created by calling the CreateViolation method of the ViolationFactory.
-func (b *ViolationBuilder) GetViolation() Violation {
+func (b *ViolationBuilder) CreateViolation() Violation {
 	return b.violationFactory.CreateViolation(
 		b.code,
 		b.messageTemplate,

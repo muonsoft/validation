@@ -46,7 +46,7 @@ type UniqueEntityConstraint struct {
 	repository *EntityRepository
 }
 
-func (c *UniqueEntityConstraint) SetUp(scope *validation.Scope) error {
+func (c *UniqueEntityConstraint) SetUp() error {
 	return nil
 }
 
@@ -77,7 +77,7 @@ func (c *UniqueEntityConstraint) ValidateString(value *string, scope validation.
 		BuildViolation("notUnique", `Entity with name "{{ name }}" already exists.`).
 		// you can inject parameter value to the message here
 		SetParameter("{{ name }}", *value).
-		GetViolation()
+		CreateViolation()
 }
 
 func ExampleValidator_Validate_customServiceConstraint() {
