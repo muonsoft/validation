@@ -88,7 +88,7 @@ func (c CountConstraint) ValidateCountable(count int, scope validation.Scope) er
 	return nil
 }
 
-func (c CountConstraint) SetUp(scope *validation.Scope) error {
+func (c CountConstraint) SetUp() error {
 	return nil
 }
 
@@ -112,5 +112,5 @@ func (c CountConstraint) newViolation(
 			"{{ count }}": strconv.Itoa(count),
 			"{{ limit }}": strconv.Itoa(limit),
 		}).
-		GetViolation()
+		CreateViolation()
 }

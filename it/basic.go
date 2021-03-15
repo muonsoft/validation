@@ -39,7 +39,7 @@ func (c NotBlankConstraint) Message(message string) NotBlankConstraint {
 	return c
 }
 
-func (c NotBlankConstraint) SetUp(scope *validation.Scope) error {
+func (c NotBlankConstraint) SetUp() error {
 	return nil
 }
 
@@ -136,7 +136,7 @@ func (c NotBlankConstraint) ValidateTime(value *time.Time, scope validation.Scop
 }
 
 func (c NotBlankConstraint) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(code.NotBlank, c.messageTemplate).GetViolation()
+	return scope.BuildViolation(code.NotBlank, c.messageTemplate).CreateViolation()
 }
 
 // BlankConstraint checks that a value is blank: equal to `false`, `nil`, zero, an empty string, an empty
@@ -152,7 +152,7 @@ func IsBlank() BlankConstraint {
 	}
 }
 
-func (c BlankConstraint) SetUp(scope *validation.Scope) error {
+func (c BlankConstraint) SetUp() error {
 	return nil
 }
 
@@ -224,7 +224,7 @@ func (c BlankConstraint) ValidateTime(value *time.Time, scope validation.Scope) 
 }
 
 func (c BlankConstraint) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(code.Blank, c.messageTemplate).GetViolation()
+	return scope.BuildViolation(code.Blank, c.messageTemplate).CreateViolation()
 }
 
 // NotNilConstraint checks that a value in not strictly equal to `nil`. To check that values in not blank use
@@ -250,7 +250,7 @@ func (c NotNilConstraint) Message(message string) NotNilConstraint {
 	return c
 }
 
-func (c NotNilConstraint) SetUp(scope *validation.Scope) error {
+func (c NotNilConstraint) SetUp() error {
 	return nil
 }
 
@@ -311,5 +311,5 @@ func (c NotNilConstraint) ValidateIterable(value generic.Iterable, scope validat
 }
 
 func (c NotNilConstraint) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(code.NotNil, c.messageTemplate).GetViolation()
+	return scope.BuildViolation(code.NotNil, c.messageTemplate).CreateViolation()
 }

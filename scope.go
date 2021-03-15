@@ -41,7 +41,12 @@ func (s Scope) BuildViolation(code, message string) *ViolationBuilder {
 
 func (s *Scope) applyOptions(options ...Option) error {
 	for _, option := range options {
-		err := option.SetUp(s)
+		var err error
+		if o, ok := option.(internalOption); ok {
+			err = o.setUpOnScope(s)
+		} else {
+			err = option.SetUp()
+		}
 		if err != nil {
 			return s.describeOptionError(option, err)
 		}
