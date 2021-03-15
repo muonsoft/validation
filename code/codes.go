@@ -18,4 +18,5 @@ const (
 	NoSuchChoice  = "noSuchChoice"
 	NotBlank      = "notBlank"
 	NotNil        = "notNil"
+	Regex         = "regex"
 )

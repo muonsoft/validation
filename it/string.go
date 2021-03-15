@@ -5,6 +5,7 @@ import (
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/message"
 
+	"regexp"
 	"strconv"
 	"unicode/utf8"
 )
@@ -110,5 +111,63 @@ func (c LengthConstraint) newViolation(
 			"{{ count }}": strconv.Itoa(count),
 			"{{ limit }}": strconv.Itoa(limit),
 		}).
+		GetViolation()
+}
+
+// RegexConstraint is used to ensure that the given value corresponds to regex pattern.
+type RegexConstraint struct {
+	isIgnored       bool
+	messageTemplate string
+	pattern         string
+}
+
+// IsRegexMatch creates a RegexConstraint for checking whether a value match.
+//
+// Example
+//	err := validator.ValidateString(&s, it.IsRegexMatch("^[a-z]+$"))
+func IsRegexMatch(pattern string) RegexConstraint {
+	return RegexConstraint{
+		pattern:         pattern,
+		messageTemplate: message.Regex,
+	}
+}
+
+// SetUp will return an error if the pattern is empty.
+func (c RegexConstraint) SetUp(scope *validation.Scope) error {
+	if c.pattern == "" {
+		return errEmptyPattern
+	}
+
+	return nil
+}
+
+// Name is the constraint name.
+func (c RegexConstraint) Name() string {
+	return "RegexConstraint"
+}
+
+// Message sets the violation message template. You can use template parameters.
+func (c RegexConstraint) Message(message string) RegexConstraint {
+	c.messageTemplate = message
+	return c
+}
+
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
+func (c RegexConstraint) When(condition bool) RegexConstraint {
+	c.isIgnored = !condition
+	return c
+}
+
+func (c RegexConstraint) ValidateString(value *string, scope validation.Scope) error {
+	if c.isIgnored || value == nil || *value == "" {
+		return nil
+	}
+	if match, _ := regexp.MatchString(c.pattern, *value); match {
+		return nil
+	}
+
+	return scope.
+		BuildViolation(code.Regex, c.messageTemplate).
 		GetViolation()
 }

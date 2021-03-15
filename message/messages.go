@@ -36,4 +36,5 @@ const (
 	NoSuchChoice  = "The value you selected is not a valid choice."
 	NotBlank      = "This value should not be blank."
 	NotNil        = "This value should not be nil."
+	Regex         = "This value is not valid."
 )

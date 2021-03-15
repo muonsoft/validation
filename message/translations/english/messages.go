@@ -56,5 +56,6 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.LengthExact: plural.Selectf(1, "",
 			plural.One, "This value should have exactly {{ limit }} character.",
 			plural.Other, "This value should have exactly {{ limit }} characters."),
+		message.Regex: catalog.String(message.Regex),
 	},
 }
