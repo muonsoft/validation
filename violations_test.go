@@ -17,6 +17,86 @@ func TestViolation_Error_MessageOnly_ErrorWithMessage(t *testing.T) {
 	assert.Equal(t, "violation: message", err)
 }
 
+func TestInternalViolation_Is(t *testing.T) {
+	tests := []struct {
+		name       string
+		codes      []string
+		expectedIs bool
+	}{
+		{
+			name:       "empty list",
+			expectedIs: false,
+		},
+		{
+			name:       "no matches",
+			codes:      []string{"alpha", "beta"},
+			expectedIs: false,
+		},
+		{
+			name:       "one of the codes is matching",
+			codes:      []string{"alpha", "beta", "code"},
+			expectedIs: true,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			violation := internalViolation{code: "code"}
+
+			is := violation.Is(test.codes...)
+
+			assert.Equal(t, test.expectedIs, is)
+		})
+	}
+}
+
+func TestViolationList_Has(t *testing.T) {
+	tests := []struct {
+		name       string
+		codes      []string
+		expectedIs bool
+	}{
+		{
+			name:       "empty list",
+			expectedIs: false,
+		},
+		{
+			name:       "no matches",
+			codes:      []string{"alpha", "beta"},
+			expectedIs: false,
+		},
+		{
+			name:       "one of the codes is matching",
+			codes:      []string{"alpha", "beta", "code"},
+			expectedIs: true,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			violations := ViolationList{internalViolation{code: "code"}}
+
+			has := violations.Has(test.codes...)
+
+			assert.Equal(t, test.expectedIs, has)
+		})
+	}
+}
+
+func TestViolationList_Filter_ViolationsWithCodes_FilteredList(t *testing.T) {
+	violations := ViolationList{
+		internalViolation{code: "alpha"},
+		internalViolation{code: "beta"},
+		internalViolation{code: "gamma"},
+		internalViolation{code: "delta"},
+	}
+
+	filtered := violations.Filter("delta", "beta")
+
+	if assert.Len(t, filtered, 2) {
+		assert.Equal(t, "beta", filtered[0].Code())
+		assert.Equal(t, "delta", filtered[1].Code())
+	}
+}
+
 func TestViolation_Error_MessageAndPropertyPath_ErrorWithPropertyPathAndMessage(t *testing.T) {
 	violation := internalViolation{
 		message:      "message",

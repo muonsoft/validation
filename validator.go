@@ -199,7 +199,7 @@ func (validator *Validator) AtIndex(index int) *Validator {
 // Example
 //  err := validator.BuildViolation("", "").
 //      SetParameter("key", "value").
-//      GetViolation()
+//      CreateViolation()
 func (validator *Validator) BuildViolation(code, message string) *ViolationBuilder {
 	return validator.scope.BuildViolation(code, message)
 }

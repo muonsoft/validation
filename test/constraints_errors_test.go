@@ -13,7 +13,7 @@ import (
 type nilConstraint struct {
 }
 
-func (c nilConstraint) SetUp(scope *validation.Scope) error {
+func (c nilConstraint) SetUp() error {
 	return nil
 }
 
@@ -28,7 +28,7 @@ func (c nilConstraint) ValidateNil(scope validation.Scope) error {
 type errConstraint struct {
 }
 
-func (c errConstraint) SetUp(scope *validation.Scope) error {
+func (c errConstraint) SetUp() error {
 	return errors.New("error")
 }
 

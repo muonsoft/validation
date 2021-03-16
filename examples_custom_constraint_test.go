@@ -18,7 +18,7 @@ func IsNumeric() NumericConstraint {
 	return NumericConstraint{matcher: regexp.MustCompile("^[0-9]+$")}
 }
 
-func (c NumericConstraint) SetUp(scope *validation.Scope) error {
+func (c NumericConstraint) SetUp() error {
 	// you may return errors here on the constraint initialization process
 	return nil
 }
@@ -39,7 +39,7 @@ func (c NumericConstraint) ValidateString(value *string, scope validation.Scope)
 	}
 
 	// use the scope to build violation with translations
-	return scope.BuildViolation("notNumeric", "This value should be numeric.").GetViolation()
+	return scope.BuildViolation("notNumeric", "This value should be numeric.").CreateViolation()
 }
 
 func ExampleValidator_Validate_customConstraint() {

@@ -49,7 +49,7 @@ func HasExactLength(count int) LengthConstraint {
 	return newLengthConstraint(count, count, true, true)
 }
 
-func (c LengthConstraint) SetUp(scope *validation.Scope) error {
+func (c LengthConstraint) SetUp() error {
 	return nil
 }
 
@@ -110,7 +110,7 @@ func (c LengthConstraint) newViolation(
 			"{{ count }}": strconv.Itoa(count),
 			"{{ limit }}": strconv.Itoa(limit),
 		}).
-		GetViolation()
+		CreateViolation()
 }
 
 // RegexConstraint is used to ensure that the given value corresponds to regex pattern.
