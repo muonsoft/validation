@@ -4,7 +4,6 @@ import (
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/message"
-
 	"regexp"
 	"strconv"
 	"unicode/utf8"
@@ -117,15 +116,17 @@ func (c LengthConstraint) newViolation(
 // RegexConstraint is used to ensure that the given value corresponds to regex pattern.
 type RegexConstraint struct {
 	isIgnored       bool
+	match           bool
 	messageTemplate string
 	pattern         string
+	regex           *regexp.Regexp
 }
 
-// IsRegexMatch creates a RegexConstraint for checking whether a value match.
+// Matches creates a RegexConstraint for checking whether a value match.
 //
 // Example
-//	err := validator.ValidateString(&s, it.IsRegexMatch("^[a-z]+$"))
-func IsRegexMatch(pattern string) RegexConstraint {
+//	err := validator.ValidateString(&s, it.Matches("^[a-z]+$"))
+func Matches(pattern string) RegexConstraint {
 	return RegexConstraint{
 		pattern:         pattern,
 		messageTemplate: message.Regex,
@@ -138,6 +139,13 @@ func (c RegexConstraint) SetUp(scope *validation.Scope) error {
 		return errEmptyPattern
 	}
 
+	regex, err := regexp.Compile(c.pattern)
+	if err != nil {
+		return errInvalidPattern
+	}
+
+	c.regex = regex
+
 	return nil
 }
 
@@ -147,6 +155,9 @@ func (c RegexConstraint) Name() string {
 }
 
 // Message sets the violation message template. You can use template parameters.
+// for injecting its values into the final message:
+//
+//	{{ value }} - the current (invalid) value.
 func (c RegexConstraint) Message(message string) RegexConstraint {
 	c.messageTemplate = message
 	return c
@@ -159,15 +170,24 @@ func (c RegexConstraint) When(condition bool) RegexConstraint {
 	return c
 }
 
+// DoesNotMatch enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
+func (c RegexConstraint) DoesNotMatch(doesNotMatch bool) RegexConstraint {
+	c.match = !doesNotMatch
+	return c
+}
+
 func (c RegexConstraint) ValidateString(value *string, scope validation.Scope) error {
 	if c.isIgnored || value == nil || *value == "" {
 		return nil
 	}
-	if match, _ := regexp.MatchString(c.pattern, *value); match {
+
+	if c.regex.MatchString(*value) {
 		return nil
 	}
 
 	return scope.
-		BuildViolation(code.Regex, c.messageTemplate).
+		BuildViolation(code.NotMatches, c.messageTemplate).
+		SetParameter("{{ value }}", *value).
 		GetViolation()
 }

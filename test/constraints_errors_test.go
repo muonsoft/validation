@@ -74,8 +74,13 @@ func TestValidator_Validate_WhenInvalidConstraint_ExpectError(t *testing.T) {
 		},
 		{
 			constraint:    it.RegexConstraint{}.Name(),
-			argument:      validation.String(nil, it.IsRegexMatch("")),
+			argument:      validation.String(nil, it.Matches("")),
 			expectedError: `failed to set up constraint "RegexConstraint": empty pattern`,
+		},
+		{
+			constraint:    it.RegexConstraint{}.Name(),
+			argument:      validation.String(nil, it.Matches("invalid_path")),
+			expectedError: `failed to set up constraint "RegexConstraint": invalid pattern`,
 		},
 	}
 	for _, test := range tests {
