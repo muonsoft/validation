@@ -143,8 +143,8 @@ func (c CountConstraint) newViolation(
 	return scope.BuildViolation(violationCode, message).
 		SetPluralCount(limit).
 		SetParameters([]validation.TemplateParameter{
-			{"{{ count }}", strconv.Itoa(count)},
-			{"{{ limit }}", strconv.Itoa(limit)},
+			{Key: "{{ count }}", Value: strconv.Itoa(count)},
+			{Key: "{{ limit }}", Value: strconv.Itoa(limit)},
 		}).
 		CreateViolation()
 }
