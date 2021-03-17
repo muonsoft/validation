@@ -74,9 +74,13 @@ func (c ChoiceConstraint) ValidateString(value *string, scope validation.Scope) 
 
 	return scope.
 		BuildViolation(code.NoSuchChoice, c.messageTemplate).
-		SetParameters(map[string]string{
-			"{{ value }}":   *value,
-			"{{ choices }}": c.choicesValue,
+		SetParameters([]validation.TemplateParameter{
+			{"{{ value }}", *value},
+			{"{{ choices }}", c.choicesValue},
 		}).
+		// SetParameters([]validation.TemplateParameter{}{}
+		// 	"{{ value }}":   *value,
+		// 	"{{ choices }}": c.choicesValue,
+		// }).
 		CreateViolation()
 }

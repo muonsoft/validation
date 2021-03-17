@@ -35,7 +35,7 @@ type Violation interface {
 	MessageTemplate() string
 
 	// Parameters is the map of the template variables and their values provided by the specific constraint.
-	Parameters() map[string]string
+	Parameters() []TemplateParameter
 
 	// PropertyPath is a path that points to the violated property.
 	// See PropertyPath type description for more info.
@@ -50,7 +50,7 @@ type ViolationFactory interface {
 		code,
 		messageTemplate string,
 		pluralCount int,
-		parameters map[string]string,
+		parameters []TemplateParameter,
 		propertyPath PropertyPath,
 		lang language.Tag,
 	) Violation
@@ -64,7 +64,7 @@ type NewViolationFunc func(
 	code,
 	messageTemplate string,
 	pluralCount int,
-	parameters map[string]string,
+	parameters []TemplateParameter,
 	propertyPath PropertyPath,
 	lang language.Tag,
 ) Violation
@@ -74,7 +74,7 @@ func (f NewViolationFunc) CreateViolation(
 	code,
 	messageTemplate string,
 	pluralCount int,
-	parameters map[string]string,
+	parameters []TemplateParameter,
 	propertyPath PropertyPath,
 	lang language.Tag,
 ) Violation {
@@ -199,7 +199,7 @@ type internalViolation struct {
 	code            string
 	message         string
 	messageTemplate string
-	parameters      map[string]string
+	parameters      []TemplateParameter
 	propertyPath    PropertyPath
 }
 
@@ -241,7 +241,7 @@ func (v internalViolation) MessageTemplate() string {
 	return v.messageTemplate
 }
 
-func (v internalViolation) Parameters() map[string]string {
+func (v internalViolation) Parameters() []TemplateParameter {
 	return v.parameters
 }
 
@@ -273,7 +273,7 @@ func (factory *internalViolationFactory) CreateViolation(
 	code,
 	messageTemplate string,
 	pluralCount int,
-	parameters map[string]string,
+	parameters []TemplateParameter,
 	propertyPath PropertyPath,
 	lang language.Tag,
 ) Violation {
@@ -293,7 +293,7 @@ type ViolationBuilder struct {
 	code            string
 	messageTemplate string
 	pluralCount     int
-	parameters      map[string]string
+	parameters      []TemplateParameter
 	propertyPath    PropertyPath
 	language        language.Tag
 
@@ -315,18 +315,15 @@ func (b *ViolationBuilder) BuildViolation(code, message string) *ViolationBuilde
 }
 
 // SetParameters sets parameters that can be injected into the violation message.
-func (b *ViolationBuilder) SetParameters(parameters map[string]string) *ViolationBuilder {
+func (b *ViolationBuilder) SetParameters(parameters []TemplateParameter) *ViolationBuilder {
 	b.parameters = parameters
 
 	return b
 }
 
-// SetParameter sets one parameter into a parameters map. If the map is nil it creates a new map.
-func (b *ViolationBuilder) SetParameter(name, value string) *ViolationBuilder {
-	if b.parameters == nil {
-		b.parameters = make(map[string]string)
-	}
-	b.parameters[name] = value
+// AddParameter adds one parameter into a slice of parameters.
+func (b *ViolationBuilder) AddParameter(name, value string) *ViolationBuilder {
+	b.parameters = append(b.parameters, TemplateParameter{Key: name, Value: value})
 
 	return b
 }

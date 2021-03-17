@@ -126,7 +126,7 @@ func AtIndex(index int) *validation.Validator {
 //
 // Example
 //  err := validator.BuildViolation("", "").
-//      SetParameter("key", "value").
+//      AddParameter("key", "value").
 //      CreateViolation()
 func BuildViolation(code, message string) *validation.ViolationBuilder {
 	return validator.BuildViolation(code, message)
