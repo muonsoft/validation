@@ -72,6 +72,11 @@ func TestValidator_Validate_WhenInvalidConstraint_ExpectError(t *testing.T) {
 			argument:      validation.String(nil, it.IsOneOfStrings()),
 			expectedError: `failed to set up constraint "ChoiceConstraint": empty list of choices`,
 		},
+		{
+			constraint:    it.RegexConstraint{}.Name(),
+			argument:      validation.String(nil, it.Matches(nil)),
+			expectedError: `failed to set up constraint "RegexConstraint": nil regex`,
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.constraint, func(t *testing.T) {

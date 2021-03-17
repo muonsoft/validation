@@ -8,14 +8,15 @@
 package code
 
 const (
-	Blank         = "blank"
-	CountExact    = "countExact"
-	CountTooFew   = "countTooFew"
-	CountTooMany  = "countTooMany"
-	LengthExact   = "lengthExact"
-	LengthTooFew  = "lengthTooFew"
-	LengthTooMany = "lengthTooMany"
-	NoSuchChoice  = "noSuchChoice"
-	NotBlank      = "notBlank"
-	NotNil        = "notNil"
+	Blank          = "blank"
+	CountExact     = "countExact"
+	CountTooFew    = "countTooFew"
+	CountTooMany   = "countTooMany"
+	LengthExact    = "lengthExact"
+	LengthTooFew   = "lengthTooFew"
+	LengthTooMany  = "lengthTooMany"
+	MatchingFailed = "matchingFailed"
+	NoSuchChoice   = "noSuchChoice"
+	NotBlank       = "notBlank"
+	NotNil         = "notNil"
 )

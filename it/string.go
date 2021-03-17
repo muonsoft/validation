@@ -5,6 +5,7 @@ import (
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/message"
 
+	"regexp"
 	"strconv"
 	"unicode/utf8"
 )
@@ -145,5 +146,82 @@ func (c LengthConstraint) newViolation(
 			"{{ count }}": strconv.Itoa(count),
 			"{{ limit }}": strconv.Itoa(limit),
 		}).
+		CreateViolation()
+}
+
+// RegexConstraint is used to ensure that the given value corresponds to regex pattern.
+type RegexConstraint struct {
+	isIgnored       bool
+	match           bool
+	messageTemplate string
+	regex           *regexp.Regexp
+}
+
+// Matches creates a RegexConstraint for checking whether a value match.
+//
+// Example
+//	err := validator.ValidateString(&s, it.Matches(regexp.MustCompile("^[a-z]+$")))
+func Matches(regex *regexp.Regexp) RegexConstraint {
+	return RegexConstraint{
+		regex:           regex,
+		match:           true,
+		messageTemplate: message.NotValid,
+	}
+}
+
+// Matches creates a RegexConstraint for checking whether a value not match.
+//
+// Example
+//	err := validator.ValidateString(&s, it.DoesNotMatch(regexp.MustCompile("^[a-z]+$")))
+func DoesNotMatch(regex *regexp.Regexp) RegexConstraint {
+	return RegexConstraint{
+		regex:           regex,
+		match:           false,
+		messageTemplate: message.NotValid,
+	}
+}
+
+// SetUp will return an error if the pattern is empty.
+func (c RegexConstraint) SetUp() error {
+	if c.regex == nil {
+		return errEmptyRegex
+	}
+
+	return nil
+}
+
+// Name is the constraint name.
+func (c RegexConstraint) Name() string {
+	return "RegexConstraint"
+}
+
+// Message sets the violation message template. You can use template parameters.
+// for injecting its values into the final message:
+//
+//	{{ value }} - the current (invalid) value.
+func (c RegexConstraint) Message(message string) RegexConstraint {
+	c.messageTemplate = message
+	return c
+}
+
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
+func (c RegexConstraint) When(condition bool) RegexConstraint {
+	c.isIgnored = !condition
+	return c
+}
+
+func (c RegexConstraint) ValidateString(value *string, scope validation.Scope) error {
+	if c.isIgnored || value == nil || *value == "" {
+		return nil
+	}
+
+	if !(c.match != c.regex.MatchString(*value)) {
+		return nil
+	}
+
+	return scope.
+		BuildViolation(code.MatchingFailed, c.messageTemplate).
+		SetParameter("{{ value }}", *value).
 		CreateViolation()
 }
