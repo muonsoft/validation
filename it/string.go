@@ -125,11 +125,23 @@ type RegexConstraint struct {
 // Matches creates a RegexConstraint for checking whether a value match.
 //
 // Example
-//	err := validator.ValidateString(&s, it.Matches("^[a-z]+$"))
-func Matches(pattern string) RegexConstraint {
+//	err := validator.ValidateString(&s, it.Matches(regexp.MustCompile("^[a-z]+$")))
+func Matches(regex *regexp.Regexp) RegexConstraint {
 	return RegexConstraint{
 		regex:           regex,
 		match:           true,
+		messageTemplate: message.NotValid,
+	}
+}
+
+// Matches creates a RegexConstraint for checking whether a value not match.
+//
+// Example
+//	err := validator.ValidateString(&s, it.DoesNotMatch(regexp.MustCompile("^[a-z]+$")))
+func DoesNotMatch(regex *regexp.Regexp) RegexConstraint {
+	return RegexConstraint{
+		regex:           regex,
+		match:           false,
 		messageTemplate: message.NotValid,
 	}
 }
@@ -138,11 +150,6 @@ func Matches(pattern string) RegexConstraint {
 func (c RegexConstraint) SetUp() error {
 	if c.regex == nil {
 		return errEmptyRegex
-	}
-
-	regex, err := regexp.Compile(c.pattern)
-	if err != nil {
-		return errInvalidPattern
 	}
 
 	return nil
