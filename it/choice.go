@@ -19,7 +19,7 @@ type ChoiceConstraint struct {
 // IsOneOfStrings creates a ChoiceConstraint for checking that values are in the expected list of strings.
 //
 // Example
-//	err := validator.ValidateString(&s, it.IsOneOfStrings("one", "two", "three"))
+//  err := validator.ValidateString(&s, it.IsOneOfStrings("one", "two", "three"))
 func IsOneOfStrings(values ...string) ChoiceConstraint {
 	choices := make(map[string]bool, len(values))
 	for _, value := range values {

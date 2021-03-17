@@ -10,7 +10,7 @@ import (
 )
 
 // NotBlankConstraint checks that a value is not blank: not equal to zero, an empty string, an empty
-// slice/array, an empty map, `false` or `nil`. Nil behavior is configurable via AllowNil() method.
+// slice/array, an empty map, false or nil. Nil behavior is configurable via AllowNil() method.
 // To check that a value is not nil only use NotNilConstraint.
 type NotBlankConstraint struct {
 	messageTemplate string
@@ -18,33 +18,44 @@ type NotBlankConstraint struct {
 	allowNil        bool
 }
 
+// IsNotBlank creates a NotBlankConstraint for checking that value is not empty.
+//
+// Example
+//  s := ""
+//  err := validator.ValidateString(&s, it.IsNotBlank())
 func IsNotBlank() NotBlankConstraint {
 	return NotBlankConstraint{
 		messageTemplate: message.NotBlank,
 	}
 }
 
+// Name is the constraint name.
+func (c NotBlankConstraint) Name() string {
+	return "NotBlankConstraint"
+}
+
+// SetUp always returns no error.
+func (c NotBlankConstraint) SetUp() error {
+	return nil
+}
+
+// AllowNil makes nil values valid.
 func (c NotBlankConstraint) AllowNil() NotBlankConstraint {
 	c.allowNil = true
 	return c
 }
 
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
 func (c NotBlankConstraint) When(condition bool) NotBlankConstraint {
 	c.isIgnored = !condition
 	return c
 }
 
+// Message sets the violation message template.
 func (c NotBlankConstraint) Message(message string) NotBlankConstraint {
 	c.messageTemplate = message
 	return c
-}
-
-func (c NotBlankConstraint) SetUp() error {
-	return nil
-}
-
-func (c NotBlankConstraint) Name() string {
-	return "NotBlankConstraint"
 }
 
 func (c NotBlankConstraint) ValidateNil(scope validation.Scope) error {
@@ -139,32 +150,42 @@ func (c NotBlankConstraint) newViolation(scope validation.Scope) validation.Viol
 	return scope.BuildViolation(code.NotBlank, c.messageTemplate).CreateViolation()
 }
 
-// BlankConstraint checks that a value is blank: equal to `false`, `nil`, zero, an empty string, an empty
+// BlankConstraint checks that a value is blank: equal to false, nil, zero, an empty string, an empty
 // slice, array, or a map.
 type BlankConstraint struct {
 	messageTemplate string
 	isIgnored       bool
 }
 
+// IsBlank creates a BlankConstraint for checking that value is empty.
+//
+// Example
+//  s := "foo"
+//  err := validator.ValidateString(&s, it.IsBlank())
 func IsBlank() BlankConstraint {
 	return BlankConstraint{
 		messageTemplate: message.Blank,
 	}
 }
 
-func (c BlankConstraint) SetUp() error {
-	return nil
-}
-
+// Name is the constraint name.
 func (c BlankConstraint) Name() string {
 	return "BlankConstraint"
 }
 
+// SetUp always returns no error.
+func (c BlankConstraint) SetUp() error {
+	return nil
+}
+
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
 func (c BlankConstraint) When(condition bool) BlankConstraint {
 	c.isIgnored = !condition
 	return c
 }
 
+// Message sets the violation message template.
 func (c BlankConstraint) Message(message string) BlankConstraint {
 	c.messageTemplate = message
 	return c
@@ -227,35 +248,45 @@ func (c BlankConstraint) newViolation(scope validation.Scope) validation.Violati
 	return scope.BuildViolation(code.Blank, c.messageTemplate).CreateViolation()
 }
 
-// NotNilConstraint checks that a value in not strictly equal to `nil`. To check that values in not blank use
+// NotNilConstraint checks that a value in not strictly equal to nil. To check that values in not blank use
 // NotBlankConstraint.
 type NotNilConstraint struct {
 	messageTemplate string
 	isIgnored       bool
 }
 
+// IsNotNil creates a NotNilConstraint to check that a value is not strictly equal to nil.
+//
+// Example
+//  var s *string
+//  err := validator.ValidateString(s, it.IsNotNil())
 func IsNotNil() NotNilConstraint {
 	return NotNilConstraint{
 		messageTemplate: message.NotNil,
 	}
 }
 
+// Name is the constraint name.
+func (c NotNilConstraint) Name() string {
+	return "NotNilConstraint"
+}
+
+// SetUp always returns no error.
+func (c NotNilConstraint) SetUp() error {
+	return nil
+}
+
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
 func (c NotNilConstraint) When(condition bool) NotNilConstraint {
 	c.isIgnored = !condition
 	return c
 }
 
+// Message sets the violation message template.
 func (c NotNilConstraint) Message(message string) NotNilConstraint {
 	c.messageTemplate = message
 	return c
-}
-
-func (c NotNilConstraint) SetUp() error {
-	return nil
-}
-
-func (c NotNilConstraint) Name() string {
-	return "NotNilConstraint"
 }
 
 func (c NotNilConstraint) ValidateNil(scope validation.Scope) error {
