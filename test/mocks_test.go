@@ -50,7 +50,7 @@ type mockViolation struct {
 	code            string
 	message         string
 	messageTemplate string
-	parameters      map[string]string
+	parameters      []validation.TemplateParameter
 	propertyPath    validation.PropertyPath
 }
 
@@ -74,7 +74,7 @@ func (mock *mockViolation) MessageTemplate() string {
 	return mock.messageTemplate
 }
 
-func (mock *mockViolation) Parameters() map[string]string {
+func (mock *mockViolation) Parameters() []validation.TemplateParameter {
 	return mock.parameters
 }
 
@@ -86,7 +86,7 @@ func mockNewViolationFunc() validation.ViolationFactory {
 	return validation.NewViolationFunc(func(
 		code, messageTemplate string,
 		pluralCount int,
-		parameters map[string]string,
+		parameters []validation.TemplateParameter,
 		propertyPath validation.PropertyPath,
 		lang language.Tag,
 	) validation.Violation {

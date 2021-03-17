@@ -76,7 +76,7 @@ func (c *UniqueEntityConstraint) ValidateString(value *string, scope validation.
 	return scope.
 		BuildViolation("notUnique", `Entity with name "{{ name }}" already exists.`).
 		// you can inject parameter value to the message here
-		SetParameter("{{ name }}", *value).
+		AddParameter("{{ name }}", *value).
 		CreateViolation()
 }
 

@@ -142,9 +142,9 @@ func (c LengthConstraint) newViolation(
 
 	return scope.BuildViolation(violationCode, message).
 		SetPluralCount(limit).
-		SetParameters(map[string]string{
-			"{{ count }}": strconv.Itoa(count),
-			"{{ limit }}": strconv.Itoa(limit),
+		SetParameters([]validation.TemplateParameter{
+			{Key: "{{ count }}", Value: strconv.Itoa(count)},
+			{Key: "{{ limit }}", Value: strconv.Itoa(limit)},
 		}).
 		CreateViolation()
 }
@@ -222,6 +222,6 @@ func (c RegexConstraint) ValidateString(value *string, scope validation.Scope) e
 
 	return scope.
 		BuildViolation(code.MatchingFailed, c.messageTemplate).
-		SetParameter("{{ value }}", *value).
+		AddParameter("{{ value }}", *value).
 		CreateViolation()
 }
