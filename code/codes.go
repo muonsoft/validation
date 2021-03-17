@@ -16,6 +16,7 @@ const (
 	LengthTooFew   = "lengthTooFew"
 	LengthTooMany  = "lengthTooMany"
 	MatchingFailed = "matchingFailed"
+	Nil            = "nil"
 	NoSuchChoice   = "noSuchChoice"
 	NotBlank       = "notBlank"
 	NotNil         = "notNil"

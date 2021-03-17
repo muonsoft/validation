@@ -344,3 +344,90 @@ func (c NotNilConstraint) ValidateIterable(value generic.Iterable, scope validat
 func (c NotNilConstraint) newViolation(scope validation.Scope) validation.Violation {
 	return scope.BuildViolation(code.NotNil, c.messageTemplate).CreateViolation()
 }
+
+// NilConstraint checks that a value in strictly equal to `nil`. To check that values in blank use
+// BlankConstraint.
+type NilConstraint struct {
+	messageTemplate string
+	isIgnored       bool
+}
+
+func IsNil() NilConstraint {
+	return NilConstraint{
+		messageTemplate: message.Nil,
+	}
+}
+
+func (c NilConstraint) When(condition bool) NilConstraint {
+	c.isIgnored = !condition
+	return c
+}
+
+func (c NilConstraint) Message(message string) NilConstraint {
+	c.messageTemplate = message
+	return c
+}
+
+func (c NilConstraint) SetUp() error {
+	return nil
+}
+
+func (c NilConstraint) Name() string {
+	return "NilConstraint"
+}
+
+func (c NilConstraint) ValidateNil(scope validation.Scope) error {
+	if c.isIgnored {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
+func (c NilConstraint) ValidateNumber(value generic.Number, scope validation.Scope) error {
+	if c.isIgnored {
+		return nil
+	}
+	if value.IsNil() {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
+func (c NilConstraint) ValidateString(value *string, scope validation.Scope) error {
+	if c.isIgnored {
+		return nil
+	}
+	if value == nil {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
+func (c NilConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
+	if c.isIgnored {
+		return nil
+	}
+	if value == nil {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
+func (c NilConstraint) ValidateIterable(value generic.Iterable, scope validation.Scope) error {
+	if c.isIgnored {
+		return nil
+	}
+	if value.IsNil() {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
+func (c NilConstraint) newViolation(scope validation.Scope) validation.Violation {
+	return scope.BuildViolation(code.Nil, c.messageTemplate).CreateViolation()
+}

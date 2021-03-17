@@ -33,6 +33,7 @@ const (
 	LengthExact   = "This value should have exactly {{ limit }} character(s)."
 	LengthTooFew  = "This value is too short. It should have {{ limit }} character(s) or more."
 	LengthTooMany = "This value is too long. It should have {{ limit }} character(s) or less."
+	Nil           = "This value should be nil."
 	NoSuchChoice  = "The value you selected is not a valid choice."
 	NotBlank      = "This value should not be blank."
 	NotNil        = "This value should not be nil."
