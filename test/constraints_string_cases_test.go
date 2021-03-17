@@ -4,6 +4,8 @@ import (
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
+
+	"regexp"
 )
 
 var lengthConstraintTestCases = []ConstraintValidationTestCase{
@@ -103,30 +105,30 @@ var regexConstraintTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "Matches passes on nil",
 		isApplicableFor: specificValueTypes(stringType),
-		options:         []validation.Option{it.Matches("^[a-z]+$")},
+		options:         []validation.Option{it.Matches(regexp.MustCompile("^[a-z]+$"))},
 		assert:          assertNoError,
 	},
 	{
 		name:            "Matches passes on empty value",
 		isApplicableFor: specificValueTypes(stringType),
-		options:         []validation.Option{it.Matches("^[a-z]+$")},
+		options:         []validation.Option{it.Matches(regexp.MustCompile("^[a-z]+$"))},
 		stringValue:     stringValue(""),
 		assert:          assertNoError,
 	},
 	{
 		name:            "Matches violation ignored when condition false",
 		isApplicableFor: specificValueTypes(stringType),
-		options:         []validation.Option{it.Matches("^[a-z]+$").When(false)},
+		options:         []validation.Option{it.Matches(regexp.MustCompile("^[a-z]+$")).When(false)},
 		stringValue:     stringValue("1"),
 		assert:          assertNoError,
 	},
 	{
 		name:            "Matches violation when condition true",
 		isApplicableFor: specificValueTypes(stringType),
-		options:         []validation.Option{it.Matches("^[a-z]+$").When(true)},
+		options:         []validation.Option{it.Matches(regexp.MustCompile("^[a-z]+$")).When(true)},
 		stringValue:     stringValue("1"),
 		assert: assertHasOneViolation(
-			code.NotMatches,
+			code.MatchingFailed,
 			"This value is not valid.",
 			"",
 		),
@@ -135,16 +137,34 @@ var regexConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "Matches violation with custom message",
 		isApplicableFor: specificValueTypes(stringType),
 		options: []validation.Option{
-			it.Matches("^[a-z]+$").Message(customMessage),
+			it.Matches(regexp.MustCompile("^[a-z]+$")).Message(customMessage),
 		},
 		stringValue: stringValue("1"),
-		assert:      assertHasOneViolation(code.NotMatches, customMessage, ""),
+		assert:      assertHasOneViolation(code.MatchingFailed, customMessage, ""),
 	},
 	{
 		name:            "Matches passes on expected string",
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("a"),
-		options:         []validation.Option{it.Matches("^[a-z]+$")},
+		options:         []validation.Option{it.Matches(regexp.MustCompile("^[a-z]+$"))},
+		assert:          assertNoError,
+	},
+	{
+		name:            "DoesNotMatch violation on expected string",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("a"),
+		options:         []validation.Option{it.DoesNotMatch(regexp.MustCompile("^[a-z]+$"))},
+		assert: assertHasOneViolation(
+			code.MatchingFailed,
+			"This value is not valid.",
+			"",
+		),
+	},
+	{
+		name:            "DoesNotMatch passes on expected string",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("1"),
+		options:         []validation.Option{it.DoesNotMatch(regexp.MustCompile("^[a-z]+$"))},
 		assert:          assertNoError,
 	},
 }

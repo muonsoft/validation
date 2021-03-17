@@ -62,6 +62,6 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 			plural.One, "Значение должно быть равно {{ limit }} символу.",
 			plural.Few, "Значение должно быть равно {{ limit }} символам.",
 			plural.Other, "Значение должно быть равно {{ limit }} символам."),
-		message.Regex: catalog.String("Значение недопустимо."),
+		message.NotValid: catalog.String("Значение недопустимо."),
 	},
 }
