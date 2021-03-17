@@ -78,9 +78,5 @@ func (c ChoiceConstraint) ValidateString(value *string, scope validation.Scope) 
 			{"{{ value }}", *value},
 			{"{{ choices }}", c.choicesValue},
 		}).
-		// SetParameters([]validation.TemplateParameter{}{}
-		// 	"{{ value }}":   *value,
-		// 	"{{ choices }}": c.choicesValue,
-		// }).
 		CreateViolation()
 }
