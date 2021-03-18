@@ -12,6 +12,7 @@ const (
 	CountExact     = "countExact"
 	CountTooFew    = "countTooFew"
 	CountTooMany   = "countTooMany"
+	False          = "false"
 	LengthExact    = "lengthExact"
 	LengthTooFew   = "lengthTooFew"
 	LengthTooMany  = "lengthTooMany"
@@ -20,4 +21,5 @@ const (
 	NoSuchChoice   = "noSuchChoice"
 	NotBlank       = "notBlank"
 	NotNil         = "notNil"
+	True           = "true"
 )

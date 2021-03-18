@@ -30,6 +30,7 @@ const (
 	CountExact    = "This collection should contain exactly {{ limit }} element(s)."
 	CountTooFew   = "This collection should contain {{ limit }} element(s) or more."
 	CountTooMany  = "This collection should contain {{ limit }} element(s) or less."
+	False         = "This value should be false."
 	LengthExact   = "This value should have exactly {{ limit }} character(s)."
 	LengthTooFew  = "This value is too short. It should have {{ limit }} character(s) or more."
 	LengthTooMany = "This value is too long. It should have {{ limit }} character(s) or less."
@@ -38,4 +39,5 @@ const (
 	NotBlank      = "This value should not be blank."
 	NotNil        = "This value should not be nil."
 	NotValid      = "This value is not valid."
+	True          = "This value should be true."
 )

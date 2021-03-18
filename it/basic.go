@@ -431,3 +431,87 @@ func (c NilConstraint) ValidateIterable(value generic.Iterable, scope validation
 func (c NilConstraint) newViolation(scope validation.Scope) validation.Violation {
 	return scope.BuildViolation(code.Nil, c.messageTemplate).CreateViolation()
 }
+
+// TrueConstraint checks that a bool value in strictly equal to `true`.
+type TrueConstraint struct {
+	messageTemplate string
+	isIgnored       bool
+}
+
+func IsTrue() TrueConstraint {
+	return TrueConstraint{
+		messageTemplate: message.True,
+	}
+}
+
+func (c TrueConstraint) When(condition bool) TrueConstraint {
+	c.isIgnored = !condition
+	return c
+}
+
+func (c TrueConstraint) Message(message string) TrueConstraint {
+	c.messageTemplate = message
+	return c
+}
+
+func (c TrueConstraint) SetUp() error {
+	return nil
+}
+
+func (c TrueConstraint) Name() string {
+	return "TrueConstraint"
+}
+
+func (c TrueConstraint) ValidateBool(value *bool, scope validation.Scope) error {
+	if c.isIgnored || value == nil || *value {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
+func (c TrueConstraint) newViolation(scope validation.Scope) validation.Violation {
+	return scope.BuildViolation(code.True, c.messageTemplate).CreateViolation()
+}
+
+// FalseConstraint checks that a bool value in strictly equal to `false`.
+type FalseConstraint struct {
+	messageTemplate string
+	isIgnored       bool
+}
+
+func IsFalse() FalseConstraint {
+	return FalseConstraint{
+		messageTemplate: message.False,
+	}
+}
+
+func (c FalseConstraint) When(condition bool) FalseConstraint {
+	c.isIgnored = !condition
+	return c
+}
+
+func (c FalseConstraint) Message(message string) FalseConstraint {
+	c.messageTemplate = message
+	return c
+}
+
+func (c FalseConstraint) SetUp() error {
+	return nil
+}
+
+func (c FalseConstraint) Name() string {
+	return "FalseConstraint"
+}
+
+func (c FalseConstraint) ValidateBool(value *bool, scope validation.Scope) error {
+	if c.isIgnored || value == nil || !*value {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
+func (c FalseConstraint) newViolation(scope validation.Scope) validation.Violation {
+	return scope.BuildViolation(code.False, c.messageTemplate).CreateViolation()
+}

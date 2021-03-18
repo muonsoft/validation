@@ -44,6 +44,8 @@ var validateTestCases = mergeTestCases(
 	isBlankConstraintTestCases,
 	isNotNilConstraintTestCases,
 	isNilConstraintTestCases,
+	isTrueConstraintTestCases,
+	isFalseConstraintTestCases,
 	lengthConstraintTestCases,
 	regexConstraintTestCases,
 	countConstraintTestCases,
