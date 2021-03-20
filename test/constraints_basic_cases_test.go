@@ -332,7 +332,7 @@ var isTrueConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "IsTrue violation on empty value with custom message",
 		isApplicableFor: specificValueTypes(boolType),
 		boolValue:       boolValue(false),
-		options:         []validation.Option{it.IsTrue().Message(customMessage)},
+		options:         []validation.Option{it.IsTrue().TrueMessage(customMessage)},
 		assert:          assertHasOneViolation(code.True, customMessage, ""),
 	},
 	{
@@ -376,7 +376,7 @@ var isFalseConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "IsFalse violation on error value with custom message",
 		isApplicableFor: specificValueTypes(boolType),
 		boolValue:       boolValue(true),
-		options:         []validation.Option{it.IsFalse().Message(customMessage)},
+		options:         []validation.Option{it.IsFalse().FalseMessage(customMessage)},
 		assert:          assertHasOneViolation(code.False, customMessage, ""),
 	},
 	{

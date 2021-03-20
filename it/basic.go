@@ -345,13 +345,18 @@ func (c NotNilConstraint) newViolation(scope validation.Scope) validation.Violat
 	return scope.BuildViolation(code.NotNil, c.messageTemplate).CreateViolation()
 }
 
-// NilConstraint checks that a value in strictly equal to `nil`. To check that values in blank use
+// NilConstraint checks that a value in strictly equal to nil. To check that values in blank use
 // BlankConstraint.
 type NilConstraint struct {
 	messageTemplate string
 	isIgnored       bool
 }
 
+// IsNil creates a NilConstraint to check that a value is strictly equal to nil.
+//
+// Example
+//  var s *string
+//  err := validator.ValidateString(s, it.IsNil())
 func IsNil() NilConstraint {
 	return NilConstraint{
 		messageTemplate: message.Nil,
@@ -432,86 +437,80 @@ func (c NilConstraint) newViolation(scope validation.Scope) validation.Violation
 	return scope.BuildViolation(code.Nil, c.messageTemplate).CreateViolation()
 }
 
-// TrueConstraint checks that a bool value in strictly equal to `true`.
-type TrueConstraint struct {
-	messageTemplate string
-	isIgnored       bool
+// BoolConstraint checks that a bool value in strictly equal to expected bool value.
+type BoolConstraint struct {
+	isIgnored            bool
+	checkFalse           bool
+	checkTrue            bool
+	falseMessageTemplate string
+	trueMessageTemplate  string
 }
 
-func IsTrue() TrueConstraint {
-	return TrueConstraint{
-		messageTemplate: message.True,
+func newBoolConstraint(checkFalse, checkTrue bool) BoolConstraint {
+	return BoolConstraint{
+		checkFalse:           checkFalse,
+		checkTrue:            checkTrue,
+		falseMessageTemplate: message.False,
+		trueMessageTemplate:  message.True,
 	}
 }
 
-func (c TrueConstraint) When(condition bool) TrueConstraint {
+// IsTrue creates a BoolConstraint to check that a value is not strictly equal to true.
+//
+// Example
+//  var b *bool
+//  err := validator.ValidateBool(b, it.IsTrue())
+func IsTrue() BoolConstraint {
+	return newBoolConstraint(false, true)
+}
+
+// IsFalse creates a BoolConstraint to check that a value is not strictly equal to false.
+//
+// Example
+//  var b *bool
+//  err := validator.ValidateBool(b, it.IsFalse())
+func IsFalse() BoolConstraint {
+	return newBoolConstraint(true, false)
+}
+
+func (c BoolConstraint) When(condition bool) BoolConstraint {
 	c.isIgnored = !condition
 	return c
 }
 
-func (c TrueConstraint) Message(message string) TrueConstraint {
-	c.messageTemplate = message
+func (c BoolConstraint) FalseMessage(message string) BoolConstraint {
+	c.falseMessageTemplate = message
 	return c
 }
 
-func (c TrueConstraint) SetUp() error {
+func (c BoolConstraint) TrueMessage(message string) BoolConstraint {
+	c.trueMessageTemplate = message
+	return c
+}
+
+func (c BoolConstraint) SetUp() error {
 	return nil
 }
 
-func (c TrueConstraint) Name() string {
-	return "TrueConstraint"
+func (c BoolConstraint) Name() string {
+	return "BoolConstraint"
 }
 
-func (c TrueConstraint) ValidateBool(value *bool, scope validation.Scope) error {
-	if c.isIgnored || value == nil || *value {
+func (c BoolConstraint) ValidateBool(value *bool, scope validation.Scope) error {
+	if c.isIgnored || value == nil {
 		return nil
 	}
 
-	return c.newViolation(scope)
-}
-
-func (c TrueConstraint) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(code.True, c.messageTemplate).CreateViolation()
-}
-
-// FalseConstraint checks that a bool value in strictly equal to `false`.
-type FalseConstraint struct {
-	messageTemplate string
-	isIgnored       bool
-}
-
-func IsFalse() FalseConstraint {
-	return FalseConstraint{
-		messageTemplate: message.False,
+	if c.checkFalse && *value {
+		return c.newViolation(code.False, c.falseMessageTemplate, scope)
 	}
-}
+	if c.checkTrue && !*value {
+		return c.newViolation(code.True, c.trueMessageTemplate, scope)
+	}
 
-func (c FalseConstraint) When(condition bool) FalseConstraint {
-	c.isIgnored = !condition
-	return c
-}
-
-func (c FalseConstraint) Message(message string) FalseConstraint {
-	c.messageTemplate = message
-	return c
-}
-
-func (c FalseConstraint) SetUp() error {
 	return nil
 }
 
-func (c FalseConstraint) Name() string {
-	return "FalseConstraint"
-}
-
-func (c FalseConstraint) ValidateBool(value *bool, scope validation.Scope) error {
-	if c.isIgnored || value == nil || !*value {
-		return nil
-	}
-
-	return c.newViolation(scope)
-}
-
-func (c FalseConstraint) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(code.False, c.messageTemplate).CreateViolation()
+func (c BoolConstraint) newViolation(violationCode, message string, scope validation.Scope) validation.Violation {
+	return scope.BuildViolation(violationCode, message).CreateViolation()
 }
