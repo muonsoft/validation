@@ -439,20 +439,10 @@ func (c NilConstraint) newViolation(scope validation.Scope) validation.Violation
 
 // BoolConstraint checks that a bool value in strictly equal to expected bool value.
 type BoolConstraint struct {
-	isIgnored            bool
-	checkFalse           bool
-	checkTrue            bool
-	falseMessageTemplate string
-	trueMessageTemplate  string
-}
-
-func newBoolConstraint(checkFalse, checkTrue bool) BoolConstraint {
-	return BoolConstraint{
-		checkFalse:           checkFalse,
-		checkTrue:            checkTrue,
-		falseMessageTemplate: message.False,
-		trueMessageTemplate:  message.True,
-	}
+	isIgnored       bool
+	value           bool
+	messageTemplate string
+	code            string
 }
 
 // IsTrue creates a BoolConstraint to check that a value is not strictly equal to true.
@@ -461,7 +451,11 @@ func newBoolConstraint(checkFalse, checkTrue bool) BoolConstraint {
 //  var b *bool
 //  err := validator.ValidateBool(b, it.IsTrue())
 func IsTrue() BoolConstraint {
-	return newBoolConstraint(false, true)
+	return BoolConstraint{
+		value:           true,
+		messageTemplate: message.True,
+		code:            code.True,
+	}
 }
 
 // IsFalse creates a BoolConstraint to check that a value is not strictly equal to false.
@@ -470,30 +464,34 @@ func IsTrue() BoolConstraint {
 //  var b *bool
 //  err := validator.ValidateBool(b, it.IsFalse())
 func IsFalse() BoolConstraint {
-	return newBoolConstraint(true, false)
+	return BoolConstraint{
+		value:           false,
+		messageTemplate: message.False,
+		code:            code.False,
+	}
 }
 
+// Name is the constraint name.
+func (c BoolConstraint) Name() string {
+	return "BoolConstraint"
+}
+
+// SetUp always returns no error.
+func (c BoolConstraint) SetUp() error {
+	return nil
+}
+
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
 func (c BoolConstraint) When(condition bool) BoolConstraint {
 	c.isIgnored = !condition
 	return c
 }
 
-func (c BoolConstraint) FalseMessage(message string) BoolConstraint {
-	c.falseMessageTemplate = message
+// Message sets the violation message template.
+func (c BoolConstraint) Message(message string) BoolConstraint {
+	c.messageTemplate = message
 	return c
-}
-
-func (c BoolConstraint) TrueMessage(message string) BoolConstraint {
-	c.trueMessageTemplate = message
-	return c
-}
-
-func (c BoolConstraint) SetUp() error {
-	return nil
-}
-
-func (c BoolConstraint) Name() string {
-	return "BoolConstraint"
 }
 
 func (c BoolConstraint) ValidateBool(value *bool, scope validation.Scope) error {
@@ -501,16 +499,13 @@ func (c BoolConstraint) ValidateBool(value *bool, scope validation.Scope) error 
 		return nil
 	}
 
-	if c.checkFalse && *value {
-		return c.newViolation(code.False, c.falseMessageTemplate, scope)
-	}
-	if c.checkTrue && !*value {
-		return c.newViolation(code.True, c.trueMessageTemplate, scope)
+	if (c.value && *value) || (!c.value && !*value) {
+		return nil
 	}
 
-	return nil
+	return c.newViolation(scope)
 }
 
-func (c BoolConstraint) newViolation(violationCode, message string, scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(violationCode, message).CreateViolation()
+func (c BoolConstraint) newViolation(scope validation.Scope) validation.Violation {
+	return scope.BuildViolation(c.code, c.messageTemplate).CreateViolation()
 }
