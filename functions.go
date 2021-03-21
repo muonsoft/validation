@@ -7,9 +7,10 @@ import (
 	"github.com/muonsoft/validation/generic"
 )
 
-type validateFunc func(scope Scope) (ViolationList, error)
+// ValidateByConstraintFunc is used for building validation functions for the values of specific types.
+type ValidateByConstraintFunc func(constraint Constraint, scope Scope) error
 
-type validateByConstraintFunc func(constraint Constraint, scope Scope) error
+type validateFunc func(scope Scope) (ViolationList, error)
 
 func newValueValidator(value interface{}, options []Option) (validateFunc, error) {
 	switch v := value.(type) {
@@ -103,7 +104,7 @@ func newBoolValidator(value *bool, options []Option) validateFunc {
 			return c.ValidateBool(value, scope)
 		}
 
-		return newInapplicableConstraintError(constraint, "bool")
+		return NewInapplicableConstraintError(constraint, "bool")
 	})
 }
 
@@ -113,7 +114,7 @@ func newNumberValidator(value generic.Number, options []Option) validateFunc {
 			return c.ValidateNumber(value, scope)
 		}
 
-		return newInapplicableConstraintError(constraint, "number")
+		return NewInapplicableConstraintError(constraint, "number")
 	})
 }
 
@@ -123,7 +124,7 @@ func newStringValidator(value *string, options []Option) validateFunc {
 			return c.ValidateString(value, scope)
 		}
 
-		return newInapplicableConstraintError(constraint, "string")
+		return NewInapplicableConstraintError(constraint, "string")
 	})
 }
 
@@ -139,7 +140,7 @@ func newIterableValidator(iterable generic.Iterable, options []Option) validateF
 				return c.ValidateIterable(iterable, scope)
 			}
 
-			return newInapplicableConstraintError(constraint, "iterable")
+			return NewInapplicableConstraintError(constraint, "iterable")
 		})
 		if err != nil {
 			return nil, err
@@ -163,7 +164,7 @@ func newCountableValidator(count int, options []Option) validateFunc {
 			return c.ValidateCountable(count, scope)
 		}
 
-		return newInapplicableConstraintError(constraint, "countable")
+		return NewInapplicableConstraintError(constraint, "countable")
 	})
 }
 
@@ -173,7 +174,7 @@ func newTimeValidator(value *time.Time, options []Option) validateFunc {
 			return c.ValidateTime(value, scope)
 		}
 
-		return newInapplicableConstraintError(constraint, "time")
+		return NewInapplicableConstraintError(constraint, "time")
 	})
 }
 
@@ -242,7 +243,7 @@ func newValidValidator(value Validatable, options []Option) validateFunc {
 	}
 }
 
-func newValidator(options []Option, validate validateByConstraintFunc) validateFunc {
+func newValidator(options []Option, validate ValidateByConstraintFunc) validateFunc {
 	return func(scope Scope) (ViolationList, error) {
 		err := scope.applyOptions(options...)
 		if err != nil {
@@ -253,7 +254,7 @@ func newValidator(options []Option, validate validateByConstraintFunc) validateF
 	}
 }
 
-func validateOnScope(scope Scope, options []Option, validate validateByConstraintFunc) (ViolationList, error) {
+func validateOnScope(scope Scope, options []Option, validate ValidateByConstraintFunc) (ViolationList, error) {
 	violations := make(ViolationList, 0)
 
 	for _, option := range options {
