@@ -1,7 +1,9 @@
 package generic
 
 import (
+	"fmt"
 	"reflect"
+	"strconv"
 )
 
 type Number struct {
@@ -22,6 +24,22 @@ func NewNumber(value interface{}) (*Number, error) {
 	}
 
 	return numberFromValue(v)
+}
+
+func NewNumberFromInt(value int64) Number {
+	return Number{
+		int:   value,
+		float: float64(value),
+		isInt: true,
+	}
+}
+
+func NewNumberFromFloat(value float64) Number {
+	return Number{
+		int:   int64(value),
+		float: value,
+		isInt: false,
+	}
 }
 
 func MustNewNumber(value interface{}) Number {
@@ -94,4 +112,12 @@ func (n Number) IsLessThan(v Number) bool {
 	}
 
 	return n.float < v.float
+}
+
+func (n Number) String() string {
+	if n.isInt {
+		return strconv.FormatInt(n.int, 10)
+	}
+
+	return fmt.Sprint(n.float)
 }

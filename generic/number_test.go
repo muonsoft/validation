@@ -45,6 +45,38 @@ func TestNewNumber(t *testing.T) {
 	}
 }
 
+func TestNewNumberFromInt(t *testing.T) {
+	n := NewNumberFromInt(1)
+
+	assert.Equal(t, int64(1), n.int)
+	assert.Equal(t, float64(1), n.float)
+	assert.True(t, n.isInt)
+}
+
+func TestNewNumberFromFloat(t *testing.T) {
+	n := NewNumberFromFloat(1.5)
+
+	assert.Equal(t, int64(1), n.int)
+	assert.Equal(t, 1.5, n.float)
+	assert.False(t, n.isInt)
+}
+
+func TestNumber_String_WhenNumberFromInt_ExpectInt(t *testing.T) {
+	n := NewNumberFromInt(123)
+
+	s := n.String()
+
+	assert.Equal(t, "123", s)
+}
+
+func TestNumber_String_WhenNumberFromFloat_ExpectFloat(t *testing.T) {
+	n := NewNumberFromFloat(123.123)
+
+	s := n.String()
+
+	assert.Equal(t, "123.123", s)
+}
+
 func TestNewNumber_WhenNotNumeric_ExpectError(t *testing.T) {
 	n, err := NewNumber(struct{}{})
 
