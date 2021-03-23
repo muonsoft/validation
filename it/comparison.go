@@ -1,6 +1,8 @@
 package it
 
 import (
+	"strconv"
+
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/generic"
@@ -370,6 +372,89 @@ func (c NumberComparisonConstraint) ValidateNumber(value generic.Number, scope v
 		SetParameters([]validation.TemplateParameter{
 			{Key: "{{ comparedValue }}", Value: c.comparedValue},
 			{Key: "{{ value }}", Value: value.String()},
+		}).
+		CreateViolation()
+}
+
+// StringComparisonConstraint is used to compare strings.
+type StringComparisonConstraint struct {
+	isIgnored       bool
+	code            string
+	messageTemplate string
+	comparedValue   string
+	isValid         func(value string) bool
+}
+
+// IsEqualToString checks that the string value is equal to the specified string value.
+//
+// Example
+//  v := "actual"
+//  err := validator.ValidateString(&v, it.IsEqualToString("expected"))
+func IsEqualToString(value string) StringComparisonConstraint {
+	return StringComparisonConstraint{
+		code:            code.Equal,
+		messageTemplate: message.Equal,
+		comparedValue:   value,
+		isValid: func(actualValue string) bool {
+			return value == actualValue
+		},
+	}
+}
+
+// IsNotEqualToString checks that the string value is not equal to the specified string value.
+//
+// Example
+//  v := "expected"
+//  err := validator.ValidateString(&v, it.IsNotEqualToString("expected"))
+func IsNotEqualToString(value string) StringComparisonConstraint {
+	return StringComparisonConstraint{
+		code:            code.NotEqual,
+		messageTemplate: message.NotEqual,
+		comparedValue:   value,
+		isValid: func(actualValue string) bool {
+			return value != actualValue
+		},
+	}
+}
+
+// SetUp always returns no error.
+func (c StringComparisonConstraint) SetUp() error {
+	return nil
+}
+
+// Name is the constraint name.
+func (c StringComparisonConstraint) Name() string {
+	return "StringComparisonConstraint"
+}
+
+// Message sets the violation message template. You can use template parameters
+// for injecting its values into the final message:
+//
+//	{{ comparedValue }} - the expected value;
+//	{{ value }} - the current (invalid) value.
+//
+// All string values are quoted strings.
+func (c StringComparisonConstraint) Message(message string) StringComparisonConstraint {
+	c.messageTemplate = message
+	return c
+}
+
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
+func (c StringComparisonConstraint) When(condition bool) StringComparisonConstraint {
+	c.isIgnored = !condition
+	return c
+}
+
+func (c StringComparisonConstraint) ValidateString(value *string, scope validation.Scope) error {
+	if c.isIgnored || value == nil || c.isValid(*value) {
+		return nil
+	}
+
+	return scope.BuildViolation(c.code, c.messageTemplate).
+		SetParameters([]validation.TemplateParameter{
+			{Key: "{{ comparedValue }}", Value: strconv.Quote(c.comparedValue)},
+			{Key: "{{ value }}", Value: strconv.Quote(*value)},
 		}).
 		CreateViolation()
 }
