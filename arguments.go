@@ -273,3 +273,13 @@ func Language(tag language.Tag) Argument {
 		return nil
 	})
 }
+
+// NewArgument can be used to implement your own validation arguments for the specific types.
+// See example for more details.
+func NewArgument(options []Option, validate ValidateByConstraintFunc) Argument {
+	return argumentFunc(func(arguments *Arguments) error {
+		arguments.addValidator(newValidator(options, validate))
+
+		return nil
+	})
+}

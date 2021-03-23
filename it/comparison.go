@@ -1,0 +1,375 @@
+package it
+
+import (
+	"github.com/muonsoft/validation"
+	"github.com/muonsoft/validation/code"
+	"github.com/muonsoft/validation/generic"
+	"github.com/muonsoft/validation/message"
+)
+
+// NumberComparisonConstraint is used for various numeric comparisons between integer and float values.
+// Values are compared as integers if the compared and specified values are integers.
+// Otherwise, numbers are always compared as floating point numbers.
+type NumberComparisonConstraint struct {
+	isIgnored       bool
+	code            string
+	messageTemplate string
+	comparedValue   string
+	isValid         func(value generic.Number) bool
+}
+
+// IsEqualToInteger checks that the number (integer or float) is equal to the specified integer value.
+// Values are compared as integers if the compared and specified values are integers.
+// Otherwise, numbers are always compared as floating point numbers.
+//
+// Example
+//  v := 1
+//  err := validator.ValidateNumber(&v, it.IsEqualToInteger(2))
+func IsEqualToInteger(value int64) NumberComparisonConstraint {
+	v := generic.NewNumberFromInt(value)
+
+	return NumberComparisonConstraint{
+		code:            code.Equal,
+		messageTemplate: message.Equal,
+		comparedValue:   v.String(),
+		isValid: func(n generic.Number) bool {
+			return n.IsEqualTo(v)
+		},
+	}
+}
+
+// IsEqualToFloat checks that the number (integer or float) is equal to the specified float value.
+// Values are compared as integers if the compared and specified values are integers.
+// Otherwise, numbers are always compared as floating point numbers.
+//
+// Example
+//  v := 1.1
+//  err := validator.ValidateNumber(&v, it.IsEqualToFloat(1.2))
+func IsEqualToFloat(value float64) NumberComparisonConstraint {
+	v := generic.NewNumberFromFloat(value)
+
+	return NumberComparisonConstraint{
+		code:            code.Equal,
+		messageTemplate: message.Equal,
+		comparedValue:   v.String(),
+		isValid: func(n generic.Number) bool {
+			return n.IsEqualTo(v)
+		},
+	}
+}
+
+// IsNotEqualToInteger checks that the number (integer or float) is not equal to the specified integer value.
+// Values are compared as integers if the compared and specified values are integers.
+// Otherwise, numbers are always compared as floating point numbers.
+//
+// Example
+//  v := 1
+//  err := validator.ValidateNumber(&v, it.IsNotEqualToInteger(1))
+func IsNotEqualToInteger(value int64) NumberComparisonConstraint {
+	v := generic.NewNumberFromInt(value)
+
+	return NumberComparisonConstraint{
+		code:            code.NotEqual,
+		messageTemplate: message.NotEqual,
+		comparedValue:   v.String(),
+		isValid: func(n generic.Number) bool {
+			return !n.IsEqualTo(v)
+		},
+	}
+}
+
+// IsNotEqualToFloat checks that the number (integer or float) is not equal to the specified float value.
+// Values are compared as integers if the compared and specified values are integers.
+// Otherwise, numbers are always compared as floating point numbers.
+//
+// Example
+//  v := 1.1
+//  err := validator.ValidateNumber(&v, it.IsNotEqualToFloat(1.1))
+func IsNotEqualToFloat(value float64) NumberComparisonConstraint {
+	v := generic.NewNumberFromFloat(value)
+
+	return NumberComparisonConstraint{
+		code:            code.NotEqual,
+		messageTemplate: message.NotEqual,
+		comparedValue:   v.String(),
+		isValid: func(n generic.Number) bool {
+			return !n.IsEqualTo(v)
+		},
+	}
+}
+
+// IsLessThanInteger checks that the number (integer or float) is less than the specified integer value.
+// Values are compared as integers if the compared and specified values are integers.
+// Otherwise, numbers are always compared as floating point numbers.
+//
+// Example
+//  v := 1
+//  err := validator.ValidateNumber(&v, it.IsLessThanInteger(1))
+func IsLessThanInteger(value int64) NumberComparisonConstraint {
+	v := generic.NewNumberFromInt(value)
+
+	return NumberComparisonConstraint{
+		code:            code.TooHigh,
+		messageTemplate: message.TooHigh,
+		comparedValue:   v.String(),
+		isValid: func(n generic.Number) bool {
+			return n.IsLessThan(v)
+		},
+	}
+}
+
+// IsLessThanFloat checks that the number (integer or float) is less than the specified float value.
+// Values are compared as integers if the compared and specified values are integers.
+// Otherwise, numbers are always compared as floating point numbers.
+//
+// Example
+//  v := 1.1
+//  err := validator.ValidateNumber(&v, it.IsLessThanFloat(1.1))
+func IsLessThanFloat(value float64) NumberComparisonConstraint {
+	v := generic.NewNumberFromFloat(value)
+
+	return NumberComparisonConstraint{
+		code:            code.TooHigh,
+		messageTemplate: message.TooHigh,
+		comparedValue:   v.String(),
+		isValid: func(n generic.Number) bool {
+			return n.IsLessThan(v)
+		},
+	}
+}
+
+// IsLessThanOrEqualInteger checks that the number (integer or float) is less than or
+// equal to the specified integer value. Values are compared as integers if the compared
+// and specified values are integers. Otherwise, numbers are always compared as floating point numbers.
+//
+// Example
+//  v := 1
+//  err := validator.ValidateNumber(&v, it.IsLessThanOrEqualInteger(2))
+func IsLessThanOrEqualInteger(value int64) NumberComparisonConstraint {
+	v := generic.NewNumberFromInt(value)
+
+	return NumberComparisonConstraint{
+		code:            code.TooHighOrEqual,
+		messageTemplate: message.TooHighOrEqual,
+		comparedValue:   v.String(),
+		isValid: func(n generic.Number) bool {
+			return n.IsLessThan(v) || n.IsEqualTo(v)
+		},
+	}
+}
+
+// IsLessThanOrEqualFloat checks that the number (integer or float) is less than or
+// equal to the specified float value. Values are compared as integers if the compared
+// and specified values are integers. Otherwise, numbers are always compared as floating point numbers.
+//
+// Example
+//  v := 1.1
+//  err := validator.ValidateNumber(&v, it.IsLessThanOrEqualFloat(1.2))
+func IsLessThanOrEqualFloat(value float64) NumberComparisonConstraint {
+	v := generic.NewNumberFromFloat(value)
+
+	return NumberComparisonConstraint{
+		code:            code.TooHighOrEqual,
+		messageTemplate: message.TooHighOrEqual,
+		comparedValue:   v.String(),
+		isValid: func(n generic.Number) bool {
+			return n.IsLessThan(v) || n.IsEqualTo(v)
+		},
+	}
+}
+
+// IsGreaterThanInteger checks that the number (integer or float) is greater than the specified integer value.
+// Values are compared as integers if the compared and specified values are integers.
+// Otherwise, numbers are always compared as floating point numbers.
+//
+// Example
+//  v := 1
+//  err := validator.ValidateNumber(&v, it.IsGreaterThanInteger(1))
+func IsGreaterThanInteger(value int64) NumberComparisonConstraint {
+	v := generic.NewNumberFromInt(value)
+
+	return NumberComparisonConstraint{
+		code:            code.TooLow,
+		messageTemplate: message.TooLow,
+		comparedValue:   v.String(),
+		isValid: func(n generic.Number) bool {
+			return n.IsGreaterThan(v)
+		},
+	}
+}
+
+// IsGreaterThanFloat checks that the number (integer or float) is greater than the specified float value.
+// Values are compared as integers if the compared and specified values are integers.
+// Otherwise, numbers are always compared as floating point numbers.
+//
+// Example
+//  v := 1.1
+//  err := validator.ValidateNumber(&v, it.IsGreaterThanFloat(1.1))
+func IsGreaterThanFloat(value float64) NumberComparisonConstraint {
+	v := generic.NewNumberFromFloat(value)
+
+	return NumberComparisonConstraint{
+		code:            code.TooLow,
+		messageTemplate: message.TooLow,
+		comparedValue:   v.String(),
+		isValid: func(n generic.Number) bool {
+			return n.IsGreaterThan(v)
+		},
+	}
+}
+
+// IsGreaterThanOrEqualInteger checks that the number (integer or float) is greater than or
+// equal to the specified integer value. Values are compared as integers if the compared
+// and specified values are integers. Otherwise, numbers are always compared as floating point numbers.
+//
+// Example
+//  v := 1
+//  err := validator.ValidateNumber(&v, it.IsGreaterThanOrEqualInteger(2))
+func IsGreaterThanOrEqualInteger(value int64) NumberComparisonConstraint {
+	v := generic.NewNumberFromInt(value)
+
+	return NumberComparisonConstraint{
+		code:            code.TooLowOrEqual,
+		messageTemplate: message.TooLowOrEqual,
+		comparedValue:   v.String(),
+		isValid: func(n generic.Number) bool {
+			return n.IsGreaterThan(v) || n.IsEqualTo(v)
+		},
+	}
+}
+
+// IsGreaterThanOrEqualFloat checks that the number (integer or float) is greater than or
+// equal to the specified float value. Values are compared as integers if the compared
+// and specified values are integers. Otherwise, numbers are always compared as floating point numbers.
+//
+// Example
+//  v := 1.1
+//  err := validator.ValidateNumber(&v, it.IsGreaterThanOrEqualFloat(1.2))
+func IsGreaterThanOrEqualFloat(value float64) NumberComparisonConstraint {
+	v := generic.NewNumberFromFloat(value)
+
+	return NumberComparisonConstraint{
+		code:            code.TooLowOrEqual,
+		messageTemplate: message.TooLowOrEqual,
+		comparedValue:   v.String(),
+		isValid: func(n generic.Number) bool {
+			return n.IsGreaterThan(v) || n.IsEqualTo(v)
+		},
+	}
+}
+
+// IsPositive checks that the value is a positive number (integer or float). Zero is neither
+// positive nor negative. If you want to allow zero use IsPositiveOrZero comparison.
+//
+// Example
+//  v := -1
+//  err := validator.ValidateNumber(&v, it.IsPositive())
+func IsPositive() NumberComparisonConstraint {
+	v := generic.NewNumberFromInt(0)
+
+	return NumberComparisonConstraint{
+		code:            code.NotPositive,
+		messageTemplate: message.NotPositive,
+		comparedValue:   v.String(),
+		isValid: func(n generic.Number) bool {
+			return n.IsGreaterThan(v)
+		},
+	}
+}
+
+// IsPositiveOrZero checks that the value is a positive number (integer or float) or equal to zero.
+// If you don't want to allow zero as a valid value, use IsPositive comparison.
+//
+// Example
+//  v := -1
+//  err := validator.ValidateNumber(&v, it.IsPositiveOrZero())
+func IsPositiveOrZero() NumberComparisonConstraint {
+	v := generic.NewNumberFromInt(0)
+
+	return NumberComparisonConstraint{
+		code:            code.NotPositiveOrZero,
+		messageTemplate: message.NotPositiveOrZero,
+		comparedValue:   v.String(),
+		isValid: func(n generic.Number) bool {
+			return n.IsGreaterThan(v) || n.IsEqualTo(v)
+		},
+	}
+}
+
+// IsNegative checks that the value is a negative number (integer or float). Zero is neither
+// positive nor negative. If you want to allow zero use IsNegativeOrZero comparison.
+//
+// Example
+//  v := 1
+//  err := validator.ValidateNumber(&v, it.IsNegative())
+func IsNegative() NumberComparisonConstraint {
+	v := generic.NewNumberFromInt(0)
+
+	return NumberComparisonConstraint{
+		code:            code.NotNegative,
+		messageTemplate: message.NotNegative,
+		comparedValue:   v.String(),
+		isValid: func(n generic.Number) bool {
+			return n.IsLessThan(v)
+		},
+	}
+}
+
+// IsNegativeOrZero checks that the value is a negative number (integer or float) or equal to zero.
+// If you don't want to allow zero as a valid value, use IsNegative comparison.
+//
+// Example
+//  v := -1
+//  err := validator.ValidateNumber(&v, it.IsNegativeOrZero())
+func IsNegativeOrZero() NumberComparisonConstraint {
+	v := generic.NewNumberFromInt(0)
+
+	return NumberComparisonConstraint{
+		code:            code.NotNegativeOrZero,
+		messageTemplate: message.NotNegativeOrZero,
+		comparedValue:   v.String(),
+		isValid: func(n generic.Number) bool {
+			return n.IsLessThan(v) || n.IsEqualTo(v)
+		},
+	}
+}
+
+// SetUp always returns no error.
+func (c NumberComparisonConstraint) SetUp() error {
+	return nil
+}
+
+// Name is the constraint name.
+func (c NumberComparisonConstraint) Name() string {
+	return "NumberComparisonConstraint"
+}
+
+// Message sets the violation message template. You can use template parameters
+// for injecting its values into the final message:
+//
+//	{{ comparedValue }} - the expected value;
+//	{{ value }} - the current (invalid) value.
+func (c NumberComparisonConstraint) Message(message string) NumberComparisonConstraint {
+	c.messageTemplate = message
+	return c
+}
+
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
+func (c NumberComparisonConstraint) When(condition bool) NumberComparisonConstraint {
+	c.isIgnored = !condition
+	return c
+}
+
+func (c NumberComparisonConstraint) ValidateNumber(value generic.Number, scope validation.Scope) error {
+	if c.isIgnored || value.IsNil() || c.isValid(value) {
+		return nil
+	}
+
+	return scope.BuildViolation(c.code, c.messageTemplate).
+		SetParameters([]validation.TemplateParameter{
+			{Key: "{{ comparedValue }}", Value: c.comparedValue},
+			{Key: "{{ value }}", Value: value.String()},
+		}).
+		CreateViolation()
+}

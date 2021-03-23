@@ -14,15 +14,12 @@ type contextKey string
 
 const exampleKey contextKey = "exampleKey"
 
-type Entity struct {
-	Name string
+type TagStorage struct {
+	// this might be stored in the database
+	tags []string
 }
 
-type EntityRepository struct {
-	entities []Entity
-}
-
-func (repository *EntityRepository) FindByName(ctx context.Context, name string) ([]Entity, error) {
+func (storage *TagStorage) FindByName(ctx context.Context, name string) ([]string, error) {
 	contextValue, ok := ctx.Value(exampleKey).(string)
 	if !ok {
 		return nil, errors.New("context value missing")
@@ -31,30 +28,30 @@ func (repository *EntityRepository) FindByName(ctx context.Context, name string)
 		return nil, errors.New("invalid context value")
 	}
 
-	found := make([]Entity, 0)
+	found := make([]string, 0)
 
-	for _, entity := range repository.entities {
-		if entity.Name == name {
-			found = append(found, entity)
+	for _, tag := range storage.tags {
+		if tag == name {
+			found = append(found, tag)
 		}
 	}
 
 	return found, nil
 }
 
-type UniqueEntityConstraint struct {
-	repository *EntityRepository
+type ExistingTagConstraint struct {
+	storage *TagStorage
 }
 
-func (c *UniqueEntityConstraint) SetUp() error {
+func (c *ExistingTagConstraint) SetUp() error {
 	return nil
 }
 
-func (c *UniqueEntityConstraint) Name() string {
-	return "UniqueEntityConstraint"
+func (c *ExistingTagConstraint) Name() string {
+	return "ExistingTagConstraint"
 }
 
-func (c *UniqueEntityConstraint) ValidateString(value *string, scope validation.Scope) error {
+func (c *ExistingTagConstraint) ValidateString(value *string, scope validation.Scope) error {
 	// usually, you should ignore empty values
 	// to check for an empty value you should use it.NotBlankConstraint
 	if value == nil || *value == "" {
@@ -62,35 +59,35 @@ func (c *UniqueEntityConstraint) ValidateString(value *string, scope validation.
 	}
 
 	// you can pass the context value from the scope
-	entities, err := c.repository.FindByName(scope.Context(), *value)
+	entities, err := c.storage.FindByName(scope.Context(), *value)
 	// here you can return a service error so that the validation process
 	// is stopped immediately
 	if err != nil {
 		return err
 	}
-	if len(entities) == 0 {
+	if len(entities) > 0 {
 		return nil
 	}
 
 	// use the scope to build violation with translations
 	return scope.
-		BuildViolation("notUnique", `Entity with name "{{ name }}" already exists.`).
+		BuildViolation("unknownTag", `Tag "{{ value }}" does not exist.`).
 		// you can inject parameter value to the message here
-		AddParameter("{{ name }}", *value).
+		AddParameter("{{ value }}", *value).
 		CreateViolation()
 }
 
 func ExampleValidator_Validate_customServiceConstraint() {
-	repository := &EntityRepository{entities: []Entity{{"camera"}, {"book"}}}
-	isEntityUnique := &UniqueEntityConstraint{repository: repository}
+	storage := &TagStorage{tags: []string{"camera", "book"}}
+	isTagExists := &ExistingTagConstraint{storage: storage}
 
-	entity := Entity{Name: "book"}
+	tag := "movie"
 	ctx := context.WithValue(context.Background(), exampleKey, "value")
 
 	err := validator.Validate(
 		// you can pass here the context value to the validation scope
 		validation.Context(ctx),
-		validation.String(&entity.Name, it.IsNotBlank(), isEntityUnique),
+		validation.String(&tag, it.IsNotBlank(), isTagExists),
 	)
 
 	violations := err.(validation.ViolationList)
@@ -98,5 +95,5 @@ func ExampleValidator_Validate_customServiceConstraint() {
 		fmt.Println(violation.Error())
 	}
 	// Output:
-	// violation: Entity with name "book" already exists.
+	// violation: Tag "movie" does not exist.
 }

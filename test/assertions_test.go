@@ -33,7 +33,7 @@ func assertNoError(t *testing.T, err error) {
 
 func assertIsInapplicableConstraintError(t *testing.T, err error, valueType string) {
 	t.Helper()
-	var inapplicableConstraint *validation.InapplicableConstraintError
+	var inapplicableConstraint validation.InapplicableConstraintError
 
 	if !errors.As(err, &inapplicableConstraint) {
 		t.Errorf("failed asserting that error is InapplicableConstraintError")
