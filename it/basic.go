@@ -363,30 +363,31 @@ func IsNil() NilConstraint {
 	}
 }
 
+// Name is the constraint name.
+func (c NilConstraint) Name() string {
+	return "NilConstraint"
+}
+
+// SetUp always returns no error.
+func (c NilConstraint) SetUp() error {
+	return nil
+}
+
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
 func (c NilConstraint) When(condition bool) NilConstraint {
 	c.isIgnored = !condition
 	return c
 }
 
+// Message sets the violation message template.
 func (c NilConstraint) Message(message string) NilConstraint {
 	c.messageTemplate = message
 	return c
 }
 
-func (c NilConstraint) SetUp() error {
-	return nil
-}
-
-func (c NilConstraint) Name() string {
-	return "NilConstraint"
-}
-
 func (c NilConstraint) ValidateNil(scope validation.Scope) error {
-	if c.isIgnored {
-		return nil
-	}
-
-	return c.newViolation(scope)
+	return nil
 }
 
 func (c NilConstraint) ValidateNumber(value generic.Number, scope validation.Scope) error {
@@ -495,11 +496,7 @@ func (c BoolConstraint) Message(message string) BoolConstraint {
 }
 
 func (c BoolConstraint) ValidateBool(value *bool, scope validation.Scope) error {
-	if c.isIgnored || value == nil {
-		return nil
-	}
-
-	if (c.value && *value) || (!c.value && !*value) {
+	if c.isIgnored || value == nil || c.value == *value {
 		return nil
 	}
 
