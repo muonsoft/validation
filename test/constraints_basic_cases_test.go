@@ -178,13 +178,13 @@ var isBlankConstraintTestCases = []ConstraintValidationTestCase{
 
 var isNotNilConstraintTestCases = []ConstraintValidationTestCase{
 	{
-		name:            "isNotNil violation on nil",
+		name:            "IsNotNil violation on nil",
 		isApplicableFor: specificValueTypes(intType, floatType, stringType, timeType, iterableType),
 		options:         []validation.Option{it.IsNotNil()},
 		assert:          assertHasOneViolation(code.NotNil, message.NotNil, ""),
 	},
 	{
-		name:            "isNotNil passes on empty value",
+		name:            "IsNotNil passes on empty value",
 		isApplicableFor: specificValueTypes(intType, floatType, stringType, timeType, iterableType),
 		intValue:        intValue(0),
 		floatValue:      floatValue(0),
@@ -196,7 +196,7 @@ var isNotNilConstraintTestCases = []ConstraintValidationTestCase{
 		assert:          assertNoError,
 	},
 	{
-		name:            "isNotNil passes on empty value when condition is true",
+		name:            "IsNotNil passes on empty value when condition is true",
 		isApplicableFor: specificValueTypes(intType, floatType, stringType, timeType, iterableType),
 		intValue:        intValue(0),
 		floatValue:      floatValue(0),
@@ -208,7 +208,7 @@ var isNotNilConstraintTestCases = []ConstraintValidationTestCase{
 		assert:          assertNoError,
 	},
 	{
-		name:            "isNotNil violation on nil with custom path",
+		name:            "IsNotNil violation on nil with custom path",
 		isApplicableFor: specificValueTypes(intType, floatType, stringType, timeType, iterableType),
 		options: []validation.Option{
 			validation.PropertyName("properties"),
@@ -219,13 +219,13 @@ var isNotNilConstraintTestCases = []ConstraintValidationTestCase{
 		assert: assertHasOneViolation(code.NotNil, message.NotNil, customPath),
 	},
 	{
-		name:            "isNotNil violation on nil with custom message",
+		name:            "IsNotNil violation on nil with custom message",
 		isApplicableFor: specificValueTypes(intType, floatType, stringType, timeType, iterableType),
 		options:         []validation.Option{it.IsNotNil().Message(customMessage)},
 		assert:          assertHasOneViolation(code.NotNil, customMessage, ""),
 	},
 	{
-		name:            "isNotNil passes on value",
+		name:            "IsNotNil passes on value",
 		isApplicableFor: specificValueTypes(intType, floatType, stringType, timeType, iterableType),
 		intValue:        intValue(1),
 		floatValue:      floatValue(0.1),
@@ -237,9 +237,160 @@ var isNotNilConstraintTestCases = []ConstraintValidationTestCase{
 		assert:          assertNoError,
 	},
 	{
-		name:            "isNotNil passes on nil when condition is false",
+		name:            "IsNotNil passes on nil when condition is false",
 		isApplicableFor: specificValueTypes(intType, floatType, stringType, timeType, iterableType),
 		options:         []validation.Option{it.IsNotNil().When(false)},
+		assert:          assertNoError,
+	},
+}
+
+var isNilConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsNil passes on nil",
+		isApplicableFor: specificValueTypes(intType, floatType, stringType, timeType, iterableType),
+		options:         []validation.Option{it.IsNil()},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNil violation on empty value",
+		isApplicableFor: specificValueTypes(intType, floatType, stringType, timeType, iterableType),
+		intValue:        intValue(0),
+		floatValue:      floatValue(0),
+		stringValue:     stringValue(""),
+		timeValue:       &time.Time{},
+		sliceValue:      []string{},
+		mapValue:        map[string]string{},
+		options:         []validation.Option{it.IsNil()},
+		assert:          assertHasOneViolation(code.Nil, message.Nil, ""),
+	},
+	{
+		name:            "IsNil passes on nil when condition is true",
+		isApplicableFor: specificValueTypes(intType, floatType, stringType, timeType, iterableType),
+		options:         []validation.Option{it.IsNil().When(true)},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNil violation on empty value with custom message",
+		isApplicableFor: specificValueTypes(intType, floatType, stringType, timeType, iterableType),
+		intValue:        intValue(0),
+		floatValue:      floatValue(0),
+		stringValue:     stringValue(""),
+		timeValue:       &time.Time{},
+		sliceValue:      []string{},
+		mapValue:        map[string]string{},
+		options:         []validation.Option{it.IsNil().Message(customMessage)},
+		assert:          assertHasOneViolation(code.Nil, customMessage, ""),
+	},
+	{
+		name:            "IsNil violation on value",
+		isApplicableFor: specificValueTypes(intType, floatType, stringType, timeType, iterableType),
+		intValue:        intValue(1),
+		floatValue:      floatValue(0.1),
+		stringValue:     stringValue("a"),
+		timeValue:       timeValue(time.Now()),
+		sliceValue:      []string{},
+		mapValue:        map[string]string{},
+		options:         []validation.Option{it.IsNil()},
+		assert:          assertHasOneViolation(code.Nil, message.Nil, ""),
+	},
+	{
+		name:            "IsNil passes on empty value when condition is false",
+		isApplicableFor: specificValueTypes(intType, floatType, stringType, timeType, iterableType),
+		intValue:        intValue(0),
+		floatValue:      floatValue(0),
+		stringValue:     stringValue(""),
+		timeValue:       &time.Time{},
+		sliceValue:      []string{},
+		mapValue:        map[string]string{},
+		options:         []validation.Option{it.IsNil().When(false)},
+		assert:          assertNoError,
+	},
+}
+
+var isTrueConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsTrue passes on nil",
+		isApplicableFor: specificValueTypes(boolType),
+		options:         []validation.Option{it.IsTrue()},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsTrue violation on empty value",
+		isApplicableFor: specificValueTypes(boolType),
+		boolValue:       boolValue(false),
+		options:         []validation.Option{it.IsTrue()},
+		assert:          assertHasOneViolation(code.True, message.True, ""),
+	},
+	{
+		name:            "IsTrue violation on empty value when condition is true",
+		isApplicableFor: specificValueTypes(boolType),
+		boolValue:       boolValue(false),
+		options:         []validation.Option{it.IsTrue().When(true)},
+		assert:          assertHasOneViolation(code.True, message.True, ""),
+	},
+	{
+		name:            "IsTrue violation on empty value with custom message",
+		isApplicableFor: specificValueTypes(boolType),
+		boolValue:       boolValue(false),
+		options:         []validation.Option{it.IsTrue().Message(customMessage)},
+		assert:          assertHasOneViolation(code.True, customMessage, ""),
+	},
+	{
+		name:            "IsTrue passes on value",
+		isApplicableFor: specificValueTypes(boolType),
+		boolValue:       boolValue(true),
+		options:         []validation.Option{it.IsTrue()},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsTrue passes on empty value when condition is false",
+		isApplicableFor: specificValueTypes(boolType),
+		boolValue:       boolValue(false),
+		options:         []validation.Option{it.IsTrue().When(false)},
+		assert:          assertNoError,
+	},
+}
+
+var isFalseConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsFalse passes on nil",
+		isApplicableFor: specificValueTypes(boolType),
+		options:         []validation.Option{it.IsFalse()},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsFalse passes on empty value",
+		isApplicableFor: specificValueTypes(boolType),
+		boolValue:       boolValue(false),
+		options:         []validation.Option{it.IsFalse()},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsFalse violation on error value when condition is true",
+		isApplicableFor: specificValueTypes(boolType),
+		boolValue:       boolValue(true),
+		options:         []validation.Option{it.IsFalse().When(true)},
+		assert:          assertHasOneViolation(code.False, message.False, ""),
+	},
+	{
+		name:            "IsFalse violation on error value with custom message",
+		isApplicableFor: specificValueTypes(boolType),
+		boolValue:       boolValue(true),
+		options:         []validation.Option{it.IsFalse().Message(customMessage)},
+		assert:          assertHasOneViolation(code.False, customMessage, ""),
+	},
+	{
+		name:            "IsFalse passes on value",
+		isApplicableFor: specificValueTypes(boolType),
+		boolValue:       boolValue(false),
+		options:         []validation.Option{it.IsFalse()},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsFalse passes on error value when condition is false",
+		isApplicableFor: specificValueTypes(boolType),
+		boolValue:       boolValue(true),
+		options:         []validation.Option{it.IsFalse().When(false)},
 		assert:          assertNoError,
 	},
 }

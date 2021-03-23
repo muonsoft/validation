@@ -48,6 +48,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 			plural.Few, "Эта коллекция должна содержать {{ limit }} элемента или меньше.",
 			plural.Other, "Эта коллекция должна содержать {{ limit }} элементов или меньше."),
 		message.Equal: catalog.String("Значение должно быть равно {{ comparedValue }}."),
+		message.False: catalog.String("Значение должно быть ложным."),
 		message.LengthExact: plural.Selectf(1, "",
 			plural.One, "Значение должно быть равно {{ limit }} символу.",
 			plural.Few, "Значение должно быть равно {{ limit }} символам.",
@@ -60,6 +61,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 			plural.One, "Значение слишком длинное. Должно быть равно {{ limit }} символу или меньше.",
 			plural.Few, "Значение слишком длинное. Должно быть равно {{ limit }} символам или меньше.",
 			plural.Other, "Значение слишком длинное. Должно быть равно {{ limit }} символам или меньше."),
+		message.Nil:               catalog.String("Значение должно быть nil."),
 		message.NoSuchChoice:      catalog.String("Выбранное Вами значение недопустимо."),
 		message.NotBlank:          catalog.String("Значение не должно быть пустым."),
 		message.NotEqual:          catalog.String("Значение не должно быть равно {{ comparedValue }}."),
@@ -73,5 +75,6 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.TooHighOrEqual:    catalog.String("Значение должно быть меньше или равно {{ comparedValue }}."),
 		message.TooLow:            catalog.String("Значение должно быть больше чем {{ comparedValue }}."),
 		message.TooLowOrEqual:     catalog.String("Значение должно быть больше или равно {{ comparedValue }}."),
+		message.True:              catalog.String("Значение должно быть истинным."),
 	},
 }
