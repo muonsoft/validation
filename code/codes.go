@@ -13,10 +13,12 @@ const (
 	CountTooFew       = "countTooFew"
 	CountTooMany      = "countTooMany"
 	Equal             = "equal"
+	False             = "false"
 	LengthExact       = "lengthExact"
 	LengthTooFew      = "lengthTooFew"
 	LengthTooMany     = "lengthTooMany"
 	MatchingFailed    = "matchingFailed"
+	Nil               = "nil"
 	NoSuchChoice      = "noSuchChoice"
 	NotBlank          = "notBlank"
 	NotEqual          = "notEqual"
@@ -29,4 +31,5 @@ const (
 	TooHighOrEqual    = "tooHighOrEqual"
 	TooLow            = "tooLow"
 	TooLowOrEqual     = "tooLowOrEqual"
+	True              = "true"
 )

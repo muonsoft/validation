@@ -13,12 +13,13 @@ type InapplicableConstraintError struct {
 	ValueType  string
 }
 
-func (err *InapplicableConstraintError) Error() string {
+func (err InapplicableConstraintError) Error() string {
 	return fmt.Sprintf("%s cannot be applied to %s", err.Constraint.Name(), err.ValueType)
 }
 
-func newInapplicableConstraintError(constraint Constraint, valueType string) *InapplicableConstraintError {
-	return &InapplicableConstraintError{
+// NewInapplicableConstraintError helps to create a error on trying to use constraint on not applicable values.
+func NewInapplicableConstraintError(constraint Constraint, valueType string) InapplicableConstraintError {
+	return InapplicableConstraintError{
 		Constraint: constraint,
 		ValueType:  valueType,
 	}
@@ -30,7 +31,7 @@ type NotValidatableError struct {
 	Value reflect.Value
 }
 
-func (err *NotValidatableError) Error() string {
+func (err NotValidatableError) Error() string {
 	return fmt.Sprintf("value of type %v is not validatable", err.Value.Kind())
 }
 

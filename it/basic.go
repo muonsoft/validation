@@ -344,3 +344,165 @@ func (c NotNilConstraint) ValidateIterable(value generic.Iterable, scope validat
 func (c NotNilConstraint) newViolation(scope validation.Scope) validation.Violation {
 	return scope.BuildViolation(code.NotNil, c.messageTemplate).CreateViolation()
 }
+
+// NilConstraint checks that a value in strictly equal to nil. To check that values in blank use
+// BlankConstraint.
+type NilConstraint struct {
+	messageTemplate string
+	isIgnored       bool
+}
+
+// IsNil creates a NilConstraint to check that a value is strictly equal to nil.
+//
+// Example
+//  var s *string
+//  err := validator.ValidateString(s, it.IsNil())
+func IsNil() NilConstraint {
+	return NilConstraint{
+		messageTemplate: message.Nil,
+	}
+}
+
+// Name is the constraint name.
+func (c NilConstraint) Name() string {
+	return "NilConstraint"
+}
+
+// SetUp always returns no error.
+func (c NilConstraint) SetUp() error {
+	return nil
+}
+
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
+func (c NilConstraint) When(condition bool) NilConstraint {
+	c.isIgnored = !condition
+	return c
+}
+
+// Message sets the violation message template.
+func (c NilConstraint) Message(message string) NilConstraint {
+	c.messageTemplate = message
+	return c
+}
+
+func (c NilConstraint) ValidateNil(scope validation.Scope) error {
+	return nil
+}
+
+func (c NilConstraint) ValidateNumber(value generic.Number, scope validation.Scope) error {
+	if c.isIgnored {
+		return nil
+	}
+	if value.IsNil() {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
+func (c NilConstraint) ValidateString(value *string, scope validation.Scope) error {
+	if c.isIgnored {
+		return nil
+	}
+	if value == nil {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
+func (c NilConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
+	if c.isIgnored {
+		return nil
+	}
+	if value == nil {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
+func (c NilConstraint) ValidateIterable(value generic.Iterable, scope validation.Scope) error {
+	if c.isIgnored {
+		return nil
+	}
+	if value.IsNil() {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
+func (c NilConstraint) newViolation(scope validation.Scope) validation.Violation {
+	return scope.BuildViolation(code.Nil, c.messageTemplate).CreateViolation()
+}
+
+// BoolConstraint checks that a bool value in strictly equal to expected bool value.
+type BoolConstraint struct {
+	isIgnored       bool
+	value           bool
+	messageTemplate string
+	code            string
+}
+
+// IsTrue creates a BoolConstraint to check that a value is not strictly equal to true.
+//
+// Example
+//  var b *bool
+//  err := validator.ValidateBool(b, it.IsTrue())
+func IsTrue() BoolConstraint {
+	return BoolConstraint{
+		value:           true,
+		messageTemplate: message.True,
+		code:            code.True,
+	}
+}
+
+// IsFalse creates a BoolConstraint to check that a value is not strictly equal to false.
+//
+// Example
+//  var b *bool
+//  err := validator.ValidateBool(b, it.IsFalse())
+func IsFalse() BoolConstraint {
+	return BoolConstraint{
+		value:           false,
+		messageTemplate: message.False,
+		code:            code.False,
+	}
+}
+
+// Name is the constraint name.
+func (c BoolConstraint) Name() string {
+	return "BoolConstraint"
+}
+
+// SetUp always returns no error.
+func (c BoolConstraint) SetUp() error {
+	return nil
+}
+
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
+func (c BoolConstraint) When(condition bool) BoolConstraint {
+	c.isIgnored = !condition
+	return c
+}
+
+// Message sets the violation message template.
+func (c BoolConstraint) Message(message string) BoolConstraint {
+	c.messageTemplate = message
+	return c
+}
+
+func (c BoolConstraint) ValidateBool(value *bool, scope validation.Scope) error {
+	if c.isIgnored || value == nil || c.value == *value {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
+func (c BoolConstraint) newViolation(scope validation.Scope) validation.Violation {
+	return scope.BuildViolation(c.code, c.messageTemplate).CreateViolation()
+}

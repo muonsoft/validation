@@ -45,6 +45,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 			plural.One, "This collection should contain {{ limit }} element or less.",
 			plural.Other, "This collection should contain {{ limit }} elements or less."),
 		message.Equal: catalog.String(message.Equal),
+		message.False: catalog.String(message.False),
 		message.LengthExact: plural.Selectf(1, "",
 			plural.One, "This value should have exactly {{ limit }} character.",
 			plural.Other, "This value should have exactly {{ limit }} characters."),
@@ -54,6 +55,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.LengthTooMany: plural.Selectf(1, "",
 			plural.One, "This value is too long. It should have {{ limit }} character or less.",
 			plural.Other, "This value is too long. It should have {{ limit }} characters or less."),
+		message.Nil:               catalog.String(message.Nil),
 		message.NoSuchChoice:      catalog.String(message.NoSuchChoice),
 		message.NotBlank:          catalog.String(message.NotBlank),
 		message.NotEqual:          catalog.String(message.NotEqual),
@@ -67,5 +69,6 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.TooHighOrEqual:    catalog.String(message.TooHighOrEqual),
 		message.TooLow:            catalog.String(message.TooLow),
 		message.TooLowOrEqual:     catalog.String(message.TooLowOrEqual),
+		message.True:              catalog.String(message.True),
 	},
 }
