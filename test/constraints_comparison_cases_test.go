@@ -25,6 +25,11 @@ var numberConstraintTestCases = mergeTestCases(
 	isNegativeOrZeroTestCases,
 )
 
+var stringConstraintTestCases = mergeTestCases(
+	isEqualToStringTestCases,
+	isNotEqualToStringTestCases,
+)
+
 var isEqualToIntegerTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsEqualToInteger passes on nil",
@@ -550,5 +555,74 @@ var isNegativeOrZeroTestCases = []ConstraintValidationTestCase{
 		floatValue:      floatValue(1),
 		options:         []validation.Option{it.IsNegativeOrZero()},
 		assert:          assertHasOneViolation(code.NotNegativeOrZero, "This value should be either negative or zero.", ""),
+	},
+}
+
+var isEqualToStringTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsEqualToString passes on nil",
+		isApplicableFor: specificValueTypes(stringType),
+		options:         []validation.Option{it.IsEqualToString("expected")},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsEqualToString violation on not equal value",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("actual"),
+		options:         []validation.Option{it.IsEqualToString("expected")},
+		assert:          assertHasOneViolation(code.Equal, `This value should be equal to "expected".`, ""),
+	},
+	{
+		name:            "IsEqualToString passes on equal value",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("expected"),
+		options:         []validation.Option{it.IsEqualToString("expected")},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsEqualToString violation with custom message",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("actual"),
+		options: []validation.Option{
+			it.IsEqualToString("expected").Message(`Unexpected value {{ value }}, expected value is {{ comparedValue }}.`),
+		},
+		assert: assertHasOneViolation(code.Equal, `Unexpected value "actual", expected value is "expected".`, ""),
+	},
+	{
+		name:            "IsEqualToString passes when condition is false",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("actual"),
+		options:         []validation.Option{it.IsEqualToString("expected").When(false)},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsEqualToString violation when condition is tue",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("actual"),
+		options:         []validation.Option{it.IsEqualToString("expected").When(true)},
+		assert:          assertHasOneViolation(code.Equal, `This value should be equal to "expected".`, ""),
+	},
+}
+
+var isNotEqualToStringTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsNotEqualToString passes on nil",
+		isApplicableFor: specificValueTypes(stringType),
+		options:         []validation.Option{it.IsNotEqualToString("expected")},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNotEqualToString passes on not equal value",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("actual"),
+		options:         []validation.Option{it.IsNotEqualToString("expected")},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNotEqualToString violation on equal value",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("expected"),
+		options:         []validation.Option{it.IsNotEqualToString("expected")},
+		assert:          assertHasOneViolation(code.NotEqual, `This value should not be equal to "expected".`, ""),
 	},
 }

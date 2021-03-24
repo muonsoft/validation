@@ -51,6 +51,7 @@ var validateTestCases = mergeTestCases(
 	countConstraintTestCases,
 	choiceConstraintTestCases,
 	numberConstraintTestCases,
+	stringConstraintTestCases,
 )
 
 func TestValidateBool(t *testing.T) {
