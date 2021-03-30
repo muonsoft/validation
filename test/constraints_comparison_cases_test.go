@@ -1,12 +1,14 @@
 package test
 
 import (
+	"time"
+
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 )
 
-var numberConstraintTestCases = mergeTestCases(
+var numberComparisonTestCases = mergeTestCases(
 	isEqualToIntegerTestCases,
 	isEqualToFloatTestCases,
 	isNotEqualToIntegerTestCases,
@@ -25,9 +27,16 @@ var numberConstraintTestCases = mergeTestCases(
 	isNegativeOrZeroTestCases,
 )
 
-var stringConstraintTestCases = mergeTestCases(
+var stringComparisonTestCases = mergeTestCases(
 	isEqualToStringTestCases,
 	isNotEqualToStringTestCases,
+)
+
+var timeComparisonTestCases = mergeTestCases(
+	isEarlierThanTestCases,
+	isEarlierThanOrEqualTestCases,
+	isLaterThanTestCases,
+	isLaterThanOrEqualTestCases,
 )
 
 var isEqualToIntegerTestCases = []ConstraintValidationTestCase{
@@ -624,5 +633,172 @@ var isNotEqualToStringTestCases = []ConstraintValidationTestCase{
 		stringValue:     stringValue("expected"),
 		options:         []validation.Option{it.IsNotEqualToString("expected")},
 		assert:          assertHasOneViolation(code.NotEqual, `This value should not be equal to "expected".`, ""),
+	},
+}
+
+var isEarlierThanTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsEarlierThan passes on nil",
+		isApplicableFor: specificValueTypes(timeType),
+		options:         []validation.Option{it.IsEarlierThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC))},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsEarlierThan violation on greater value",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 40, 0, 0, time.UTC)),
+		options:         []validation.Option{it.IsEarlierThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC))},
+		assert:          assertHasOneViolation(code.TooLate, "This value should be earlier than 2021-03-29T12:30:00Z.", ""),
+	},
+	{
+		name:            "IsEarlierThan violation on equal value",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		options:         []validation.Option{it.IsEarlierThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC))},
+		assert:          assertHasOneViolation(code.TooLate, "This value should be earlier than 2021-03-29T12:30:00Z.", ""),
+	},
+	{
+		name:            "IsEarlierThan passes on less value",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 29, 29, 0, time.UTC)),
+		options:         []validation.Option{it.IsEarlierThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC))},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsEarlierThan violation with custom message",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 40, 0, 0, time.UTC)),
+		options: []validation.Option{
+			it.IsEarlierThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)).
+				Message(`Unexpected value "{{ value }}", expected value must be earlier than "{{ comparedValue }}".`),
+		},
+		assert: assertHasOneViolation(
+			code.TooLate,
+			`Unexpected value "2021-03-29T12:40:00Z", expected value must be earlier than "2021-03-29T12:30:00Z".`,
+			"",
+		),
+	},
+	{
+		name:            "IsEarlierThan violation with custom message and time layout",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 40, 0, 0, time.UTC)),
+		options: []validation.Option{
+			it.IsEarlierThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)).
+				Message(`Unexpected value "{{ value }}", expected value must be earlier than "{{ comparedValue }}".`).
+				Layout(time.RFC822),
+		},
+		assert: assertHasOneViolation(
+			code.TooLate,
+			`Unexpected value "29 Mar 21 12:40 UTC", expected value must be earlier than "29 Mar 21 12:30 UTC".`,
+			"",
+		),
+	},
+	{
+		name:            "IsEarlierThan passes when condition is false",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 40, 0, 0, time.UTC)),
+		options: []validation.Option{
+			it.IsEarlierThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)).When(false),
+		},
+		assert: assertNoError,
+	},
+	{
+		name:            "IsEarlierThan violation when condition is true",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 40, 0, 0, time.UTC)),
+		options: []validation.Option{
+			it.IsEarlierThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)).When(true),
+		},
+		assert: assertHasOneViolation(code.TooLate, "This value should be earlier than 2021-03-29T12:30:00Z.", ""),
+	},
+}
+
+var isEarlierThanOrEqualTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsEarlierThanOrEqual passes on nil",
+		isApplicableFor: specificValueTypes(timeType),
+		options:         []validation.Option{it.IsEarlierThanOrEqual(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC))},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsEarlierThanOrEqual violation on greater value",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 40, 0, 0, time.UTC)),
+		options:         []validation.Option{it.IsEarlierThanOrEqual(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC))},
+		assert:          assertHasOneViolation(code.TooLateOrEqual, "This value should be earlier than or equal to 2021-03-29T12:30:00Z.", ""),
+	},
+	{
+		name:            "IsEarlierThanOrEqual passes on equal value",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		options:         []validation.Option{it.IsEarlierThanOrEqual(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC))},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsEarlierThanOrEqual passes on less value",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 29, 29, 0, time.UTC)),
+		options:         []validation.Option{it.IsEarlierThanOrEqual(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC))},
+		assert:          assertNoError,
+	},
+}
+
+var isLaterThanTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsLaterThan passes on nil",
+		isApplicableFor: specificValueTypes(timeType),
+		options:         []validation.Option{it.IsLaterThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC))},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsLaterThan passes on greater value",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 40, 0, 0, time.UTC)),
+		options:         []validation.Option{it.IsLaterThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC))},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsLaterThan violation on equal value",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		options:         []validation.Option{it.IsLaterThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC))},
+		assert:          assertHasOneViolation(code.TooEarly, "This value should be later than 2021-03-29T12:30:00Z.", ""),
+	},
+	{
+		name:            "IsLaterThan violation on less value",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 29, 29, 0, time.UTC)),
+		options:         []validation.Option{it.IsLaterThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC))},
+		assert:          assertHasOneViolation(code.TooEarly, "This value should be later than 2021-03-29T12:30:00Z.", ""),
+	},
+}
+
+var isLaterThanOrEqualTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsLaterThanOrEqual passes on nil",
+		isApplicableFor: specificValueTypes(timeType),
+		options:         []validation.Option{it.IsLaterThanOrEqual(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC))},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsLaterThanOrEqual passes on greater value",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 40, 0, 0, time.UTC)),
+		options:         []validation.Option{it.IsLaterThanOrEqual(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC))},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsLaterThanOrEqual passes on equal value",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		options:         []validation.Option{it.IsLaterThanOrEqual(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC))},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsLaterThanOrEqual violation on less value",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 29, 29, 0, time.UTC)),
+		options:         []validation.Option{it.IsLaterThanOrEqual(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC))},
+		assert:          assertHasOneViolation(code.TooEarlyOrEqual, "This value should be later than or equal to 2021-03-29T12:30:00Z.", ""),
 	},
 }
