@@ -2,6 +2,7 @@ package it
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
@@ -349,8 +350,8 @@ func (c NumberComparisonConstraint) Name() string {
 // Message sets the violation message template. You can use template parameters
 // for injecting its values into the final message:
 //
-//	{{ comparedValue }} - the expected value;
-//	{{ value }} - the current (invalid) value.
+//  {{ comparedValue }} - the expected value;
+//  {{ value }} - the current (invalid) value.
 func (c NumberComparisonConstraint) Message(message string) NumberComparisonConstraint {
 	c.messageTemplate = message
 	return c
@@ -430,8 +431,8 @@ func (c StringComparisonConstraint) Name() string {
 // Message sets the violation message template. You can use template parameters
 // for injecting its values into the final message:
 //
-//	{{ comparedValue }} - the expected value;
-//	{{ value }} - the current (invalid) value.
+//  {{ comparedValue }} - the expected value;
+//  {{ value }} - the current (invalid) value.
 //
 // All string values are quoted strings.
 func (c StringComparisonConstraint) Message(message string) StringComparisonConstraint {
@@ -455,6 +456,133 @@ func (c StringComparisonConstraint) ValidateString(value *string, scope validati
 		SetParameters([]validation.TemplateParameter{
 			{Key: "{{ comparedValue }}", Value: strconv.Quote(c.comparedValue)},
 			{Key: "{{ value }}", Value: strconv.Quote(*value)},
+		}).
+		CreateViolation()
+}
+
+// TimeComparisonConstraint is used to compare time values.
+type TimeComparisonConstraint struct {
+	isIgnored       bool
+	code            string
+	messageTemplate string
+	comparedValue   time.Time
+	layout          string
+	isValid         func(value time.Time) bool
+}
+
+// IsEarlierThan checks that the given time is earlier than the specified value.
+//
+// Example
+//  t := time.Now()
+//  err := validator.ValidateTime(&t, it.IsEarlierThan(time.Now().Add(time.Hour)))
+func IsEarlierThan(value time.Time) TimeComparisonConstraint {
+	return TimeComparisonConstraint{
+		code:            code.TooLate,
+		messageTemplate: message.TooLate,
+		comparedValue:   value,
+		layout:          time.RFC3339,
+		isValid: func(actualValue time.Time) bool {
+			return actualValue.Before(value)
+		},
+	}
+}
+
+// IsEarlierThanOrEqual checks that the given time is earlier or equal to the specified value.
+//
+// Example
+//  t := time.Now()
+//  err := validator.ValidateTime(&t, it.IsEarlierThanOrEqual(time.Now().Add(time.Hour)))
+func IsEarlierThanOrEqual(value time.Time) TimeComparisonConstraint {
+	return TimeComparisonConstraint{
+		code:            code.TooLateOrEqual,
+		messageTemplate: message.TooLateOrEqual,
+		comparedValue:   value,
+		layout:          time.RFC3339,
+		isValid: func(actualValue time.Time) bool {
+			return actualValue.Before(value) || actualValue == value
+		},
+	}
+}
+
+// IsLaterThan checks that the given time is later than the specified value.
+//
+// Example
+//  t := time.Now()
+//  err := validator.ValidateTime(&t, it.IsLaterThan(time.Now().Sub(time.Hour)))
+func IsLaterThan(value time.Time) TimeComparisonConstraint {
+	return TimeComparisonConstraint{
+		code:            code.TooEarly,
+		messageTemplate: message.TooEarly,
+		comparedValue:   value,
+		layout:          time.RFC3339,
+		isValid: func(actualValue time.Time) bool {
+			return actualValue.After(value)
+		},
+	}
+}
+
+// IsLaterThanOrEqual checks that the given time is later or equal to the specified value.
+//
+// Example
+//  t := time.Now()
+//  err := validator.ValidateTime(&t, it.IsLaterThanOrEqual(time.Now().Sub(time.Hour)))
+func IsLaterThanOrEqual(value time.Time) TimeComparisonConstraint {
+	return TimeComparisonConstraint{
+		code:            code.TooEarlyOrEqual,
+		messageTemplate: message.TooEarlyOrEqual,
+		comparedValue:   value,
+		layout:          time.RFC3339,
+		isValid: func(actualValue time.Time) bool {
+			return actualValue.After(value) || actualValue == value
+		},
+	}
+}
+
+// SetUp always returns no error.
+func (c TimeComparisonConstraint) SetUp() error {
+	return nil
+}
+
+// Name is the constraint name.
+func (c TimeComparisonConstraint) Name() string {
+	return "TimeComparisonConstraint"
+}
+
+// Message sets the violation message template. You can use template parameters
+// for injecting its values into the final message:
+//
+//  {{ comparedValue }} - the expected value;
+//  {{ value }} - the current (invalid) value.
+//
+// All values are formatted by the layout that can be defined by the Layout method.
+// Default layout is time.RFC3339.
+func (c TimeComparisonConstraint) Message(message string) TimeComparisonConstraint {
+	c.messageTemplate = message
+	return c
+}
+
+// Layout can be used to set the layout that is used to format time values.
+func (c TimeComparisonConstraint) Layout(layout string) TimeComparisonConstraint {
+	c.layout = layout
+	return c
+}
+
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
+func (c TimeComparisonConstraint) When(condition bool) TimeComparisonConstraint {
+	c.isIgnored = !condition
+	return c
+}
+
+func (c TimeComparisonConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
+	if c.isIgnored || value == nil || c.isValid(*value) {
+		return nil
+	}
+
+	return scope.BuildViolation(c.code, c.messageTemplate).
+		SetParameters([]validation.TemplateParameter{
+			{Key: "{{ comparedValue }}", Value: c.comparedValue.Format(c.layout)},
+			{Key: "{{ value }}", Value: value.Format(c.layout)},
 		}).
 		CreateViolation()
 }
