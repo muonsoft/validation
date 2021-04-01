@@ -735,6 +735,13 @@ var isEarlierThanOrEqualTestCases = []ConstraintValidationTestCase{
 		assert:          assertNoError,
 	},
 	{
+		name:            "IsEarlierThanOrEqual passes on equal value with different time zone",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		options:         []validation.Option{it.IsEarlierThanOrEqual(time.Date(2021, 03, 29, 8, 30, 0, 0, givenLocation("America/New_York")))},
+		assert:          assertNoError,
+	},
+	{
 		name:            "IsEarlierThanOrEqual passes on less value",
 		isApplicableFor: specificValueTypes(timeType),
 		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 29, 29, 0, time.UTC)),
@@ -795,10 +802,22 @@ var isLaterThanOrEqualTestCases = []ConstraintValidationTestCase{
 		assert:          assertNoError,
 	},
 	{
+		name:            "IsLaterThanOrEqual passes on equal value with different time zone",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		options:         []validation.Option{it.IsLaterThanOrEqual(time.Date(2021, 03, 29, 8, 30, 0, 0, givenLocation("America/New_York")))},
+		assert:          assertNoError,
+	},
+	{
 		name:            "IsLaterThanOrEqual violation on less value",
 		isApplicableFor: specificValueTypes(timeType),
 		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 29, 29, 0, time.UTC)),
 		options:         []validation.Option{it.IsLaterThanOrEqual(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC))},
 		assert:          assertHasOneViolation(code.TooEarlyOrEqual, "This value should be later than or equal to 2021-03-29T12:30:00Z.", ""),
 	},
+}
+
+func givenLocation(name string) *time.Location {
+	loc, _ := time.LoadLocation(name)
+	return loc
 }

@@ -499,7 +499,7 @@ func IsEarlierThanOrEqual(value time.Time) TimeComparisonConstraint {
 		comparedValue:   value,
 		layout:          time.RFC3339,
 		isValid: func(actualValue time.Time) bool {
-			return actualValue.Before(value) || actualValue == value
+			return actualValue.Before(value) || actualValue.Equal(value)
 		},
 	}
 }
@@ -533,7 +533,7 @@ func IsLaterThanOrEqual(value time.Time) TimeComparisonConstraint {
 		comparedValue:   value,
 		layout:          time.RFC3339,
 		isValid: func(actualValue time.Time) bool {
-			return actualValue.After(value) || actualValue == value
+			return actualValue.After(value) || actualValue.Equal(value)
 		},
 	}
 }
