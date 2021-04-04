@@ -131,3 +131,32 @@ func AtIndex(index int) *validation.Validator {
 func BuildViolation(code, message string) *validation.ViolationBuilder {
 	return validator.BuildViolation(code, message)
 }
+
+// StoreConstraint can be used to store a constraint in an internal validator store.
+// It can later be used by the ValidateBy method. This can be useful for passing
+// custom or prepared constraints to Validatable.
+//
+// If the constraint already exists, a ConstraintAlreadyStoredError is returned.
+//
+// Due to the fact that the store is a state element, it is strongly recommended
+// to fill the store during application initialization to avoid unexpected problems.
+//
+// Example
+//	err := validator.StoreConstraint("isTagExists", isTagExistsConstraint)
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	s := "
+//	err = validator.ValidateString(&s, validator.ValidateBy("isTagExists"))
+func StoreConstraint(key string, constraint validation.Constraint) error {
+	return validator.StoreConstraint(key, constraint)
+}
+
+// ValidateBy is used to get the constraint from the internal validator store.
+// If the constraint does not exist, then the validator will
+// return a ConstraintNotFoundError during the validation process.
+// For storing a constraint you should use the StoreConstraint method.
+func ValidateBy(constraintKey string) validation.Constraint {
+	return validator.ValidateBy(constraintKey)
+}

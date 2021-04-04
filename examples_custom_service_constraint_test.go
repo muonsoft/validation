@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/it"
-	"github.com/muonsoft/validation/validator"
 )
 
 type contextKey string
@@ -77,17 +77,43 @@ func (c *ExistingTagConstraint) ValidateString(value *string, scope validation.S
 		CreateViolation()
 }
 
-func ExampleValidator_Validate_customServiceConstraint() {
-	storage := &TagStorage{tags: []string{"camera", "book"}}
-	isTagExists := &ExistingTagConstraint{storage: storage}
+type StockItem struct {
+	Name string
+	Tags []string
+}
 
-	tag := "movie"
+func (s StockItem) Validate(validator *validation.Validator) error {
+	return validator.Validate(
+		validation.StringProperty("name", &s.Name, it.IsNotBlank(), it.HasMaxLength(20)),
+		validation.EachStringProperty("tags", s.Tags, validator.ValidateBy("isTagExists")),
+	)
+}
+
+func ExampleValidator_ValidateBy_customServiceConstraint() {
+	validator, err := validation.NewValidator()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	storage := &TagStorage{tags: []string{"movie", "book"}}
+	isTagExists := &ExistingTagConstraint{storage: storage}
+	// custom constraint can be stored in the validator's internal store
+	// and can be used later by calling the validator.ValidateBy method
+	err = validator.StoreConstraint("isTagExists", isTagExists)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	item := StockItem{
+		Name: "War and peace",
+		Tags: []string{"book", "camera"},
+	}
 	ctx := context.WithValue(context.Background(), exampleKey, "value")
 
-	err := validator.Validate(
+	err = validator.Validate(
 		// you can pass here the context value to the validation scope
 		validation.Context(ctx),
-		validation.String(&tag, it.IsNotBlank(), isTagExists),
+		validation.Valid(item),
 	)
 
 	violations := err.(validation.ViolationList)
@@ -95,5 +121,5 @@ func ExampleValidator_Validate_customServiceConstraint() {
 		fmt.Println(violation.Error())
 	}
 	// Output:
-	// violation: Tag "movie" does not exist.
+	// violation at 'tags[1]': Tag "camera" does not exist.
 }

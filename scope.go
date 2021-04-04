@@ -16,6 +16,7 @@ type Scope struct {
 	language         language.Tag
 	translator       *Translator
 	violationFactory ViolationFactory
+	constraints      map[string]Constraint
 }
 
 // Context returns context value that was passed to the validator by Context argument or
@@ -101,5 +102,6 @@ func newScope() Scope {
 		context:          context.Background(),
 		translator:       translator,
 		violationFactory: newViolationFactory(translator),
+		constraints:      make(map[string]Constraint),
 	}
 }

@@ -470,7 +470,7 @@ Everything you need to create a custom constraint is to implement one of the int
 Also, you can combine several types of constraints. See examples for more details:
 
 * [custom static constraint](https://pkg.go.dev/github.com/muonsoft/validation#example-Validator.Validate-CustomConstraint);
-* [custom constraint as a service](https://pkg.go.dev/github.com/muonsoft/validation#example-Validator.Validate-CustomServiceConstraint).
+* [custom constraint as a service](https://pkg.go.dev/github.com/muonsoft/validation#example-Validator.ValidateBy-CustomServiceConstraint).
 * [custom constraint with custom argument for domain type](https://pkg.go.dev/github.com/muonsoft/validation#example-NewArgument-CustomArgumentConstraintValidator).
 
 ## Contributing

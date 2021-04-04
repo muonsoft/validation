@@ -61,3 +61,15 @@ type TimeConstraint interface {
 	Constraint
 	ValidateTime(value *time.Time, scope Scope) error
 }
+
+type notFoundConstraint struct {
+	key string
+}
+
+func (c notFoundConstraint) SetUp() error {
+	return ConstraintNotFoundError{Key: c.key}
+}
+
+func (c notFoundConstraint) Name() string {
+	return "notFoundConstraint"
+}

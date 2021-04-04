@@ -164,7 +164,7 @@ func (validator *Validator) ValidateValidatable(validatable Validatable, options
 
 // WithContext method creates a new scoped validator with a given context. You can use this method to pass
 // a context value to all used constraints.
-
+//
 // Example
 //  err := validator.WithContext(request.Context()).Validate(
 //      String(&s, it.IsNotBlank()), // now all called constraints will use passed context in their methods
@@ -202,4 +202,43 @@ func (validator *Validator) AtIndex(index int) *Validator {
 //      CreateViolation()
 func (validator *Validator) BuildViolation(code, message string) *ViolationBuilder {
 	return validator.scope.BuildViolation(code, message)
+}
+
+// StoreConstraint can be used to store a constraint in an internal validator store.
+// It can later be used by the ValidateBy method. This can be useful for passing
+// custom or prepared constraints to Validatable.
+//
+// If the constraint already exists, a ConstraintAlreadyStoredError is returned.
+//
+// Due to the fact that the store is a state element, it is strongly recommended
+// to fill the store during application initialization to avoid unexpected problems.
+//
+// Example
+//	err := validator.StoreConstraint("isTagExists", isTagExistsConstraint)
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	s := "
+//	err = validator.ValidateString(&s, validator.ValidateBy("isTagExists"))
+func (validator *Validator) StoreConstraint(key string, constraint Constraint) error {
+	if _, exists := validator.scope.constraints[key]; exists {
+		return ConstraintAlreadyStoredError{Key: key}
+	}
+
+	validator.scope.constraints[key] = constraint
+
+	return nil
+}
+
+// ValidateBy is used to get the constraint from the internal validator store.
+// If the constraint does not exist, then the validator will
+// return a ConstraintNotFoundError during the validation process.
+// For storing a constraint you should use the StoreConstraint method.
+func (validator *Validator) ValidateBy(constraintKey string) Constraint {
+	if constraint, exists := validator.scope.constraints[constraintKey]; exists {
+		return constraint
+	}
+
+	return notFoundConstraint{key: constraintKey}
 }
