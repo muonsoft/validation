@@ -59,6 +59,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.NoSuchChoice:      catalog.String(message.NoSuchChoice),
 		message.NotBlank:          catalog.String(message.NotBlank),
 		message.NotEqual:          catalog.String(message.NotEqual),
+		message.NotInRange:        catalog.String(message.NotInRange),
 		message.NotNegative:       catalog.String(message.NotNegative),
 		message.NotNegativeOrZero: catalog.String(message.NotNegativeOrZero),
 		message.NotNil:            catalog.String(message.NotNil),

@@ -65,6 +65,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.NoSuchChoice:      catalog.String("Выбранное Вами значение недопустимо."),
 		message.NotBlank:          catalog.String("Значение не должно быть пустым."),
 		message.NotEqual:          catalog.String("Значение не должно быть равно {{ comparedValue }}."),
+		message.NotInRange:        catalog.String("Значение должно быть между {{ min }} и {{ max }}."),
 		message.NotNegative:       catalog.String("Значение должно быть отрицательным."),
 		message.NotNegativeOrZero: catalog.String("Значение должно быть отрицательным или равным нулю."),
 		message.NotNil:            catalog.String("Значение не должно быть nil."),

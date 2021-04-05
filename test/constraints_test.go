@@ -53,6 +53,8 @@ var validateTestCases = mergeTestCases(
 	numberComparisonTestCases,
 	stringComparisonTestCases,
 	timeComparisonTestCases,
+	rangeComparisonTestCases,
+	isBetweenTimeTestCases,
 )
 
 func TestValidateBool(t *testing.T) {

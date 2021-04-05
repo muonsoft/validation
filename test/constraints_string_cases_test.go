@@ -103,6 +103,12 @@ var lengthConstraintTestCases = []ConstraintValidationTestCase{
 
 var regexConstraintTestCases = []ConstraintValidationTestCase{
 	{
+		name:            "Matches error on nil regex",
+		isApplicableFor: specificValueTypes(stringType),
+		options:         []validation.Option{it.Matches(nil)},
+		assert:          assertError(`failed to set up constraint "RegexConstraint": nil regex`),
+	},
+	{
 		name:            "Matches passes on nil",
 		isApplicableFor: specificValueTypes(stringType),
 		options:         []validation.Option{it.Matches(regexp.MustCompile("^[a-z]+$"))},

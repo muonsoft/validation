@@ -377,6 +377,99 @@ func (c NumberComparisonConstraint) ValidateNumber(value generic.Number, scope v
 		CreateViolation()
 }
 
+// RangeConstraint is used to check that a given number value is between some minimum and maximum.
+// Values are compared as integers if the compared and specified values are integers.
+// Otherwise, numbers are always compared as floating point numbers.
+type RangeConstraint struct {
+	isIgnored       bool
+	messageTemplate string
+	min             generic.Number
+	max             generic.Number
+}
+
+// IsBetweenIntegers checks that the number (integer or float) is between specified minimum and
+// maximum integer values. Values are compared as integers if the compared and specified
+// values are integers. Otherwise, numbers are always compared as floating point numbers.
+//
+// Example
+//	v := 1
+//	err := validator.ValidateNumber(&v, it.IsBetweenIntegers(10, 20))
+func IsBetweenIntegers(min, max int64) RangeConstraint {
+	return RangeConstraint{
+		min:             generic.NewNumberFromInt(min),
+		max:             generic.NewNumberFromInt(max),
+		messageTemplate: message.NotInRange,
+	}
+}
+
+// IsBetweenFloats checks that the number (integer or float) is between specified minimum and
+// maximum float values. Values are compared as integers if the compared and specified
+// values are integers. Otherwise, numbers are always compared as floating point numbers.
+//
+// Example
+//	v := 1.1
+//	err := validator.ValidateNumber(&v, it.IsBetweenFloats(10.111, 20.222))
+func IsBetweenFloats(min, max float64) RangeConstraint {
+	return RangeConstraint{
+		min:             generic.NewNumberFromFloat(min),
+		max:             generic.NewNumberFromFloat(max),
+		messageTemplate: message.NotInRange,
+	}
+}
+
+// SetUp returns an error if min is greater than or equal to max.
+func (c RangeConstraint) SetUp() error {
+	if c.min.IsGreaterThan(c.max) || c.min.IsEqualTo(c.max) {
+		return errInvalidRange
+	}
+
+	return nil
+}
+
+// Name is the constraint name.
+func (c RangeConstraint) Name() string {
+	return "RangeConstraint"
+}
+
+// Message sets the violation message template. You can use template parameters
+// for injecting its values into the final message:
+//
+//  {{ max }} - the upper limit;
+//  {{ min }} - the lower limit;
+//  {{ value }} - the current (invalid) value.
+func (c RangeConstraint) Message(message string) RangeConstraint {
+	c.messageTemplate = message
+	return c
+}
+
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
+func (c RangeConstraint) When(condition bool) RangeConstraint {
+	c.isIgnored = !condition
+	return c
+}
+
+func (c RangeConstraint) ValidateNumber(value generic.Number, scope validation.Scope) error {
+	if c.isIgnored {
+		return nil
+	}
+	if value.IsLessThan(c.min) || value.IsGreaterThan(c.max) {
+		return c.newViolation(value, scope)
+	}
+
+	return nil
+}
+
+func (c RangeConstraint) newViolation(value generic.Number, scope validation.Scope) error {
+	return scope.BuildViolation(code.NotInRange, c.messageTemplate).
+		SetParameters([]validation.TemplateParameter{
+			{Key: "{{ min }}", Value: c.min.String()},
+			{Key: "{{ max }}", Value: c.max.String()},
+			{Key: "{{ value }}", Value: value.String()},
+		}).
+		CreateViolation()
+}
+
 // StringComparisonConstraint is used to compare strings.
 type StringComparisonConstraint struct {
 	isIgnored       bool
@@ -582,6 +675,91 @@ func (c TimeComparisonConstraint) ValidateTime(value *time.Time, scope validatio
 	return scope.BuildViolation(c.code, c.messageTemplate).
 		SetParameters([]validation.TemplateParameter{
 			{Key: "{{ comparedValue }}", Value: c.comparedValue.Format(c.layout)},
+			{Key: "{{ value }}", Value: value.Format(c.layout)},
+		}).
+		CreateViolation()
+}
+
+// TimeRangeConstraint is used to check that a given time value is between some minimum and maximum.
+type TimeRangeConstraint struct {
+	isIgnored       bool
+	messageTemplate string
+	layout          string
+	min             time.Time
+	max             time.Time
+}
+
+// IsBetweenTime checks that the time is between specified minimum and maximum time values.
+//
+// Example
+//	t := time.Now()
+//	err := validator.ValidateTime(&t, it.IsBetweenTime(time.Now().Add(time.Hour), time.Now().Add(2*time.Hour)))
+func IsBetweenTime(min, max time.Time) TimeRangeConstraint {
+	return TimeRangeConstraint{
+		messageTemplate: message.NotInRange,
+		layout:          time.RFC3339,
+		min:             min,
+		max:             max,
+	}
+}
+
+// SetUp returns an error if min is greater than or equal to max.
+func (c TimeRangeConstraint) SetUp() error {
+	if c.min.After(c.max) || c.min.Equal(c.max) {
+		return errInvalidRange
+	}
+
+	return nil
+}
+
+// Name is the constraint name.
+func (c TimeRangeConstraint) Name() string {
+	return "TimeRangeConstraint"
+}
+
+// Message sets the violation message template. You can use template parameters
+// for injecting its values into the final message:
+//
+//  {{ max }} - the upper limit;
+//  {{ min }} - the lower limit;
+//  {{ value }} - the current (invalid) value.
+//
+// All values are formatted by the layout that can be defined by the Layout method.
+// Default layout is time.RFC3339.
+func (c TimeRangeConstraint) Message(message string) TimeRangeConstraint {
+	c.messageTemplate = message
+	return c
+}
+
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
+func (c TimeRangeConstraint) When(condition bool) TimeRangeConstraint {
+	c.isIgnored = !condition
+	return c
+}
+
+// Layout can be used to set the layout that is used to format time values.
+func (c TimeRangeConstraint) Layout(layout string) TimeRangeConstraint {
+	c.layout = layout
+	return c
+}
+
+func (c TimeRangeConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
+	if c.isIgnored || value == nil {
+		return nil
+	}
+	if value.Before(c.min) || value.After(c.max) {
+		return c.newViolation(value, scope)
+	}
+
+	return nil
+}
+
+func (c TimeRangeConstraint) newViolation(value *time.Time, scope validation.Scope) validation.Violation {
+	return scope.BuildViolation(code.NotInRange, c.messageTemplate).
+		SetParameters([]validation.TemplateParameter{
+			{Key: "{{ min }}", Value: c.min.Format(c.layout)},
+			{Key: "{{ max }}", Value: c.max.Format(c.layout)},
 			{Key: "{{ value }}", Value: value.Format(c.layout)},
 		}).
 		CreateViolation()

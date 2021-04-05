@@ -45,6 +45,11 @@ func timeValue(t time.Time) *time.Time {
 	return &t
 }
 
+func givenLocation(name string) *time.Location {
+	loc, _ := time.LoadLocation(name)
+	return loc
+}
+
 type mockViolation struct {
 	err             string
 	code            string
