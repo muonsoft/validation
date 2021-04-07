@@ -35,4 +35,24 @@ func (err NotValidatableError) Error() string {
 	return fmt.Sprintf("value of type %v is not validatable", err.Value.Kind())
 }
 
+// ConstraintAlreadyStoredError is returned when trying to put a constraint
+// in the validator store using an existing key.
+type ConstraintAlreadyStoredError struct {
+	Key string
+}
+
+func (err ConstraintAlreadyStoredError) Error() string {
+	return fmt.Sprintf(`constraint with key "%s" already stored`, err.Key)
+}
+
+// ConstraintNotFoundError is returned when trying to get a constraint
+// from the validator store using a non-existent key.
+type ConstraintNotFoundError struct {
+	Key string
+}
+
+func (err ConstraintNotFoundError) Error() string {
+	return fmt.Sprintf(`constraint with key "%s" is not stored in the validator`, err.Key)
+}
+
 var errDefaultLanguageNotLoaded = errors.New("default language is not loaded")
