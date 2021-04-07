@@ -27,6 +27,11 @@ var numberComparisonTestCases = mergeTestCases(
 	isNegativeOrZeroTestCases,
 )
 
+var rangeComparisonTestCases = mergeTestCases(
+	isBetweenIntegersTestCases,
+	isBetweenFloatsTestCases,
+)
+
 var stringComparisonTestCases = mergeTestCases(
 	isEqualToStringTestCases,
 	isNotEqualToStringTestCases,
@@ -567,6 +572,125 @@ var isNegativeOrZeroTestCases = []ConstraintValidationTestCase{
 	},
 }
 
+var isBetweenIntegersTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsBetweenIntegers error on equal min and max",
+		isApplicableFor: specificValueTypes(intType, floatType),
+		options:         []validation.Option{it.IsBetweenIntegers(1, 1)},
+		assert:          assertError(`failed to set up constraint "RangeConstraint": invalid range`),
+	},
+	{
+		name:            "IsBetweenIntegers error on min greater than max",
+		isApplicableFor: specificValueTypes(intType, floatType),
+		options:         []validation.Option{it.IsBetweenIntegers(1, 0)},
+		assert:          assertError(`failed to set up constraint "RangeConstraint": invalid range`),
+	},
+	{
+		name:            "IsBetweenIntegers passes on nil",
+		isApplicableFor: specificValueTypes(intType, floatType),
+		options:         []validation.Option{it.IsBetweenIntegers(1, 2)},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsBetweenIntegers violation on value less than min",
+		isApplicableFor: specificValueTypes(intType, floatType),
+		intValue:        intValue(0),
+		floatValue:      floatValue(0),
+		options:         []validation.Option{it.IsBetweenIntegers(1, 2)},
+		assert:          assertHasOneViolation(code.NotInRange, "This value should be between 1 and 2.", ""),
+	},
+	{
+		name:            "IsBetweenIntegers violation on value greater than max",
+		isApplicableFor: specificValueTypes(intType, floatType),
+		intValue:        intValue(3),
+		floatValue:      floatValue(3),
+		options:         []validation.Option{it.IsBetweenIntegers(1, 2)},
+		assert:          assertHasOneViolation(code.NotInRange, "This value should be between 1 and 2.", ""),
+	},
+	{
+		name:            "IsBetweenIntegers passes on value equal to min",
+		isApplicableFor: specificValueTypes(intType, floatType),
+		intValue:        intValue(1),
+		floatValue:      floatValue(1),
+		options:         []validation.Option{it.IsBetweenIntegers(1, 2)},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsBetweenIntegers passes on value equal to max",
+		isApplicableFor: specificValueTypes(intType, floatType),
+		intValue:        intValue(2),
+		floatValue:      floatValue(2),
+		options:         []validation.Option{it.IsBetweenIntegers(1, 2)},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsBetweenIntegers violation with custom message",
+		isApplicableFor: specificValueTypes(intType, floatType),
+		intValue:        intValue(0),
+		floatValue:      floatValue(0),
+		options: []validation.Option{
+			it.IsBetweenIntegers(1, 2).
+				Message(`Unexpected value "{{ value }}", expected value must be between "{{ min }}" and "{{ max }}".`),
+		},
+		assert: assertHasOneViolation(code.NotInRange, `Unexpected value "0", expected value must be between "1" and "2".`, ""),
+	},
+	{
+		name:            "IsBetweenIntegers passes when condition is false",
+		isApplicableFor: specificValueTypes(intType, floatType),
+		intValue:        intValue(0),
+		floatValue:      floatValue(0),
+		options:         []validation.Option{it.IsBetweenIntegers(1, 2).When(false)},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsBetweenIntegers violation when condition is true",
+		isApplicableFor: specificValueTypes(intType, floatType),
+		intValue:        intValue(0),
+		floatValue:      floatValue(0),
+		options:         []validation.Option{it.IsBetweenIntegers(1, 2).When(true)},
+		assert:          assertHasOneViolation(code.NotInRange, "This value should be between 1 and 2.", ""),
+	},
+}
+
+var isBetweenFloatsTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsBetweenFloats passes on nil",
+		isApplicableFor: specificValueTypes(floatType),
+		options:         []validation.Option{it.IsBetweenFloats(1.1, 2.2)},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsBetweenFloats violation on value less than min",
+		isApplicableFor: specificValueTypes(floatType),
+		intValue:        intValue(0),
+		floatValue:      floatValue(0),
+		options:         []validation.Option{it.IsBetweenFloats(1.1, 2.2)},
+		assert:          assertHasOneViolation(code.NotInRange, "This value should be between 1.1 and 2.2.", ""),
+	},
+	{
+		name:            "IsBetweenFloats violation on value greater than max",
+		isApplicableFor: specificValueTypes(floatType),
+		intValue:        intValue(3),
+		floatValue:      floatValue(3),
+		options:         []validation.Option{it.IsBetweenFloats(1.1, 2.2)},
+		assert:          assertHasOneViolation(code.NotInRange, "This value should be between 1.1 and 2.2.", ""),
+	},
+	{
+		name:            "IsBetweenFloats passes on value equal to min",
+		isApplicableFor: specificValueTypes(floatType),
+		floatValue:      floatValue(1.1),
+		options:         []validation.Option{it.IsBetweenFloats(1.1, 2.2)},
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsBetweenFloats passes on value equal to max",
+		isApplicableFor: specificValueTypes(floatType),
+		floatValue:      floatValue(2.2),
+		options:         []validation.Option{it.IsBetweenFloats(1.1, 2.2)},
+		assert:          assertNoError,
+	},
+}
+
 var isEqualToStringTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsEqualToString passes on nil",
@@ -817,7 +941,162 @@ var isLaterThanOrEqualTestCases = []ConstraintValidationTestCase{
 	},
 }
 
-func givenLocation(name string) *time.Location {
-	loc, _ := time.LoadLocation(name)
-	return loc
+var isBetweenTimeTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsBetweenTime error on equal min and max",
+		isApplicableFor: specificValueTypes(timeType),
+		options: []validation.Option{
+			it.IsBetweenTime(
+				*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
+				*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
+			),
+		},
+		assert: assertError(`failed to set up constraint "TimeRangeConstraint": invalid range`),
+	},
+	{
+		name:            "IsBetweenTime error on equal min and max in different time zones",
+		isApplicableFor: specificValueTypes(timeType),
+		options: []validation.Option{
+			it.IsBetweenTime(
+				*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
+				*timeValue(time.Date(2021, 04, 4, 8, 30, 0, 0, givenLocation("America/New_York"))),
+			),
+		},
+		assert: assertError(`failed to set up constraint "TimeRangeConstraint": invalid range`),
+	},
+	{
+		name:            "IsBetweenTime error on min greater than max",
+		isApplicableFor: specificValueTypes(timeType),
+		options: []validation.Option{
+			it.IsBetweenTime(
+				*timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
+				*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
+			),
+		},
+		assert: assertError(`failed to set up constraint "TimeRangeConstraint": invalid range`),
+	},
+	{
+		name:            "IsBetweenTime passes on nil",
+		isApplicableFor: specificValueTypes(timeType),
+		options: []validation.Option{
+			it.IsBetweenTime(
+				*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
+				*timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
+			),
+		},
+		assert: assertNoError,
+	},
+	{
+		name:            "IsBetweenTime violation on value less than min",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 04, 4, 12, 20, 0, 0, time.UTC)),
+		options: []validation.Option{
+			it.IsBetweenTime(
+				*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
+				*timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
+			),
+		},
+		assert: assertHasOneViolation(code.NotInRange, "This value should be between 2021-04-04T12:30:00Z and 2021-04-04T12:40:00Z.", ""),
+	},
+	{
+		name:            "IsBetweenTime violation on value greater than max",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 04, 4, 12, 50, 0, 0, time.UTC)),
+		options: []validation.Option{
+			it.IsBetweenTime(
+				*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
+				*timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
+			),
+		},
+		assert: assertHasOneViolation(code.NotInRange, "This value should be between 2021-04-04T12:30:00Z and 2021-04-04T12:40:00Z.", ""),
+	},
+	{
+		name:            "IsBetweenTime passes on value equal to min",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
+		options: []validation.Option{
+			it.IsBetweenTime(
+				*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
+				*timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
+			),
+		},
+		assert: assertNoError,
+	},
+	{
+		name:            "IsBetweenTime passes on value equal to max",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
+		options: []validation.Option{
+			it.IsBetweenTime(
+				*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
+				*timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
+			),
+		},
+		assert: assertNoError,
+	},
+	{
+		name:            "IsBetweenTime violation with custom message",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 04, 4, 12, 20, 0, 0, time.UTC)),
+		options: []validation.Option{
+			it.
+				IsBetweenTime(
+					*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
+					*timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
+				).
+				Message(`Unexpected value "{{ value }}", expected value must be between "{{ min }}" and "{{ max }}".`),
+		},
+		assert: assertHasOneViolation(
+			code.NotInRange,
+			`Unexpected value "2021-04-04T12:20:00Z", expected value must be between "2021-04-04T12:30:00Z" and "2021-04-04T12:40:00Z".`,
+			"",
+		),
+	},
+	{
+		name:            "IsBetweenTime violation with custom message and time layout",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 04, 4, 12, 20, 0, 0, time.UTC)),
+		options: []validation.Option{
+			it.
+				IsBetweenTime(
+					*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
+					*timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
+				).
+				Message(`Unexpected value "{{ value }}", expected value must be between "{{ min }}" and "{{ max }}".`).
+				Layout(time.RFC822),
+		},
+		assert: assertHasOneViolation(
+			code.NotInRange,
+			`Unexpected value "04 Apr 21 12:20 UTC", expected value must be between "04 Apr 21 12:30 UTC" and "04 Apr 21 12:40 UTC".`,
+			"",
+		),
+	},
+	{
+		name:            "IsBetweenTime passes when condition is false",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 04, 4, 12, 20, 0, 0, time.UTC)),
+		options: []validation.Option{
+			it.
+				IsBetweenTime(
+					*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
+					*timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
+				).
+				When(false),
+		},
+		assert: assertNoError,
+	},
+	{
+		name:            "IsBetweenTime violation when condition is true",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 04, 4, 12, 20, 0, 0, time.UTC)),
+		options: []validation.Option{
+			it.
+				IsBetweenTime(
+					*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
+					*timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
+				).
+				When(true),
+		},
+		assert: assertHasOneViolation(code.NotInRange, "This value should be between 2021-04-04T12:30:00Z and 2021-04-04T12:40:00Z.", ""),
+	},
 }

@@ -31,6 +31,13 @@ func assertNoError(t *testing.T, err error) {
 	assert.NoError(t, err)
 }
 
+func assertError(expectedError string) func(t *testing.T, err error) {
+	return func(t *testing.T, err error) {
+		t.Helper()
+		assert.EqualError(t, err, expectedError)
+	}
+}
+
 func assertIsInapplicableConstraintError(t *testing.T, err error, valueType string) {
 	t.Helper()
 	var inapplicableConstraint validation.InapplicableConstraintError

@@ -22,6 +22,7 @@ const (
 	NoSuchChoice      = "noSuchChoice"
 	NotBlank          = "notBlank"
 	NotEqual          = "notEqual"
+	NotInRange        = "notInRange"
 	NotNegative       = "notNegative"
 	NotNegativeOrZero = "notNegativeOrZero"
 	NotNil            = "notNil"

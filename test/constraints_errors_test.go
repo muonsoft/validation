@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/muonsoft/validation"
-	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/validator"
 	"github.com/stretchr/testify/assert"
 )
@@ -57,32 +56,6 @@ func TestValidator_Validate_WhenInapplicableConstraint_ExpectError(t *testing.T)
 			err := validator.Validate(test.argument)
 
 			assertIsInapplicableConstraintError(t, err, test.valueType)
-		})
-	}
-}
-
-func TestValidator_Validate_WhenInvalidConstraint_ExpectError(t *testing.T) {
-	tests := []struct {
-		constraint    string
-		argument      validation.Argument
-		expectedError string
-	}{
-		{
-			constraint:    it.ChoiceConstraint{}.Name(),
-			argument:      validation.String(nil, it.IsOneOfStrings()),
-			expectedError: `failed to set up constraint "ChoiceConstraint": empty list of choices`,
-		},
-		{
-			constraint:    it.RegexConstraint{}.Name(),
-			argument:      validation.String(nil, it.Matches(nil)),
-			expectedError: `failed to set up constraint "RegexConstraint": nil regex`,
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.constraint, func(t *testing.T) {
-			err := validator.Validate(test.argument)
-
-			assert.EqualError(t, err, test.expectedError)
 		})
 	}
 }

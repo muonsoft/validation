@@ -39,6 +39,7 @@ const (
 	NoSuchChoice      = "The value you selected is not a valid choice."
 	NotBlank          = "This value should not be blank."
 	NotEqual          = "This value should not be equal to {{ comparedValue }}."
+	NotInRange        = "This value should be between {{ min }} and {{ max }}."
 	NotNegative       = "This value should be negative."
 	NotNegativeOrZero = "This value should be either negative or zero."
 	NotNil            = "This value should not be nil."

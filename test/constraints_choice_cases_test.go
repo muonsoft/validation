@@ -9,6 +9,12 @@ import (
 
 var choiceConstraintTestCases = []ConstraintValidationTestCase{
 	{
+		name:            "IsOneOfStrings error on empty list",
+		isApplicableFor: specificValueTypes(stringType),
+		options:         []validation.Option{it.IsOneOfStrings()},
+		assert:          assertError(`failed to set up constraint "ChoiceConstraint": empty list of choices`),
+	},
+	{
 		name:            "IsOneOfStrings passes on nil",
 		isApplicableFor: specificValueTypes(stringType),
 		options:         []validation.Option{it.IsOneOfStrings("expected")},
