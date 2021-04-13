@@ -62,43 +62,6 @@ type TimeConstraint interface {
 	ValidateTime(value *time.Time, scope Scope) error
 }
 
-type ConditionalConstraint struct {
-	condition       bool
-	thenConstraints []Constraint
-	elseConstraints []Constraint
-}
-
-func When(condition bool) ConditionalConstraint {
-	return ConditionalConstraint{
-		condition: condition,
-	}
-}
-
-func (c ConditionalConstraint) Then(constraints ...Constraint) ConditionalConstraint {
-	c.thenConstraints = constraints
-	return c
-}
-
-func (c ConditionalConstraint) Else(constraints ...Constraint) ConditionalConstraint {
-	c.elseConstraints = constraints
-	return c
-}
-
-func (c ConditionalConstraint) SetUp() error {
-	if len(c.thenConstraints) == 0 {
-		return errThenBranchNotSet
-	}
-	if len(c.elseConstraints) == 0 {
-		return errElseBranchNotSet
-	}
-
-	return nil
-}
-
-func (c ConditionalConstraint) Name() string {
-	return "ConditionalConstraint"
-}
-
 type notFoundConstraint struct {
 	key string
 }

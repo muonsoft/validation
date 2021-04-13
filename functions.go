@@ -258,12 +258,7 @@ func validateOnScope(scope Scope, options []Option, validate ValidateByConstrain
 	violations := make(ViolationList, 0)
 
 	for _, option := range options {
-		if constraint, ok := option.(ConditionalConstraint); ok {
-			err := validateConditionConstraints(scope, constraint, &violations, validate)
-			if err != nil {
-				return nil, err
-			}
-		} else if constraint, ok := option.(Constraint); ok {
+		if constraint, ok := option.(Constraint); ok {
 			err := violations.AppendFromError(validate(constraint, scope))
 			if err != nil {
 				return nil, err
@@ -272,31 +267,6 @@ func validateOnScope(scope Scope, options []Option, validate ValidateByConstrain
 	}
 
 	return violations, nil
-}
-
-func validateConditionConstraints(
-	scope Scope,
-	constraint ConditionalConstraint,
-	violations *ViolationList,
-	validate ValidateByConstraintFunc,
-) error {
-	if constraint.condition {
-		for _, constraint := range constraint.thenConstraints {
-			err := violations.AppendFromError(validate(constraint, scope))
-			if err != nil {
-				return err
-			}
-		}
-	} else {
-		for _, constraint := range constraint.elseConstraints {
-			err := violations.AppendFromError(validate(constraint, scope))
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
 }
 
 func validateIterableOfValidatables(scope Scope, iterable generic.Iterable) (ViolationList, error) {
