@@ -39,19 +39,19 @@ func ExampleValidator_Validate_basicStructValidation() {
 func ExampleValidator_Validate_structValidationWithConditionalConstraint() {
 	document := Document{
 		Title:    "",
-		Keywords: []string{"123", "test"},
+		Keywords: []string{"1", "test"},
 	}
 
 	err := validator.Validate(
 		validation.StringProperty("title", &document.Title, it.IsNotBlank()),
-		validation.CountableProperty("keywords", len(document.Keywords), it.HasCountBetween(2, 10)),
+		validation.CountableProperty("keywords", len(document.Keywords), it.HasCountBetween(3, 10)),
 		validation.EachStringProperty(
 			"keywords",
 			document.Keywords,
 			it.IsNotBlank(),
 			validation.When(len(document.Title) <= 5).
-				Then(it.Matches(regexp.MustCompile(`^\\d$`))).
-				Else(it.Matches(regexp.MustCompile(`^\\w$`))),
+				Then(it.Matches(regexp.MustCompile(`^\d$`))).
+				Else(it.Matches(regexp.MustCompile(`^\w$`))),
 		),
 	)
 
@@ -61,6 +61,6 @@ func ExampleValidator_Validate_structValidationWithConditionalConstraint() {
 	}
 	// Output:
 	// violation at 'title': This value should not be blank.
-	// violation at 'keywords': This collection should contain 2 elements or more.
+	// violation at 'keywords': This collection should contain 3 elements or more.
 	// violation at 'keywords[1]': This value is not valid.
 }
