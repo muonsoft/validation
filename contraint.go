@@ -88,9 +88,6 @@ func (c ConditionalConstraint) SetUp() error {
 	if len(c.thenConstraints) == 0 {
 		return errThenBranchNotSet
 	}
-	if len(c.elseConstraints) == 0 {
-		return errElseBranchNotSet
-	}
 
 	return nil
 }

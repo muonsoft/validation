@@ -8,75 +8,52 @@ import (
 	"github.com/muonsoft/validation/validator"
 	"github.com/stretchr/testify/assert"
 
+	"regexp"
 	"testing"
 )
 
-type Brand struct {
-	Name string
-	Tags []string
-}
+func TestValidateValue_WithConditionConstraints_ExpectViolationsByElseBranch(t *testing.T) {
+	value := stringValue("name")
 
-func (b Brand) Validate(validator *validation.Validator) error {
-	return validator.Validate(
+	err := validator.Validate(
 		validation.String(
-			&b.Name,
-			validation.PropertyName("name"),
-			it.IsNotBlank(),
-			validation.When(len(b.Tags) <= 2).
+			value,
+			validation.When(len(*value) <= 3).
 				Then(
-					it.HasMinLength(3),
+					it.Matches(regexp.MustCompile(`^\\w$`)),
 				).
 				Else(
-					it.HasMaxLength(10),
+					it.Matches(regexp.MustCompile(`^\\d$`)),
 				),
 		),
-		validation.Iterable(
-			b.Tags,
-			validation.PropertyName("tags"),
-			it.HasMinCount(1),
-		),
 	)
-}
-
-func TestValidateValue_WithConditionConstraints_ExpectViolationsByElseBranch(t *testing.T) {
-	b := Brand{
-		Name: "a",
-		Tags: []string{
-			"tag 1",
-			"tag 2",
-		},
-	}
-
-	err := validator.ValidateValue(b)
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 		t.Helper()
-		if assert.Len(t, violations, 1) {
-			assert.Equal(t, code.LengthTooFew, violations[0].Code())
-			assert.Equal(t, "name", violations[0].PropertyPath().String())
-		}
-		return true
+		return assert.Len(t, violations, 1) &&
+			assert.Equal(t, code.MatchingFailed, violations[0].Code())
 	})
 }
 
 func TestValidateValue_WithConditionConstraints_ExpectViolationsByThenBranch(t *testing.T) {
-	b := Brand{
-		Name: "name length more than 10",
-		Tags: []string{
-			"tag 1",
-			"tag 2",
-			"tag 3",
-		},
-	}
+	value := stringValue("name")
 
-	err := validator.ValidateValue(b)
+	err := validator.Validate(
+		validation.String(
+			value,
+			validation.When(len(*value) <= 4).
+				Then(
+					it.Matches(regexp.MustCompile(`^\\d$`)),
+				).
+				Else(
+					it.Matches(regexp.MustCompile(`^\\w$`)),
+				),
+		),
+	)
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 		t.Helper()
-		if assert.Len(t, violations, 1) {
-			assert.Equal(t, code.LengthTooMany, violations[0].Code())
-			assert.Equal(t, "name", violations[0].PropertyPath().String())
-		}
-		return true
+		return assert.Len(t, violations, 1) &&
+			assert.Equal(t, code.MatchingFailed, violations[0].Code())
 	})
 }

@@ -259,7 +259,7 @@ func validateOnScope(scope Scope, options []Option, validate ValidateByConstrain
 
 	for _, option := range options {
 		if constraint, ok := option.(ConditionalConstraint); ok {
-			err := validateConditionConstraints(scope, constraint, &violations, validate)
+			err := constraint.validateConditionConstraints(scope, &violations, validate)
 			if err != nil {
 				return nil, err
 			}
@@ -274,25 +274,22 @@ func validateOnScope(scope Scope, options []Option, validate ValidateByConstrain
 	return violations, nil
 }
 
-func validateConditionConstraints(
+func (c *ConditionalConstraint) validateConditionConstraints(
 	scope Scope,
-	constraint ConditionalConstraint,
 	violations *ViolationList,
 	validate ValidateByConstraintFunc,
 ) error {
-	if constraint.condition {
-		for _, constraint := range constraint.thenConstraints {
-			err := violations.AppendFromError(validate(constraint, scope))
-			if err != nil {
-				return err
-			}
-		}
+	var constraints []Constraint
+	if c.condition {
+		constraints = c.thenConstraints
 	} else {
-		for _, constraint := range constraint.elseConstraints {
-			err := violations.AppendFromError(validate(constraint, scope))
-			if err != nil {
-				return err
-			}
+		constraints = c.elseConstraints
+	}
+
+	for _, constraint := range constraints {
+		err := violations.AppendFromError(validate(constraint, scope))
+		if err != nil {
+			return err
 		}
 	}
 
