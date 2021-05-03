@@ -10,15 +10,16 @@ import (
 
 	"regexp"
 	"testing"
+	"unicode/utf8"
 )
 
-func TestValidateValue_WithConditionConstraints_ExpectViolationsByElseBranch(t *testing.T) {
-	value := stringValue("name")
+func TestValidate_InvalidValueForElseBranchOfConditionConstraint_ExpectViolations(t *testing.T) {
+	value := "name"
 
 	err := validator.Validate(
 		validation.String(
-			value,
-			validation.When(len(*value) <= 3).
+			&value,
+			validation.When(utf8.RuneCountInString(value) <= 3).
 				Then(
 					it.Matches(regexp.MustCompile(`^\\w$`)),
 				).
@@ -35,13 +36,13 @@ func TestValidateValue_WithConditionConstraints_ExpectViolationsByElseBranch(t *
 	})
 }
 
-func TestValidateValue_WithConditionConstraints_ExpectViolationsByThenBranch(t *testing.T) {
-	value := stringValue("name")
+func TestValidate_InvalidValueForThenBranchOfConditionConstraint_ExpectViolations(t *testing.T) {
+	value := "name"
 
 	err := validator.Validate(
 		validation.String(
-			value,
-			validation.When(len(*value) <= 4).
+			&value,
+			validation.When(utf8.RuneCountInString(value) <= 4).
 				Then(
 					it.Matches(regexp.MustCompile(`^\\d$`)),
 				).

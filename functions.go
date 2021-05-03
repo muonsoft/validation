@@ -274,28 +274,6 @@ func validateOnScope(scope Scope, options []Option, validate ValidateByConstrain
 	return violations, nil
 }
 
-func (c *ConditionalConstraint) validateConditionConstraints(
-	scope Scope,
-	violations *ViolationList,
-	validate ValidateByConstraintFunc,
-) error {
-	var constraints []Constraint
-	if c.condition {
-		constraints = c.thenConstraints
-	} else {
-		constraints = c.elseConstraints
-	}
-
-	for _, constraint := range constraints {
-		err := violations.AppendFromError(validate(constraint, scope))
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func validateIterableOfValidatables(scope Scope, iterable generic.Iterable) (ViolationList, error) {
 	violations := make(ViolationList, 0)
 

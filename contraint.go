@@ -107,3 +107,25 @@ func (c notFoundConstraint) SetUp() error {
 func (c notFoundConstraint) Name() string {
 	return "notFoundConstraint"
 }
+
+func (c *ConditionalConstraint) validateConditionConstraints(
+	scope Scope,
+	violations *ViolationList,
+	validate ValidateByConstraintFunc,
+) error {
+	var constraints []Constraint
+	if c.condition {
+		constraints = c.thenConstraints
+	} else {
+		constraints = c.elseConstraints
+	}
+
+	for _, constraint := range constraints {
+		err := violations.AppendFromError(validate(constraint, scope))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
