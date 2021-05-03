@@ -92,22 +92,6 @@ func (c ConditionalConstraint) SetUp() error {
 	return nil
 }
 
-func (c ConditionalConstraint) Name() string {
-	return "ConditionalConstraint"
-}
-
-type notFoundConstraint struct {
-	key string
-}
-
-func (c notFoundConstraint) SetUp() error {
-	return ConstraintNotFoundError{Key: c.key}
-}
-
-func (c notFoundConstraint) Name() string {
-	return "notFoundConstraint"
-}
-
 func (c *ConditionalConstraint) validateConditionConstraints(
 	scope Scope,
 	violations *ViolationList,
@@ -128,4 +112,20 @@ func (c *ConditionalConstraint) validateConditionConstraints(
 	}
 
 	return nil
+}
+
+func (c ConditionalConstraint) Name() string {
+	return "ConditionalConstraint"
+}
+
+type notFoundConstraint struct {
+	key string
+}
+
+func (c notFoundConstraint) SetUp() error {
+	return ConstraintNotFoundError{Key: c.key}
+}
+
+func (c notFoundConstraint) Name() string {
+	return "notFoundConstraint"
 }
