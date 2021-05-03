@@ -258,12 +258,20 @@ func validateOnScope(scope Scope, options []Option, validate ValidateByConstrain
 	violations := make(ViolationList, 0)
 
 	for _, option := range options {
-		if constraint, ok := option.(ConditionalConstraint); ok {
+		switch constraint := option.(type) {
+		case SequentiallyConstraint:
+			err := constraint.validateSequentiallyConstraints(scope, &violations, validate)
+			if err != nil {
+				return nil, err
+			}
+
+		case ConditionalConstraint:
 			err := constraint.validateConditionConstraints(scope, &violations, validate)
 			if err != nil {
 				return nil, err
 			}
-		} else if constraint, ok := option.(Constraint); ok {
+
+		case Constraint:
 			err := violations.AppendFromError(validate(constraint, scope))
 			if err != nil {
 				return nil, err

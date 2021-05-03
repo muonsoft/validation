@@ -129,3 +129,50 @@ func (c notFoundConstraint) SetUp() error {
 func (c notFoundConstraint) Name() string {
 	return "notFoundConstraint"
 }
+
+type SequentiallyConstraint struct {
+	constraints []Constraint
+}
+
+func Sequentially(constraints ...Constraint) SequentiallyConstraint {
+	return SequentiallyConstraint{
+		constraints: constraints,
+	}
+}
+
+// Name is the constraint name.
+func (c SequentiallyConstraint) Name() string {
+	return "SequentiallyConstraint"
+}
+
+// SetUp will return an error if the list of constraints is empty.
+func (c SequentiallyConstraint) SetUp() error {
+	if len(c.constraints) == 0 {
+		return errSequentiallyConstraintsNotSet
+	}
+	return nil
+}
+
+func (c *SequentiallyConstraint) validateSequentiallyConstraints(
+	scope Scope,
+	violations *ViolationList,
+	validate ValidateByConstraintFunc,
+) error {
+	var isViolation bool
+	for _, constraint := range c.constraints {
+		err := validate(constraint, scope)
+		if err != nil {
+			isViolation = true
+		}
+		err = violations.AppendFromError(err)
+		if err != nil {
+			return err
+		}
+
+		if isViolation {
+			return nil
+		}
+	}
+
+	return nil
+}
