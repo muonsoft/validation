@@ -135,7 +135,7 @@ func (c ConditionalConstraint) SetUp() error {
 	return nil
 }
 
-func (c ConditionalConstraint) validateByWrapped(
+func (c ConditionalConstraint) validate(
 	scope Scope,
 	violations *ViolationList,
 	validate ValidateByConstraintFunc,
@@ -193,7 +193,7 @@ func (c SequentiallyConstraint) SetUp() error {
 	return nil
 }
 
-func (c SequentiallyConstraint) validateByWrapped(
+func (c SequentiallyConstraint) validate(
 	scope Scope,
 	violations *ViolationList,
 	validate ValidateByConstraintFunc,
