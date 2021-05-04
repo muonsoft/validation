@@ -13,20 +13,18 @@ import (
 	"unicode/utf8"
 )
 
-func TestValidate_InvalidValueForElseBranchOfConditionConstraint_ExpectViolations(t *testing.T) {
+func TestValidate_WhenInvalidValueForElseBranchOfConditionConstraint_ExpectViolations(t *testing.T) {
 	value := "name"
 
-	err := validator.Validate(
-		validation.String(
-			&value,
-			validation.When(utf8.RuneCountInString(value) <= 3).
-				Then(
-					it.Matches(regexp.MustCompile(`^\\w$`)),
-				).
-				Else(
-					it.Matches(regexp.MustCompile(`^\\d$`)),
-				),
-		),
+	err := validator.ValidateString(
+		&value,
+		validation.When(utf8.RuneCountInString(value) <= 3).
+			Then(
+				it.Matches(regexp.MustCompile(`^\\w$`)),
+			).
+			Else(
+				it.Matches(regexp.MustCompile(`^\\d$`)),
+			),
 	)
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
@@ -36,20 +34,18 @@ func TestValidate_InvalidValueForElseBranchOfConditionConstraint_ExpectViolation
 	})
 }
 
-func TestValidate_InvalidValueForThenBranchOfConditionConstraint_ExpectViolations(t *testing.T) {
+func TestValidate_WhenInvalidValueForThenBranchOfConditionConstraint_ExpectViolations(t *testing.T) {
 	value := "name"
 
-	err := validator.Validate(
-		validation.String(
-			&value,
-			validation.When(utf8.RuneCountInString(value) <= 4).
-				Then(
-					it.Matches(regexp.MustCompile(`^\\d$`)),
-				).
-				Else(
-					it.Matches(regexp.MustCompile(`^\\w$`)),
-				),
-		),
+	err := validator.ValidateString(
+		&value,
+		validation.When(utf8.RuneCountInString(value) <= 4).
+			Then(
+				it.Matches(regexp.MustCompile(`^\\d$`)),
+			).
+			Else(
+				it.Matches(regexp.MustCompile(`^\\w$`)),
+			),
 	)
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
