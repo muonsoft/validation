@@ -62,28 +62,71 @@ type TimeConstraint interface {
 	ValidateTime(value *time.Time, scope Scope) error
 }
 
+// ConditionalConstraint is used to construct constraints using a conditional construct.
 type ConditionalConstraint struct {
 	condition       bool
 	thenConstraints []Constraint
 	elseConstraints []Constraint
 }
 
+// When creates a ConditionalConstraint that set condition.
+//
+// Example
+//  v := "name"
+//	err := validator.ValidateString(
+//		&value,
+//		validation.When(utf8.RuneCountInString(value) <= 3).
+//		Then(
+//			it.Matches(regexp.MustCompile(`^\\w$`)),
+//		),
+//	)
 func When(condition bool) ConditionalConstraint {
 	return ConditionalConstraint{
 		condition: condition,
 	}
 }
 
+// Then creates a ConditionalConstraint that set a list of then branch constraints.
+//
+// Example
+//  v := "name"
+//	err := validator.ValidateString(
+//		&value,
+//		validation.When(utf8.RuneCountInString(value) <= 3).
+//		Then(
+//			it.Matches(regexp.MustCompile(`^\\w$`)),
+//		),
+//	)
 func (c ConditionalConstraint) Then(constraints ...Constraint) ConditionalConstraint {
 	c.thenConstraints = constraints
 	return c
 }
 
+// Else creates a ConditionalConstraint that set a list of else branch constraints.
+//
+// Example
+//  v := "name"
+//	err := validator.ValidateString(
+//		&value,
+//		validation.When(utf8.RuneCountInString(value) <= 3).
+//		Then(
+//			it.Matches(regexp.MustCompile(`^\\w$`)),
+//		).
+//		Else(
+//			it.Matches(regexp.MustCompile(`^\\d$`)),
+//		),
+//	)
 func (c ConditionalConstraint) Else(constraints ...Constraint) ConditionalConstraint {
 	c.elseConstraints = constraints
 	return c
 }
 
+// Name is the constraint name.
+func (c ConditionalConstraint) Name() string {
+	return "ConditionalConstraint"
+}
+
+// SetUp will return an error if the list of then branch constraints is empty.
 func (c ConditionalConstraint) SetUp() error {
 	if len(c.thenConstraints) == 0 {
 		return errThenBranchNotSet
@@ -112,10 +155,6 @@ func (c *ConditionalConstraint) validateConditionConstraints(
 	}
 
 	return nil
-}
-
-func (c ConditionalConstraint) Name() string {
-	return "ConditionalConstraint"
 }
 
 type notFoundConstraint struct {
