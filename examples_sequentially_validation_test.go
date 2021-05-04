@@ -11,14 +11,11 @@ import (
 func ExampleValidator_Validate_validationInterruptedAtFirstViolation() {
 	title := "aaa"
 
-	err := validator.Validate(
-		validation.StringProperty(
-			"title",
-			&title,
-			validation.Sequentially(
-				it.IsBlank(),
-				it.HasMinLength(5),
-			),
+	err := validator.ValidateString(
+		&title,
+		validation.Sequentially(
+			it.IsBlank(),
+			it.HasMinLength(5),
 		),
 	)
 
@@ -27,5 +24,5 @@ func ExampleValidator_Validate_validationInterruptedAtFirstViolation() {
 		fmt.Println(violation.Error())
 	}
 	// Output:
-	// violation at 'title': This value should be blank.
+	// violation: This value should be blank.
 }

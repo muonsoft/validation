@@ -135,7 +135,7 @@ func (c ConditionalConstraint) SetUp() error {
 	return nil
 }
 
-func (c *ConditionalConstraint) validateConditionConstraints(
+func (c ConditionalConstraint) validateByWrapped(
 	scope Scope,
 	violations *ViolationList,
 	validate ValidateByConstraintFunc,
@@ -157,22 +157,23 @@ func (c *ConditionalConstraint) validateConditionConstraints(
 	return nil
 }
 
-type notFoundConstraint struct {
-	key string
-}
-
-func (c notFoundConstraint) SetUp() error {
-	return ConstraintNotFoundError{Key: c.key}
-}
-
-func (c notFoundConstraint) Name() string {
-	return "notFoundConstraint"
-}
-
+// SequentiallyConstraint is used to build constraints allowing to interrupt the validation once
+// the first violation is raised.
 type SequentiallyConstraint struct {
 	constraints []Constraint
 }
 
+// Sequentially creates a SequentiallyConstraint that set of rules that should be validated step-by-step.
+//
+// Example
+//  v := "name"
+//	err := validator.ValidateString(
+//		&value,
+//		validation.Sequentially(
+//			it.IsNotBlank(),
+//			it.Matches(regexp.MustCompile(`^\\w$`)),
+//		),
+//	)
 func Sequentially(constraints ...Constraint) SequentiallyConstraint {
 	return SequentiallyConstraint{
 		constraints: constraints,
@@ -192,26 +193,35 @@ func (c SequentiallyConstraint) SetUp() error {
 	return nil
 }
 
-func (c *SequentiallyConstraint) validateSequentiallyConstraints(
+func (c SequentiallyConstraint) validateByWrapped(
 	scope Scope,
 	violations *ViolationList,
 	validate ValidateByConstraintFunc,
 ) error {
-	var isViolation bool
+	var err error
 	for _, constraint := range c.constraints {
-		err := validate(constraint, scope)
+		err = validate(constraint, scope)
 		if err != nil {
-			isViolation = true
-		}
-		err = violations.AppendFromError(err)
-		if err != nil {
-			return err
-		}
-
-		if isViolation {
-			return nil
+			break
 		}
 	}
 
+	err = violations.AppendFromError(err)
+	if err != nil {
+		return err
+	}
+
 	return nil
+}
+
+type notFoundConstraint struct {
+	key string
+}
+
+func (c notFoundConstraint) SetUp() error {
+	return ConstraintNotFoundError{Key: c.key}
+}
+
+func (c notFoundConstraint) Name() string {
+	return "notFoundConstraint"
 }

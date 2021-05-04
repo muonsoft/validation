@@ -14,13 +14,11 @@ import (
 func TestValidate_InvalidValueAtFirstConstraintOfSequentiallyConstraint_ExpectViolations(t *testing.T) {
 	value := "aaa"
 
-	err := validator.Validate(
-		validation.String(
-			&value,
-			validation.Sequentially(
-				it.IsBlank(),
-				it.HasMinLength(5),
-			),
+	err := validator.ValidateString(
+		&value,
+		validation.Sequentially(
+			it.IsBlank(),
+			it.HasMinLength(5),
 		),
 	)
 

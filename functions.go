@@ -7,6 +7,10 @@ import (
 	"github.com/muonsoft/validation/generic"
 )
 
+type WrappedConstraintsHandler interface {
+	validateByWrapped(scope Scope, violations *ViolationList, validate ValidateByConstraintFunc) error
+}
+
 // ValidateByConstraintFunc is used for building validation functions for the values of specific types.
 type ValidateByConstraintFunc func(constraint Constraint, scope Scope) error
 
@@ -258,20 +262,12 @@ func validateOnScope(scope Scope, options []Option, validate ValidateByConstrain
 	violations := make(ViolationList, 0)
 
 	for _, option := range options {
-		switch constraint := option.(type) {
-		case SequentiallyConstraint:
-			err := constraint.validateSequentiallyConstraints(scope, &violations, validate)
+		if constraint, ok := option.(WrappedConstraintsHandler); ok {
+			err := constraint.validateByWrapped(scope, &violations, validate)
 			if err != nil {
 				return nil, err
 			}
-
-		case ConditionalConstraint:
-			err := constraint.validateConditionConstraints(scope, &violations, validate)
-			if err != nil {
-				return nil, err
-			}
-
-		case Constraint:
+		} else if constraint, ok := option.(Constraint); ok {
 			err := violations.AppendFromError(validate(constraint, scope))
 			if err != nil {
 				return nil, err
