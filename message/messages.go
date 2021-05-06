@@ -32,6 +32,7 @@ const (
 	CountTooMany      = "This collection should contain {{ limit }} element(s) or less."
 	Equal             = "This value should be equal to {{ comparedValue }}."
 	False             = "This value should be false."
+	InvalidURL        = "This value is not a valid URL."
 	LengthExact       = "This value should have exactly {{ limit }} character(s)."
 	LengthTooFew      = "This value is too short. It should have {{ limit }} character(s) or more."
 	LengthTooMany     = "This value is too long. It should have {{ limit }} character(s) or less."

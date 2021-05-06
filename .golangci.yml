@@ -89,3 +89,6 @@ issues:
         - gosec
         - lll
         - scopelint
+    - path: validate/patterns.go
+      linters:
+        - lll
