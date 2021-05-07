@@ -7,6 +7,15 @@ import (
 	"github.com/muonsoft/validation/message"
 )
 
+func IsEmail() validation.CustomStringConstraint {
+	return validation.NewCustomStringConstraint(
+		is.Email,
+		"EmailConstraint",
+		code.InvalidEmail,
+		message.InvalidEmail,
+	)
+}
+
 // URLConstraint is used to validate URL string. This constraint doesn’t check that the host of the
 // given URL really exists, because the information of the DNS records is not reliable.
 //

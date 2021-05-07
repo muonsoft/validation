@@ -17,3 +17,11 @@ func URL(value string, protocols ...string) bool {
 func RelativeURL(value string, protocols ...string) bool {
 	return validate.RelativeURL(value, protocols...) == nil
 }
+
+func Email(value string) bool {
+	return looseEmailRegex.MatchString(value)
+}
+
+func HTML5Email(value string) bool {
+	return html5EmailRegex.MatchString(value)
+}

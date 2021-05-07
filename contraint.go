@@ -1,7 +1,9 @@
 package validation
 
 import (
+	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/generic"
+	"github.com/muonsoft/validation/message"
 
 	"time"
 )
@@ -60,6 +62,65 @@ type CountableConstraint interface {
 type TimeConstraint interface {
 	Constraint
 	ValidateTime(value *time.Time, scope Scope) error
+}
+
+type ValidateStringFunc func(value string) bool
+
+type CustomStringConstraint struct {
+	isIgnored       bool
+	isValid         ValidateStringFunc
+	name            string
+	code            string
+	messageTemplate string
+}
+
+func NewCustomStringConstraint(isValid ValidateStringFunc, parameters ...string) CustomStringConstraint {
+	constraint := CustomStringConstraint{
+		isValid:         isValid,
+		name:            "CustomStringConstraint",
+		code:            code.NotValid,
+		messageTemplate: message.NotValid,
+	}
+
+	if len(parameters) > 0 {
+		constraint.name = parameters[0]
+	}
+	if len(parameters) > 1 {
+		constraint.code = parameters[1]
+	}
+	if len(parameters) > 2 {
+		constraint.messageTemplate = parameters[2]
+	}
+
+	return constraint
+}
+
+func (c CustomStringConstraint) SetUp() error {
+	return nil
+}
+
+func (c CustomStringConstraint) Name() string {
+	return c.name
+}
+
+func (c CustomStringConstraint) Message(message string) CustomStringConstraint {
+	c.messageTemplate = message
+	return c
+}
+
+func (c CustomStringConstraint) When(condition bool) CustomStringConstraint {
+	c.isIgnored = !condition
+	return c
+}
+
+func (c CustomStringConstraint) ValidateString(value *string, scope Scope) error {
+	if c.isIgnored || value == nil || *value == "" || c.isValid(*value) {
+		return nil
+	}
+
+	return scope.BuildViolation(c.code, c.messageTemplate).
+		AddParameter("{{ value }}", *value).
+		CreateViolation()
 }
 
 type notFoundConstraint struct {
