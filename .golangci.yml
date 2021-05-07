@@ -102,6 +102,9 @@ issues:
         - gosec
         - lll
         - scopelint
+    - path: is/patterns.go
+      linters:
+        - lll
     - path: validate/patterns.go
       linters:
         - lll

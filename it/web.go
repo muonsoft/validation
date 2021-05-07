@@ -7,10 +7,23 @@ import (
 	"github.com/muonsoft/validation/message"
 )
 
+// IsEmail is used for simplified validation of an email address. It allows all values
+// with an "@" symbol in, and a "." in the second host part of the email address.
 func IsEmail() validation.CustomStringConstraint {
 	return validation.NewCustomStringConstraint(
 		is.Email,
 		"EmailConstraint",
+		code.InvalidEmail,
+		message.InvalidEmail,
+	)
+}
+
+// IsHTML5Email is used for validation of an email address based on pattern for HTML5
+// (see https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address).
+func IsHTML5Email() validation.CustomStringConstraint {
+	return validation.NewCustomStringConstraint(
+		is.HTML5Email,
+		"HTML5EmailConstraint",
 		code.InvalidEmail,
 		message.InvalidEmail,
 	)
