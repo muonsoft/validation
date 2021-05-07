@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestURL_WhenDefaultProtocolsAndValidURL_ExpectNoError(t *testing.T) {
+func TestURL_WhenDefaultSchemasAndValidURL_ExpectNoError(t *testing.T) {
 	for _, url := range validURLs() {
 		t.Run(url, func(t *testing.T) {
 			err := validate.URL(url)
@@ -17,7 +17,7 @@ func TestURL_WhenDefaultProtocolsAndValidURL_ExpectNoError(t *testing.T) {
 	}
 }
 
-func TestURL_WhenDefaultProtocolsAndInvalidURL_ExpectError(t *testing.T) {
+func TestURL_WhenDefaultSchemasAndInvalidURL_ExpectError(t *testing.T) {
 	for _, url := range invalidURLs() {
 		t.Run(url, func(t *testing.T) {
 			err := validate.URL(url)
@@ -27,8 +27,8 @@ func TestURL_WhenDefaultProtocolsAndInvalidURL_ExpectError(t *testing.T) {
 	}
 }
 
-func TestURL_WhenCustomProtocolsAndValidURL_ExpectNoError(t *testing.T) {
-	for _, url := range validURLsWithCustomProtocols() {
+func TestURL_WhenCustomSchemasAndValidURL_ExpectNoError(t *testing.T) {
+	for _, url := range validURLsWithCustomSchemas() {
 		t.Run(url, func(t *testing.T) {
 			err := validate.URL(url, "ftp", "file", "git")
 
@@ -37,34 +37,24 @@ func TestURL_WhenCustomProtocolsAndValidURL_ExpectNoError(t *testing.T) {
 	}
 }
 
-func TestRelativeURL_WhenDefaultProtocolsAndValidURL_ExpectNoError(t *testing.T) {
+func TestURL_WhenDefaultSchemasAndRelativeSchemaAndValidURL_ExpectNoError(t *testing.T) {
 	urls := append(validURLs(), validRelativeURLs()...)
 	for _, url := range urls {
 		t.Run(url, func(t *testing.T) {
-			err := validate.RelativeURL(url)
+			err := validate.URL(url, "http", "https", "")
 
 			assert.NoError(t, err)
 		})
 	}
 }
 
-func TestRelativeURL_WhenDefaultProtocolsAndInvalidURL_ExpectError(t *testing.T) {
+func TestRelativeURL_WhenDefaultSchemasAndRelativeSchemaAndInvalidURL_ExpectError(t *testing.T) {
 	urls := append(invalidURLs(), invalidRelativeURLs()...)
 	for _, url := range urls {
 		t.Run(url, func(t *testing.T) {
-			err := validate.RelativeURL(url)
+			err := validate.URL(url, "http", "https", "")
 
 			assert.Error(t, err)
-		})
-	}
-}
-
-func TestRelativeURL_WhenCustomProtocolsAndValidURL_ExpectNoError(t *testing.T) {
-	for _, url := range validURLsWithCustomProtocols() {
-		t.Run(url, func(t *testing.T) {
-			err := validate.RelativeURL(url, "ftp", "file", "git")
-
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -199,7 +189,7 @@ func invalidRelativeURLs() []string {
 	}
 }
 
-func validURLsWithCustomProtocols() []string {
+func validURLsWithCustomSchemas() []string {
 	return []string{
 		"ftp://example.com",
 		"file://127.0.0.1",

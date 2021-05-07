@@ -14,7 +14,7 @@ func ExampleURL_validAbsoluteURL() {
 	// <nil>
 }
 
-func ExampleURL_validURLWithCustomProtocol() {
+func ExampleURL_validURLWithCustomSchema() {
 	err := validate.URL("ftp://example.com", "http", "https", "ftp")
 
 	fmt.Println(err)
@@ -22,12 +22,12 @@ func ExampleURL_validURLWithCustomProtocol() {
 	// <nil>
 }
 
-func ExampleURL_urlWithoutProtocol() {
+func ExampleURL_urlWithoutSchema() {
 	err := validate.URL("example.com")
 
 	fmt.Println(err)
 	// Output:
-	// unexpected protocol
+	// unexpected schema
 }
 
 func ExampleURL_invalidURL() {
@@ -38,18 +38,10 @@ func ExampleURL_invalidURL() {
 	// parse "http:// example.com/": invalid character " " in host name
 }
 
-func ExampleRelativeURL_validRelativeURL() {
-	err := validate.RelativeURL("//example.com")
+func ExampleURL_validRelativeURL() {
+	err := validate.URL("//example.com", "")
 
 	fmt.Println(err)
 	// Output:
 	// <nil>
-}
-
-func ExampleRelativeURL_invalidURL() {
-	err := validate.RelativeURL("example.com")
-
-	fmt.Println(err)
-	// Output:
-	// invalid
 }

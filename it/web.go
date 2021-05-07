@@ -21,48 +21,27 @@ func IsEmail() validation.CustomStringConstraint {
 //
 // This constraint doesn't check the length of the URL. Use LengthConstraint to check the length of the given value.
 type URLConstraint struct {
-	isIgnored       bool
-	isValid         func(value string, protocols ...string) bool
-	protocols       []string
-	messageTemplate string
+	isIgnored              bool
+	supportsRelativeSchema bool
+	schemas                []string
+	messageTemplate        string
 }
 
-// IsURL creates a URLConstraint to validate an absolute URL, which means a protocol (or scheme) is required.
-// By default, constraint checks only for the http:// and https:// protocols. Use the Protocols method to configure
-// the list of expected protocols.
-//
-// Example
-//	v := "http://example.com"
-//	err := validator.ValidateString(&v, it.IsURL())
+// IsURL creates a URLConstraint to validate an URL. By default, constraint checks
+// only for the http:// and https:// schemas. Use the WithSchemas method to configure
+// the list of expected schemas. Also, you can use WithRelativeSchema to enable support
+// of the relative schema (without schema, e.g. "//example.com").
 func IsURL() URLConstraint {
 	return URLConstraint{
-		isValid:         is.URL,
-		protocols:       []string{"http", "https"},
+		schemas:         []string{"http", "https"},
 		messageTemplate: message.InvalidURL,
 	}
 }
 
-// IsRelativeURL creates a URLConstraint to validate an absolute or relative URL. The protocol is considered
-// optional when validating the syntax of the given URL. This means that both http:// and https:// are valid
-// but also relative URLs that contain no protocol (e.g. //example.com).
-// By default, constraint checks only for the http:// and https:// protocols. Use the Protocols method to configure
-// the list of expected protocols.
-//
-// Example
-//	v := "//example.com"
-//	err := validator.ValidateString(&v, it.IsRelativeURL())
-func IsRelativeURL() URLConstraint {
-	return URLConstraint{
-		isValid:         is.RelativeURL,
-		protocols:       []string{"http", "https"},
-		messageTemplate: message.InvalidURL,
-	}
-}
-
-// SetUp will return an error if the list of protocols is empty.
+// SetUp will return an error if the list of schemas is empty.
 func (c URLConstraint) SetUp() error {
-	if len(c.protocols) == 0 {
-		return errEmptyProtocols
+	if len(c.schemas) == 0 {
+		return errEmptySchemas
 	}
 
 	return nil
@@ -73,15 +52,18 @@ func (c URLConstraint) Name() string {
 	return "URLConstraint"
 }
 
-// Protocols is used to set up a list of accepted protocols. For example, if you also consider the ftp:// type URLs
-// to be valid, redefine the protocols list, listing http, https, and also ftp.
+// WithRelativeSchema enables support of relative URL schema, which means that URL value
+// may be treated as relative (without schema, e.g. "//example.com").
+func (c URLConstraint) WithRelativeSchema() URLConstraint {
+	c.supportsRelativeSchema = true
+	return c
+}
+
+// WithSchemas is used to set up a list of accepted schemas. For example, if you also consider the ftp:// type URLs
+// to be valid, redefine the schemas list, listing http, https, and also ftp.
 // If the list is empty, then an error will be returned by the SetUp method.
-//
-// Example
-//	v := "ftp://example.com"
-//	err := validator.ValidateString(&v, it.IsURL().Protocols("http", "https", "ftp"))
-func (c URLConstraint) Protocols(protocols ...string) URLConstraint {
-	c.protocols = protocols
+func (c URLConstraint) WithSchemas(schemas ...string) URLConstraint {
+	c.schemas = schemas
 	return c
 }
 
@@ -102,7 +84,15 @@ func (c URLConstraint) When(condition bool) URLConstraint {
 }
 
 func (c URLConstraint) ValidateString(value *string, scope validation.Scope) error {
-	if c.isIgnored || value == nil || *value == "" || c.isValid(*value, c.protocols...) {
+	if c.isIgnored || value == nil || *value == "" {
+		return nil
+	}
+
+	schemas := c.schemas
+	if c.supportsRelativeSchema {
+		schemas = append(schemas, "")
+	}
+	if is.URL(*value, schemas...) {
 		return nil
 	}
 

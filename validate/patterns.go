@@ -3,7 +3,7 @@ package validate
 import "regexp"
 
 const (
-	urlProtocol   = `([a-z]*:)?//`
+	urlSchema     = `([a-z]*:)?//`
 	urlBasicAuth  = `(((?:[\_\.\pL\pN-]|%[0-9A-Fa-f]{2})+:)?((?:[\_\.\pL\pN-]|%[0-9A-Fa-f]{2})+)@)?`
 	urlDomainName = `([\pL\pN\pS\-\_\.])+(\.?([\pL\pN]|xn\-\-[\pL\pN-]+)+\.?)`
 	ipv4          = `\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}`
@@ -13,7 +13,7 @@ const (
 	urlPath       = `(?:/(?:[\pL\pN\-._\~!$&\'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*`
 	urlQuery      = `(?:\?(?:[\pL\pN\-._\~!$&\'\[\]()*+,;=:@/?]|%[0-9A-Fa-f]{2})*)?`
 	urlFragment   = `(?:\#(?:[\pL\pN\-._\~!$&\'()*+,;=:@/?]|%[0-9A-Fa-f]{2})*)?`
-	urlPattern    = `(?i)^` + urlProtocol + urlBasicAuth + urlHost + urlPort + urlPath + urlQuery + urlFragment + `$`
+	urlPattern    = `(?i)^` + urlSchema + urlBasicAuth + urlHost + urlPort + urlPath + urlQuery + urlFragment + `$`
 )
 
 var (
