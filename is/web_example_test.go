@@ -14,7 +14,7 @@ func ExampleURL_validAbsoluteURL() {
 	// true
 }
 
-func ExampleURL_validURLWithCustomProtocol() {
+func ExampleURL_validURLWithCustomSchema() {
 	valid := is.URL("ftp://example.com", "http", "https", "ftp")
 
 	fmt.Println(valid)
@@ -30,18 +30,10 @@ func ExampleURL_invalidURL() {
 	// false
 }
 
-func ExampleRelativeURL_validRelativeURL() {
-	valid := is.RelativeURL("//example.com")
+func ExampleURL_validRelativeURL() {
+	valid := is.URL("//example.com", "")
 
 	fmt.Println(valid)
 	// Output:
 	// true
-}
-
-func ExampleRelativeURL_invalidURL() {
-	valid := is.RelativeURL("example.com")
-
-	fmt.Println(valid)
-	// Output:
-	// false
 }
