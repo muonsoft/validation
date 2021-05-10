@@ -6,28 +6,28 @@ import (
 	"github.com/muonsoft/validation/is"
 )
 
-func ExampleEmail_validEmail() {
-	valid := is.Email("user@example.com")
-
-	fmt.Println(valid)
+func ExampleEmail() {
+	fmt.Println(is.Email("user@example.com"))         // valid
+	fmt.Println(is.Email("{}~!@example.com"))         // valid
+	fmt.Println(is.Email("пользователь@example.com")) // valid
+	fmt.Println(is.Email("user example.com"))         // invalid
 	// Output:
 	// true
-}
-
-func ExampleEmail_invalidEmail() {
-	valid := is.Email("user example.com")
-
-	fmt.Println(valid)
-	// Output:
+	// true
+	// true
 	// false
 }
 
 func ExampleHTML5Email() {
-	valid := is.Email("{}~!@example.com")
-
-	fmt.Println(valid)
+	fmt.Println(is.HTML5Email("user@example.com"))         // valid
+	fmt.Println(is.HTML5Email("{}~!@example.com"))         // valid
+	fmt.Println(is.HTML5Email("пользователь@example.com")) // invalid
+	fmt.Println(is.HTML5Email("user example.com"))         // invalid
 	// Output:
 	// true
+	// true
+	// false
+	// false
 }
 
 func ExampleURL() {
