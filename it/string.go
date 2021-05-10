@@ -3,6 +3,7 @@ package it
 import (
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
+	"github.com/muonsoft/validation/is"
 	"github.com/muonsoft/validation/message"
 
 	"regexp"
@@ -224,4 +225,14 @@ func (c RegexConstraint) ValidateString(value *string, scope validation.Scope) e
 		BuildViolation(code.MatchingFailed, c.messageTemplate).
 		AddParameter("{{ value }}", *value).
 		CreateViolation()
+}
+
+// IsJSON validates that a value is a valid JSON.
+func IsJSON() validation.CustomStringConstraint {
+	return validation.NewCustomStringConstraint(
+		is.JSON,
+		"JSONConstraint",
+		code.InvalidJSON,
+		message.InvalidJSON,
+	)
 }

@@ -49,6 +49,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.InvalidEmail:    catalog.String(message.InvalidEmail),
 		message.InvalidHostname: catalog.String(message.InvalidHostname),
 		message.InvalidIP:       catalog.String(message.InvalidIP),
+		message.InvalidJSON:     catalog.String(message.InvalidJSON),
 		message.InvalidURL:      catalog.String(message.InvalidURL),
 		message.LengthExact: plural.Selectf(1, "",
 			plural.One, "This value should have exactly {{ limit }} character.",
