@@ -7,59 +7,39 @@ import (
 	"github.com/muonsoft/validation/validate"
 )
 
-func ExampleEmail_validEmail() {
-	valid := is.Email("user@example.com")
-
-	fmt.Println(valid)
+func ExampleEmail() {
+	fmt.Println(is.Email("user@example.com"))         // valid
+	fmt.Println(is.Email("{}~!@example.com"))         // valid
+	fmt.Println(is.Email("пользователь@example.com")) // valid
+	fmt.Println(is.Email("user example.com"))         // invalid
 	// Output:
 	// true
-}
-
-func ExampleEmail_invalidEmail() {
-	valid := is.Email("user example.com")
-
-	fmt.Println(valid)
-	// Output:
+	// true
+	// true
 	// false
 }
 
 func ExampleHTML5Email() {
-	valid := is.Email("{}~!@example.com")
-
-	fmt.Println(valid)
+	fmt.Println(is.HTML5Email("user@example.com"))         // valid
+	fmt.Println(is.HTML5Email("{}~!@example.com"))         // valid
+	fmt.Println(is.HTML5Email("пользователь@example.com")) // invalid
+	fmt.Println(is.HTML5Email("user example.com"))         // invalid
 	// Output:
 	// true
-}
-
-func ExampleURL_validAbsoluteURL() {
-	valid := is.URL("https://example.com")
-
-	fmt.Println(valid)
-	// Output:
 	// true
-}
-
-func ExampleURL_validURLWithCustomSchema() {
-	valid := is.URL("ftp://example.com", "http", "https", "ftp")
-
-	fmt.Println(valid)
-	// Output:
-	// true
-}
-
-func ExampleURL_invalidURL() {
-	valid := is.URL("example.com")
-
-	fmt.Println(valid)
-	// Output:
+	// false
 	// false
 }
 
-func ExampleURL_validRelativeURL() {
-	valid := is.URL("//example.com", "")
-
-	fmt.Println(valid)
+func ExampleURL() {
+	fmt.Println(is.URL("https://example.com"))                       // valid absolute URL
+	fmt.Println(is.URL("ftp://example.com", "http", "https", "ftp")) // valid URL with custom schema
+	fmt.Println(is.URL("example.com"))                               // invalid URL
+	fmt.Println(is.URL("//example.com", ""))                         // valid relative URL
 	// Output:
+	// true
+	// true
+	// false
 	// true
 }
 
