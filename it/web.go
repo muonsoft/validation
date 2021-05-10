@@ -33,6 +33,37 @@ func IsHTML5Email() validation.CustomStringConstraint {
 	)
 }
 
+// IsHostname validates that a value is a valid hostname. It checks that:
+//	• each label within a valid hostname may be no more than 63 octets long;
+//	• the total length of the hostname must not exceed 255 characters;
+//	• hostname is fully qualified and include its top-level domain name
+//	  (for instance, example.com is valid but example is not);
+//	• checks for reserved top-level domains according to RFC 2606
+//	  (hostnames containing them are not considered valid:
+//	  .example, .invalid, .localhost, and .test).
+//
+// If you do not want to check for top-level domains use IsLooseHostname version of constraint.
+func IsHostname() validation.CustomStringConstraint {
+	return validation.NewCustomStringConstraint(
+		is.StrictHostname,
+		"HostnameConstraint",
+		code.InvalidHostname,
+		message.InvalidHostname,
+	)
+}
+
+// IsLooseHostname validates that a value is a valid hostname. It checks that:
+//	• each label within a valid hostname may be no more than 63 octets long;
+//	• the total length of the hostname must not exceed 255 characters.
+func IsLooseHostname() validation.CustomStringConstraint {
+	return validation.NewCustomStringConstraint(
+		is.Hostname,
+		"LooseHostnameConstraint",
+		code.InvalidHostname,
+		message.InvalidHostname,
+	)
+}
+
 // URLConstraint is used to validate URL string. This constraint doesn’t check that the host of the
 // given URL really exists, because the information of the DNS records is not reliable.
 //

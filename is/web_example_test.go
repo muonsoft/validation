@@ -134,3 +134,27 @@ func ExampleIPv6_restrictedPrivateIP() {
 	// Output:
 	// false
 }
+
+func ExampleHostname() {
+	fmt.Println(is.Hostname("example.com"))       // valid
+	fmt.Println(is.Hostname("example.localhost")) // valid
+	fmt.Println(is.Hostname("com"))               // valid
+	fmt.Println(is.Hostname("example-.com"))      // invalid
+	// Output:
+	// true
+	// true
+	// true
+	// false
+}
+
+func ExampleStrictHostname() {
+	fmt.Println(is.StrictHostname("example.com"))       // valid
+	fmt.Println(is.StrictHostname("example.localhost")) // reserved
+	fmt.Println(is.StrictHostname("com"))               // invalid
+	fmt.Println(is.StrictHostname("example-.com"))      // invalid
+	// Output:
+	// true
+	// false
+	// false
+	// false
+}

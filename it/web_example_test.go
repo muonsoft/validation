@@ -40,6 +40,54 @@ func ExampleIsHTML5Email_invalidEmail() {
 	// violation: This value is not a valid email address.
 }
 
+func ExampleIsHostname_validHostname() {
+	v := "example.com"
+	err := validator.ValidateString(&v, it.IsHostname())
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsHostname_invalidHostname() {
+	v := "example-.com"
+	err := validator.ValidateString(&v, it.IsHostname())
+	fmt.Println(err)
+	// Output:
+	// violation: This value is not a valid hostname.
+}
+
+func ExampleIsHostname_reservedHostname() {
+	v := "example.localhost"
+	err := validator.ValidateString(&v, it.IsHostname())
+	fmt.Println(err)
+	// Output:
+	// violation: This value is not a valid hostname.
+}
+
+func ExampleIsLooseHostname_validHostname() {
+	v := "example.com"
+	err := validator.ValidateString(&v, it.IsLooseHostname())
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsLooseHostname_invalidHostname() {
+	v := "example-.com"
+	err := validator.ValidateString(&v, it.IsLooseHostname())
+	fmt.Println(err)
+	// Output:
+	// violation: This value is not a valid hostname.
+}
+
+func ExampleIsLooseHostname_reservedHostname() {
+	v := "example.localhost"
+	err := validator.ValidateString(&v, it.IsLooseHostname())
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
 func ExampleIsURL_validURL() {
 	v := "http://example.com"
 	err := validator.ValidateString(&v, it.IsURL())

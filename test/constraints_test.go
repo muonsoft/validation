@@ -60,6 +60,7 @@ var validateTestCases = mergeTestCases(
 	urlConstraintTestCases,
 	emailConstraintTestCases,
 	ipConstraintTestCases,
+	hostnameConstraintTestCases,
 )
 
 func TestValidateBool(t *testing.T) {
