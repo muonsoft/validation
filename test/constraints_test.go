@@ -55,6 +55,7 @@ var validateTestCases = mergeTestCases(
 	timeComparisonTestCases,
 	rangeComparisonTestCases,
 	isBetweenTimeTestCases,
+	urlConstraintTestCases,
 )
 
 func TestValidateBool(t *testing.T) {

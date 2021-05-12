@@ -14,6 +14,7 @@ const (
 	CountTooMany      = "countTooMany"
 	Equal             = "equal"
 	False             = "false"
+	InvalidURL        = "invalidURL"
 	LengthExact       = "lengthExact"
 	LengthTooFew      = "lengthTooFew"
 	LengthTooMany     = "lengthTooMany"
