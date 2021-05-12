@@ -21,6 +21,10 @@ var (
 	emptyTime  time.Time
 )
 
+type contextKey string
+
+const defaultContextKey contextKey = "defaultContextKey"
+
 func boolValue(b bool) *bool {
 	return &b
 }
