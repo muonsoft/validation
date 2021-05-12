@@ -162,6 +162,12 @@ func (validator *Validator) ValidateValidatable(validatable Validatable, options
 	return validator.Validate(Valid(validatable, options...))
 }
 
+// Context returns context from current validation scope. By default it returns context.Background.
+// You can create scoped validator with context by calling WithContext method.
+func (validator *Validator) Context() context.Context {
+	return validator.scope.context
+}
+
 // WithContext method creates a new scoped validator with a given context. You can use this method to pass
 // a context value to all used constraints.
 //

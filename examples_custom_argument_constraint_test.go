@@ -31,6 +31,7 @@ func (repository *BrandRepository) FindByName(ctx context.Context, name string) 
 
 // You can declare you own constraint interface to create custom constraints.
 type BrandConstraint interface {
+	validation.Constraint
 	ValidateBrand(brand *Brand, scope validation.Scope) error
 }
 
