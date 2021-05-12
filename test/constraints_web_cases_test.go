@@ -85,3 +85,34 @@ var urlConstraintTestCases = []ConstraintValidationTestCase{
 		assert:          assertHasOneViolation(code.InvalidURL, message.InvalidURL, ""),
 	},
 }
+
+var emailConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsEmail passes on valid email",
+		isApplicableFor: specificValueTypes(stringType),
+		options:         []validation.Option{it.IsEmail()},
+		stringValue:     stringValue("user@example.com"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsEmail violation on invalid email",
+		isApplicableFor: specificValueTypes(stringType),
+		options:         []validation.Option{it.IsEmail()},
+		stringValue:     stringValue("invalid"),
+		assert:          assertHasOneViolation(code.InvalidEmail, message.InvalidEmail, ""),
+	},
+	{
+		name:            "IsHTML5Email passes on valid email",
+		isApplicableFor: specificValueTypes(stringType),
+		options:         []validation.Option{it.IsHTML5Email()},
+		stringValue:     stringValue("user@example.com"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsHTML5Email violation on invalid email",
+		isApplicableFor: specificValueTypes(stringType),
+		options:         []validation.Option{it.IsHTML5Email()},
+		stringValue:     stringValue("invalid"),
+		assert:          assertHasOneViolation(code.InvalidEmail, message.InvalidEmail, ""),
+	},
+}
