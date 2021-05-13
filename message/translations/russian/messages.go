@@ -52,6 +52,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.InvalidEmail:    catalog.String("Значение адреса электронной почты недопустимо."),
 		message.InvalidHostname: catalog.String("Значение не является корректным именем хоста."),
 		message.InvalidIP:       catalog.String("Значение не является допустимым IP адресом."),
+		message.InvalidJSON:     catalog.String("Значение должно быть корректным JSON."),
 		message.InvalidURL:      catalog.String("Значение не является допустимым URL."),
 		message.LengthExact: plural.Selectf(1, "",
 			plural.One, "Значение должно быть равно {{ limit }} символу.",

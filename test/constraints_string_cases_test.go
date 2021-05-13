@@ -4,6 +4,7 @@ import (
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
+	"github.com/muonsoft/validation/message"
 
 	"regexp"
 )
@@ -172,5 +173,22 @@ var regexConstraintTestCases = []ConstraintValidationTestCase{
 		stringValue:     stringValue("1"),
 		options:         []validation.Option{it.DoesNotMatch(regexp.MustCompile("^[a-z]+$"))},
 		assert:          assertNoError,
+	},
+}
+
+var jsonConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsJSON passes on valid JSON",
+		isApplicableFor: specificValueTypes(stringType),
+		options:         []validation.Option{it.IsJSON()},
+		stringValue:     stringValue(`{"valid": true}`),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsJSON violation on invalid JSON",
+		isApplicableFor: specificValueTypes(stringType),
+		options:         []validation.Option{it.IsJSON()},
+		stringValue:     stringValue(`"invalid": true`),
+		assert:          assertHasOneViolation(code.InvalidJSON, message.InvalidJSON, ""),
 	},
 }

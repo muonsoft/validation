@@ -35,6 +35,7 @@ const (
 	InvalidEmail      = "This value is not a valid email address."
 	InvalidHostname   = "This value is not a valid hostname."
 	InvalidIP         = "This is not a valid IP address."
+	InvalidJSON       = "This value should be valid JSON."
 	InvalidURL        = "This value is not a valid URL."
 	LengthExact       = "This value should have exactly {{ limit }} character(s)."
 	LengthTooFew      = "This value is too short. It should have {{ limit }} character(s) or more."
