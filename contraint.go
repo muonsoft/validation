@@ -222,23 +222,13 @@ func (c ConditionalConstraint) validate(
 	return nil
 }
 
-// SequentiallyConstraint is used to build constraints allowing to interrupt the validation once
+// SequentiallyConstraint is used to set constraints allowing to interrupt the validation once
 // the first violation is raised.
 type SequentiallyConstraint struct {
 	constraints []Constraint
 }
 
-// Sequentially creates a SequentiallyConstraint that set of rules that should be validated step-by-step.
-//
-// Example
-//  v := "name"
-//	err := validator.ValidateString(
-//		&value,
-//		validation.Sequentially(
-//			it.IsNotBlank(),
-//			it.Matches(regexp.MustCompile(`^\\w$`)),
-//		),
-//	)
+// Sequentially function using to set of constraints that should be validated step-by-step.
 func Sequentially(constraints ...Constraint) SequentiallyConstraint {
 	return SequentiallyConstraint{
 		constraints: constraints,
@@ -263,17 +253,11 @@ func (c SequentiallyConstraint) validate(
 	violations *ViolationList,
 	validate ValidateByConstraintFunc,
 ) error {
-	var err error
 	for _, constraint := range c.constraints {
-		err = validate(constraint, scope)
+		err := validate(constraint, scope)
 		if err != nil {
-			break
+			return violations.AppendFromError(err)
 		}
-	}
-
-	err = violations.AppendFromError(err)
-	if err != nil {
-		return err
 	}
 
 	return nil

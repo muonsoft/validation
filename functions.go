@@ -7,7 +7,7 @@ import (
 	"github.com/muonsoft/validation/generic"
 )
 
-type ConstraintsPool interface {
+type controlConstraint interface {
 	validate(scope Scope, violations *ViolationList, validate ValidateByConstraintFunc) error
 }
 
@@ -262,7 +262,7 @@ func validateOnScope(scope Scope, options []Option, validate ValidateByConstrain
 	violations := make(ViolationList, 0)
 
 	for _, option := range options {
-		if constraint, ok := option.(ConstraintsPool); ok {
+		if constraint, ok := option.(controlConstraint); ok {
 			err := constraint.validate(scope, &violations, validate)
 			if err != nil {
 				return nil, err

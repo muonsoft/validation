@@ -58,5 +58,5 @@ func (err ConstraintNotFoundError) Error() string {
 var (
 	errDefaultLanguageNotLoaded      = errors.New("default language is not loaded")
 	errThenBranchNotSet              = errors.New("then branch of conditional constraint not set")
-	errSequentiallyConstraintsNotSet = errors.New("then branch of conditional constraint not set")
+	errSequentiallyConstraintsNotSet = errors.New("constraints for sequentially validation not set")
 )

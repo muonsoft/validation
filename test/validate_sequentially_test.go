@@ -11,8 +11,8 @@ import (
 	"testing"
 )
 
-func TestValidate_InvalidValueAtFirstConstraintOfSequentiallyConstraint_ExpectViolations(t *testing.T) {
-	value := "aaa"
+func TestValidate_WhenInvalidValueAtFirstConstraintOfSequentiallyConstraint_ExpectOneViolation(t *testing.T) {
+	value := foo
 
 	err := validator.ValidateString(
 		&value,
@@ -27,4 +27,15 @@ func TestValidate_InvalidValueAtFirstConstraintOfSequentiallyConstraint_ExpectVi
 		return assert.Len(t, violations, 1) &&
 			assert.Equal(t, code.Blank, violations[0].Code())
 	})
+}
+
+func TestValidate_WhenSequentiallyConstraintsNotSet_ExpectError(t *testing.T) {
+	value := bar
+
+	err := validator.ValidateString(
+		&value,
+		validation.Sequentially(),
+	)
+
+	assert.Error(t, err, "constraints for sequentially validation not set")
 }
