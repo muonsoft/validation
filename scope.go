@@ -84,13 +84,21 @@ func (s Scope) withLanguage(tag language.Tag) Scope {
 }
 
 func (s Scope) atProperty(name string) Scope {
-	s.propertyPath = append(s.propertyPath, PropertyNameElement(name))
+	propertyPath := make(PropertyPath, len(s.propertyPath)+1)
+	copy(propertyPath, s.propertyPath)
+	propertyPath[len(s.propertyPath)] = PropertyNameElement(name)
+
+	s.propertyPath = propertyPath
 
 	return s
 }
 
 func (s Scope) atIndex(index int) Scope {
-	s.propertyPath = append(s.propertyPath, ArrayIndexElement(index))
+	propertyPath := make(PropertyPath, len(s.propertyPath)+1)
+	copy(propertyPath, s.propertyPath)
+	propertyPath[len(s.propertyPath)] = ArrayIndexElement(index)
+
+	s.propertyPath = propertyPath
 
 	return s
 }

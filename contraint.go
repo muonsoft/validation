@@ -1,7 +1,9 @@
 package validation
 
 import (
+	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/generic"
+	"github.com/muonsoft/validation/message"
 
 	"time"
 )
@@ -62,37 +64,100 @@ type TimeConstraint interface {
 	ValidateTime(value *time.Time, scope Scope) error
 }
 
-// ConditionalConstraint is used to construct constraints using a conditional construct.
+// CustomStringConstraint can be used to create custom constraints for validating string values
+// based on function with signature func(string) bool.
+type CustomStringConstraint struct {
+	isIgnored       bool
+	isValid         func(string) bool
+	name            string
+	code            string
+	messageTemplate string
+}
+
+// NewCustomStringConstraint creates a new string constraint from a function with signature func(string) bool.
+// Optional parameters can be used to set up constraint name (first parameter), violation code (second),
+// message template (third). All other parameters are ignored.
+func NewCustomStringConstraint(isValid func(string) bool, parameters ...string) CustomStringConstraint {
+	constraint := CustomStringConstraint{
+		isValid:         isValid,
+		name:            "CustomStringConstraint",
+		code:            code.NotValid,
+		messageTemplate: message.NotValid,
+	}
+
+	if len(parameters) > 0 {
+		constraint.name = parameters[0]
+	}
+	if len(parameters) > 1 {
+		constraint.code = parameters[1]
+	}
+	if len(parameters) > 2 {
+		constraint.messageTemplate = parameters[2]
+	}
+
+	return constraint
+}
+
+// SetUp always returns no error.
+func (c CustomStringConstraint) SetUp() error {
+	return nil
+}
+
+// Name is the constraint name. It can be set via first parameter of function NewCustomStringConstraint.
+func (c CustomStringConstraint) Name() string {
+	return c.name
+}
+
+// Message sets the violation message template. You can use template parameters
+// for injecting its values into the final message:
+//
+//	{{ value }} - the current (invalid) value.
+func (c CustomStringConstraint) Message(message string) CustomStringConstraint {
+	c.messageTemplate = message
+	return c
+}
+
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
+func (c CustomStringConstraint) When(condition bool) CustomStringConstraint {
+	c.isIgnored = !condition
+	return c
+}
+
+func (c CustomStringConstraint) ValidateString(value *string, scope Scope) error {
+	if c.isIgnored || value == nil || *value == "" || c.isValid(*value) {
+		return nil
+	}
+
+	return scope.BuildViolation(c.code, c.messageTemplate).
+		AddParameter("{{ value }}", *value).
+		CreateViolation()
+}
+
+// ConditionalConstraint is used for conditional validation.
+// Use the When function to initiate a conditional check.
+// If the condition is true, then the constraints passed through the Then function will be applied.
+// Otherwise, the constraints passed through the Else function will apply.
 type ConditionalConstraint struct {
 	condition       bool
 	thenConstraints []Constraint
 	elseConstraints []Constraint
 }
 
-// When creates a ConditionalConstraint that set condition.
-//
-// Example
-//  v := "name"
-//	err := validator.ValidateString(
-//		&value,
-//		validation.When(utf8.RuneCountInString(value) <= 3).
-//		Then(
-//			it.Matches(regexp.MustCompile(`^\\w$`)),
-//		),
-//	)
+// When function using to initiate a conditional check.
 func When(condition bool) ConditionalConstraint {
 	return ConditionalConstraint{
 		condition: condition,
 	}
 }
 
-// Then creates a ConditionalConstraint that set a list of then branch constraints.
+// Then function applied the constraints if the condition is true.
 //
 // Example
-//  v := "name"
+//  v := "foo"
 //	err := validator.ValidateString(
 //		&value,
-//		validation.When(utf8.RuneCountInString(value) <= 3).
+//		validation.When(true).
 //		Then(
 //			it.Matches(regexp.MustCompile(`^\\w$`)),
 //		),
@@ -102,13 +167,13 @@ func (c ConditionalConstraint) Then(constraints ...Constraint) ConditionalConstr
 	return c
 }
 
-// Else creates a ConditionalConstraint that set a list of else branch constraints.
+// Else function applied the constraints if the condition is false.
 //
 // Example
-//  v := "name"
+//  v := "foo"
 //	err := validator.ValidateString(
 //		&value,
-//		validation.When(utf8.RuneCountInString(value) <= 3).
+//		validation.When(false).
 //		Then(
 //			it.Matches(regexp.MustCompile(`^\\w$`)),
 //		).
@@ -126,7 +191,7 @@ func (c ConditionalConstraint) Name() string {
 	return "ConditionalConstraint"
 }
 
-// SetUp will return an error if the list of then branch constraints is empty.
+// SetUp will return an error if the constraints to apply is empty.
 func (c ConditionalConstraint) SetUp() error {
 	if len(c.thenConstraints) == 0 {
 		return errThenBranchNotSet
