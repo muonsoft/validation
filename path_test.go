@@ -7,7 +7,8 @@ import (
 )
 
 func TestPropertyPath_String(t *testing.T) {
-	path := PropertyPath{PropertyNameElement("array"), ArrayIndexElement(1), PropertyNameElement("property")}
+	var path *PropertyPath
+	path = path.WithProperty("array").WithIndex(1).WithProperty("property")
 
 	formatted := path.String()
 

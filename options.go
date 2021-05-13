@@ -26,7 +26,7 @@ func (f optionFunc) setUpOnScope(scope *Scope) error {
 // PropertyName option adds name of the given property to current validation scope.
 func PropertyName(propertyName string) Option {
 	return optionFunc(func(scope *Scope) error {
-		scope.propertyPath = append(scope.propertyPath, PropertyNameElement(propertyName))
+		scope.propertyPath = scope.propertyPath.WithProperty(propertyName)
 
 		return nil
 	})
@@ -35,7 +35,7 @@ func PropertyName(propertyName string) Option {
 // ArrayIndex option adds index of the given array to current validation scope.
 func ArrayIndex(index int) Option {
 	return optionFunc(func(scope *Scope) error {
-		scope.propertyPath = append(scope.propertyPath, ArrayIndexElement(index))
+		scope.propertyPath = scope.propertyPath.WithIndex(index)
 
 		return nil
 	})
