@@ -15,6 +15,7 @@ const (
 	Equal             = "equal"
 	False             = "false"
 	InvalidEmail      = "invalidEmail"
+	InvalidHostname   = "invalidHostname"
 	InvalidIP         = "invalidIP"
 	InvalidURL        = "invalidURL"
 	LengthExact       = "lengthExact"

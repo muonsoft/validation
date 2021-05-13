@@ -220,3 +220,48 @@ var ipConstraintTestCases = []ConstraintValidationTestCase{
 		assert:          assertHasOneViolation(code.InvalidIP, message.InvalidIP, ""),
 	},
 }
+
+var hostnameConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsHostname passes on valid hostname",
+		isApplicableFor: specificValueTypes(stringType),
+		options:         []validation.Option{it.IsHostname()},
+		stringValue:     stringValue("example.com"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsHostname violation on invalid hostname",
+		isApplicableFor: specificValueTypes(stringType),
+		options:         []validation.Option{it.IsHostname()},
+		stringValue:     stringValue("example-.com"),
+		assert:          assertHasOneViolation(code.InvalidHostname, message.InvalidHostname, ""),
+	},
+	{
+		name:            "IsHostname violation on reserved hostname",
+		isApplicableFor: specificValueTypes(stringType),
+		options:         []validation.Option{it.IsHostname()},
+		stringValue:     stringValue("example.localhost"),
+		assert:          assertHasOneViolation(code.InvalidHostname, message.InvalidHostname, ""),
+	},
+	{
+		name:            "IsLooseHostname passes on valid hostname",
+		isApplicableFor: specificValueTypes(stringType),
+		options:         []validation.Option{it.IsLooseHostname()},
+		stringValue:     stringValue("example.com"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsLooseHostname violation on invalid hostname",
+		isApplicableFor: specificValueTypes(stringType),
+		options:         []validation.Option{it.IsLooseHostname()},
+		stringValue:     stringValue("example-.com"),
+		assert:          assertHasOneViolation(code.InvalidHostname, message.InvalidHostname, ""),
+	},
+	{
+		name:            "IsLooseHostname passes on reserved hostname",
+		isApplicableFor: specificValueTypes(stringType),
+		options:         []validation.Option{it.IsLooseHostname()},
+		stringValue:     stringValue("example.localhost"),
+		assert:          assertNoError,
+	},
+}

@@ -33,6 +33,7 @@ const (
 	Equal             = "This value should be equal to {{ comparedValue }}."
 	False             = "This value should be false."
 	InvalidEmail      = "This value is not a valid email address."
+	InvalidHostname   = "This value is not a valid hostname."
 	InvalidIP         = "This is not a valid IP address."
 	InvalidURL        = "This value is not a valid URL."
 	LengthExact       = "This value should have exactly {{ limit }} character(s)."

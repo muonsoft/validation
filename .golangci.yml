@@ -77,6 +77,7 @@ issues:
         - gosec
         - lll
         - scopelint
+        - goconst
     - path: example_test\.go
       linters:
         - dogsled
@@ -90,6 +91,7 @@ issues:
         - gosec
         - lll
         - scopelint
+        - goconst
     - path: test
       linters:
         - dogsled
