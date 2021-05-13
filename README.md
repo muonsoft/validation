@@ -1,6 +1,8 @@
 # Golang validation framework
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/muonsoft/validation.svg)](https://pkg.go.dev/github.com/muonsoft/validation)
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/muonsoft/validation)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/muonsoft/validation)
 ![GitHub](https://img.shields.io/github/license/muonsoft/validation)
 [![tests](https://github.com/muonsoft/validation/actions/workflows/tests.yml/badge.svg)](https://github.com/muonsoft/validation/actions/workflows/tests.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/muonsoft/validation)](https://goreportcard.com/report/github.com/muonsoft/validation)

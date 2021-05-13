@@ -9,6 +9,7 @@ import (
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
 	"github.com/muonsoft/validation/validator"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -52,9 +53,12 @@ var validateTestCases = mergeTestCases(
 	choiceConstraintTestCases,
 	numberComparisonTestCases,
 	stringComparisonTestCases,
+	customStringConstraintTestCases,
 	timeComparisonTestCases,
 	rangeComparisonTestCases,
 	isBetweenTimeTestCases,
+	urlConstraintTestCases,
+	emailConstraintTestCases,
 )
 
 func TestValidateBool(t *testing.T) {
@@ -192,6 +196,22 @@ func TestValidateNil(t *testing.T) {
 			test.assert(t, err)
 		})
 	}
+}
+
+func TestCustomStringConstraint_Name_WhenNoNameIsSet_ExpectDefaultName(t *testing.T) {
+	constraint := validation.NewCustomStringConstraint(validString)
+
+	name := constraint.Name()
+
+	assert.Equal(t, "CustomStringConstraint", name)
+}
+
+func TestCustomStringConstraint_Name_WhenNameIsSet_ExpectGivenName(t *testing.T) {
+	constraint := validation.NewCustomStringConstraint(validString, "CustomName")
+
+	name := constraint.Name()
+
+	assert.Equal(t, "CustomName", name)
 }
 
 func anyValueType(valueType string) bool {

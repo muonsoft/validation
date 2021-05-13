@@ -22,6 +22,7 @@ build:
 
 filter:
   excluded_paths:
+    - '*/*test.go'
     - 'test/*'
     - 'message/*'
 

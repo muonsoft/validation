@@ -77,6 +77,19 @@ issues:
         - gosec
         - lll
         - scopelint
+    - path: example_test\.go
+      linters:
+        - dogsled
+        - dupl
+        - errcheck
+        - forbidigo
+        - funlen
+        - gochecknoglobals
+        - gocyclo
+        - goerr113
+        - gosec
+        - lll
+        - scopelint
     - path: test
       linters:
         - dogsled
@@ -89,3 +102,9 @@ issues:
         - gosec
         - lll
         - scopelint
+    - path: is/patterns.go
+      linters:
+        - lll
+    - path: validate/patterns.go
+      linters:
+        - lll
