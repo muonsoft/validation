@@ -8,49 +8,73 @@ import (
 	"github.com/muonsoft/validation/validator"
 	"github.com/stretchr/testify/assert"
 
-	"regexp"
 	"testing"
-	"unicode/utf8"
 )
 
-func TestValidate_WhenInvalidValueForElseBranchOfConditionConstraint_ExpectViolations(t *testing.T) {
-	value := "name"
+func TestValidateString_WhenConditionIsTrue_ExpectAllConstraintsOfThenBranchApplied(t *testing.T) {
+	value := "foo"
 
 	err := validator.ValidateString(
 		&value,
-		validation.When(utf8.RuneCountInString(value) <= 3).
+		validation.When(true).
 			Then(
-				it.Matches(regexp.MustCompile(`^\\w$`)),
-			).
-			Else(
-				it.Matches(regexp.MustCompile(`^\\d$`)),
+				it.IsBlank(),
+				it.HasMinLength(5),
 			),
 	)
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 		t.Helper()
-		return assert.Len(t, violations, 1) &&
-			assert.Equal(t, code.MatchingFailed, violations[0].Code())
+		return assert.Len(t, violations, 2) &&
+			assert.Equal(t, code.Blank, violations[0].Code()) &&
+			assert.Equal(t, code.LengthTooFew, violations[1].Code())
 	})
 }
 
-func TestValidate_WhenInvalidValueForThenBranchOfConditionConstraint_ExpectViolations(t *testing.T) {
-	value := "name"
+func TestValidateString_WhenConditionIsFalse_ExpectAllConstraintsOfElseBranchApplied(t *testing.T) {
+	value := "bar"
 
 	err := validator.ValidateString(
 		&value,
-		validation.When(utf8.RuneCountInString(value) <= 4).
+		validation.When(false).
 			Then(
-				it.Matches(regexp.MustCompile(`^\\d$`)),
+				it.IsNotBlank(),
 			).
 			Else(
-				it.Matches(regexp.MustCompile(`^\\w$`)),
+				it.IsBlank(),
+				it.HasMinLength(5),
 			),
 	)
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
 		t.Helper()
-		return assert.Len(t, violations, 1) &&
-			assert.Equal(t, code.MatchingFailed, violations[0].Code())
+		return assert.Len(t, violations, 2) &&
+			assert.Equal(t, code.Blank, violations[0].Code()) &&
+			assert.Equal(t, code.LengthTooFew, violations[1].Code())
 	})
+}
+
+func TestValidateString_WhenConditionIsFalseAndNoElseBranch_ExpectNoViolations(t *testing.T) {
+	value := "foo"
+
+	err := validator.ValidateString(
+		&value,
+		validation.When(false).
+			Then(
+				it.IsNotBlank(),
+			),
+	)
+
+	assertNoError(t, err)
+}
+
+func TestValidateString_WhenThenBranchIsNotSet_ExpectError(t *testing.T) {
+	value := "bar"
+
+	err := validator.ValidateString(
+		&value,
+		validation.When(true),
+	)
+
+	assert.Error(t, err, "then branch of conditional constraint not set")
 }

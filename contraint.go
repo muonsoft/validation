@@ -62,37 +62,30 @@ type TimeConstraint interface {
 	ValidateTime(value *time.Time, scope Scope) error
 }
 
-// ConditionalConstraint is used to construct constraints using a conditional construct.
+// ConditionalConstraint is used for conditional validation.
+// Use the When function to initiate a conditional check.
+// If the condition is true, then the constraints passed through the Then function will be applied.
+// Otherwise, the constraints passed through the Else function will apply.
 type ConditionalConstraint struct {
 	condition       bool
 	thenConstraints []Constraint
 	elseConstraints []Constraint
 }
 
-// When creates a ConditionalConstraint that set condition.
-//
-// Example
-//  v := "name"
-//	err := validator.ValidateString(
-//		&value,
-//		validation.When(utf8.RuneCountInString(value) <= 3).
-//		Then(
-//			it.Matches(regexp.MustCompile(`^\\w$`)),
-//		),
-//	)
+// When function using to initiate a conditional check.
 func When(condition bool) ConditionalConstraint {
 	return ConditionalConstraint{
 		condition: condition,
 	}
 }
 
-// Then creates a ConditionalConstraint that set a list of then branch constraints.
+// Then function applied the constraints if the condition is true.
 //
 // Example
-//  v := "name"
+//  v := "foo"
 //	err := validator.ValidateString(
 //		&value,
-//		validation.When(utf8.RuneCountInString(value) <= 3).
+//		validation.When(true).
 //		Then(
 //			it.Matches(regexp.MustCompile(`^\\w$`)),
 //		),
@@ -102,13 +95,13 @@ func (c ConditionalConstraint) Then(constraints ...Constraint) ConditionalConstr
 	return c
 }
 
-// Else creates a ConditionalConstraint that set a list of else branch constraints.
+// Else function applied the constraints if the condition is false.
 //
 // Example
-//  v := "name"
+//  v := "foo"
 //	err := validator.ValidateString(
 //		&value,
-//		validation.When(utf8.RuneCountInString(value) <= 3).
+//		validation.When(false).
 //		Then(
 //			it.Matches(regexp.MustCompile(`^\\w$`)),
 //		).
@@ -126,7 +119,7 @@ func (c ConditionalConstraint) Name() string {
 	return "ConditionalConstraint"
 }
 
-// SetUp will return an error if the list of then branch constraints is empty.
+// SetUp will return an error if the constraints to apply is empty.
 func (c ConditionalConstraint) SetUp() error {
 	if len(c.thenConstraints) == 0 {
 		return errThenBranchNotSet
