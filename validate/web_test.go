@@ -196,3 +196,183 @@ func validURLsWithCustomSchemas() []string {
 		"git://[::1]/",
 	}
 }
+
+func TestIP_WhenValidIP_ExpectNoError(t *testing.T) {
+	ips := append(validIPsV4(), validIPsV6()...)
+	for _, ip := range ips {
+		t.Run(ip, func(t *testing.T) {
+			err := validate.IP(ip)
+
+			assert.NoError(t, err)
+		})
+	}
+}
+
+func TestIP_WhenInvalidIP_ExpectError(t *testing.T) {
+	ips := append(invalidIPsV4(), invalidIPsV6()...)
+	for _, ip := range ips {
+		t.Run(ip, func(t *testing.T) {
+			err := validate.IP(ip)
+
+			assert.Error(t, err)
+		})
+	}
+}
+
+func TestIPv4_WhenValidIP_ExpectNoError(t *testing.T) {
+	for _, ip := range validIPsV4() {
+		t.Run(ip, func(t *testing.T) {
+			err := validate.IPv4(ip)
+
+			assert.NoError(t, err)
+		})
+	}
+}
+
+func TestIPv4_WhenInvalidIP_ExpectError(t *testing.T) {
+	ips := append(append(invalidIPsV4(), validIPsV6()...), invalidIPsV6()...)
+	for _, ip := range ips {
+		t.Run(ip, func(t *testing.T) {
+			err := validate.IPv4(ip)
+
+			assert.Error(t, err)
+		})
+	}
+}
+
+func TestIPv6_WhenValidIP_ExpectNoError(t *testing.T) {
+	for _, ip := range validIPsV6() {
+		t.Run(ip, func(t *testing.T) {
+			err := validate.IPv6(ip)
+
+			assert.NoError(t, err)
+		})
+	}
+}
+
+func TestIPv6_WhenInvalidIP_ExpectError(t *testing.T) {
+	ips := append(append(invalidIPsV4(), validIPsV4()...), invalidIPsV6()...)
+	for _, ip := range ips {
+		t.Run(ip, func(t *testing.T) {
+			err := validate.IPv6(ip)
+
+			assert.Error(t, err)
+		})
+	}
+}
+
+func TestIP_WhenDenyPrivateAndInvalidIP_ExpectError(t *testing.T) {
+	ips := append(invalidPrivateIPsV4(), invalidIPsV6()...)
+	for _, ip := range ips {
+		t.Run(ip, func(t *testing.T) {
+			err := validate.IP(ip, validate.DenyPrivateIP())
+
+			assert.Error(t, err)
+		})
+	}
+}
+
+func TestIPv4_WhenDenyPrivateAndInvalidIP_ExpectError(t *testing.T) {
+	for _, ip := range invalidPrivateIPsV4() {
+		t.Run(ip, func(t *testing.T) {
+			err := validate.IPv4(ip, validate.DenyPrivateIP())
+
+			assert.Error(t, err)
+		})
+	}
+}
+
+func TestIPv6_WhenDenyPrivateAndInvalidIP_ExpectError(t *testing.T) {
+	for _, ip := range invalidPrivateIPsV6() {
+		t.Run(ip, func(t *testing.T) {
+			err := validate.IPv6(ip, validate.DenyPrivateIP())
+
+			assert.Error(t, err)
+		})
+	}
+}
+
+func validIPsV4() []string {
+	return []string{
+		"0.0.0.0",
+		"10.0.0.0",
+		"123.45.67.178",
+		"172.16.0.0",
+		"192.168.1.0",
+		"224.0.0.1",
+		"255.255.255.255",
+		"127.0.0.0",
+	}
+}
+
+func validIPsV6() []string {
+	return []string{
+		"2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+		"2001:0DB8:85A3:0000:0000:8A2E:0370:7334",
+		"2001:0Db8:85a3:0000:0000:8A2e:0370:7334",
+		"fdfe:dcba:9876:ffff:fdc6:c46b:bb8f:7d4c",
+		"fdc6:c46b:bb8f:7d4c:fdc6:c46b:bb8f:7d4c",
+		"fdc6:c46b:bb8f:7d4c:0000:8a2e:0370:7334",
+		"fe80:0000:0000:0000:0202:b3ff:fe1e:8329",
+		"fe80:0:0:0:202:b3ff:fe1e:8329",
+		"fe80::202:b3ff:fe1e:8329",
+		"0:0:0:0:0:0:0:0",
+		"::",
+		"0::",
+		"::0",
+		"0::0",
+		// IPv4 mapped to IPv6
+		"2001:0db8:85a3:0000:0000:8a2e:0.0.0.0",
+		"::0.0.0.0",
+		"::255.255.255.255",
+		"::123.45.67.178",
+	}
+}
+
+func invalidIPsV6() []string {
+	return []string{
+		"z001:0db8:85a3:0000:0000:8a2e:0370:7334",
+		"fe80",
+		"fe80:8329",
+		"fe80:::202:b3ff:fe1e:8329",
+		"fe80::202:b3ff::fe1e:8329",
+		// IPv4 mapped to IPv6
+		"2001:0db8:85a3:0000:0000:8a2e:0370:0.0.0.0",
+		"::0.0",
+		"::0.0.0",
+		"::256.0.0.0",
+		"::0.256.0.0",
+		"::0.0.256.0",
+		"::0.0.0.256",
+	}
+}
+
+func invalidPrivateIPsV6() []string {
+	return []string{
+		"fdfe:dcba:9876:ffff:fdc6:c46b:bb8f:7d4c",
+		"fdc6:c46b:bb8f:7d4c:fdc6:c46b:bb8f:7d4c",
+		"fdc6:c46b:bb8f:7d4c:0000:8a2e:0370:7334",
+	}
+}
+
+func invalidIPsV4() []string {
+	return []string{
+		"0",
+		"0.0",
+		"0.0.0",
+		"256.0.0.0",
+		"0.256.0.0",
+		"0.0.256.0",
+		"0.0.0.256",
+		"-1.0.0.0",
+		"foobar",
+	}
+}
+
+func invalidPrivateIPsV4() []string {
+	return []string{
+		"10.0.0.0",
+		"172.16.0.0",
+		"192.168.1.0",
+	}
+}
