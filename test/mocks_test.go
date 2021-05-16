@@ -23,7 +23,11 @@ var (
 
 type contextKey string
 
-const defaultContextKey contextKey = "defaultContextKey"
+const (
+	defaultContextKey contextKey = "defaultContextKey"
+	foo               string     = "foo"
+	bar               string     = "bar"
+)
 
 func boolValue(b bool) *bool {
 	return &b

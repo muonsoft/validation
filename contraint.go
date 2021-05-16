@@ -180,7 +180,7 @@ func (c ConditionalConstraint) SetUp() error {
 	return nil
 }
 
-func (c *ConditionalConstraint) validateConditionConstraints(
+func (c ConditionalConstraint) validate(
 	scope Scope,
 	validate ValidateByConstraintFunc,
 ) (ViolationList, error) {
@@ -197,6 +197,51 @@ func (c *ConditionalConstraint) validateConditionConstraints(
 		err := violations.AppendFromError(validate(constraint, scope))
 		if err != nil {
 			return nil, err
+		}
+	}
+
+	return violations, nil
+}
+
+// SequentiallyConstraint is used to set constraints allowing to interrupt the validation once
+// the first violation is raised.
+type SequentiallyConstraint struct {
+	constraints []Constraint
+}
+
+// Sequentially function used to set of constraints that should be validated step-by-step.
+// If the list is empty error will be returned.
+func Sequentially(constraints ...Constraint) SequentiallyConstraint {
+	return SequentiallyConstraint{
+		constraints: constraints,
+	}
+}
+
+// Name is the constraint name.
+func (c SequentiallyConstraint) Name() string {
+	return "SequentiallyConstraint"
+}
+
+// SetUp will return an error if the list of constraints is empty.
+func (c SequentiallyConstraint) SetUp() error {
+	if len(c.constraints) == 0 {
+		return errSequentiallyConstraintsNotSet
+	}
+	return nil
+}
+
+func (c SequentiallyConstraint) validate(
+	scope Scope,
+	validate ValidateByConstraintFunc,
+) (ViolationList, error) {
+	violations := make(ViolationList, 0)
+
+	for _, constraint := range c.constraints {
+		err := violations.AppendFromError(validate(constraint, scope))
+		if err != nil {
+			return nil, err
+		} else if len(violations) > 0 {
+			return violations, nil
 		}
 	}
 

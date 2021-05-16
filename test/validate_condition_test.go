@@ -12,7 +12,7 @@ import (
 )
 
 func TestValidateString_WhenConditionIsTrue_ExpectAllConstraintsOfThenBranchApplied(t *testing.T) {
-	value := "foo"
+	value := foo
 
 	err := validator.ValidateString(
 		&value,
@@ -32,7 +32,7 @@ func TestValidateString_WhenConditionIsTrue_ExpectAllConstraintsOfThenBranchAppl
 }
 
 func TestValidateString_WhenConditionIsFalse_ExpectAllConstraintsOfElseBranchApplied(t *testing.T) {
-	value := "bar"
+	value := bar
 
 	err := validator.ValidateString(
 		&value,
@@ -55,7 +55,7 @@ func TestValidateString_WhenConditionIsFalse_ExpectAllConstraintsOfElseBranchApp
 }
 
 func TestValidateString_WhenConditionIsFalseAndNoElseBranch_ExpectNoViolations(t *testing.T) {
-	value := "foo"
+	value := foo
 
 	err := validator.ValidateString(
 		&value,
@@ -69,7 +69,7 @@ func TestValidateString_WhenConditionIsFalseAndNoElseBranch_ExpectNoViolations(t
 }
 
 func TestValidateString_WhenThenBranchIsNotSet_ExpectError(t *testing.T) {
-	value := "bar"
+	value := bar
 
 	err := validator.ValidateString(
 		&value,

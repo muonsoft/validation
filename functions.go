@@ -7,6 +7,10 @@ import (
 	"github.com/muonsoft/validation/generic"
 )
 
+type controlConstraint interface {
+	validate(scope Scope, validate ValidateByConstraintFunc) (ViolationList, error)
+}
+
 // ValidateByConstraintFunc is used for building validation functions for the values of specific types.
 type ValidateByConstraintFunc func(constraint Constraint, scope Scope) error
 
@@ -258,8 +262,8 @@ func validateOnScope(scope Scope, options []Option, validate ValidateByConstrain
 	violations := make(ViolationList, 0)
 
 	for _, option := range options {
-		if constraint, ok := option.(ConditionalConstraint); ok {
-			vs, err := constraint.validateConditionConstraints(scope, validate)
+		if constraint, ok := option.(controlConstraint); ok {
+			vs, err := constraint.validate(scope, validate)
 			if err != nil {
 				return nil, err
 			}
