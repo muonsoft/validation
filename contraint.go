@@ -210,6 +210,7 @@ type SequentiallyConstraint struct {
 }
 
 // Sequentially function using to set of constraints that should be validated step-by-step.
+// If the list is empty error will be returned.
 func Sequentially(constraints ...Constraint) SequentiallyConstraint {
 	return SequentiallyConstraint{
 		constraints: constraints,

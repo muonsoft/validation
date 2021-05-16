@@ -8,8 +8,8 @@ import (
 	"github.com/muonsoft/validation/validator"
 )
 
-func ExampleSequentially_validationInterruptedAtFirstViolation() {
-	title := "aaa"
+func ExampleSequentially() {
+	title := "bar"
 
 	err := validator.ValidateString(
 		&title,
