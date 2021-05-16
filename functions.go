@@ -8,7 +8,7 @@ import (
 )
 
 type controlConstraint interface {
-	validate(scope Scope, violations *ViolationList, validate ValidateByConstraintFunc) error
+	validate(scope Scope, validate ValidateByConstraintFunc) (ViolationList, error)
 }
 
 // ValidateByConstraintFunc is used for building validation functions for the values of specific types.

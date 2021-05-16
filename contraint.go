@@ -254,17 +254,20 @@ func (c SequentiallyConstraint) SetUp() error {
 
 func (c SequentiallyConstraint) validate(
 	scope Scope,
-	violations *ViolationList,
 	validate ValidateByConstraintFunc,
-) error {
+) (ViolationList, error) {
+	violations := make(ViolationList, 0)
+
 	for _, constraint := range c.constraints {
-		err := validate(constraint, scope)
+		err := violations.AppendFromError(validate(constraint, scope))
 		if err != nil {
-			return violations.AppendFromError(err)
+			return nil, err
+		} else if len(violations) > 0 {
+			return violations, nil
 		}
 	}
 
-	return nil
+	return violations, nil
 }
 
 type notFoundConstraint struct {
