@@ -134,6 +134,75 @@ func (c CustomStringConstraint) ValidateString(value *string, scope Scope) error
 		CreateViolation()
 }
 
+// ConditionalConstraint is used for conditional validation.
+// Use the When function to initiate a conditional check.
+// If the condition is true, then the constraints passed through the Then function will be applied.
+// Otherwise, the constraints passed through the Else function will apply.
+type ConditionalConstraint struct {
+	condition       bool
+	thenConstraints []Constraint
+	elseConstraints []Constraint
+}
+
+// When function is used to initiate conditional validation.
+// If the condition is true, then the constraints passed through the Then function will be applied.
+// Otherwise, the constraints passed through the Else function will apply.
+func When(condition bool) ConditionalConstraint {
+	return ConditionalConstraint{
+		condition: condition,
+	}
+}
+
+// Then function is used to set a sequence of constraints to be applied if the condition is true.
+// If the list is empty error will be returned.
+func (c ConditionalConstraint) Then(constraints ...Constraint) ConditionalConstraint {
+	c.thenConstraints = constraints
+	return c
+}
+
+// Else function is used to set a sequence of constraints to be applied if a condition is false.
+func (c ConditionalConstraint) Else(constraints ...Constraint) ConditionalConstraint {
+	c.elseConstraints = constraints
+	return c
+}
+
+// Name is the constraint name.
+func (c ConditionalConstraint) Name() string {
+	return "ConditionalConstraint"
+}
+
+// SetUp will return an error if Then function did not set any constraints.
+func (c ConditionalConstraint) SetUp() error {
+	if len(c.thenConstraints) == 0 {
+		return errThenBranchNotSet
+	}
+
+	return nil
+}
+
+func (c *ConditionalConstraint) validateConditionConstraints(
+	scope Scope,
+	validate ValidateByConstraintFunc,
+) (ViolationList, error) {
+	violations := make(ViolationList, 0)
+	var constraints []Constraint
+
+	if c.condition {
+		constraints = c.thenConstraints
+	} else {
+		constraints = c.elseConstraints
+	}
+
+	for _, constraint := range constraints {
+		err := violations.AppendFromError(validate(constraint, scope))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return violations, nil
+}
+
 type notFoundConstraint struct {
 	key string
 }

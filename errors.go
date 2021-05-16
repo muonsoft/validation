@@ -56,3 +56,4 @@ func (err ConstraintNotFoundError) Error() string {
 }
 
 var errDefaultLanguageNotLoaded = errors.New("default language is not loaded")
+var errThenBranchNotSet = errors.New("then branch of conditional constraint not set")
