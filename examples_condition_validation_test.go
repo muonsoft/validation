@@ -14,7 +14,7 @@ type File struct {
 	Name         string
 }
 
-func ExampleWhen_structValidationWithConditionalConstraint() {
+func ExampleWhen() {
 	file := File{
 		IsDocument: true,
 		Name:       "file name",
