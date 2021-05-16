@@ -89,6 +89,34 @@ func SetViolationFactory(factory ViolationFactory) ValidatorOption {
 	}
 }
 
+// StoredConstraint option can be used to store a constraint in an internal validator store.
+// It can later be used by the validator.ValidateBy method. This can be useful for passing
+// custom or prepared constraints to Validatable.
+//
+// If the constraint already exists, a ConstraintAlreadyStoredError will be returned.
+//
+// Example
+//	validator, err := validation.NewValidator(
+//		validation.StoredConstraint("isTagExists", isTagExistsConstraint)
+//	)
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	s := "
+//	err = validator.ValidateString(&s, validator.ValidateBy("isTagExists"))
+func StoredConstraint(key string, constraint Constraint) ValidatorOption {
+	return func(validator *Validator) error {
+		if _, exists := validator.scope.constraints[key]; exists {
+			return ConstraintAlreadyStoredError{Key: key}
+		}
+
+		validator.scope.constraints[key] = constraint
+
+		return nil
+	}
+}
+
 // Validate is the main validation method. It accepts validation arguments. Arguments can be
 // used to tune up the validation process or to pass values of a specific type.
 func (validator *Validator) Validate(arguments ...Argument) error {
@@ -208,33 +236,6 @@ func (validator *Validator) AtIndex(index int) *Validator {
 //      CreateViolation()
 func (validator *Validator) BuildViolation(code, message string) *ViolationBuilder {
 	return validator.scope.BuildViolation(code, message)
-}
-
-// StoreConstraint can be used to store a constraint in an internal validator store.
-// It can later be used by the ValidateBy method. This can be useful for passing
-// custom or prepared constraints to Validatable.
-//
-// If the constraint already exists, a ConstraintAlreadyStoredError is returned.
-//
-// Due to the fact that the store is a state element, it is strongly recommended
-// to fill the store during application initialization to avoid unexpected problems.
-//
-// Example
-//	err := validator.StoreConstraint("isTagExists", isTagExistsConstraint)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//
-//	s := "
-//	err = validator.ValidateString(&s, validator.ValidateBy("isTagExists"))
-func (validator *Validator) StoreConstraint(key string, constraint Constraint) error {
-	if _, exists := validator.scope.constraints[key]; exists {
-		return ConstraintAlreadyStoredError{Key: key}
-	}
-
-	validator.scope.constraints[key] = constraint
-
-	return nil
 }
 
 // ValidateBy is used to get the constraint from the internal validator store.

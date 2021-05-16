@@ -154,36 +154,13 @@ func When(condition bool) ConditionalConstraint {
 }
 
 // Then function is used to set a sequence of constraints to be applied if the condition is true.
-//	If the list is empty error will be returned.
-//
-// Example
-// v := "foo"
-// err := validator.ValidateString(
-//     &value,
-//	   validation.When(true).
-//		   Then(
-//			   it.Matches(regexp.MustCompile(`^\\w$`)),
-//		   ),
-//  )
+// If the list is empty error will be returned.
 func (c ConditionalConstraint) Then(constraints ...Constraint) ConditionalConstraint {
 	c.thenConstraints = constraints
 	return c
 }
 
 // Else function is used to set a sequence of constraints to be applied if a condition is false.
-//
-// Example
-// v := "foo"
-// err := validator.ValidateString(
-//	   &value,
-//	   validation.When(false).
-//         Then(
-//			   it.Matches(regexp.MustCompile(`^\\w$`)),
-//		   ).
-//		   Else(
-//			   it.Matches(regexp.MustCompile(`^\\d$`)),
-//		   ),
-//  )
 func (c ConditionalConstraint) Else(constraints ...Constraint) ConditionalConstraint {
 	c.elseConstraints = constraints
 	return c

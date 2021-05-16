@@ -90,16 +90,14 @@ func (s StockItem) Validate(validator *validation.Validator) error {
 }
 
 func ExampleValidator_ValidateBy_customServiceConstraint() {
-	validator, err := validation.NewValidator()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	storage := &TagStorage{tags: []string{"movie", "book"}}
 	isTagExists := &ExistingTagConstraint{storage: storage}
+
 	// custom constraint can be stored in the validator's internal store
 	// and can be used later by calling the validator.ValidateBy method
-	err = validator.StoreConstraint("isTagExists", isTagExists)
+	validator, err := validation.NewValidator(
+		validation.StoredConstraint("isTagExists", isTagExists),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}

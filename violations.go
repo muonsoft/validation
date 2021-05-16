@@ -39,7 +39,7 @@ type Violation interface {
 
 	// PropertyPath is a path that points to the violated property.
 	// See PropertyPath type description for more info.
-	PropertyPath() PropertyPath
+	PropertyPath() *PropertyPath
 }
 
 // ViolationFactory is the abstraction that can be used to create custom violations on the application side.
@@ -51,7 +51,7 @@ type ViolationFactory interface {
 		messageTemplate string,
 		pluralCount int,
 		parameters []TemplateParameter,
-		propertyPath PropertyPath,
+		propertyPath *PropertyPath,
 		lang language.Tag,
 	) Violation
 }
@@ -65,7 +65,7 @@ type NewViolationFunc func(
 	messageTemplate string,
 	pluralCount int,
 	parameters []TemplateParameter,
-	propertyPath PropertyPath,
+	propertyPath *PropertyPath,
 	lang language.Tag,
 ) Violation
 
@@ -75,7 +75,7 @@ func (f NewViolationFunc) CreateViolation(
 	messageTemplate string,
 	pluralCount int,
 	parameters []TemplateParameter,
-	propertyPath PropertyPath,
+	propertyPath *PropertyPath,
 	lang language.Tag,
 ) Violation {
 	return f(code, messageTemplate, pluralCount, parameters, propertyPath, lang)
@@ -200,7 +200,7 @@ type internalViolation struct {
 	message         string
 	messageTemplate string
 	parameters      []TemplateParameter
-	propertyPath    PropertyPath
+	propertyPath    *PropertyPath
 }
 
 func (v internalViolation) Is(codes ...string) bool {
@@ -223,7 +223,7 @@ func (v internalViolation) Error() string {
 
 func (v internalViolation) writeToBuilder(s *strings.Builder) {
 	s.WriteString("violation")
-	if len(v.propertyPath) > 0 {
+	if v.propertyPath != nil {
 		s.WriteString(" at '" + v.propertyPath.String() + "'")
 	}
 	s.WriteString(": " + v.message)
@@ -245,15 +245,15 @@ func (v internalViolation) Parameters() []TemplateParameter {
 	return v.parameters
 }
 
-func (v internalViolation) PropertyPath() PropertyPath {
+func (v internalViolation) PropertyPath() *PropertyPath {
 	return v.propertyPath
 }
 
 func (v internalViolation) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		Code         string       `json:"code"`
-		Message      string       `json:"message"`
-		PropertyPath PropertyPath `json:"propertyPath,omitempty"`
+		Code         string        `json:"code"`
+		Message      string        `json:"message"`
+		PropertyPath *PropertyPath `json:"propertyPath,omitempty"`
 	}{
 		Code:         v.code,
 		Message:      v.message,
@@ -274,7 +274,7 @@ func (factory *internalViolationFactory) CreateViolation(
 	messageTemplate string,
 	pluralCount int,
 	parameters []TemplateParameter,
-	propertyPath PropertyPath,
+	propertyPath *PropertyPath,
 	lang language.Tag,
 ) Violation {
 	message := factory.translator.translate(lang, messageTemplate, pluralCount)
@@ -294,7 +294,7 @@ type ViolationBuilder struct {
 	messageTemplate string
 	pluralCount     int
 	parameters      []TemplateParameter
-	propertyPath    PropertyPath
+	propertyPath    *PropertyPath
 	language        language.Tag
 
 	violationFactory ViolationFactory
@@ -329,7 +329,7 @@ func (b *ViolationBuilder) AddParameter(name, value string) *ViolationBuilder {
 }
 
 // SetPropertyPath sets a property path of violated attribute.
-func (b *ViolationBuilder) SetPropertyPath(path PropertyPath) *ViolationBuilder {
+func (b *ViolationBuilder) SetPropertyPath(path *PropertyPath) *ViolationBuilder {
 	b.propertyPath = path
 
 	return b
