@@ -3,29 +3,24 @@ package test
 import (
 	"testing"
 
+	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
-	"github.com/muonsoft/validation/validator"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestValidator_ValidateBy_WhenConstraintExists_ExpectValidationByStoredConstraint(t *testing.T) {
-	defer validator.Reset()
-	constraint := it.IsNotBlank()
-	err := validator.StoreConstraint("notBlank", constraint)
-	if err != nil {
-		t.Fatal("failed to store constraint:", err)
-	}
+	validator := newValidator(t, validation.StoredConstraint("notBlank", it.IsNotBlank()))
 
 	s := ""
-	err = validator.ValidateString(&s, validator.ValidateBy("notBlank"))
+	err := validator.ValidateString(&s, validator.ValidateBy("notBlank"))
 
 	assertHasOneViolation(code.NotBlank, message.NotBlank, "")(t, err)
 }
 
 func TestValidator_ValidateBy_WhenConstraintDoesNotExist_ExpectError(t *testing.T) {
-	defer validator.Reset()
+	validator := newValidator(t)
 
 	s := ""
 	err := validator.ValidateString(&s, validator.ValidateBy("notBlank"))
@@ -34,14 +29,11 @@ func TestValidator_ValidateBy_WhenConstraintDoesNotExist_ExpectError(t *testing.
 }
 
 func TestValidator_StoreConstraint_WhenConstraintExists_ExpectError(t *testing.T) {
-	defer validator.Reset()
-	constraint := it.IsNotBlank()
-	err := validator.StoreConstraint("notBlank", constraint)
-	if err != nil {
-		t.Fatal("failed to store constraint:", err)
-	}
+	validator, err := validation.NewValidator(
+		validation.StoredConstraint("key", it.IsNotBlank()),
+		validation.StoredConstraint("key", it.IsBlank()),
+	)
 
-	err = validator.StoreConstraint("notBlank", constraint)
-
-	assert.EqualError(t, err, `constraint with key "notBlank" already stored`)
+	assert.Nil(t, validator)
+	assert.EqualError(t, err, `constraint with key "key" already stored`)
 }
