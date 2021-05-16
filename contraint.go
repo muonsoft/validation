@@ -144,43 +144,46 @@ type ConditionalConstraint struct {
 	elseConstraints []Constraint
 }
 
-// When function using to initiate a conditional check.
+// When function is used to initiate conditional validation.
+// If the condition is true, then the constraints passed through the Then function will be applied.
+// Otherwise, the constraints passed through the Else function will apply.
 func When(condition bool) ConditionalConstraint {
 	return ConditionalConstraint{
 		condition: condition,
 	}
 }
 
-// Then function applied the constraints if the condition is true.
+// Then function is used to set a sequence of constraints to be applied if the condition is true.
+//	If the list is empty error will be returned.
 //
 // Example
-//  v := "foo"
-//	err := validator.ValidateString(
-//		&value,
-//		validation.When(true).
-//		Then(
-//			it.Matches(regexp.MustCompile(`^\\w$`)),
-//		),
-//	)
+// v := "foo"
+// err := validator.ValidateString(
+//     &value,
+//	   validation.When(true).
+//		   Then(
+//			   it.Matches(regexp.MustCompile(`^\\w$`)),
+//		   ),
+//  )
 func (c ConditionalConstraint) Then(constraints ...Constraint) ConditionalConstraint {
 	c.thenConstraints = constraints
 	return c
 }
 
-// Else function applied the constraints if the condition is false.
+// Else function is used to set a sequence of constraints to be applied if a condition is false.
 //
 // Example
-//  v := "foo"
-//	err := validator.ValidateString(
-//		&value,
-//		validation.When(false).
-//		Then(
-//			it.Matches(regexp.MustCompile(`^\\w$`)),
-//		).
-//		Else(
-//			it.Matches(regexp.MustCompile(`^\\d$`)),
-//		),
-//	)
+// v := "foo"
+// err := validator.ValidateString(
+//	   &value,
+//	   validation.When(false).
+//         Then(
+//			   it.Matches(regexp.MustCompile(`^\\w$`)),
+//		   ).
+//		   Else(
+//			   it.Matches(regexp.MustCompile(`^\\d$`)),
+//		   ),
+//  )
 func (c ConditionalConstraint) Else(constraints ...Constraint) ConditionalConstraint {
 	c.elseConstraints = constraints
 	return c
@@ -191,7 +194,7 @@ func (c ConditionalConstraint) Name() string {
 	return "ConditionalConstraint"
 }
 
-// SetUp will return an error if the constraints to apply is empty.
+// SetUp will return an error if Then function did not set any constraints.
 func (c ConditionalConstraint) SetUp() error {
 	if len(c.thenConstraints) == 0 {
 		return errThenBranchNotSet
@@ -202,10 +205,11 @@ func (c ConditionalConstraint) SetUp() error {
 
 func (c ConditionalConstraint) validate(
 	scope Scope,
-	violations *ViolationList,
 	validate ValidateByConstraintFunc,
-) error {
+) (ViolationList, error) {
+	violations := make(ViolationList, 0)
 	var constraints []Constraint
+
 	if c.condition {
 		constraints = c.thenConstraints
 	} else {
@@ -215,11 +219,11 @@ func (c ConditionalConstraint) validate(
 	for _, constraint := range constraints {
 		err := violations.AppendFromError(validate(constraint, scope))
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return nil
+	return violations, nil
 }
 
 // SequentiallyConstraint is used to set constraints allowing to interrupt the validation once

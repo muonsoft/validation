@@ -2,6 +2,7 @@ package it_test
 
 import (
 	"fmt"
+	"net"
 
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/validator"
@@ -39,6 +40,54 @@ func ExampleIsHTML5Email_invalidEmail() {
 	// violation: This value is not a valid email address.
 }
 
+func ExampleIsHostname_validHostname() {
+	v := "example.com"
+	err := validator.ValidateString(&v, it.IsHostname())
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsHostname_invalidHostname() {
+	v := "example-.com"
+	err := validator.ValidateString(&v, it.IsHostname())
+	fmt.Println(err)
+	// Output:
+	// violation: This value is not a valid hostname.
+}
+
+func ExampleIsHostname_reservedHostname() {
+	v := "example.localhost"
+	err := validator.ValidateString(&v, it.IsHostname())
+	fmt.Println(err)
+	// Output:
+	// violation: This value is not a valid hostname.
+}
+
+func ExampleIsLooseHostname_validHostname() {
+	v := "example.com"
+	err := validator.ValidateString(&v, it.IsLooseHostname())
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsLooseHostname_invalidHostname() {
+	v := "example-.com"
+	err := validator.ValidateString(&v, it.IsLooseHostname())
+	fmt.Println(err)
+	// Output:
+	// violation: This value is not a valid hostname.
+}
+
+func ExampleIsLooseHostname_reservedHostname() {
+	v := "example.localhost"
+	err := validator.ValidateString(&v, it.IsLooseHostname())
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
 func ExampleIsURL_validURL() {
 	v := "http://example.com"
 	err := validator.ValidateString(&v, it.IsURL())
@@ -69,4 +118,78 @@ func ExampleURLConstraint_WithSchemas() {
 	fmt.Println(err)
 	// Output:
 	// <nil>
+}
+
+func ExampleIsIP_validIP() {
+	v := "123.123.123.123"
+	err := validator.ValidateString(&v, it.IsIP())
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsIP_invalidIP() {
+	v := "123.123.123.345"
+	err := validator.ValidateString(&v, it.IsIP())
+	fmt.Println(err)
+	// Output:
+	// violation: This is not a valid IP address.
+}
+
+func ExampleIsIPv4_validIP() {
+	v := "123.123.123.123"
+	err := validator.ValidateString(&v, it.IsIPv4())
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsIPv4_invalidIP() {
+	v := "123.123.123.345"
+	err := validator.ValidateString(&v, it.IsIPv4())
+	fmt.Println(err)
+	// Output:
+	// violation: This is not a valid IP address.
+}
+
+func ExampleIsIPv6_validIP() {
+	v := "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
+	err := validator.ValidateString(&v, it.IsIPv6())
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsIPv6_invalidIP() {
+	v := "z001:0db8:85a3:0000:0000:8a2e:0370:7334"
+	err := validator.ValidateString(&v, it.IsIPv6())
+	fmt.Println(err)
+	// Output:
+	// violation: This is not a valid IP address.
+}
+
+func ExampleIPConstraint_DenyPrivateIP_restrictedPrivateIPv4() {
+	v := "192.168.1.0"
+	err := validator.ValidateString(&v, it.IsIP().DenyPrivateIP())
+	fmt.Println(err)
+	// Output:
+	// violation: This IP address is prohibited to use.
+}
+
+func ExampleIPConstraint_DenyPrivateIP_restrictedPrivateIPv6() {
+	v := "fdfe:dcba:9876:ffff:fdc6:c46b:bb8f:7d4c"
+	err := validator.ValidateString(&v, it.IsIPv6().DenyPrivateIP())
+	fmt.Println(err)
+	// Output:
+	// violation: This IP address is prohibited to use.
+}
+
+func ExampleIPConstraint_DenyIP() {
+	v := "127.0.0.1"
+	err := validator.ValidateString(&v, it.IsIP().DenyIP(func(ip net.IP) bool {
+		return ip.IsLoopback()
+	}))
+	fmt.Println(err)
+	// Output:
+	// violation: This IP address is prohibited to use.
 }
