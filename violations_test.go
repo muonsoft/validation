@@ -100,7 +100,7 @@ func TestViolationList_Filter_ViolationsWithCodes_FilteredList(t *testing.T) {
 func TestViolation_Error_MessageAndPropertyPath_ErrorWithPropertyPathAndMessage(t *testing.T) {
 	violation := internalViolation{
 		message:      "message",
-		propertyPath: PropertyPath{PropertyNameElement("propertyPath")},
+		propertyPath: NewPropertyPath(PropertyNameElement("propertyPath")),
 	}
 
 	err := violation.Error()
@@ -112,11 +112,11 @@ func TestViolationList_Error_CoupleOfViolations_JoinedMessage(t *testing.T) {
 	violations := ViolationList{
 		internalViolation{
 			message:      "first message",
-			propertyPath: PropertyPath{PropertyNameElement("path"), ArrayIndexElement(0)},
+			propertyPath: NewPropertyPath(PropertyNameElement("path"), ArrayIndexElement(0)),
 		},
 		internalViolation{
 			message:      "second message",
-			propertyPath: PropertyPath{PropertyNameElement("path"), ArrayIndexElement(1)},
+			propertyPath: NewPropertyPath(PropertyNameElement("path"), ArrayIndexElement(1)),
 		},
 	}
 
@@ -198,7 +198,7 @@ func TestMarshalInternalViolationToJSON(t *testing.T) {
 				message:         "message",
 				messageTemplate: "messageTemplate",
 				parameters:      []TemplateParameter{{"key", "value"}},
-				propertyPath:    PropertyPath{PropertyNameElement("properties"), ArrayIndexElement(1), PropertyNameElement("name")},
+				propertyPath:    NewPropertyPath(PropertyNameElement("properties"), ArrayIndexElement(1), PropertyNameElement("name")),
 			},
 			expectedJSON: `{
 				"code": "code",

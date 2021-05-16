@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 )
 
 // PropertyPathElement is a part of the PropertyPath.
@@ -45,27 +44,61 @@ func (a ArrayIndexElement) String() string {
 // from the root element. Property path is denoted by dots, while array access
 // is denoted by square brackets. For example, "book.keywords[0]" means that the violation
 // occurred on the first element of array "keywords" in the "book" object.
-type PropertyPath []PropertyPathElement
+//
+// Internally PropertyPath is a linked list. You can create a new path using WithProperty
+// or WithIndex methods. PropertyPath should always be used as a pointer value.
+// Nil value is a valid value that means that the property path is empty.
+type PropertyPath struct {
+	parent *PropertyPath
+	value  PropertyPathElement
+}
+
+// NewPropertyPath creates a PropertyPath from the list of elements. If the list is empty nil will be returned.
+// Nil value is a valid value that means that the property path is empty.
+func NewPropertyPath(elements ...PropertyPathElement) *PropertyPath {
+	var path *PropertyPath
+	for _, element := range elements {
+		path = &PropertyPath{parent: path, value: element}
+	}
+	return path
+}
+
+// WithProperty returns new PropertyPath with appended PropertyNameElement to the end of the list.
+func (path *PropertyPath) WithProperty(name string) *PropertyPath {
+	return &PropertyPath{
+		parent: path,
+		value:  PropertyNameElement(name),
+	}
+}
+
+// WithIndex returns new PropertyPath with appended ArrayIndexElement to the end of the list.
+func (path *PropertyPath) WithIndex(index int) *PropertyPath {
+	return &PropertyPath{
+		parent: path,
+		value:  ArrayIndexElement(index),
+	}
+}
 
 // String is used to format property path to a string.
-func (path PropertyPath) String() string {
-	var s strings.Builder
-
-	for i, element := range path {
-		if i > 0 && !element.IsIndex() {
-			s.WriteString(".")
-		}
-		if element.IsIndex() {
-			s.WriteString("[" + element.String() + "]")
+func (path *PropertyPath) String() string {
+	s := ""
+	element := path
+	for element != nil {
+		if element.value.IsIndex() {
+			s = "[" + element.value.String() + "]" + s
 		} else {
-			s.WriteString(element.String())
+			s = element.value.String() + s
+			if element.parent != nil {
+				s = "." + s
+			}
 		}
+		element = element.parent
 	}
 
-	return s.String()
+	return s
 }
 
 // MarshalJSON will marshal property path value to a JSON string.
-func (path PropertyPath) MarshalJSON() ([]byte, error) {
+func (path *PropertyPath) MarshalJSON() ([]byte, error) {
 	return json.Marshal(path.String())
 }

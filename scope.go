@@ -12,7 +12,7 @@ import (
 // it can be used to build violations.
 type Scope struct {
 	context          context.Context
-	propertyPath     PropertyPath
+	propertyPath     *PropertyPath
 	language         language.Tag
 	translator       *Translator
 	violationFactory ViolationFactory
@@ -62,7 +62,7 @@ func (s *Scope) describeOptionError(option Option, err error) error {
 		return fmt.Errorf(`failed to set up option: %w`, err)
 	}
 
-	if len(s.propertyPath) == 0 {
+	if s.propertyPath == nil {
 		err = fmt.Errorf(`failed to set up constraint "%s": %w`, c.Name(), err)
 	} else {
 		err = fmt.Errorf(`failed to set up constraint "%s" at path "%s": %w`, c.Name(), s.propertyPath.String(), err)
@@ -84,21 +84,13 @@ func (s Scope) withLanguage(tag language.Tag) Scope {
 }
 
 func (s Scope) atProperty(name string) Scope {
-	propertyPath := make(PropertyPath, len(s.propertyPath)+1)
-	copy(propertyPath, s.propertyPath)
-	propertyPath[len(s.propertyPath)] = PropertyNameElement(name)
-
-	s.propertyPath = propertyPath
+	s.propertyPath = s.propertyPath.WithProperty(name)
 
 	return s
 }
 
 func (s Scope) atIndex(index int) Scope {
-	propertyPath := make(PropertyPath, len(s.propertyPath)+1)
-	copy(propertyPath, s.propertyPath)
-	propertyPath[len(s.propertyPath)] = ArrayIndexElement(index)
-
-	s.propertyPath = propertyPath
+	s.propertyPath = s.propertyPath.WithIndex(index)
 
 	return s
 }

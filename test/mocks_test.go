@@ -60,7 +60,7 @@ type mockViolation struct {
 	message         string
 	messageTemplate string
 	parameters      []validation.TemplateParameter
-	propertyPath    validation.PropertyPath
+	propertyPath    *validation.PropertyPath
 }
 
 func (mock *mockViolation) Is(codes ...string) bool {
@@ -87,7 +87,7 @@ func (mock *mockViolation) Parameters() []validation.TemplateParameter {
 	return mock.parameters
 }
 
-func (mock *mockViolation) PropertyPath() validation.PropertyPath {
+func (mock *mockViolation) PropertyPath() *validation.PropertyPath {
 	return mock.propertyPath
 }
 
@@ -96,7 +96,7 @@ func mockNewViolationFunc() validation.ViolationFactory {
 		code, messageTemplate string,
 		pluralCount int,
 		parameters []validation.TemplateParameter,
-		propertyPath validation.PropertyPath,
+		propertyPath *validation.PropertyPath,
 		lang language.Tag,
 	) validation.Violation {
 		return &mockViolation{
