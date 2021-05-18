@@ -35,10 +35,6 @@ func (args *Arguments) addValidator(validator validateFunc) {
 //
 // If the validator cannot determine the value or it is not supported, then NotValidatableError will be returned
 // when calling the validator.Validate method.
-//
-// Example
-//  v := 0
-//  err := validator.Validate(Value(v, it.IsNotBlank()))
 func Value(value interface{}, options ...Option) Argument {
 	return argumentFunc(func(arguments *Arguments) error {
 		v, err := newValueValidator(value, options)
@@ -58,10 +54,6 @@ func PropertyValue(name string, value interface{}, options ...Option) Argument {
 }
 
 // Bool argument is used to validate boolean values.
-//
-// Example
-//  v := false
-//  err := validator.Validate(Bool(&v, it.IsNotBlank()))
 func Bool(value *bool, options ...Option) Argument {
 	return argumentFunc(func(arguments *Arguments) error {
 		arguments.addValidator(newBoolValidator(value, options))
@@ -79,10 +71,6 @@ func BoolProperty(name string, value *bool, options ...Option) Argument {
 // reflection to detect numeric value. Given value is internally converted into int64 or float64 to make comparisons.
 //
 // Warning! This method will be changed after generics implementation in Go.
-//
-// Example
-//  v := 0
-//  err := validator.Validate(Number(&v, it.IsNotBlank()))
 func Number(value interface{}, options ...Option) Argument {
 	return argumentFunc(func(arguments *Arguments) error {
 		number, err := generic.NewNumber(value)
@@ -102,10 +90,6 @@ func NumberProperty(name string, value interface{}, options ...Option) Argument 
 }
 
 // String argument is used to validate strings.
-//
-// Example
-//  v := ""
-//  err := validator.Validate(String(&v, it.IsNotBlank()))
 func String(value *string, options ...Option) Argument {
 	return argumentFunc(func(arguments *Arguments) error {
 		arguments.addValidator(newStringValidator(value, options))
@@ -124,10 +108,6 @@ func StringProperty(name string, value *string, options ...Option) Argument {
 // it is recommended to make a custom type that implements the Validatable interface.
 //
 // Warning! This argument is subject to change in the final versions of the library.
-//
-// Example
-//  v := []string{}
-//  err := validator.Validate(Iterable(&v, it.IsNotBlank()))
 func Iterable(value interface{}, options ...Option) Argument {
 	return argumentFunc(func(arguments *Arguments) error {
 		iterable, err := generic.NewIterable(value)
@@ -148,10 +128,6 @@ func IterableProperty(name string, value interface{}, options ...Option) Argumen
 
 // Countable argument can be used to validate size of an array, slice, or map. You can pass result of len()
 // function as an argument.
-//
-// Example
-//  s := []string{"a", "b"}
-//  err := validator.Validate(Countable(len(s), it.HasMinCount(3)))
 func Countable(count int, options ...Option) Argument {
 	return argumentFunc(func(arguments *Arguments) error {
 		arguments.addValidator(newCountableValidator(count, options))
@@ -166,10 +142,6 @@ func CountableProperty(name string, count int, options ...Option) Argument {
 }
 
 // Time argument is used to validate time.Time value.
-//
-// Example
-//  t := time.Now()
-//  err := validator.Validate(Time(&t, it.IsNotBlank()))
 func Time(value *time.Time, options ...Option) Argument {
 	return argumentFunc(func(arguments *Arguments) error {
 		arguments.addValidator(newTimeValidator(value, options))
@@ -189,10 +161,6 @@ func TimeProperty(name string, value *time.Time, options ...Option) Argument {
 // EachString argument to validate slice of strings.
 //
 // Warning! This argument is subject to change in the final versions of the library.
-//
-// Example
-//  v := []string{""}
-//  err := validator.Validate(Each(&v, it.IsNotBlank()))
 func Each(value interface{}, options ...Option) Argument {
 	return argumentFunc(func(arguments *Arguments) error {
 		iterable, err := generic.NewIterable(value)
@@ -212,10 +180,6 @@ func EachProperty(name string, value interface{}, options ...Option) Argument {
 }
 
 // EachString is used to validate a slice of strings. This is a more performant version of Each argument.
-//
-// Example
-//  v := []string{""}
-//  err := validator.Validate(EachString(&v, it.IsNotBlank()))
 func EachString(values []string, options ...Option) Argument {
 	return argumentFunc(func(arguments *Arguments) error {
 		arguments.addValidator(newEachStringValidator(values, options))

@@ -97,7 +97,7 @@ func TestValidateValue_WhenValidatableString_ExpectValidationExecutedWithPassedO
 		it.IsNotBlank().Message("ignored"),
 	)
 
-	assertHasOneViolation(code.NotBlank, message.NotBlank, "top.value")(t, err)
+	assertHasOneViolationAtPath(code.NotBlank, message.NotBlank, "top.value")(t, err)
 }
 
 func TestValidateValidatable_WhenValidatableString_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
@@ -109,7 +109,7 @@ func TestValidateValidatable_WhenValidatableString_ExpectValidationExecutedWithP
 		it.IsNotBlank().Message("ignored"),
 	)
 
-	assertHasOneViolation(code.NotBlank, message.NotBlank, "top.value")(t, err)
+	assertHasOneViolationAtPath(code.NotBlank, message.NotBlank, "top.value")(t, err)
 }
 
 func TestValidateValue_WhenValidatableStruct_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {

@@ -72,12 +72,12 @@ issues:
         - forbidigo
         - funlen
         - gochecknoglobals
+        - goconst
         - gocyclo
         - goerr113
         - gosec
         - lll
         - scopelint
-        - goconst
     - path: example_test\.go
       linters:
         - dogsled
@@ -86,12 +86,12 @@ issues:
         - forbidigo
         - funlen
         - gochecknoglobals
+        - goconst
         - gocyclo
         - goerr113
         - gosec
         - lll
         - scopelint
-        - goconst
     - path: test
       linters:
         - dogsled
@@ -104,6 +104,7 @@ issues:
         - gosec
         - lll
         - scopelint
+        - unparam
     - path: is/patterns.go
       linters:
         - lll

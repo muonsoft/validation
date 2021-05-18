@@ -36,7 +36,7 @@ type ConstraintValidationTestCase struct {
 	timeValue       *time.Time
 	sliceValue      []string
 	mapValue        map[string]string
-	options         []validation.Option
+	constraint      validation.Constraint
 	assert          func(t *testing.T, err error)
 }
 
@@ -71,7 +71,7 @@ func TestValidateBool(t *testing.T) {
 		}
 
 		t.Run(test.name, func(t *testing.T) {
-			err := validator.ValidateBool(test.boolValue, test.options...)
+			err := validator.ValidateBool(test.boolValue, test.constraint)
 
 			test.assert(t, err)
 		})
@@ -85,7 +85,7 @@ func TestValidateNumber_AsInt(t *testing.T) {
 		}
 
 		t.Run(test.name, func(t *testing.T) {
-			err := validator.ValidateNumber(test.intValue, test.options...)
+			err := validator.ValidateNumber(test.intValue, test.constraint)
 
 			test.assert(t, err)
 		})
@@ -99,7 +99,7 @@ func TestValidateNumber_AsFloat(t *testing.T) {
 		}
 
 		t.Run(test.name, func(t *testing.T) {
-			err := validator.ValidateNumber(test.floatValue, test.options...)
+			err := validator.ValidateNumber(test.floatValue, test.constraint)
 
 			test.assert(t, err)
 		})
@@ -113,7 +113,7 @@ func TestValidateString(t *testing.T) {
 		}
 
 		t.Run(test.name, func(t *testing.T) {
-			err := validator.ValidateString(test.stringValue, test.options...)
+			err := validator.ValidateString(test.stringValue, test.constraint)
 
 			test.assert(t, err)
 		})
@@ -127,7 +127,7 @@ func TestValidateIterable_AsSlice(t *testing.T) {
 		}
 
 		t.Run(test.name, func(t *testing.T) {
-			err := validator.ValidateIterable(test.sliceValue, test.options...)
+			err := validator.ValidateIterable(test.sliceValue, test.constraint)
 
 			test.assert(t, err)
 		})
@@ -141,7 +141,7 @@ func TestValidateIterable_AsMap(t *testing.T) {
 		}
 
 		t.Run(test.name, func(t *testing.T) {
-			err := validator.ValidateIterable(test.mapValue, test.options...)
+			err := validator.ValidateIterable(test.mapValue, test.constraint)
 
 			test.assert(t, err)
 		})
@@ -155,7 +155,7 @@ func TestValidateCountable(t *testing.T) {
 		}
 
 		t.Run(test.name, func(t *testing.T) {
-			err := validator.ValidateCountable(len(test.sliceValue), test.options...)
+			err := validator.ValidateCountable(len(test.sliceValue), test.constraint)
 
 			test.assert(t, err)
 		})
@@ -169,7 +169,7 @@ func TestValidateTime(t *testing.T) {
 		}
 
 		t.Run(test.name, func(t *testing.T) {
-			err := validator.ValidateTime(test.timeValue, test.options...)
+			err := validator.ValidateTime(test.timeValue, test.constraint)
 
 			test.assert(t, err)
 		})
@@ -182,8 +182,8 @@ func TestValidateNil(t *testing.T) {
 		nilConstraint validation.NilConstraint
 		assert        func(t *testing.T, err error)
 	}{
-		{"not blank", it.IsNotBlank(), assertHasOneViolation(code.NotBlank, message.NotBlank, "")},
-		{"not blank when true", it.IsNotBlank().When(true), assertHasOneViolation(code.NotBlank, message.NotBlank, "")},
+		{"not blank", it.IsNotBlank(), assertHasOneViolation(code.NotBlank, message.NotBlank)},
+		{"not blank when true", it.IsNotBlank().When(true), assertHasOneViolation(code.NotBlank, message.NotBlank)},
 		{"not blank when false", it.IsNotBlank().When(false), assertNoError},
 		{"not blank when nil allowed", it.IsNotBlank().AllowNil(), assertNoError},
 		{"blank", it.IsBlank(), assertNoError},

@@ -7,7 +7,6 @@ import (
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
-	"github.com/muonsoft/validation/validator"
 )
 
 type property struct {
@@ -44,6 +43,7 @@ func (p property) Validate(validator *validation.Validator) error {
 }
 
 func TestValidate_AtProperty_WhenGivenRecursiveProperties_ExpectViolationWithProperty(t *testing.T) {
+	validator := newValidator(t)
 	properties := []*property{
 		{
 			Name: "first level",
@@ -66,17 +66,38 @@ func TestValidate_AtProperty_WhenGivenRecursiveProperties_ExpectViolationWithPro
 
 	err := validator.ValidateIterable(properties)
 
-	assertHasOneViolation(code.NotBlank, message.NotBlank, "[0].value[0].value[0].name")(t, err)
+	assertHasOneViolationAtPath(code.NotBlank, message.NotBlank, "[0].value[0].value[0].name")(t, err)
+}
+
+func TestValidate_WhenPathIsSetViaOptions_ExpectViolationAtPath(t *testing.T) {
+	validator := newValidator(t)
+	v := ""
+
+	err := validator.Validate(
+		validation.String(
+			&v,
+			validation.PropertyName("properties"),
+			validation.ArrayIndex(0),
+			validation.PropertyName("value"),
+			it.IsNotBlank(),
+		),
+	)
+
+	assertHasOneViolationAtPath(code.NotBlank, message.NotBlank, customPath)(t, err)
 }
 
 func TestValidate_AtProperty_WhenGivenProperty_ExpectViolationWithProperty(t *testing.T) {
+	validator := newValidator(t)
+
 	err := validator.AtProperty("property").ValidateString(stringValue(""), it.IsNotBlank())
 
-	assertHasOneViolation(code.NotBlank, message.NotBlank, "property")(t, err)
+	assertHasOneViolationAtPath(code.NotBlank, message.NotBlank, "property")(t, err)
 }
 
 func TestValidate_AtIndex_WhenGivenIndex_ExpectViolationWithIndex(t *testing.T) {
+	validator := newValidator(t)
+
 	err := validator.AtIndex(1).ValidateString(stringValue(""), it.IsNotBlank())
 
-	assertHasOneViolation(code.NotBlank, message.NotBlank, "[1]")(t, err)
+	assertHasOneViolationAtPath(code.NotBlank, message.NotBlank, "[1]")(t, err)
 }
