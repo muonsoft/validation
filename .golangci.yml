@@ -64,7 +64,7 @@ issues:
         - gosec
         - lll
         - scopelint
-    - path: examples.*_test\.go
+    - path: example.*_test\.go
       linters:
         - dogsled
         - dupl
@@ -85,6 +85,7 @@ issues:
         - errcheck
         - funlen
         - gochecknoglobals
+        - goconst
         - gocyclo
         - goerr113
         - gosec
