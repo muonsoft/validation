@@ -64,6 +64,10 @@ type TimeConstraint interface {
 	ValidateTime(value *time.Time, scope Scope) error
 }
 
+type controlConstraint interface {
+	validate(scope Scope, validate ValidateByConstraintFunc) (ViolationList, error)
+}
+
 // CustomStringConstraint can be used to create custom constraints for validating string values
 // based on function with signature func(string) bool.
 type CustomStringConstraint struct {
@@ -148,9 +152,7 @@ type ConditionalConstraint struct {
 // If the condition is true, then the constraints passed through the Then function will be applied.
 // Otherwise, the constraints passed through the Else function will apply.
 func When(condition bool) ConditionalConstraint {
-	return ConditionalConstraint{
-		condition: condition,
-	}
+	return ConditionalConstraint{condition: condition}
 }
 
 // Then function is used to set a sequence of constraints to be applied if the condition is true.
@@ -203,34 +205,32 @@ func (c ConditionalConstraint) validate(
 	return violations, nil
 }
 
-// SequentiallyConstraint is used to set constraints allowing to interrupt the validation once
+// SequentialConstraint is used to set constraints allowing to interrupt the validation once
 // the first violation is raised.
-type SequentiallyConstraint struct {
+type SequentialConstraint struct {
 	constraints []Constraint
 }
 
 // Sequentially function used to set of constraints that should be validated step-by-step.
 // If the list is empty error will be returned.
-func Sequentially(constraints ...Constraint) SequentiallyConstraint {
-	return SequentiallyConstraint{
-		constraints: constraints,
-	}
+func Sequentially(constraints ...Constraint) SequentialConstraint {
+	return SequentialConstraint{constraints: constraints}
 }
 
 // Name is the constraint name.
-func (c SequentiallyConstraint) Name() string {
-	return "SequentiallyConstraint"
+func (c SequentialConstraint) Name() string {
+	return "SequentialConstraint"
 }
 
 // SetUp will return an error if the list of constraints is empty.
-func (c SequentiallyConstraint) SetUp() error {
+func (c SequentialConstraint) SetUp() error {
 	if len(c.constraints) == 0 {
 		return errSequentiallyConstraintsNotSet
 	}
 	return nil
 }
 
-func (c SequentiallyConstraint) validate(
+func (c SequentialConstraint) validate(
 	scope Scope,
 	validate ValidateByConstraintFunc,
 ) (ViolationList, error) {

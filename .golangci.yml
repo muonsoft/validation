@@ -64,7 +64,7 @@ issues:
         - gosec
         - lll
         - scopelint
-    - path: examples_.*_test\.go
+    - path: example.*_test\.go
       linters:
         - dogsled
         - dupl
@@ -72,26 +72,12 @@ issues:
         - forbidigo
         - funlen
         - gochecknoglobals
+        - goconst
         - gocyclo
         - goerr113
         - gosec
         - lll
         - scopelint
-        - goconst
-    - path: example_test\.go
-      linters:
-        - dogsled
-        - dupl
-        - errcheck
-        - forbidigo
-        - funlen
-        - gochecknoglobals
-        - gocyclo
-        - goerr113
-        - gosec
-        - lll
-        - scopelint
-        - goconst
     - path: test
       linters:
         - dogsled
@@ -99,11 +85,13 @@ issues:
         - errcheck
         - funlen
         - gochecknoglobals
+        - goconst
         - gocyclo
         - goerr113
         - gosec
         - lll
         - scopelint
+        - unparam
     - path: is/patterns.go
       linters:
         - lll

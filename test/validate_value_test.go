@@ -7,9 +7,7 @@ import (
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
-	"github.com/muonsoft/validation/validationtest"
 	"github.com/muonsoft/validation/validator"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestValidateValue_WhenValueOfType_ExpectValueValidated(t *testing.T) {
@@ -46,13 +44,7 @@ func TestValidateValue_WhenValueOfType_ExpectValueValidated(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			err := validator.ValidateValue(test.value, validation.PropertyName("property"), it.IsNotBlank())
 
-			validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
-				t.Helper()
-				if assert.Len(t, violations, 1) {
-					assertHasOneViolation(code.NotBlank, message.NotBlank, "property")(t, err)
-				}
-				return true
-			})
+			assertHasOneViolationAtPath(code.NotBlank, message.NotBlank, "property")(t, err)
 		})
 	}
 }

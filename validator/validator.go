@@ -135,7 +135,7 @@ func BuildViolation(code, message string) *validation.ViolationBuilder {
 // ValidateBy is used to get the constraint from the internal validator store.
 // If the constraint does not exist, then the validator will
 // return a ConstraintNotFoundError during the validation process.
-// For storing a constraint you should use the StoreConstraint method.
+// For storing a constraint you should use the validation.StoredConstraint option.
 func ValidateBy(constraintKey string) validation.Constraint {
 	return validator.ValidateBy(constraintKey)
 }

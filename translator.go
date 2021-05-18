@@ -9,7 +9,7 @@ import (
 	"golang.org/x/text/message/catalog"
 )
 
-// Translator is used as internal mechanism of message translations. It is bases on the "golang.org/x/text" package.
+// Translator is used as internal mechanism of message translations. It is based on the "golang.org/x/text" package.
 type Translator struct {
 	defaultLanguage language.Tag
 	messages        *catalog.Builder

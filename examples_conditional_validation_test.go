@@ -8,29 +8,36 @@ import (
 	"github.com/muonsoft/validation/validator"
 )
 
-func ExampleValidator_Validate_conditionalValidationOnConstraint() {
-	notes := []struct {
-		Title    string
-		IsPublic bool
-		Text     string
-	}{
-		{Title: "published note", IsPublic: true, Text: "text of published note"},
-		{Title: "draft note", IsPublic: true, Text: ""},
+type File struct {
+	IsDocument   bool
+	DocumentName string
+	Name         string
+}
+
+func ExampleWhen() {
+	file := File{
+		IsDocument: true,
+		Name:       "file name",
 	}
 
-	for i, note := range notes {
-		err := validator.Validate(
-			validation.StringProperty("name", &note.Title, it.IsNotBlank()),
-			validation.StringProperty("text", &note.Text, it.IsNotBlank().When(note.IsPublic)),
-		)
-		if err != nil {
-			violations := err.(validation.ViolationList)
-			for _, violation := range violations {
-				fmt.Printf("error on note %d: %s", i, violation.Error())
-			}
-		}
-	}
+	err := validator.Validate(
+		validation.StringProperty(
+			"name",
+			&file.Name,
+			it.IsNotBlank(),
+		),
+		validation.StringProperty(
+			"documentName",
+			&file.DocumentName,
+			validation.When(file.IsDocument).
+				Then(it.IsNotBlank()),
+		),
+	)
 
+	violations := err.(validation.ViolationList)
+	for _, violation := range violations {
+		fmt.Println(violation.Error())
+	}
 	// Output:
-	// error on note 1: violation at 'text': This value should not be blank.
+	// violation at 'documentName': This value should not be blank.
 }
