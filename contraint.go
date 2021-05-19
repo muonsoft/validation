@@ -71,11 +71,12 @@ type controlConstraint interface {
 // CustomStringConstraint can be used to create custom constraints for validating string values
 // based on function with signature func(string) bool.
 type CustomStringConstraint struct {
-	isIgnored       bool
-	isValid         func(string) bool
-	name            string
-	code            string
-	messageTemplate string
+	isIgnored         bool
+	isValid           func(string) bool
+	name              string
+	code              string
+	messageTemplate   string
+	messageParameters TemplateParameterList
 }
 
 // NewCustomStringConstraint creates a new string constraint from a function with signature func(string) bool.
@@ -112,12 +113,13 @@ func (c CustomStringConstraint) Name() string {
 	return c.name
 }
 
-// Message sets the violation message template. You can use template parameters
-// for injecting its values into the final message:
+// Message sets the violation message template. You can set custom template parameters
+// for injecting its values into the final message. Also, you can use default parameters:
 //
 //	{{ value }} - the current (invalid) value.
-func (c CustomStringConstraint) Message(message string) CustomStringConstraint {
-	c.messageTemplate = message
+func (c CustomStringConstraint) Message(template string, parameters ...TemplateParameter) CustomStringConstraint {
+	c.messageTemplate = template
+	c.messageParameters = parameters
 	return c
 }
 
@@ -134,6 +136,11 @@ func (c CustomStringConstraint) ValidateString(value *string, scope Scope) error
 	}
 
 	return scope.BuildViolation(c.code, c.messageTemplate).
+		SetParameters(
+			c.messageParameters.Prepend(
+				TemplateParameter{Key: "{{ value }}", Value: *value},
+			)...,
+		).
 		AddParameter("{{ value }}", *value).
 		CreateViolation()
 }

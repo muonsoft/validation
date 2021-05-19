@@ -13,6 +13,16 @@ type TemplateParameter struct {
 	Value string
 }
 
+type TemplateParameterList []TemplateParameter
+
+func (params TemplateParameterList) With(parameters ...TemplateParameter) TemplateParameterList {
+	return append(params, parameters...)
+}
+
+func (params TemplateParameterList) Prepend(parameters ...TemplateParameter) TemplateParameterList {
+	return append(parameters, params...)
+}
+
 func renderMessage(template string, parameters []TemplateParameter) string {
 	message := template
 

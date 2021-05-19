@@ -314,8 +314,8 @@ func (b *ViolationBuilder) BuildViolation(code, message string) *ViolationBuilde
 	}
 }
 
-// SetParameters sets parameters that can be injected into the violation message.
-func (b *ViolationBuilder) SetParameters(parameters []TemplateParameter) *ViolationBuilder {
+// SetParameters sets template parameters that can be injected into the violation message.
+func (b *ViolationBuilder) SetParameters(parameters ...TemplateParameter) *ViolationBuilder {
 	b.parameters = parameters
 
 	return b

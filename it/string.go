@@ -14,14 +14,17 @@ import (
 // LengthConstraint checks that a given string length is between some minimum and maximum value.
 // If you want to check the length of the array, slice or a map use CountConstraint.
 type LengthConstraint struct {
-	isIgnored            bool
-	checkMin             bool
-	checkMax             bool
-	min                  int
-	max                  int
-	minMessageTemplate   string
-	maxMessageTemplate   string
-	exactMessageTemplate string
+	isIgnored              bool
+	checkMin               bool
+	checkMax               bool
+	min                    int
+	max                    int
+	minMessageTemplate     string
+	minMessageParameters   validation.TemplateParameterList
+	maxMessageTemplate     string
+	maxMessageParameters   validation.TemplateParameterList
+	exactMessageTemplate   string
+	exactMessageParameters validation.TemplateParameterList
 }
 
 func newLengthConstraint(min int, max int, checkMin bool, checkMax bool) LengthConstraint {
@@ -94,23 +97,41 @@ func (c LengthConstraint) When(condition bool) LengthConstraint {
 }
 
 // MinMessage sets the violation message that will be shown if the string length is less than
-// the minimum value.
-func (c LengthConstraint) MinMessage(message string) LengthConstraint {
-	c.minMessageTemplate = message
+// the minimum value. You can set custom template parameters for injecting its values
+// into the final message. Also, you can use default parameters:
+//
+//	{{ length }} - the current string length;
+//	{{ limit }} - the lower limit;
+//	{{ value }} - the current (invalid) value.
+func (c LengthConstraint) MinMessage(template string, parameters ...validation.TemplateParameter) LengthConstraint {
+	c.minMessageTemplate = template
+	c.minMessageParameters = parameters
 	return c
 }
 
 // MaxMessage sets the violation message that will be shown if the string length is greater than
-// the maximum value.
-func (c LengthConstraint) MaxMessage(message string) LengthConstraint {
-	c.maxMessageTemplate = message
+// the maximum value. You can set custom template parameters for injecting its values
+// into the final message. Also, you can use default parameters:
+//
+//	{{ length }} - the current string length;
+//	{{ limit }} - the lower limit;
+//	{{ value }} - the current (invalid) value.
+func (c LengthConstraint) MaxMessage(template string, parameters ...validation.TemplateParameter) LengthConstraint {
+	c.maxMessageTemplate = template
+	c.maxMessageParameters = parameters
 	return c
 }
 
 // ExactMessage sets the violation message that will be shown if minimum and maximum values are equal and
-// the length of the string is not exactly this value.
-func (c LengthConstraint) ExactMessage(message string) LengthConstraint {
-	c.exactMessageTemplate = message
+// the length of the string is not exactly this value. You can set custom template parameters
+// for injecting its values into the final message. Also, you can use default parameters:
+//
+//	{{ length }} - the current string length;
+//	{{ limit }} - the lower limit;
+//	{{ value }} - the current (invalid) value.
+func (c LengthConstraint) ExactMessage(template string, parameters ...validation.TemplateParameter) LengthConstraint {
+	c.exactMessageTemplate = template
+	c.exactMessageParameters = parameters
 	return c
 }
 
@@ -122,10 +143,10 @@ func (c LengthConstraint) ValidateString(value *string, scope validation.Scope) 
 	count := utf8.RuneCountInString(*value)
 
 	if c.checkMax && count > c.max {
-		return c.newViolation(count, c.max, code.LengthTooMany, c.maxMessageTemplate, scope)
+		return c.newViolation(count, c.max, *value, code.LengthTooMany, c.maxMessageTemplate, c.maxMessageParameters, scope)
 	}
 	if c.checkMin && count < c.min {
-		return c.newViolation(count, c.min, code.LengthTooFew, c.minMessageTemplate, scope)
+		return c.newViolation(count, c.min, *value, code.LengthTooFew, c.minMessageTemplate, c.minMessageParameters, scope)
 	}
 
 	return nil
@@ -133,32 +154,38 @@ func (c LengthConstraint) ValidateString(value *string, scope validation.Scope) 
 
 func (c LengthConstraint) newViolation(
 	count, limit int,
-	violationCode, message string,
+	value, violationCode, template string,
+	parameters validation.TemplateParameterList,
 	scope validation.Scope,
 ) validation.Violation {
 	if c.checkMin && c.checkMax && c.min == c.max {
-		message = c.exactMessageTemplate
+		template = c.exactMessageTemplate
+		parameters = c.exactMessageParameters
 		violationCode = code.LengthExact
 	}
 
-	return scope.BuildViolation(violationCode, message).
+	return scope.BuildViolation(violationCode, template).
 		SetPluralCount(limit).
-		SetParameters([]validation.TemplateParameter{
-			{Key: "{{ count }}", Value: strconv.Itoa(count)},
-			{Key: "{{ limit }}", Value: strconv.Itoa(limit)},
-		}).
+		SetParameters(
+			parameters.Prepend(
+				validation.TemplateParameter{Key: "{{ value }}", Value: strconv.Quote(value)},
+				validation.TemplateParameter{Key: "{{ length }}", Value: strconv.Itoa(count)},
+				validation.TemplateParameter{Key: "{{ limit }}", Value: strconv.Itoa(limit)},
+			)...,
+		).
 		CreateViolation()
 }
 
 // RegexConstraint is used to ensure that the given value corresponds to regex pattern.
 type RegexConstraint struct {
-	isIgnored       bool
-	match           bool
-	messageTemplate string
-	regex           *regexp.Regexp
+	isIgnored         bool
+	match             bool
+	messageTemplate   string
+	messageParameters validation.TemplateParameterList
+	regex             *regexp.Regexp
 }
 
-// Matches creates a RegexConstraint for checking whether a value match.
+// Matches creates a RegexConstraint for checking whether a value matches a regular expression.
 //
 // Example
 //	err := validator.ValidateString(&s, it.Matches(regexp.MustCompile("^[a-z]+$")))
@@ -170,7 +197,7 @@ func Matches(regex *regexp.Regexp) RegexConstraint {
 	}
 }
 
-// Matches creates a RegexConstraint for checking whether a value not match.
+// DoesNotMatch creates a RegexConstraint for checking whether a value does not match a regular expression.
 //
 // Example
 //	err := validator.ValidateString(&s, it.DoesNotMatch(regexp.MustCompile("^[a-z]+$")))
@@ -196,12 +223,13 @@ func (c RegexConstraint) Name() string {
 	return "RegexConstraint"
 }
 
-// Message sets the violation message template. You can use template parameters.
-// for injecting its values into the final message:
+// Message sets the violation message template. You can set custom template parameters
+// for injecting its values into the final message. Also, you can use default parameters:
 //
 //	{{ value }} - the current (invalid) value.
-func (c RegexConstraint) Message(message string) RegexConstraint {
-	c.messageTemplate = message
+func (c RegexConstraint) Message(template string, parameters ...validation.TemplateParameter) RegexConstraint {
+	c.messageTemplate = template
+	c.messageParameters = parameters
 	return c
 }
 
@@ -216,14 +244,17 @@ func (c RegexConstraint) ValidateString(value *string, scope validation.Scope) e
 	if c.isIgnored || value == nil || *value == "" {
 		return nil
 	}
-
-	if !(c.match != c.regex.MatchString(*value)) {
+	if c.match == c.regex.MatchString(*value) {
 		return nil
 	}
 
 	return scope.
 		BuildViolation(code.MatchingFailed, c.messageTemplate).
-		AddParameter("{{ value }}", *value).
+		SetParameters(
+			c.messageParameters.Prepend(
+				validation.TemplateParameter{Key: "{{ value }}", Value: *value},
+			)...,
+		).
 		CreateViolation()
 }
 

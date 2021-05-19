@@ -3,6 +3,7 @@ package test
 import (
 	"time"
 
+	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 )
@@ -79,8 +80,11 @@ var isEqualToIntegerTestCases = []ConstraintValidationTestCase{
 		intValue:        intValue(0),
 		floatValue:      floatValue(0),
 		constraint: it.IsEqualToInteger(1).
-			Message(`Unexpected value "{{ value }}", expected value is "{{ comparedValue }}".`),
-		assert: assertHasOneViolation(code.Equal, `Unexpected value "0", expected value is "1".`),
+			Message(
+				`Unexpected value "{{ value }}" at {{ custom }}, expected value is "{{ comparedValue }}".`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		assert: assertHasOneViolation(code.Equal, `Unexpected value "0" at parameter, expected value is "1".`),
 	},
 	{
 		name:            "IsEqualToInteger passes when condition is false",
@@ -627,8 +631,14 @@ var isBetweenIntegersTestCases = []ConstraintValidationTestCase{
 		intValue:        intValue(0),
 		floatValue:      floatValue(0),
 		constraint: it.IsBetweenIntegers(1, 2).
-			Message(`Unexpected value "{{ value }}", expected value must be between "{{ min }}" and "{{ max }}".`),
-		assert: assertHasOneViolation(code.NotInRange, `Unexpected value "0", expected value must be between "1" and "2".`),
+			Message(
+				`Unexpected value "{{ value }}" at {{ custom }}, expected value must be between "{{ min }}" and "{{ max }}".`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		assert: assertHasOneViolation(
+			code.NotInRange,
+			`Unexpected value "0" at parameter, expected value must be between "1" and "2".`,
+		),
 	},
 	{
 		name:            "IsBetweenIntegers passes when condition is false",
@@ -713,8 +723,14 @@ var isEqualToStringTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("actual"),
 		constraint: it.IsEqualToString("expected").
-			Message(`Unexpected value {{ value }}, expected value is {{ comparedValue }}.`),
-		assert: assertHasOneViolation(code.Equal, `Unexpected value "actual", expected value is "expected".`),
+			Message(
+				`Unexpected value {{ value }} at {{ custom }}, expected value is {{ comparedValue }}.`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		assert: assertHasOneViolation(
+			code.Equal,
+			`Unexpected value "actual" at parameter, expected value is "expected".`,
+		),
 	},
 	{
 		name:            "IsEqualToString passes when condition is false",
@@ -788,10 +804,13 @@ var isEarlierThanTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(timeType),
 		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 40, 0, 0, time.UTC)),
 		constraint: it.IsEarlierThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)).
-			Message(`Unexpected value "{{ value }}", expected value must be earlier than "{{ comparedValue }}".`),
+			Message(
+				`Unexpected value "{{ value }}" at {{ custom }}, expected value must be earlier than "{{ comparedValue }}".`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
 		assert: assertHasOneViolation(
 			code.TooLate,
-			`Unexpected value "2021-03-29T12:40:00Z", expected value must be earlier than "2021-03-29T12:30:00Z".`,
+			`Unexpected value "2021-03-29T12:40:00Z" at parameter, expected value must be earlier than "2021-03-29T12:30:00Z".`,
 		),
 	},
 	{

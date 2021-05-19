@@ -1,6 +1,7 @@
 package test
 
 import (
+	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
@@ -42,23 +43,44 @@ var lengthConstraintTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "HasMinLength violation with custom min message",
 		isApplicableFor: specificValueTypes(stringType),
-		constraint:      it.HasMinLength(2).MinMessage(customMessage),
-		stringValue:     stringValue("a"),
-		assert:          assertHasOneViolation(code.LengthTooFew, customMessage),
+		constraint: it.HasMinLength(2).
+			MinMessage(
+				"Unexpected length {{ length }} at {{ custom }} value {{ value }}, should not be less than {{ limit }}.",
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		stringValue: stringValue("a"),
+		assert: assertHasOneViolation(
+			code.LengthTooFew,
+			`Unexpected length 1 at parameter value "a", should not be less than 2.`,
+		),
 	},
 	{
 		name:            "HasMinLength violation with custom max message",
 		isApplicableFor: specificValueTypes(stringType),
-		constraint:      it.HasMaxLength(2).MaxMessage(customMessage),
-		stringValue:     stringValue("aaa"),
-		assert:          assertHasOneViolation(code.LengthTooMany, customMessage),
+		constraint: it.HasMaxLength(2).
+			MaxMessage(
+				"Unexpected length {{ length }} at {{ custom }} value {{ value }}, should not be greater than {{ limit }}.",
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		stringValue: stringValue("aaa"),
+		assert: assertHasOneViolation(
+			code.LengthTooMany,
+			`Unexpected length 3 at parameter value "aaa", should not be greater than 2.`,
+		),
 	},
 	{
 		name:            "HasMinLength violation with custom exact message",
 		isApplicableFor: specificValueTypes(stringType),
-		constraint:      it.HasExactLength(2).ExactMessage(customMessage),
-		stringValue:     stringValue("aaa"),
-		assert:          assertHasOneViolation(code.LengthExact, customMessage),
+		constraint: it.HasExactLength(2).
+			ExactMessage(
+				"Unexpected length {{ length }} at {{ custom }} value {{ value }}, should be exactly {{ limit }}.",
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		stringValue: stringValue("aaa"),
+		assert: assertHasOneViolation(
+			code.LengthExact,
+			`Unexpected length 3 at parameter value "aaa", should be exactly 2.`,
+		),
 	},
 	{
 		name:            "HasMinLength passes on equal length",
@@ -130,9 +152,13 @@ var regexConstraintTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "Matches violation with custom message",
 		isApplicableFor: specificValueTypes(stringType),
-		constraint:      it.Matches(regexp.MustCompile("^[a-z]+$")).Message(customMessage),
-		stringValue:     stringValue("1"),
-		assert:          assertHasOneViolation(code.MatchingFailed, customMessage),
+		constraint: it.Matches(regexp.MustCompile("^[a-z]+$")).
+			Message(
+				`Unexpected value "{{ value }}" at {{ custom }}.`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		stringValue: stringValue("1"),
+		assert:      assertHasOneViolation(code.MatchingFailed, `Unexpected value "1" at parameter.`),
 	},
 	{
 		name:            "Matches passes on expected string",

@@ -73,6 +73,7 @@ type URLConstraint struct {
 	supportsRelativeSchema bool
 	schemas                []string
 	messageTemplate        string
+	messageParameters      validation.TemplateParameterList
 }
 
 // IsURL creates a URLConstraint to validate an URL. By default, constraint checks
@@ -115,12 +116,13 @@ func (c URLConstraint) WithSchemas(schemas ...string) URLConstraint {
 	return c
 }
 
-// Message sets the violation message template. You can use template parameters
-// for injecting its values into the final message:
+// Message sets the violation message template. You can set custom template parameters
+// for injecting its values into the final message. Also, you can use default parameters:
 //
 //	{{ value }} - the current (invalid) value.
-func (c URLConstraint) Message(message string) URLConstraint {
-	c.messageTemplate = message
+func (c URLConstraint) Message(template string, parameters ...validation.TemplateParameter) URLConstraint {
+	c.messageTemplate = template
+	c.messageParameters = parameters
 	return c
 }
 
@@ -145,6 +147,11 @@ func (c URLConstraint) ValidateString(value *string, scope validation.Scope) err
 	}
 
 	return scope.BuildViolation(code.InvalidURL, c.messageTemplate).
+		SetParameters(
+			c.messageParameters.Prepend(
+				validation.TemplateParameter{Key: "{{ value }}", Value: *value},
+			)...,
+		).
 		AddParameter("{{ value }}", *value).
 		CreateViolation()
 }
@@ -156,8 +163,10 @@ type IPConstraint struct {
 	validate     func(value string, restrictions ...validate.IPRestriction) error
 	restrictions []validate.IPRestriction
 
-	invalidMessageTemplate    string
-	prohibitedMessageTemplate string
+	invalidMessageTemplate      string
+	invalidMessageParameters    validation.TemplateParameterList
+	prohibitedMessageTemplate   string
+	prohibitedMessageParameters validation.TemplateParameterList
 }
 
 // IsIP creates an IPConstraint to validate an IP address (IPv4 or IPv6).
@@ -207,20 +216,24 @@ func (c IPConstraint) DenyIP(restrict func(ip net.IP) bool) IPConstraint {
 }
 
 // InvalidMessage sets the violation message template for invalid IP case.
-// You can use template parameters for injecting its values into the final message:
+// You can set custom template parameters for injecting its values into the final message.
+// Also, you can use default parameters:
 //
 //	{{ value }} - the current (invalid) value.
-func (c IPConstraint) InvalidMessage(message string) IPConstraint {
-	c.invalidMessageTemplate = message
+func (c IPConstraint) InvalidMessage(template string, parameters ...validation.TemplateParameter) IPConstraint {
+	c.invalidMessageTemplate = template
+	c.invalidMessageParameters = parameters
 	return c
 }
 
 // ProhibitedMessage sets the violation message template for prohibited IP case.
-// You can use template parameters for injecting its values into the final message:
+// You can set custom template parameters for injecting its values into the final message.
+// Also, you can use default parameters:
 //
 //	{{ value }} - the current (invalid) value.
-func (c IPConstraint) ProhibitedMessage(message string) IPConstraint {
-	c.prohibitedMessageTemplate = message
+func (c IPConstraint) ProhibitedMessage(template string, parameters ...validation.TemplateParameter) IPConstraint {
+	c.prohibitedMessageTemplate = template
+	c.prohibitedMessageParameters = parameters
 	return c
 }
 
@@ -241,17 +254,26 @@ func (c IPConstraint) ValidateString(value *string, scope validation.Scope) erro
 
 func (c IPConstraint) validateIP(value string, scope validation.Scope) error {
 	err := c.validate(value, c.restrictions...)
-	if err != nil {
-		var builder *validation.ViolationBuilder
-
-		if errors.Is(err, validate.ErrProhibited) {
-			builder = scope.BuildViolation(code.ProhibitedIP, c.prohibitedMessageTemplate)
-		} else {
-			builder = scope.BuildViolation(code.InvalidIP, c.invalidMessageTemplate)
-		}
-
-		return builder.AddParameter("{{ value }}", value).CreateViolation()
+	if err == nil {
+		return nil
 	}
 
-	return nil
+	var builder *validation.ViolationBuilder
+	var parameters validation.TemplateParameterList
+
+	if errors.Is(err, validate.ErrProhibited) {
+		builder = scope.BuildViolation(code.ProhibitedIP, c.prohibitedMessageTemplate)
+		parameters = c.prohibitedMessageParameters
+	} else {
+		builder = scope.BuildViolation(code.InvalidIP, c.invalidMessageTemplate)
+		parameters = c.invalidMessageParameters
+	}
+
+	return builder.
+		SetParameters(
+			parameters.Prepend(
+				validation.TemplateParameter{Key: "{{ value }}", Value: value},
+			)...,
+		).
+		CreateViolation()
 }
