@@ -707,11 +707,12 @@ func (c TimeComparisonConstraint) ValidateTime(value *time.Time, scope validatio
 
 // TimeRangeConstraint is used to check that a given time value is between some minimum and maximum.
 type TimeRangeConstraint struct {
-	isIgnored       bool
-	messageTemplate string
-	layout          string
-	min             time.Time
-	max             time.Time
+	isIgnored         bool
+	messageTemplate   string
+	messageParameters validation.TemplateParameterList
+	layout            string
+	min               time.Time
+	max               time.Time
 }
 
 // IsBetweenTime checks that the time is between specified minimum and maximum time values.
@@ -751,8 +752,9 @@ func (c TimeRangeConstraint) Name() string {
 //
 // All values are formatted by the layout that can be defined by the Layout method.
 // Default layout is time.RFC3339.
-func (c TimeRangeConstraint) Message(message string) TimeRangeConstraint {
-	c.messageTemplate = message
+func (c TimeRangeConstraint) Message(template string, parameters ...validation.TemplateParameter) TimeRangeConstraint {
+	c.messageTemplate = template
+	c.messageParameters = parameters
 	return c
 }
 
@@ -783,9 +785,11 @@ func (c TimeRangeConstraint) ValidateTime(value *time.Time, scope validation.Sco
 func (c TimeRangeConstraint) newViolation(value *time.Time, scope validation.Scope) validation.Violation {
 	return scope.BuildViolation(code.NotInRange, c.messageTemplate).
 		SetParameters(
-			validation.TemplateParameter{Key: "{{ min }}", Value: c.min.Format(c.layout)},
-			validation.TemplateParameter{Key: "{{ max }}", Value: c.max.Format(c.layout)},
-			validation.TemplateParameter{Key: "{{ value }}", Value: value.Format(c.layout)},
+			c.messageParameters.Prepend(
+				validation.TemplateParameter{Key: "{{ min }}", Value: c.min.Format(c.layout)},
+				validation.TemplateParameter{Key: "{{ max }}", Value: c.max.Format(c.layout)},
+				validation.TemplateParameter{Key: "{{ value }}", Value: value.Format(c.layout)},
+			)...,
 		).
 		CreateViolation()
 }

@@ -1033,10 +1033,13 @@ var isBetweenTimeTestCases = []ConstraintValidationTestCase{
 				*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
 				*timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
 			).
-			Message(`Unexpected value "{{ value }}", expected value must be between "{{ min }}" and "{{ max }}".`),
+			Message(
+				`Unexpected value "{{ value }}" at {{ custom }}, expected value must be between "{{ min }}" and "{{ max }}".`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
 		assert: assertHasOneViolation(
 			code.NotInRange,
-			`Unexpected value "2021-04-04T12:20:00Z", expected value must be between "2021-04-04T12:30:00Z" and "2021-04-04T12:40:00Z".`,
+			`Unexpected value "2021-04-04T12:20:00Z" at parameter, expected value must be between "2021-04-04T12:30:00Z" and "2021-04-04T12:40:00Z".`,
 		),
 	},
 	{
