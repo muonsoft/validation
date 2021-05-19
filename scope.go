@@ -40,9 +40,8 @@ func (s Scope) BuildViolation(code, message string) *ViolationBuilder {
 	return b
 }
 
-// Validator creates a new validation for the given scope. This validator can be used
-// to perform complex validation on a custom constraint by using the
-// already existing constraints.
+// Validator creates a new validator for the given scope. This validator can be used to perform
+// complex validation on a custom constraint using existing constraints.
 func (s Scope) Validator() *Validator {
 	return newScopedValidator(s)
 }
