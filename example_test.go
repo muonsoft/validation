@@ -214,6 +214,44 @@ func ExampleNewCustomStringConstraint() {
 	// violation: Unexpected value.
 }
 
+func ExampleWhen() {
+	visaRegex := regexp.MustCompile("^4[0-9]{12}(?:[0-9]{3})?$")
+	masterCardRegex := regexp.MustCompile("^(5[1-5][0-9]{14}|2(22[1-9][0-9]{12}|2[3-9][0-9]{13}|[3-6][0-9]{14}|7[0-1][0-9]{13}|720[0-9]{12}))$")
+
+	payment := struct {
+		CardType   string
+		CardNumber string
+		Amount     int
+	}{
+		CardType:   "Visa",
+		CardNumber: "4111",
+		Amount:     1000,
+	}
+
+	err := validator.Validate(
+		validation.StringProperty(
+			"cardType",
+			&payment.CardType,
+			it.IsOneOfStrings("Visa", "MasterCard"),
+		),
+		validation.StringProperty(
+			"cardNumber",
+			&payment.CardNumber,
+			validation.
+				When(payment.CardType == "Visa").
+				Then(it.Matches(visaRegex)).
+				Else(it.Matches(masterCardRegex)),
+		),
+	)
+
+	violations := err.(validation.ViolationList)
+	for _, violation := range violations {
+		fmt.Println(violation.Error())
+	}
+	// Output:
+	// violation at 'cardNumber': This value is not valid.
+}
+
 func ExampleConditionalConstraint_Then() {
 	v := "foo"
 	err := validator.ValidateString(

@@ -40,6 +40,12 @@ func (s Scope) BuildViolation(code, message string) *ViolationBuilder {
 	return b
 }
 
+// Validator creates a new validator for the given scope. This validator can be used to perform
+// complex validation on a custom constraint using existing constraints.
+func (s Scope) Validator() *Validator {
+	return newScopedValidator(s)
+}
+
 func (s *Scope) applyOptions(options ...Option) error {
 	for _, option := range options {
 		var err error
