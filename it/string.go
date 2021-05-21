@@ -19,6 +19,9 @@ type LengthConstraint struct {
 	checkMax               bool
 	min                    int
 	max                    int
+	minCode                string
+	maxCode                string
+	exactCode              string
 	minMessageTemplate     string
 	minMessageParameters   validation.TemplateParameterList
 	maxMessageTemplate     string
@@ -33,6 +36,9 @@ func newLengthConstraint(min int, max int, checkMin bool, checkMax bool) LengthC
 		max:                  max,
 		checkMin:             checkMin,
 		checkMax:             checkMax,
+		minCode:              code.LengthTooFew,
+		maxCode:              code.LengthTooMany,
+		exactCode:            code.LengthExact,
 		minMessageTemplate:   message.LengthTooFew,
 		maxMessageTemplate:   message.LengthTooMany,
 		exactMessageTemplate: message.LengthExact,
@@ -96,6 +102,14 @@ func (c LengthConstraint) When(condition bool) LengthConstraint {
 	return c
 }
 
+// Codes overrides default codes for produced violation.
+func (c LengthConstraint) Codes(minCode, maxCode, exactCode string) LengthConstraint {
+	c.minCode = minCode
+	c.maxCode = maxCode
+	c.exactCode = exactCode
+	return c
+}
+
 // MinMessage sets the violation message that will be shown if the string length is less than
 // the minimum value. You can set custom template parameters for injecting its values
 // into the final message. Also, you can use default parameters:
@@ -143,10 +157,10 @@ func (c LengthConstraint) ValidateString(value *string, scope validation.Scope) 
 	count := utf8.RuneCountInString(*value)
 
 	if c.checkMax && count > c.max {
-		return c.newViolation(count, c.max, *value, code.LengthTooMany, c.maxMessageTemplate, c.maxMessageParameters, scope)
+		return c.newViolation(count, c.max, *value, c.maxCode, c.maxMessageTemplate, c.maxMessageParameters, scope)
 	}
 	if c.checkMin && count < c.min {
-		return c.newViolation(count, c.min, *value, code.LengthTooFew, c.minMessageTemplate, c.minMessageParameters, scope)
+		return c.newViolation(count, c.min, *value, c.minCode, c.minMessageTemplate, c.minMessageParameters, scope)
 	}
 
 	return nil
@@ -161,7 +175,7 @@ func (c LengthConstraint) newViolation(
 	if c.checkMin && c.checkMax && c.min == c.max {
 		template = c.exactMessageTemplate
 		parameters = c.exactMessageParameters
-		violationCode = code.LengthExact
+		violationCode = c.exactCode
 	}
 
 	return scope.BuildViolation(violationCode, template).
@@ -180,6 +194,7 @@ func (c LengthConstraint) newViolation(
 type RegexConstraint struct {
 	isIgnored         bool
 	match             bool
+	code              string
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
 	regex             *regexp.Regexp
@@ -193,6 +208,7 @@ func Matches(regex *regexp.Regexp) RegexConstraint {
 	return RegexConstraint{
 		regex:           regex,
 		match:           true,
+		code:            code.MatchingFailed,
 		messageTemplate: message.NotValid,
 	}
 }
@@ -205,6 +221,7 @@ func DoesNotMatch(regex *regexp.Regexp) RegexConstraint {
 	return RegexConstraint{
 		regex:           regex,
 		match:           false,
+		code:            code.MatchingFailed,
 		messageTemplate: message.NotValid,
 	}
 }
@@ -221,6 +238,12 @@ func (c RegexConstraint) SetUp() error {
 // Name is the constraint name.
 func (c RegexConstraint) Name() string {
 	return "RegexConstraint"
+}
+
+// Code overrides default code for produced violation.
+func (c RegexConstraint) Code(code string) RegexConstraint {
+	c.code = code
+	return c
 }
 
 // Message sets the violation message template. You can set custom template parameters
@@ -249,7 +272,7 @@ func (c RegexConstraint) ValidateString(value *string, scope validation.Scope) e
 	}
 
 	return scope.
-		BuildViolation(code.MatchingFailed, c.messageTemplate).
+		BuildViolation(c.code, c.messageTemplate).
 		SetParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ value }}", Value: *value},

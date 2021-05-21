@@ -68,12 +68,14 @@ var urlConstraintTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsURL violation on invalid URL with custom message",
 		isApplicableFor: specificValueTypes(stringType),
-		constraint: it.IsURL().Message(
-			`Unexpected URL "{{ value }}" at {{ custom }}.`,
-			validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
-		),
+		constraint: it.IsURL().
+			Code(customCode).
+			Message(
+				`Unexpected URL "{{ value }}" at {{ custom }}.`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
 		stringValue: stringValue("example.com"),
-		assert:      assertHasOneViolation(code.InvalidURL, `Unexpected URL "example.com" at parameter.`),
+		assert:      assertHasOneViolation(customCode, `Unexpected URL "example.com" at parameter.`),
 	},
 	{
 		name:            "IsURL passes when condition is false",
@@ -197,26 +199,31 @@ var ipConstraintTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsIP violation with custom message",
 		isApplicableFor: specificValueTypes(stringType),
-		constraint: it.IsIP().InvalidMessage(
-			`Unexpected IP "{{ value }}" at {{ custom }}.`,
-			validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
-		),
+		constraint: it.IsIP().
+			Codes("invalidCode", "prohibitedCode").
+			InvalidMessage(
+				`Unexpected IP "{{ value }}" at {{ custom }}.`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
 		stringValue: stringValue("123.123.123.321"),
 		assert: assertHasOneViolation(
-			code.InvalidIP,
+			"invalidCode",
 			`Unexpected IP "123.123.123.321" at parameter.`,
 		),
 	},
 	{
 		name:            "IsIP violation with custom restricted message",
 		isApplicableFor: specificValueTypes(stringType),
-		constraint: it.IsIP().DenyPrivateIP().ProhibitedMessage(
-			`Unexpected IP "{{ value }}" at {{ custom }}.`,
-			validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
-		),
+		constraint: it.IsIP().
+			DenyPrivateIP().
+			Codes("invalidCode", "prohibitedCode").
+			ProhibitedMessage(
+				`Unexpected IP "{{ value }}" at {{ custom }}.`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
 		stringValue: stringValue("192.168.1.0"),
 		assert: assertHasOneViolation(
-			code.ProhibitedIP,
+			"prohibitedCode",
 			`Unexpected IP "192.168.1.0" at parameter.`,
 		),
 	},

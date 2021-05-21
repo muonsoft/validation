@@ -35,12 +35,13 @@ var countConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "HasMinCount violation with custom message",
 		isApplicableFor: specificValueTypes(iterableType, countableType),
 		constraint: it.HasMinCount(1).
+			Codes("minCode", "maxCode", "exactCode").
 			MinMessage(
 				"Unexpected count {{ count }} at {{ custom }}, should not be less than {{ limit }}.",
 				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
 			),
 		assert: assertHasOneViolation(
-			code.CountTooFew,
+			"minCode",
 			"Unexpected count 0 at parameter, should not be less than 1.",
 		),
 	},
@@ -88,12 +89,13 @@ var countConstraintTestCases = []ConstraintValidationTestCase{
 		sliceValue:      []string{"a", "b"},
 		mapValue:        map[string]string{"a": "a", "b": "b"},
 		constraint: it.HasMaxCount(1).
+			Codes("minCode", "maxCode", "exactCode").
 			MaxMessage(
 				"Unexpected count {{ count }} at {{ custom }}, should not be greater than {{ limit }}.",
 				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
 			),
 		assert: assertHasOneViolation(
-			code.CountTooMany,
+			"maxCode",
 			"Unexpected count 2 at parameter, should not be greater than 1.",
 		),
 	},
@@ -126,12 +128,13 @@ var countConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "HasExactCount violation on nil with custom message",
 		isApplicableFor: specificValueTypes(iterableType, countableType),
 		constraint: it.HasExactCount(1).
+			Codes("minCode", "maxCode", "exactCode").
 			ExactMessage(
 				"Unexpected count {{ count }} at {{ custom }}, should be exactly {{ limit }}.",
 				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
 			),
 		assert: assertHasOneViolation(
-			code.CountExact,
+			"exactCode",
 			"Unexpected count 0 at parameter, should be exactly 1.",
 		),
 	},
