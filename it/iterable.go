@@ -12,14 +12,17 @@ import (
 // CountConstraint checks that a given collection's (array, slice or a map) length is between some minimum and
 // maximum value.
 type CountConstraint struct {
-	isIgnored            bool
-	checkMin             bool
-	checkMax             bool
-	min                  int
-	max                  int
-	minMessageTemplate   string
-	maxMessageTemplate   string
-	exactMessageTemplate string
+	isIgnored              bool
+	checkMin               bool
+	checkMax               bool
+	min                    int
+	max                    int
+	minMessageTemplate     string
+	minMessageParameters   validation.TemplateParameterList
+	maxMessageTemplate     string
+	maxMessageParameters   validation.TemplateParameterList
+	exactMessageTemplate   string
+	exactMessageParameters validation.TemplateParameterList
 }
 
 func newCountConstraint(min int, max int, checkMin bool, checkMax bool) CountConstraint {
@@ -92,23 +95,38 @@ func (c CountConstraint) When(condition bool) CountConstraint {
 }
 
 // MinMessage sets the violation message that will be shown if the collection length is less than
-// the minimum value.
-func (c CountConstraint) MinMessage(message string) CountConstraint {
-	c.minMessageTemplate = message
+// the minimum value. You can set custom template parameters for injecting its values
+// into the final message. Also, you can use default parameters:
+//
+//	{{ count }} - the current collection size;
+//	{{ limit }} - the lower limit.
+func (c CountConstraint) MinMessage(template string, parameters ...validation.TemplateParameter) CountConstraint {
+	c.minMessageTemplate = template
+	c.minMessageParameters = parameters
 	return c
 }
 
 // MaxMessage sets the violation message that will be shown if the collection length is greater than
-// the maximum value.
-func (c CountConstraint) MaxMessage(message string) CountConstraint {
-	c.maxMessageTemplate = message
+// the maximum value. You can set custom template parameters for injecting its values
+// into the final message. Also, you can use default parameters:
+//
+//	{{ count }} - the current collection size;
+//	{{ limit }} - the upper limit.
+func (c CountConstraint) MaxMessage(template string, parameters ...validation.TemplateParameter) CountConstraint {
+	c.maxMessageTemplate = template
+	c.maxMessageParameters = parameters
 	return c
 }
 
 // ExactMessage sets the violation message that will be shown if minimum and maximum values are equal and
-// the length of the collection is not exactly this value.
-func (c CountConstraint) ExactMessage(message string) CountConstraint {
-	c.exactMessageTemplate = message
+// the length of the collection is not exactly this value. You can set custom template parameters
+// for injecting its values into the final message. Also, you can use default parameters:
+//
+//	{{ count }} - the current collection size;
+//	{{ limit }} - the exact expected collection size.
+func (c CountConstraint) ExactMessage(template string, parameters ...validation.TemplateParameter) CountConstraint {
+	c.exactMessageTemplate = template
+	c.exactMessageParameters = parameters
 	return c
 }
 
@@ -121,10 +139,10 @@ func (c CountConstraint) ValidateCountable(count int, scope validation.Scope) er
 		return nil
 	}
 	if c.checkMax && count > c.max {
-		return c.newViolation(count, c.max, code.CountTooMany, c.maxMessageTemplate, scope)
+		return c.newViolation(count, c.max, code.CountTooMany, c.maxMessageTemplate, c.maxMessageParameters, scope)
 	}
 	if c.checkMin && count < c.min {
-		return c.newViolation(count, c.min, code.CountTooFew, c.minMessageTemplate, scope)
+		return c.newViolation(count, c.min, code.CountTooFew, c.minMessageTemplate, c.minMessageParameters, scope)
 	}
 
 	return nil
@@ -132,19 +150,23 @@ func (c CountConstraint) ValidateCountable(count int, scope validation.Scope) er
 
 func (c CountConstraint) newViolation(
 	count, limit int,
-	violationCode, message string,
+	violationCode, template string,
+	parameters validation.TemplateParameterList,
 	scope validation.Scope,
 ) validation.Violation {
 	if c.checkMin && c.checkMax && c.min == c.max {
-		message = c.exactMessageTemplate
+		template = c.exactMessageTemplate
+		parameters = c.exactMessageParameters
 		violationCode = code.CountExact
 	}
 
-	return scope.BuildViolation(violationCode, message).
+	return scope.BuildViolation(violationCode, template).
 		SetPluralCount(limit).
-		SetParameters([]validation.TemplateParameter{
-			{Key: "{{ count }}", Value: strconv.Itoa(count)},
-			{Key: "{{ limit }}", Value: strconv.Itoa(limit)},
-		}).
+		SetParameters(
+			parameters.Prepend(
+				validation.TemplateParameter{Key: "{{ count }}", Value: strconv.Itoa(count)},
+				validation.TemplateParameter{Key: "{{ limit }}", Value: strconv.Itoa(limit)},
+			)...,
+		).
 		CreateViolation()
 }

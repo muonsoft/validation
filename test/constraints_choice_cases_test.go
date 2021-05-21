@@ -1,6 +1,7 @@
 package test
 
 import (
+	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
@@ -45,10 +46,13 @@ var choiceConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("unexpected"),
 		constraint: it.IsOneOfStrings("alpha", "beta", "gamma").
-			Message(`Unexpected value "{{ value }}", expected values are: {{ choices }}.`),
+			Message(
+				`Unexpected value "{{ value }}" at {{ custom }}, expected values are: {{ choices }}.`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
 		assert: assertHasOneViolation(
 			code.NoSuchChoice,
-			`Unexpected value "unexpected", expected values are: alpha, beta, gamma.`,
+			`Unexpected value "unexpected" at parameter, expected values are: alpha, beta, gamma.`,
 		),
 	},
 	{

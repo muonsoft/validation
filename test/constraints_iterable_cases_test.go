@@ -1,6 +1,7 @@
 package test
 
 import (
+	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 )
@@ -33,8 +34,15 @@ var countConstraintTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "HasMinCount violation with custom message",
 		isApplicableFor: specificValueTypes(iterableType, countableType),
-		constraint:      it.HasMinCount(1).MinMessage(customMessage),
-		assert:          assertHasOneViolation(code.CountTooFew, customMessage),
+		constraint: it.HasMinCount(1).
+			MinMessage(
+				"Unexpected count {{ count }} at {{ custom }}, should not be less than {{ limit }}.",
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		assert: assertHasOneViolation(
+			code.CountTooFew,
+			"Unexpected count 0 at parameter, should not be less than 1.",
+		),
 	},
 	{
 		name:            "HasMinCount violation on small collection",
@@ -79,8 +87,15 @@ var countConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(iterableType, countableType),
 		sliceValue:      []string{"a", "b"},
 		mapValue:        map[string]string{"a": "a", "b": "b"},
-		constraint:      it.HasMaxCount(1).MaxMessage(customMessage),
-		assert:          assertHasOneViolation(code.CountTooMany, customMessage),
+		constraint: it.HasMaxCount(1).
+			MaxMessage(
+				"Unexpected count {{ count }} at {{ custom }}, should not be greater than {{ limit }}.",
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		assert: assertHasOneViolation(
+			code.CountTooMany,
+			"Unexpected count 2 at parameter, should not be greater than 1.",
+		),
 	},
 	{
 		name:            "HasCountBetween passes on valid collection",
@@ -110,7 +125,14 @@ var countConstraintTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "HasExactCount violation on nil with custom message",
 		isApplicableFor: specificValueTypes(iterableType, countableType),
-		constraint:      it.HasExactCount(1).ExactMessage(customMessage),
-		assert:          assertHasOneViolation(code.CountExact, customMessage),
+		constraint: it.HasExactCount(1).
+			ExactMessage(
+				"Unexpected count {{ count }} at {{ custom }}, should be exactly {{ limit }}.",
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		assert: assertHasOneViolation(
+			code.CountExact,
+			"Unexpected count 0 at parameter, should be exactly 1.",
+		),
 	},
 }

@@ -10,10 +10,11 @@ import (
 
 // ChoiceConstraint is used to ensure that the given value corresponds to one of the expected choices.
 type ChoiceConstraint struct {
-	choices         map[string]bool
-	choicesValue    string
-	messageTemplate string
-	isIgnored       bool
+	choices           map[string]bool
+	choicesValue      string
+	messageTemplate   string
+	messageParameters validation.TemplateParameterList
+	isIgnored         bool
 }
 
 // IsOneOfStrings creates a ChoiceConstraint for checking that values are in the expected list of strings.
@@ -47,13 +48,14 @@ func (c ChoiceConstraint) Name() string {
 	return "ChoiceConstraint"
 }
 
-// Message sets the violation message template. You can use template parameters
-// for injecting its values into the final message:
+// Message sets the violation message template. You can set custom template parameters
+// for injecting its values into the final message. Also, you can use default parameters:
 //
 //	{{ choices }} - a comma-separated list of available choices;
 //	{{ value }} - the current (invalid) value.
-func (c ChoiceConstraint) Message(message string) ChoiceConstraint {
-	c.messageTemplate = message
+func (c ChoiceConstraint) Message(template string, parameters ...validation.TemplateParameter) ChoiceConstraint {
+	c.messageTemplate = template
+	c.messageParameters = parameters
 	return c
 }
 
@@ -74,9 +76,11 @@ func (c ChoiceConstraint) ValidateString(value *string, scope validation.Scope) 
 
 	return scope.
 		BuildViolation(code.NoSuchChoice, c.messageTemplate).
-		SetParameters([]validation.TemplateParameter{
-			{Key: "{{ value }}", Value: *value},
-			{Key: "{{ choices }}", Value: c.choicesValue},
-		}).
+		SetParameters(
+			c.messageParameters.Prepend(
+				validation.TemplateParameter{Key: "{{ value }}", Value: *value},
+				validation.TemplateParameter{Key: "{{ choices }}", Value: c.choicesValue},
+			)...,
+		).
 		CreateViolation()
 }

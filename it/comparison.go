@@ -14,11 +14,12 @@ import (
 // Values are compared as integers if the compared and specified values are integers.
 // Otherwise, numbers are always compared as floating point numbers.
 type NumberComparisonConstraint struct {
-	isIgnored       bool
-	code            string
-	messageTemplate string
-	comparedValue   string
-	isValid         func(value generic.Number) bool
+	isIgnored         bool
+	code              string
+	messageTemplate   string
+	messageParameters validation.TemplateParameterList
+	comparedValue     string
+	isValid           func(value generic.Number) bool
 }
 
 // IsEqualToInteger checks that the number (integer or float) is equal to the specified integer value.
@@ -347,13 +348,17 @@ func (c NumberComparisonConstraint) Name() string {
 	return "NumberComparisonConstraint"
 }
 
-// Message sets the violation message template. You can use template parameters
-// for injecting its values into the final message:
+// Message sets the violation message template. You can set custom template parameters
+// for injecting its values into the final message. Also, you can use default parameters:
 //
 //  {{ comparedValue }} - the expected value;
 //  {{ value }} - the current (invalid) value.
-func (c NumberComparisonConstraint) Message(message string) NumberComparisonConstraint {
-	c.messageTemplate = message
+func (c NumberComparisonConstraint) Message(
+	template string,
+	parameters ...validation.TemplateParameter,
+) NumberComparisonConstraint {
+	c.messageTemplate = template
+	c.messageParameters = parameters
 	return c
 }
 
@@ -370,10 +375,12 @@ func (c NumberComparisonConstraint) ValidateNumber(value generic.Number, scope v
 	}
 
 	return scope.BuildViolation(c.code, c.messageTemplate).
-		SetParameters([]validation.TemplateParameter{
-			{Key: "{{ comparedValue }}", Value: c.comparedValue},
-			{Key: "{{ value }}", Value: value.String()},
-		}).
+		SetParameters(
+			c.messageParameters.Prepend(
+				validation.TemplateParameter{Key: "{{ comparedValue }}", Value: c.comparedValue},
+				validation.TemplateParameter{Key: "{{ value }}", Value: value.String()},
+			)...,
+		).
 		CreateViolation()
 }
 
@@ -381,10 +388,11 @@ func (c NumberComparisonConstraint) ValidateNumber(value generic.Number, scope v
 // Values are compared as integers if the compared and specified values are integers.
 // Otherwise, numbers are always compared as floating point numbers.
 type RangeConstraint struct {
-	isIgnored       bool
-	messageTemplate string
-	min             generic.Number
-	max             generic.Number
+	isIgnored         bool
+	messageTemplate   string
+	messageParameters validation.TemplateParameterList
+	min               generic.Number
+	max               generic.Number
 }
 
 // IsBetweenIntegers checks that the number (integer or float) is between specified minimum and
@@ -431,14 +439,15 @@ func (c RangeConstraint) Name() string {
 	return "RangeConstraint"
 }
 
-// Message sets the violation message template. You can use template parameters
-// for injecting its values into the final message:
+// Message sets the violation message template. You can set custom template parameters
+// for injecting its values into the final message. Also, you can use default parameters:
 //
 //  {{ max }} - the upper limit;
 //  {{ min }} - the lower limit;
 //  {{ value }} - the current (invalid) value.
-func (c RangeConstraint) Message(message string) RangeConstraint {
-	c.messageTemplate = message
+func (c RangeConstraint) Message(template string, parameters ...validation.TemplateParameter) RangeConstraint {
+	c.messageTemplate = template
+	c.messageParameters = parameters
 	return c
 }
 
@@ -462,21 +471,24 @@ func (c RangeConstraint) ValidateNumber(value generic.Number, scope validation.S
 
 func (c RangeConstraint) newViolation(value generic.Number, scope validation.Scope) error {
 	return scope.BuildViolation(code.NotInRange, c.messageTemplate).
-		SetParameters([]validation.TemplateParameter{
-			{Key: "{{ min }}", Value: c.min.String()},
-			{Key: "{{ max }}", Value: c.max.String()},
-			{Key: "{{ value }}", Value: value.String()},
-		}).
+		SetParameters(
+			c.messageParameters.Prepend(
+				validation.TemplateParameter{Key: "{{ min }}", Value: c.min.String()},
+				validation.TemplateParameter{Key: "{{ max }}", Value: c.max.String()},
+				validation.TemplateParameter{Key: "{{ value }}", Value: value.String()},
+			)...,
+		).
 		CreateViolation()
 }
 
 // StringComparisonConstraint is used to compare strings.
 type StringComparisonConstraint struct {
-	isIgnored       bool
-	code            string
-	messageTemplate string
-	comparedValue   string
-	isValid         func(value string) bool
+	isIgnored         bool
+	code              string
+	messageTemplate   string
+	messageParameters validation.TemplateParameterList
+	comparedValue     string
+	isValid           func(value string) bool
 }
 
 // IsEqualToString checks that the string value is equal to the specified string value.
@@ -521,15 +533,19 @@ func (c StringComparisonConstraint) Name() string {
 	return "StringComparisonConstraint"
 }
 
-// Message sets the violation message template. You can use template parameters
-// for injecting its values into the final message:
+// Message sets the violation message template. You can set custom template parameters
+// for injecting its values into the final message. Also, you can use default parameters:
 //
 //  {{ comparedValue }} - the expected value;
 //  {{ value }} - the current (invalid) value.
 //
 // All string values are quoted strings.
-func (c StringComparisonConstraint) Message(message string) StringComparisonConstraint {
-	c.messageTemplate = message
+func (c StringComparisonConstraint) Message(
+	template string,
+	parameters ...validation.TemplateParameter,
+) StringComparisonConstraint {
+	c.messageTemplate = template
+	c.messageParameters = parameters
 	return c
 }
 
@@ -546,21 +562,24 @@ func (c StringComparisonConstraint) ValidateString(value *string, scope validati
 	}
 
 	return scope.BuildViolation(c.code, c.messageTemplate).
-		SetParameters([]validation.TemplateParameter{
-			{Key: "{{ comparedValue }}", Value: strconv.Quote(c.comparedValue)},
-			{Key: "{{ value }}", Value: strconv.Quote(*value)},
-		}).
+		SetParameters(
+			c.messageParameters.Prepend(
+				validation.TemplateParameter{Key: "{{ comparedValue }}", Value: strconv.Quote(c.comparedValue)},
+				validation.TemplateParameter{Key: "{{ value }}", Value: strconv.Quote(*value)},
+			)...,
+		).
 		CreateViolation()
 }
 
 // TimeComparisonConstraint is used to compare time values.
 type TimeComparisonConstraint struct {
-	isIgnored       bool
-	code            string
-	messageTemplate string
-	comparedValue   time.Time
-	layout          string
-	isValid         func(value time.Time) bool
+	isIgnored         bool
+	code              string
+	messageTemplate   string
+	messageParameters validation.TemplateParameterList
+	comparedValue     time.Time
+	layout            string
+	isValid           func(value time.Time) bool
 }
 
 // IsEarlierThan checks that the given time is earlier than the specified value.
@@ -641,16 +660,20 @@ func (c TimeComparisonConstraint) Name() string {
 	return "TimeComparisonConstraint"
 }
 
-// Message sets the violation message template. You can use template parameters
-// for injecting its values into the final message:
+// Message sets the violation message template. You can set custom template parameters
+// for injecting its values into the final message. Also, you can use default parameters:
 //
 //  {{ comparedValue }} - the expected value;
 //  {{ value }} - the current (invalid) value.
 //
 // All values are formatted by the layout that can be defined by the Layout method.
 // Default layout is time.RFC3339.
-func (c TimeComparisonConstraint) Message(message string) TimeComparisonConstraint {
-	c.messageTemplate = message
+func (c TimeComparisonConstraint) Message(
+	template string,
+	parameters ...validation.TemplateParameter,
+) TimeComparisonConstraint {
+	c.messageTemplate = template
+	c.messageParameters = parameters
 	return c
 }
 
@@ -673,20 +696,23 @@ func (c TimeComparisonConstraint) ValidateTime(value *time.Time, scope validatio
 	}
 
 	return scope.BuildViolation(c.code, c.messageTemplate).
-		SetParameters([]validation.TemplateParameter{
-			{Key: "{{ comparedValue }}", Value: c.comparedValue.Format(c.layout)},
-			{Key: "{{ value }}", Value: value.Format(c.layout)},
-		}).
+		SetParameters(
+			c.messageParameters.Prepend(
+				validation.TemplateParameter{Key: "{{ comparedValue }}", Value: c.comparedValue.Format(c.layout)},
+				validation.TemplateParameter{Key: "{{ value }}", Value: value.Format(c.layout)},
+			)...,
+		).
 		CreateViolation()
 }
 
 // TimeRangeConstraint is used to check that a given time value is between some minimum and maximum.
 type TimeRangeConstraint struct {
-	isIgnored       bool
-	messageTemplate string
-	layout          string
-	min             time.Time
-	max             time.Time
+	isIgnored         bool
+	messageTemplate   string
+	messageParameters validation.TemplateParameterList
+	layout            string
+	min               time.Time
+	max               time.Time
 }
 
 // IsBetweenTime checks that the time is between specified minimum and maximum time values.
@@ -717,8 +743,8 @@ func (c TimeRangeConstraint) Name() string {
 	return "TimeRangeConstraint"
 }
 
-// Message sets the violation message template. You can use template parameters
-// for injecting its values into the final message:
+// Message sets the violation message template. You can set custom template parameters
+// for injecting its values into the final message. Also, you can use default parameters:
 //
 //  {{ max }} - the upper limit;
 //  {{ min }} - the lower limit;
@@ -726,8 +752,9 @@ func (c TimeRangeConstraint) Name() string {
 //
 // All values are formatted by the layout that can be defined by the Layout method.
 // Default layout is time.RFC3339.
-func (c TimeRangeConstraint) Message(message string) TimeRangeConstraint {
-	c.messageTemplate = message
+func (c TimeRangeConstraint) Message(template string, parameters ...validation.TemplateParameter) TimeRangeConstraint {
+	c.messageTemplate = template
+	c.messageParameters = parameters
 	return c
 }
 
@@ -757,10 +784,12 @@ func (c TimeRangeConstraint) ValidateTime(value *time.Time, scope validation.Sco
 
 func (c TimeRangeConstraint) newViolation(value *time.Time, scope validation.Scope) validation.Violation {
 	return scope.BuildViolation(code.NotInRange, c.messageTemplate).
-		SetParameters([]validation.TemplateParameter{
-			{Key: "{{ min }}", Value: c.min.Format(c.layout)},
-			{Key: "{{ max }}", Value: c.max.Format(c.layout)},
-			{Key: "{{ value }}", Value: value.Format(c.layout)},
-		}).
+		SetParameters(
+			c.messageParameters.Prepend(
+				validation.TemplateParameter{Key: "{{ min }}", Value: c.min.Format(c.layout)},
+				validation.TemplateParameter{Key: "{{ max }}", Value: c.max.Format(c.layout)},
+				validation.TemplateParameter{Key: "{{ value }}", Value: value.Format(c.layout)},
+			)...,
+		).
 		CreateViolation()
 }

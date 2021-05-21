@@ -13,9 +13,10 @@ import (
 // slice/array, an empty map, false or nil. Nil behavior is configurable via AllowNil() method.
 // To check that a value is not nil only use NotNilConstraint.
 type NotBlankConstraint struct {
-	messageTemplate string
-	isIgnored       bool
-	allowNil        bool
+	isIgnored         bool
+	allowNil          bool
+	messageTemplate   string
+	messageParameters validation.TemplateParameterList
 }
 
 // IsNotBlank creates a NotBlankConstraint for checking that value is not empty.
@@ -52,9 +53,11 @@ func (c NotBlankConstraint) When(condition bool) NotBlankConstraint {
 	return c
 }
 
-// Message sets the violation message template.
-func (c NotBlankConstraint) Message(message string) NotBlankConstraint {
-	c.messageTemplate = message
+// Message sets the violation message template. You can set custom template parameters
+// for injecting its values into the final message.
+func (c NotBlankConstraint) Message(template string, parameters ...validation.TemplateParameter) NotBlankConstraint {
+	c.messageTemplate = template
+	c.messageParameters = parameters
 	return c
 }
 
@@ -147,14 +150,17 @@ func (c NotBlankConstraint) ValidateTime(value *time.Time, scope validation.Scop
 }
 
 func (c NotBlankConstraint) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(code.NotBlank, c.messageTemplate).CreateViolation()
+	return scope.BuildViolation(code.NotBlank, c.messageTemplate).
+		SetParameters(c.messageParameters...).
+		CreateViolation()
 }
 
 // BlankConstraint checks that a value is blank: equal to false, nil, zero, an empty string, an empty
 // slice, array, or a map.
 type BlankConstraint struct {
-	messageTemplate string
-	isIgnored       bool
+	isIgnored         bool
+	messageTemplate   string
+	messageParameters validation.TemplateParameterList
 }
 
 // IsBlank creates a BlankConstraint for checking that value is empty.
@@ -185,9 +191,11 @@ func (c BlankConstraint) When(condition bool) BlankConstraint {
 	return c
 }
 
-// Message sets the violation message template.
-func (c BlankConstraint) Message(message string) BlankConstraint {
-	c.messageTemplate = message
+// Message sets the violation message template. You can set custom template parameters
+// for injecting its values into the final message.
+func (c BlankConstraint) Message(template string, parameters ...validation.TemplateParameter) BlankConstraint {
+	c.messageTemplate = template
+	c.messageParameters = parameters
 	return c
 }
 
@@ -245,14 +253,17 @@ func (c BlankConstraint) ValidateTime(value *time.Time, scope validation.Scope) 
 }
 
 func (c BlankConstraint) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(code.Blank, c.messageTemplate).CreateViolation()
+	return scope.BuildViolation(code.Blank, c.messageTemplate).
+		SetParameters(c.messageParameters...).
+		CreateViolation()
 }
 
 // NotNilConstraint checks that a value in not strictly equal to nil. To check that values in not blank use
 // NotBlankConstraint.
 type NotNilConstraint struct {
-	messageTemplate string
-	isIgnored       bool
+	isIgnored         bool
+	messageTemplate   string
+	messageParameters validation.TemplateParameterList
 }
 
 // IsNotNil creates a NotNilConstraint to check that a value is not strictly equal to nil.
@@ -283,9 +294,11 @@ func (c NotNilConstraint) When(condition bool) NotNilConstraint {
 	return c
 }
 
-// Message sets the violation message template.
-func (c NotNilConstraint) Message(message string) NotNilConstraint {
-	c.messageTemplate = message
+// Message sets the violation message template. You can set custom template parameters
+// for injecting its values into the final message.
+func (c NotNilConstraint) Message(template string, parameters ...validation.TemplateParameter) NotNilConstraint {
+	c.messageTemplate = template
+	c.messageParameters = parameters
 	return c
 }
 
@@ -342,14 +355,17 @@ func (c NotNilConstraint) ValidateIterable(value generic.Iterable, scope validat
 }
 
 func (c NotNilConstraint) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(code.NotNil, c.messageTemplate).CreateViolation()
+	return scope.BuildViolation(code.NotNil, c.messageTemplate).
+		SetParameters(c.messageParameters...).
+		CreateViolation()
 }
 
 // NilConstraint checks that a value in strictly equal to nil. To check that values in blank use
 // BlankConstraint.
 type NilConstraint struct {
-	messageTemplate string
-	isIgnored       bool
+	isIgnored         bool
+	messageTemplate   string
+	messageParameters validation.TemplateParameterList
 }
 
 // IsNil creates a NilConstraint to check that a value is strictly equal to nil.
@@ -380,9 +396,11 @@ func (c NilConstraint) When(condition bool) NilConstraint {
 	return c
 }
 
-// Message sets the violation message template.
-func (c NilConstraint) Message(message string) NilConstraint {
-	c.messageTemplate = message
+// Message sets the violation message template. You can set custom template parameters
+// for injecting its values into the final message.
+func (c NilConstraint) Message(template string, parameters ...validation.TemplateParameter) NilConstraint {
+	c.messageTemplate = template
+	c.messageParameters = parameters
 	return c
 }
 
@@ -435,15 +453,18 @@ func (c NilConstraint) ValidateIterable(value generic.Iterable, scope validation
 }
 
 func (c NilConstraint) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(code.Nil, c.messageTemplate).CreateViolation()
+	return scope.BuildViolation(code.Nil, c.messageTemplate).
+		SetParameters(c.messageParameters...).
+		CreateViolation()
 }
 
 // BoolConstraint checks that a bool value in strictly equal to expected bool value.
 type BoolConstraint struct {
-	isIgnored       bool
-	value           bool
-	messageTemplate string
-	code            string
+	isIgnored         bool
+	expected          bool
+	messageTemplate   string
+	messageParameters validation.TemplateParameterList
+	code              string
 }
 
 // IsTrue creates a BoolConstraint to check that a value is not strictly equal to true.
@@ -453,7 +474,7 @@ type BoolConstraint struct {
 //  err := validator.ValidateBool(b, it.IsTrue())
 func IsTrue() BoolConstraint {
 	return BoolConstraint{
-		value:           true,
+		expected:        true,
 		messageTemplate: message.True,
 		code:            code.True,
 	}
@@ -466,7 +487,7 @@ func IsTrue() BoolConstraint {
 //  err := validator.ValidateBool(b, it.IsFalse())
 func IsFalse() BoolConstraint {
 	return BoolConstraint{
-		value:           false,
+		expected:        false,
 		messageTemplate: message.False,
 		code:            code.False,
 	}
@@ -489,20 +510,20 @@ func (c BoolConstraint) When(condition bool) BoolConstraint {
 	return c
 }
 
-// Message sets the violation message template.
-func (c BoolConstraint) Message(message string) BoolConstraint {
-	c.messageTemplate = message
+// Message sets the violation message template. You can set custom template parameters
+// for injecting its values into the final message.
+func (c BoolConstraint) Message(template string, parameters ...validation.TemplateParameter) BoolConstraint {
+	c.messageTemplate = template
+	c.messageParameters = parameters
 	return c
 }
 
 func (c BoolConstraint) ValidateBool(value *bool, scope validation.Scope) error {
-	if c.isIgnored || value == nil || c.value == *value {
+	if c.isIgnored || value == nil || *value == c.expected {
 		return nil
 	}
 
-	return c.newViolation(scope)
-}
-
-func (c BoolConstraint) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(c.code, c.messageTemplate).CreateViolation()
+	return scope.BuildViolation(c.code, c.messageTemplate).
+		SetParameters(c.messageParameters...).
+		CreateViolation()
 }

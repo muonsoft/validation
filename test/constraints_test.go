@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	customMessage = "Custom message."
-	customPath    = "properties[0].value"
+	customMessage         = "Custom message at {{ custom }}."
+	renderedCustomMessage = "Custom message at parameter."
+	customPath            = "properties[0].value"
 
 	// Value types.
 	boolType      = "bool"
