@@ -197,7 +197,7 @@ func TestMarshalInternalViolationToJSON(t *testing.T) {
 				code:            "code",
 				message:         "message",
 				messageTemplate: "messageTemplate",
-				parameters:      []TemplateParameter{{"key", "value"}},
+				parameters:      []TemplateParameter{{Key: "key", Value: "value"}},
 				propertyPath:    NewPropertyPath(PropertyNameElement("properties"), ArrayIndexElement(1), PropertyNameElement("name")),
 			},
 			expectedJSON: `{

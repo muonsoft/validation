@@ -11,6 +11,9 @@ type TemplateParameter struct {
 
 	// Value is set by constraint when building violation.
 	Value string
+
+	// NeedsTranslation marks that the template value needs to be translated.
+	NeedsTranslation bool
 }
 
 // TemplateParameterList is a list of template parameters that can be injection into violation message.

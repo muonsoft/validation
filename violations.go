@@ -279,6 +279,12 @@ func (factory *internalViolationFactory) CreateViolation(
 ) Violation {
 	message := factory.translator.translate(lang, messageTemplate, pluralCount)
 
+	for i := range parameters {
+		if parameters[i].NeedsTranslation {
+			parameters[i].Value = factory.translator.translate(lang, parameters[i].Value, 0)
+		}
+	}
+
 	return &internalViolation{
 		code:            code,
 		message:         renderMessage(message, parameters),
