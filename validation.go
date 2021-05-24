@@ -38,17 +38,16 @@ type Validatable interface {
 // Filter is used for processing the list of errors to return a single ViolationList.
 // If there is at least one non-violation error it will return it instead.
 func Filter(violations ...error) error {
-	return nil
-	// filteredViolations := make(ViolationList, 0, len(violations))
-	//
-	// for _, err := range violations {
-	// 	addErr := filteredViolations.AppendFromError(err)
-	// 	if addErr != nil {
-	// 		return addErr
-	// 	}
-	// }
-	//
-	// return filteredViolations.AsError()
+	list := &ViolationList{}
+
+	for _, violation := range violations {
+		err := list.AppendFromError(violation)
+		if err != nil {
+			return err
+		}
+	}
+
+	return list.AsError()
 }
 
 // ValidateByConstraintFunc is used for building validation functions for the values of specific types.
