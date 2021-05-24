@@ -13,7 +13,7 @@ import (
 
 type AssertViolationFunc func(t *testing.T, violation validation.Violation) bool
 
-type AssertViolationListFunc func(t *testing.T, violations validation.ViolationList) bool
+type AssertViolationListFunc func(t *testing.T, violations []validation.Violation) bool
 
 func AssertIsViolation(t *testing.T, err error, assert AssertViolationFunc) bool {
 	t.Helper()
@@ -42,5 +42,5 @@ func AssertIsViolationList(t *testing.T, err error, assert AssertViolationListFu
 		return false
 	}
 
-	return assert(t, violations)
+	return assert(t, violations.AsSlice())
 }

@@ -114,10 +114,7 @@ func ExampleValidator_ValidateBy_customServiceConstraint() {
 		validation.Valid(item),
 	)
 
-	violations := err.(validation.ViolationList)
-	for _, violation := range violations {
-		fmt.Println(violation.Error())
-	}
+	fmt.Println(err)
 	// Output:
 	// violation at 'tags[1]': Tag "camera" does not exist.
 }

@@ -22,7 +22,7 @@ func TestValidate_WhenInvalidValueAtFirstConstraintOfSequentiallyConstraint_Expe
 		),
 	)
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
+	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
 		return assert.Len(t, violations, 1) &&
 			assert.Equal(t, code.Blank, violations[0].Code())

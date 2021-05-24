@@ -49,9 +49,10 @@ func ExampleValidator_ValidateValidatable_validatableStruct() {
 
 	err := validator.ValidateValidatable(p)
 
-	violations := err.(validation.ViolationList)
-	for _, violation := range violations {
-		fmt.Println(violation.Error())
+	if violations, ok := validation.UnwrapViolationList(err); ok {
+		for violation := violations.First(); violation != nil; violation = violation.Next() {
+			fmt.Println(violation)
+		}
 	}
 	// Output:
 	// violation at 'name': This value should not be blank.

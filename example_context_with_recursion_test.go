@@ -125,10 +125,7 @@ func ExampleValidator_Context_usingContextWithRecursion() {
 
 	err := validator.ValidateIterable(properties)
 
-	violations := err.(validation.ViolationList)
-	for _, violation := range violations {
-		fmt.Println(violation.Error())
-	}
+	fmt.Println(err)
 	// Output:
 	// violation at '[0].properties[0].properties[0].properties[0]': Maximum nesting level reached.
 }

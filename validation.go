@@ -38,22 +38,23 @@ type Validatable interface {
 // Filter is used for processing the list of errors to return a single ViolationList.
 // If there is at least one non-violation error it will return it instead.
 func Filter(violations ...error) error {
-	filteredViolations := make(ViolationList, 0, len(violations))
-
-	for _, err := range violations {
-		addErr := filteredViolations.AppendFromError(err)
-		if addErr != nil {
-			return addErr
-		}
-	}
-
-	return filteredViolations.AsError()
+	return nil
+	// filteredViolations := make(ViolationList, 0, len(violations))
+	//
+	// for _, err := range violations {
+	// 	addErr := filteredViolations.AppendFromError(err)
+	// 	if addErr != nil {
+	// 		return addErr
+	// 	}
+	// }
+	//
+	// return filteredViolations.AsError()
 }
 
 // ValidateByConstraintFunc is used for building validation functions for the values of specific types.
 type ValidateByConstraintFunc func(constraint Constraint, scope Scope) error
 
-type validateFunc func(scope Scope) (ViolationList, error)
+type validateFunc func(scope Scope) (*ViolationList, error)
 
 var validatableType = reflect.TypeOf((*Validatable)(nil)).Elem()
 
@@ -174,7 +175,7 @@ func newStringValidator(value *string, options []Option) validateFunc {
 }
 
 func newIterableValidator(iterable generic.Iterable, options []Option) validateFunc {
-	return func(scope Scope) (ViolationList, error) {
+	return func(scope Scope) (*ViolationList, error) {
 		err := scope.applyOptions(options...)
 		if err != nil {
 			return nil, err
@@ -196,7 +197,7 @@ func newIterableValidator(iterable generic.Iterable, options []Option) validateF
 			if err != nil {
 				return nil, err
 			}
-			violations = append(violations, vs...)
+			violations.Join(vs)
 		}
 
 		return violations, nil
@@ -224,8 +225,8 @@ func newTimeValidator(value *time.Time, options []Option) validateFunc {
 }
 
 func newEachValidator(iterable generic.Iterable, options []Option) validateFunc {
-	return func(scope Scope) (ViolationList, error) {
-		violations := make(ViolationList, 0)
+	return func(scope Scope) (*ViolationList, error) {
+		violations := &ViolationList{}
 
 		err := iterable.Iterate(func(key generic.Key, value interface{}) error {
 			opts := options
@@ -244,7 +245,7 @@ func newEachValidator(iterable generic.Iterable, options []Option) validateFunc 
 			if err != nil {
 				return err
 			}
-			violations = append(violations, vs...)
+			violations.Join(vs)
 
 			return nil
 		})
@@ -254,8 +255,8 @@ func newEachValidator(iterable generic.Iterable, options []Option) validateFunc 
 }
 
 func newEachStringValidator(values []string, options []Option) validateFunc {
-	return func(scope Scope) (ViolationList, error) {
-		violations := make(ViolationList, 0)
+	return func(scope Scope) (*ViolationList, error) {
+		violations := &ViolationList{}
 
 		for i := range values {
 			opts := append(options, ArrayIndex(i))
@@ -264,7 +265,7 @@ func newEachStringValidator(values []string, options []Option) validateFunc {
 			if err != nil {
 				return nil, err
 			}
-			violations = append(violations, vs...)
+			violations.Join(vs)
 		}
 
 		return violations, nil
@@ -272,7 +273,7 @@ func newEachStringValidator(values []string, options []Option) validateFunc {
 }
 
 func newValidValidator(value Validatable, options []Option) validateFunc {
-	return func(scope Scope) (ViolationList, error) {
+	return func(scope Scope) (*ViolationList, error) {
 		err := scope.applyOptions(options...)
 		if err != nil {
 			return nil, err
@@ -289,7 +290,7 @@ func newValidValidator(value Validatable, options []Option) validateFunc {
 }
 
 func newValidator(options []Option, validate ValidateByConstraintFunc) validateFunc {
-	return func(scope Scope) (ViolationList, error) {
+	return func(scope Scope) (*ViolationList, error) {
 		err := scope.applyOptions(options...)
 		if err != nil {
 			return nil, err
@@ -299,8 +300,8 @@ func newValidator(options []Option, validate ValidateByConstraintFunc) validateF
 	}
 }
 
-func validateOnScope(scope Scope, options []Option, validate ValidateByConstraintFunc) (ViolationList, error) {
-	violations := make(ViolationList, 0)
+func validateOnScope(scope Scope, options []Option, validate ValidateByConstraintFunc) (*ViolationList, error) {
+	violations := &ViolationList{}
 
 	for _, option := range options {
 		if constraint, ok := option.(controlConstraint); ok {
@@ -309,7 +310,7 @@ func validateOnScope(scope Scope, options []Option, validate ValidateByConstrain
 				return nil, err
 			}
 
-			violations = append(violations, vs...)
+			violations.Join(vs)
 		} else if constraint, ok := option.(Constraint); ok {
 			err := violations.AppendFromError(validate(constraint, scope))
 			if err != nil {
@@ -321,8 +322,8 @@ func validateOnScope(scope Scope, options []Option, validate ValidateByConstrain
 	return violations, nil
 }
 
-func validateIterableOfValidatables(scope Scope, iterable generic.Iterable) (ViolationList, error) {
-	violations := make(ViolationList, 0)
+func validateIterableOfValidatables(scope Scope, iterable generic.Iterable) (*ViolationList, error) {
+	violations := &ViolationList{}
 
 	err := iterable.Iterate(func(key generic.Key, value interface{}) error {
 		s := scope
@@ -338,7 +339,7 @@ func validateIterableOfValidatables(scope Scope, iterable generic.Iterable) (Vio
 			return err
 		}
 
-		violations = append(violations, vs...)
+		violations.Join(vs)
 
 		return nil
 	})

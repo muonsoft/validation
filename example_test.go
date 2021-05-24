@@ -2,6 +2,7 @@ package validation_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -244,10 +245,7 @@ func ExampleWhen() {
 		),
 	)
 
-	violations := err.(validation.ViolationList)
-	for _, violation := range violations {
-		fmt.Println(violation.Error())
-	}
+	fmt.Println(err)
 	// Output:
 	// violation at 'cardNumber': This value is not valid.
 }
@@ -294,10 +292,7 @@ func ExampleSequentially() {
 		),
 	)
 
-	violations := err.(validation.ViolationList)
-	for _, violation := range violations {
-		fmt.Println(violation.Error())
-	}
+	fmt.Println(err)
 	// Output:
 	// violation: This value should be blank.
 }
@@ -311,10 +306,7 @@ func ExampleValidator_Validate_basicValidation() {
 	}
 	err = validator.Validate(validation.String(&s, it.IsNotBlank()))
 
-	violations := err.(validation.ViolationList)
-	for _, violation := range violations {
-		fmt.Println(violation.Error())
-	}
+	fmt.Println(err)
 	// Output:
 	// violation: This value should not be blank.
 }
@@ -324,10 +316,7 @@ func ExampleValidator_Validate_singletonValidator() {
 
 	err := validator.Validate(validation.String(&s, it.IsNotBlank()))
 
-	violations := err.(validation.ViolationList)
-	for _, violation := range violations {
-		fmt.Println(violation.Error())
-	}
+	fmt.Println(err)
 	// Output:
 	// violation: This value should not be blank.
 }
@@ -337,12 +326,35 @@ func ExampleValidator_ValidateString_shorthandAlias() {
 
 	err := validator.ValidateString(&s, it.IsNotBlank())
 
-	violations := err.(validation.ViolationList)
-	for _, violation := range violations {
-		fmt.Println(violation.Error())
-	}
+	fmt.Println(err)
 	// Output:
 	// violation: This value should not be blank.
+}
+
+func ExampleValidator_Validate_basicStructValidation() {
+	document := struct {
+		Title    string
+		Keywords []string
+	}{
+		Title:    "",
+		Keywords: []string{""},
+	}
+
+	err := validator.Validate(
+		validation.StringProperty("title", &document.Title, it.IsNotBlank()),
+		validation.CountableProperty("keywords", len(document.Keywords), it.HasCountBetween(2, 10)),
+		validation.EachStringProperty("keywords", document.Keywords, it.IsNotBlank()),
+	)
+
+	if violations, ok := validation.UnwrapViolationList(err); ok {
+		for violation := violations.First(); violation != nil; violation = violation.Next() {
+			fmt.Println(violation)
+		}
+	}
+	// Output:
+	// violation at 'title': This value should not be blank.
+	// violation at 'keywords': This collection should contain 2 elements or more.
+	// violation at 'keywords[0]': This value should not be blank.
 }
 
 func ExampleValidator_Validate_conditionalValidationOnConstraint() {
@@ -360,10 +372,9 @@ func ExampleValidator_Validate_conditionalValidationOnConstraint() {
 			validation.StringProperty("name", &note.Title, it.IsNotBlank()),
 			validation.StringProperty("text", &note.Text, it.IsNotBlank().When(note.IsPublic)),
 		)
-		if err != nil {
-			violations := err.(validation.ViolationList)
-			for _, violation := range violations {
-				fmt.Printf("error on note %d: %s", i, violation.Error())
+		if violations, ok := validation.UnwrapViolationList(err); ok {
+			for violation := violations.First(); violation != nil; violation = violation.Next() {
+				fmt.Printf("error on note %d: %s", i, violation)
 			}
 		}
 	}
@@ -385,7 +396,7 @@ func ExampleValidator_Validate_passingPropertyPathViaOptions() {
 		),
 	)
 
-	violation := err.(validation.ViolationList)[0]
+	violation := err.(*validation.ViolationList).First()
 	fmt.Println("property path:", violation.PropertyPath().String())
 	// Output:
 	// property path: properties[1].tag
@@ -400,7 +411,7 @@ func ExampleValidator_Validate_propertyPathWithScopedValidator() {
 		AtProperty("tag").
 		Validate(validation.String(&s, it.IsNotBlank()))
 
-	violation := err.(validation.ViolationList)[0]
+	violation := err.(*validation.ViolationList).First()
 	fmt.Println("property path:", violation.PropertyPath().String())
 	// Output:
 	// property path: properties[1].tag
@@ -415,7 +426,7 @@ func ExampleValidator_Validate_propertyPathBySpecialArgument() {
 		validation.StringProperty("property", &s, it.IsNotBlank()),
 	)
 
-	violation := err.(validation.ViolationList)[0]
+	violation := err.(*validation.ViolationList).First()
 	fmt.Println("property path:", violation.PropertyPath().String())
 	// Output:
 	// property path: property
@@ -428,7 +439,7 @@ func ExampleValidator_AtProperty() {
 		validation.StringProperty("title", &book.Title, it.IsNotBlank()),
 	)
 
-	violation := err.(validation.ViolationList)[0]
+	violation := err.(*validation.ViolationList).First()
 	fmt.Println("property path:", violation.PropertyPath().String())
 	// Output:
 	// property path: book.title
@@ -441,7 +452,7 @@ func ExampleValidator_AtIndex() {
 		validation.StringProperty("title", &books[0].Title, it.IsNotBlank()),
 	)
 
-	violation := err.(validation.ViolationList)[0]
+	violation := err.(*validation.ViolationList).First()
 	fmt.Println("property path:", violation.PropertyPath().String())
 	// Output:
 	// property path: [0].title
@@ -459,10 +470,7 @@ func ExampleValidator_Validate_translationsByDefaultLanguage() {
 	s := ""
 	err = validator.ValidateString(&s, it.IsNotBlank())
 
-	violations := err.(validation.ViolationList)
-	for _, violation := range violations {
-		fmt.Println(violation.Error())
-	}
+	fmt.Println(err)
 	// Output:
 	// violation: Значение не должно быть пустым.
 }
@@ -481,10 +489,7 @@ func ExampleValidator_Validate_translationsByArgument() {
 		validation.String(&s, it.IsNotBlank()),
 	)
 
-	violations := err.(validation.ViolationList)
-	for _, violation := range violations {
-		fmt.Println(violation.Error())
-	}
+	fmt.Println(err)
 	// Output:
 	// violation: Значение не должно быть пустым.
 }
@@ -504,10 +509,7 @@ func ExampleValidator_Validate_translationsByContextArgument() {
 		validation.String(&s, it.IsNotBlank()),
 	)
 
-	violations := err.(validation.ViolationList)
-	for _, violation := range violations {
-		fmt.Println(violation.Error())
-	}
+	fmt.Println(err)
 	// Output:
 	// violation: Значение не должно быть пустым.
 }
@@ -525,10 +527,7 @@ func ExampleValidator_Validate_translationsByContextValidator() {
 	s := ""
 	err = validator.ValidateString(&s, it.IsNotBlank())
 
-	violations := err.(validation.ViolationList)
-	for _, violation := range violations {
-		fmt.Println(violation.Error())
-	}
+	fmt.Println(err)
 	// Output:
 	// violation: Значение не должно быть пустым.
 }
@@ -538,10 +537,7 @@ func ExampleValidator_Validate_customizingErrorMessage() {
 
 	err := validator.ValidateString(&s, it.IsNotBlank().Message("this value is required"))
 
-	violations := err.(validation.ViolationList)
-	for _, violation := range violations {
-		fmt.Println(violation.Error())
-	}
+	fmt.Println(err)
 	// Output:
 	// violation: this value is required
 }
@@ -568,10 +564,63 @@ func ExampleValidator_Validate_translationForCustomMessage() {
 		validation.Iterable(tags, it.HasMinCount(1).MinMessage(customMessage)),
 	)
 
-	violations := err.(validation.ViolationList)
-	for _, violation := range violations {
-		fmt.Println(violation.Error())
-	}
+	fmt.Println(err)
 	// Output:
 	// violation: теги должны содержать 1 элемент и более
+}
+
+func ExampleViolationList_First() {
+	violations := validation.NewViolationList(
+		validator.BuildViolation("", "foo").CreateViolation(),
+		validator.BuildViolation("", "bar").CreateViolation(),
+	)
+
+	for violation := violations.First(); violation != nil; violation = violation.Next() {
+		fmt.Println(violation)
+	}
+	// Output:
+	// violation: foo
+	// violation: bar
+}
+
+func ExampleViolationList_AppendFromError_addingViolation() {
+	violations := validation.NewViolationList()
+	err := validator.BuildViolation("", "foo").CreateViolation()
+
+	appendErr := violations.AppendFromError(err)
+
+	fmt.Println("append error:", appendErr)
+	fmt.Println("violations:", violations)
+	// Output:
+	// append error: <nil>
+	// violations: violation: foo
+}
+
+func ExampleViolationList_AppendFromError_addingViolationList() {
+	violations := validation.NewViolationList()
+	err := validation.NewViolationList(
+		validator.BuildViolation("", "foo").CreateViolation(),
+		validator.BuildViolation("", "bar").CreateViolation(),
+	)
+
+	appendErr := violations.AppendFromError(err)
+
+	fmt.Println("append error:", appendErr)
+	fmt.Println("violations:", violations)
+	// Output:
+	// append error: <nil>
+	// violations: violation: foo; violation: bar
+}
+
+func ExampleViolationList_AppendFromError_addingError() {
+	violations := validation.NewViolationList()
+	err := errors.New("error")
+
+	appendErr := violations.AppendFromError(err)
+
+	fmt.Println("append error:", appendErr)
+	fmt.Println("violations length:", violations.Len())
+	// Output:
+	// append error: error
+	// violations length: 0
 }

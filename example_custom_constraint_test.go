@@ -49,10 +49,7 @@ func ExampleValidator_Validate_customConstraint() {
 		validation.String(&s, it.IsNotBlank(), IsNumeric()),
 	)
 
-	violations := err.(validation.ViolationList)
-	for _, violation := range violations {
-		fmt.Println(violation.Error())
-	}
+	fmt.Println(err)
 	// Output:
 	// violation: This value should be numeric.
 }

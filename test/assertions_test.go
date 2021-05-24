@@ -12,7 +12,7 @@ import (
 func assertHasOneViolation(code, message string) func(t *testing.T, err error) {
 	return func(t *testing.T, err error) {
 		t.Helper()
-		validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
+		validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 			t.Helper()
 
 			if assert.Len(t, violations, 1) {
@@ -28,7 +28,7 @@ func assertHasOneViolation(code, message string) func(t *testing.T, err error) {
 func assertHasOneViolationAtPath(code, message, path string) func(t *testing.T, err error) {
 	return func(t *testing.T, err error) {
 		t.Helper()
-		validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
+		validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 			t.Helper()
 
 			if assert.Len(t, violations, 1) {
