@@ -46,12 +46,13 @@ var choiceConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("unexpected"),
 		constraint: it.IsOneOfStrings("alpha", "beta", "gamma").
+			Code(customCode).
 			Message(
 				`Unexpected value "{{ value }}" at {{ custom }}, expected values are: {{ choices }}.`,
 				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
 			),
 		assert: assertHasOneViolation(
-			code.NoSuchChoice,
+			customCode,
 			`Unexpected value "unexpected" at parameter, expected values are: alpha, beta, gamma.`,
 		),
 	},

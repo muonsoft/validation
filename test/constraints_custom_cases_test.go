@@ -54,12 +54,13 @@ var customStringConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint: validation.
 			NewCustomStringConstraint(invalidString).
+			Code(customCode).
 			Message(
 				`Unexpected value "{{ value }}" for {{ custom }}.`,
 				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
 			),
 		stringValue: stringValue("foo"),
-		assert:      assertHasOneViolation(code.NotValid, `Unexpected value "foo" for parameter.`),
+		assert:      assertHasOneViolation(customCode, `Unexpected value "foo" for parameter.`),
 	},
 	{
 		name:            "CustomStringConstraint passes when condition is false",

@@ -113,6 +113,12 @@ func (c CustomStringConstraint) Name() string {
 	return c.name
 }
 
+// Code overrides default code for produced violation.
+func (c CustomStringConstraint) Code(code string) CustomStringConstraint {
+	c.code = code
+	return c
+}
+
 // Message sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message. Also, you can use default parameters:
 //

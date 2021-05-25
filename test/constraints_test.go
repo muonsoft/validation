@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	customCode            = "customCode"
 	customMessage         = "Custom message at {{ custom }}."
 	renderedCustomMessage = "Custom message at parameter."
 	customPath            = "properties[0].value"

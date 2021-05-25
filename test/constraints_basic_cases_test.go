@@ -43,11 +43,13 @@ var isNotBlankConstraintTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsNotBlank violation on nil with custom message",
 		isApplicableFor: anyValueType,
-		constraint: it.IsNotBlank().Message(
-			customMessage,
-			validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
-		),
-		assert: assertHasOneViolation(code.NotBlank, renderedCustomMessage),
+		constraint: it.IsNotBlank().
+			Code(customCode).
+			Message(
+				customMessage,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		assert: assertHasOneViolation(customCode, renderedCustomMessage),
 	},
 	{
 		name:            "IsNotBlank passes on value",
@@ -113,11 +115,13 @@ var isBlankConstraintTestCases = []ConstraintValidationTestCase{
 		timeValue:       timeValue(time.Now()),
 		sliceValue:      []string{"a"},
 		mapValue:        map[string]string{"a": "a"},
-		constraint: it.IsBlank().Message(
-			customMessage,
-			validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
-		),
-		assert: assertHasOneViolation(code.Blank, renderedCustomMessage),
+		constraint: it.IsBlank().
+			Code(customCode).
+			Message(
+				customMessage,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		assert: assertHasOneViolation(customCode, renderedCustomMessage),
 	},
 	{
 		name:            "IsBlank passes on nil",
@@ -187,11 +191,13 @@ var isNotNilConstraintTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsNotNil violation on nil with custom message",
 		isApplicableFor: specificValueTypes(intType, floatType, stringType, timeType, iterableType),
-		constraint: it.IsNotNil().Message(
-			customMessage,
-			validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
-		),
-		assert: assertHasOneViolation(code.NotNil, renderedCustomMessage),
+		constraint: it.IsNotNil().
+			Code(customCode).
+			Message(
+				customMessage,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		assert: assertHasOneViolation(customCode, renderedCustomMessage),
 	},
 	{
 		name:            "IsNotNil passes on value",
@@ -247,11 +253,13 @@ var isNilConstraintTestCases = []ConstraintValidationTestCase{
 		timeValue:       &time.Time{},
 		sliceValue:      []string{},
 		mapValue:        map[string]string{},
-		constraint: it.IsNil().Message(
-			customMessage,
-			validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
-		),
-		assert: assertHasOneViolation(code.Nil, renderedCustomMessage),
+		constraint: it.IsNil().
+			Code(customCode).
+			Message(
+				customMessage,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		assert: assertHasOneViolation(customCode, renderedCustomMessage),
 	},
 	{
 		name:            "IsNil violation on value",
@@ -304,11 +312,13 @@ var isTrueConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "IsTrue violation on empty value with custom message",
 		isApplicableFor: specificValueTypes(boolType),
 		boolValue:       boolValue(false),
-		constraint: it.IsTrue().Message(
-			customMessage,
-			validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
-		),
-		assert: assertHasOneViolation(code.True, renderedCustomMessage),
+		constraint: it.IsTrue().
+			Code(customCode).
+			Message(
+				customMessage,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		assert: assertHasOneViolation(customCode, renderedCustomMessage),
 	},
 	{
 		name:            "IsTrue passes on value",
