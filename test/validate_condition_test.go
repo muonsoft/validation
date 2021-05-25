@@ -23,7 +23,7 @@ func TestValidateString_WhenConditionIsTrue_ExpectAllConstraintsOfThenBranchAppl
 			),
 	)
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
+	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
 		return assert.Len(t, violations, 2) &&
 			assert.Equal(t, code.Blank, violations[0].Code()) &&
@@ -46,7 +46,7 @@ func TestValidateString_WhenConditionIsFalse_ExpectAllConstraintsOfElseBranchApp
 			),
 	)
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
+	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
 		return assert.Len(t, violations, 2) &&
 			assert.Equal(t, code.Blank, violations[0].Code()) &&

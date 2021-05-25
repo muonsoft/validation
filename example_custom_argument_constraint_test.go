@@ -107,10 +107,7 @@ func ExampleNewArgument_customArgumentConstraintValidator() {
 		BrandArgument(&brand, it.IsNotBlank(), isEntityUnique),
 	)
 
-	violations := err.(validation.ViolationList)
-	for _, violation := range violations {
-		fmt.Println(violation.Error())
-	}
+	fmt.Println(err)
 	// Output:
 	// violation: Brand with name "Apple" already exists.
 }

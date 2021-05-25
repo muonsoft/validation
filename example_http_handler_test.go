@@ -3,6 +3,7 @@ package validation_test
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -48,7 +49,10 @@ func HandleBooks(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		violations, ok := validation.UnwrapViolationList(err)
 		if ok {
-			response, _ := json.Marshal(violations)
+			response, err := json.Marshal(violations)
+			if err != nil {
+				log.Fatal(err)
+			}
 			writer.WriteHeader(http.StatusUnprocessableEntity)
 			writer.Header().Set("Content-Type", "application/json")
 			writer.Write(response)

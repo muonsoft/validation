@@ -1,8 +1,10 @@
 package validation
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 
 	"golang.org/x/text/language"
@@ -56,9 +58,6 @@ type ViolationFactory interface {
 	) Violation
 }
 
-// ViolationList is a slice of violations. It is the usual type of error that is returned from a validator.
-type ViolationList []Violation
-
 // NewViolationFunc is an adapter that allows you to use ordinary functions as a ViolationFactory.
 type NewViolationFunc func(
 	code,
@@ -81,16 +80,89 @@ func (f NewViolationFunc) CreateViolation(
 	return f(code, messageTemplate, pluralCount, parameters, propertyPath, lang)
 }
 
+// ViolationList is a linked list of violations. It is the usual type of error that is returned from a validator.
+type ViolationList struct {
+	len   int
+	first *ViolationListElement
+	last  *ViolationListElement
+}
+
+// ViolationListElement points to violation build by validator. It also implements
+// Violation and can be used as a proxy to underlying violation.
+type ViolationListElement struct {
+	next      *ViolationListElement
+	violation Violation
+}
+
+// NewViolationList creates a new ViolationList, that can be immediately populated with
+// variadic arguments of violations.
+func NewViolationList(violations ...Violation) *ViolationList {
+	list := &ViolationList{}
+	list.Append(violations...)
+
+	return list
+}
+
+// Len returns length of the linked list.
+func (list *ViolationList) Len() int {
+	return list.len
+}
+
+// First returns the first element of the linked list.
+func (list *ViolationList) First() *ViolationListElement {
+	return list.first
+}
+
+// Last returns the last element of the linked list.
+func (list *ViolationList) Last() *ViolationListElement {
+	return list.last
+}
+
+// Append appends violations to the end of the linked list.
+func (list *ViolationList) Append(violations ...Violation) {
+	for i := range violations {
+		element := &ViolationListElement{violation: violations[i]}
+		if list.first == nil {
+			list.first = element
+			list.last = element
+		} else {
+			list.last.next = element
+			list.last = element
+		}
+	}
+
+	list.len += len(violations)
+}
+
+// Join is used to append the given violation list to the end of the current list.
+func (list *ViolationList) Join(violations *ViolationList) {
+	if violations == nil || violations.len == 0 {
+		return
+	}
+
+	if list.first == nil {
+		list.first = violations.first
+		list.last = violations.last
+	} else {
+		list.last.next = violations.first
+		list.last = violations.last
+	}
+
+	list.len += violations.len
+}
+
 // Error returns a formatted list of errors as a string.
-func (violations ViolationList) Error() string {
-	if len(violations) == 0 {
+func (list *ViolationList) Error() string {
+	if list.len == 0 {
 		return "the list of violations is empty, it looks like you forgot to use the AsError method somewhere"
 	}
 
 	var s strings.Builder
-	s.Grow(32 * len(violations))
+	s.Grow(32 * list.len)
 
-	for i, v := range violations {
+	i := 0
+	for e := list.first; e != nil; e = e.next {
+		v := e.violation
 		if i > 0 {
 			s.WriteString("; ")
 		}
@@ -99,6 +171,7 @@ func (violations ViolationList) Error() string {
 		} else {
 			s.WriteString(v.Error())
 		}
+		i++
 	}
 
 	return s.String()
@@ -107,20 +180,11 @@ func (violations ViolationList) Error() string {
 // AppendFromError appends a single violation or a slice of violations into the end of a given slice.
 // If an error does not implement the Violation or ViolationList interface, it will return an error itself.
 // Otherwise nil will be returned.
-//
-// Example
-//  violations := make(ViolationList, 0)
-//  err := violations.AppendFromError(previousError)
-//  if err != nil {
-//      // this error is not a violation, processing must fail
-//      return err
-//  }
-//  // violations contain appended violations from the previousError and can be processed further
-func (violations *ViolationList) AppendFromError(err error) error {
+func (list *ViolationList) AppendFromError(err error) error {
 	if violation, ok := UnwrapViolation(err); ok {
-		*violations = append(*violations, violation)
+		list.Append(violation)
 	} else if violationList, ok := UnwrapViolationList(err); ok {
-		*violations = append(*violations, violationList...)
+		list.Join(violationList)
 	} else if err != nil {
 		return err
 	}
@@ -130,9 +194,9 @@ func (violations *ViolationList) AppendFromError(err error) error {
 
 // Has can be used to check that at least one of the violations contains one of the specific codes.
 // For an empty list of codes, it should always returns false.
-func (violations ViolationList) Has(codes ...string) bool {
-	for _, violation := range violations {
-		if violation.Is(codes...) {
+func (list *ViolationList) Has(codes ...string) bool {
+	for e := list.first; e != nil; e = e.next {
+		if e.violation.Is(codes...) {
 			return true
 		}
 	}
@@ -141,12 +205,12 @@ func (violations ViolationList) Has(codes ...string) bool {
 }
 
 // Filter returns a new list of violations with violations of given codes.
-func (violations ViolationList) Filter(codes ...string) ViolationList {
-	filtered := make(ViolationList, 0, len(violations))
+func (list *ViolationList) Filter(codes ...string) *ViolationList {
+	filtered := &ViolationList{}
 
-	for _, violation := range violations {
-		if violation.Is(codes...) {
-			filtered = append(filtered, violation)
+	for e := list.first; e != nil; e = e.next {
+		if e.violation.Is(codes...) {
+			filtered.Append(e.violation)
 		}
 	}
 
@@ -155,12 +219,83 @@ func (violations ViolationList) Filter(codes ...string) ViolationList {
 
 // AsError converts the list of violations to an error. This method correctly handles cases where
 // the list of violations is empty. It returns nil on an empty list, indicating that the validation was successful.
-func (violations ViolationList) AsError() error {
-	if len(violations) == 0 {
+func (list *ViolationList) AsError() error {
+	if list.len == 0 {
 		return nil
 	}
 
+	return list
+}
+
+// AsSlice converts underlying linked list into slice of Violation.
+func (list *ViolationList) AsSlice() []Violation {
+	violations := make([]Violation, list.len)
+
+	i := 0
+	for e := list.first; e != nil; e = e.next {
+		violations[i] = e.violation
+		i++
+	}
+
 	return violations
+}
+
+// MarshalJSON marshals the linked list into JSON. Usually, you should use
+// json.Marshal function for marshaling purposes.
+func (list *ViolationList) MarshalJSON() ([]byte, error) {
+	b := bytes.Buffer{}
+	b.WriteRune('[')
+	for e := list.first; e != nil; e = e.next {
+		data, err := json.Marshal(e.violation)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal violation: %w", err)
+		}
+		b.Write(data)
+		if e.next != nil {
+			b.WriteRune(',')
+		}
+	}
+	b.WriteRune(']')
+
+	return b.Bytes(), nil
+}
+
+// Next returns next element of the linked list.
+func (element *ViolationListElement) Next() *ViolationListElement {
+	return element.next
+}
+
+// Violation returns underlying violation value.
+func (element *ViolationListElement) Violation() Violation {
+	return element.violation
+}
+
+func (element *ViolationListElement) Error() string {
+	return element.violation.Error()
+}
+
+func (element *ViolationListElement) Code() string {
+	return element.violation.Code()
+}
+
+func (element *ViolationListElement) Is(codes ...string) bool {
+	return element.violation.Is(codes...)
+}
+
+func (element *ViolationListElement) Message() string {
+	return element.violation.Message()
+}
+
+func (element *ViolationListElement) MessageTemplate() string {
+	return element.violation.MessageTemplate()
+}
+
+func (element *ViolationListElement) Parameters() []TemplateParameter {
+	return element.violation.Parameters()
+}
+
+func (element *ViolationListElement) PropertyPath() *PropertyPath {
+	return element.violation.PropertyPath()
 }
 
 // IsViolation can be used to verify that the error implements the Violation interface.
@@ -172,7 +307,7 @@ func IsViolation(err error) bool {
 
 // IsViolationList can be used to verify that the error implements the ViolationList.
 func IsViolationList(err error) bool {
-	var violations ViolationList
+	var violations *ViolationList
 
 	return errors.As(err, &violations)
 }
@@ -187,8 +322,8 @@ func UnwrapViolation(err error) (Violation, bool) {
 }
 
 // UnwrapViolationList is a short function to unwrap ViolationList from the error.
-func UnwrapViolationList(err error) (ViolationList, bool) {
-	var violations ViolationList
+func UnwrapViolationList(err error) (*ViolationList, bool) {
+	var violations *ViolationList
 
 	as := errors.As(err, &violations)
 

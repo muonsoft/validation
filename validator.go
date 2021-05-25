@@ -128,13 +128,13 @@ func (validator *Validator) Validate(arguments ...Argument) error {
 		}
 	}
 
-	violations := make(ViolationList, 0)
+	violations := &ViolationList{}
 	for _, validate := range args.validators {
 		vs, err := validate(args.scope)
 		if err != nil {
 			return err
 		}
-		violations = append(violations, vs...)
+		violations.Join(vs)
 	}
 
 	return violations.AsError()

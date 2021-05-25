@@ -65,7 +65,7 @@ type TimeConstraint interface {
 }
 
 type controlConstraint interface {
-	validate(scope Scope, validate ValidateByConstraintFunc) (ViolationList, error)
+	validate(scope Scope, validate ValidateByConstraintFunc) (*ViolationList, error)
 }
 
 // CustomStringConstraint can be used to create custom constraints for validating string values
@@ -198,8 +198,8 @@ func (c ConditionalConstraint) SetUp() error {
 func (c ConditionalConstraint) validate(
 	scope Scope,
 	validate ValidateByConstraintFunc,
-) (ViolationList, error) {
-	violations := make(ViolationList, 0)
+) (*ViolationList, error) {
+	violations := &ViolationList{}
 	var constraints []Constraint
 
 	if c.condition {
@@ -246,14 +246,14 @@ func (c SequentialConstraint) SetUp() error {
 func (c SequentialConstraint) validate(
 	scope Scope,
 	validate ValidateByConstraintFunc,
-) (ViolationList, error) {
-	violations := make(ViolationList, 0)
+) (*ViolationList, error) {
+	violations := &ViolationList{}
 
 	for _, constraint := range c.constraints {
 		err := violations.AppendFromError(validate(constraint, scope))
 		if err != nil {
 			return nil, err
-		} else if len(violations) > 0 {
+		} else if violations.len > 0 {
 			return violations, nil
 		}
 	}

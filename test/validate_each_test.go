@@ -16,7 +16,7 @@ func TestValidateEach_WhenSliceOfStrings_ExpectViolationOnEachElement(t *testing
 
 	err := validator.ValidateEach(strings, it.IsNotBlank())
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
+	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
 		if assert.Len(t, violations, 2) {
 			assert.Equal(t, code.NotBlank, violations[0].Code())
@@ -33,7 +33,7 @@ func TestValidateEach_WhenMapOfStrings_ExpectViolationOnEachElement(t *testing.T
 
 	err := validator.ValidateEach(strings, it.IsNotBlank())
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
+	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
 		if assert.Len(t, violations, 2) {
 			assert.Equal(t, code.NotBlank, violations[0].Code())
@@ -50,7 +50,7 @@ func TestValidateEachString_WhenSliceOfStrings_ExpectViolationOnEachElement(t *t
 
 	err := validator.ValidateEachString(strings, it.IsNotBlank())
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
+	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
 		if assert.Len(t, violations, 2) {
 			assert.Equal(t, code.NotBlank, violations[0].Code())

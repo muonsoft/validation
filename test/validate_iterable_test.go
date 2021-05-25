@@ -16,7 +16,7 @@ func TestValidateIterable_WhenSliceOfValidatable_ExpectViolationsWithValidPaths(
 
 	err := validator.ValidateValue(strings)
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
+	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
 		if assert.Len(t, violations, 1) {
 			assert.Equal(t, code.NotBlank, violations[0].Code())
@@ -31,7 +31,7 @@ func TestValidateIterable_WhenSliceOfValidatableWithConstraints_ExpectCollection
 
 	err := validator.ValidateValue(strings, it.HasMinCount(2))
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
+	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
 		if assert.Len(t, violations, 2) {
 			assert.Equal(t, code.CountTooFew, violations[0].Code())
@@ -48,7 +48,7 @@ func TestValidateIterable_WhenMapOfValidatable_ExpectViolationsWithValidPaths(t 
 
 	err := validator.ValidateValue(strings)
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
+	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
 		if assert.Len(t, violations, 1) {
 			assert.Equal(t, code.NotBlank, violations[0].Code())
@@ -63,7 +63,7 @@ func TestValidateIterable_WhenMapOfValidatableWithConstraints_ExpectCollectionVi
 
 	err := validator.ValidateValue(strings, it.HasMinCount(2))
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations validation.ViolationList) bool {
+	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
 		if assert.Len(t, violations, 2) {
 			assert.Equal(t, code.CountTooFew, violations[0].Code())
