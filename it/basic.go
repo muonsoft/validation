@@ -15,6 +15,7 @@ import (
 type NotBlankConstraint struct {
 	isIgnored         bool
 	allowNil          bool
+	code              string
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
 }
@@ -26,18 +27,19 @@ type NotBlankConstraint struct {
 //  err := validator.ValidateString(&s, it.IsNotBlank())
 func IsNotBlank() NotBlankConstraint {
 	return NotBlankConstraint{
+		code:            code.NotBlank,
 		messageTemplate: message.NotBlank,
 	}
-}
-
-// Name is the constraint name.
-func (c NotBlankConstraint) Name() string {
-	return "NotBlankConstraint"
 }
 
 // SetUp always returns no error.
 func (c NotBlankConstraint) SetUp() error {
 	return nil
+}
+
+// Name is the constraint name.
+func (c NotBlankConstraint) Name() string {
+	return "NotBlankConstraint"
 }
 
 // AllowNil makes nil values valid.
@@ -50,6 +52,12 @@ func (c NotBlankConstraint) AllowNil() NotBlankConstraint {
 // then the constraint will be ignored.
 func (c NotBlankConstraint) When(condition bool) NotBlankConstraint {
 	c.isIgnored = !condition
+	return c
+}
+
+// Code overrides default code for produced violation.
+func (c NotBlankConstraint) Code(code string) NotBlankConstraint {
+	c.code = code
 	return c
 }
 
@@ -150,7 +158,7 @@ func (c NotBlankConstraint) ValidateTime(value *time.Time, scope validation.Scop
 }
 
 func (c NotBlankConstraint) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(code.NotBlank, c.messageTemplate).
+	return scope.BuildViolation(c.code, c.messageTemplate).
 		SetParameters(c.messageParameters...).
 		CreateViolation()
 }
@@ -159,6 +167,7 @@ func (c NotBlankConstraint) newViolation(scope validation.Scope) validation.Viol
 // slice, array, or a map.
 type BlankConstraint struct {
 	isIgnored         bool
+	code              string
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
 }
@@ -170,13 +179,9 @@ type BlankConstraint struct {
 //  err := validator.ValidateString(&s, it.IsBlank())
 func IsBlank() BlankConstraint {
 	return BlankConstraint{
+		code:            code.Blank,
 		messageTemplate: message.Blank,
 	}
-}
-
-// Name is the constraint name.
-func (c BlankConstraint) Name() string {
-	return "BlankConstraint"
 }
 
 // SetUp always returns no error.
@@ -184,10 +189,21 @@ func (c BlankConstraint) SetUp() error {
 	return nil
 }
 
+// Name is the constraint name.
+func (c BlankConstraint) Name() string {
+	return "BlankConstraint"
+}
+
 // When enables conditional validation of this constraint. If the expression evaluates to false,
 // then the constraint will be ignored.
 func (c BlankConstraint) When(condition bool) BlankConstraint {
 	c.isIgnored = !condition
+	return c
+}
+
+// Code overrides default code for produced violation.
+func (c BlankConstraint) Code(code string) BlankConstraint {
+	c.code = code
 	return c
 }
 
@@ -253,7 +269,7 @@ func (c BlankConstraint) ValidateTime(value *time.Time, scope validation.Scope) 
 }
 
 func (c BlankConstraint) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(code.Blank, c.messageTemplate).
+	return scope.BuildViolation(c.code, c.messageTemplate).
 		SetParameters(c.messageParameters...).
 		CreateViolation()
 }
@@ -262,6 +278,7 @@ func (c BlankConstraint) newViolation(scope validation.Scope) validation.Violati
 // NotBlankConstraint.
 type NotNilConstraint struct {
 	isIgnored         bool
+	code              string
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
 }
@@ -273,13 +290,9 @@ type NotNilConstraint struct {
 //  err := validator.ValidateString(s, it.IsNotNil())
 func IsNotNil() NotNilConstraint {
 	return NotNilConstraint{
+		code:            code.NotNil,
 		messageTemplate: message.NotNil,
 	}
-}
-
-// Name is the constraint name.
-func (c NotNilConstraint) Name() string {
-	return "NotNilConstraint"
 }
 
 // SetUp always returns no error.
@@ -287,10 +300,21 @@ func (c NotNilConstraint) SetUp() error {
 	return nil
 }
 
+// Name is the constraint name.
+func (c NotNilConstraint) Name() string {
+	return "NotNilConstraint"
+}
+
 // When enables conditional validation of this constraint. If the expression evaluates to false,
 // then the constraint will be ignored.
 func (c NotNilConstraint) When(condition bool) NotNilConstraint {
 	c.isIgnored = !condition
+	return c
+}
+
+// Code overrides default code for produced violation.
+func (c NotNilConstraint) Code(code string) NotNilConstraint {
+	c.code = code
 	return c
 }
 
@@ -355,7 +379,7 @@ func (c NotNilConstraint) ValidateIterable(value generic.Iterable, scope validat
 }
 
 func (c NotNilConstraint) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(code.NotNil, c.messageTemplate).
+	return scope.BuildViolation(c.code, c.messageTemplate).
 		SetParameters(c.messageParameters...).
 		CreateViolation()
 }
@@ -364,6 +388,7 @@ func (c NotNilConstraint) newViolation(scope validation.Scope) validation.Violat
 // BlankConstraint.
 type NilConstraint struct {
 	isIgnored         bool
+	code              string
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
 }
@@ -375,13 +400,9 @@ type NilConstraint struct {
 //  err := validator.ValidateString(s, it.IsNil())
 func IsNil() NilConstraint {
 	return NilConstraint{
+		code:            code.Nil,
 		messageTemplate: message.Nil,
 	}
-}
-
-// Name is the constraint name.
-func (c NilConstraint) Name() string {
-	return "NilConstraint"
 }
 
 // SetUp always returns no error.
@@ -389,10 +410,21 @@ func (c NilConstraint) SetUp() error {
 	return nil
 }
 
+// Name is the constraint name.
+func (c NilConstraint) Name() string {
+	return "NilConstraint"
+}
+
 // When enables conditional validation of this constraint. If the expression evaluates to false,
 // then the constraint will be ignored.
 func (c NilConstraint) When(condition bool) NilConstraint {
 	c.isIgnored = !condition
+	return c
+}
+
+// Code overrides default code for produced violation.
+func (c NilConstraint) Code(code string) NilConstraint {
+	c.code = code
 	return c
 }
 
@@ -409,10 +441,7 @@ func (c NilConstraint) ValidateNil(scope validation.Scope) error {
 }
 
 func (c NilConstraint) ValidateNumber(value generic.Number, scope validation.Scope) error {
-	if c.isIgnored {
-		return nil
-	}
-	if value.IsNil() {
+	if c.isIgnored || value.IsNil() {
 		return nil
 	}
 
@@ -420,10 +449,7 @@ func (c NilConstraint) ValidateNumber(value generic.Number, scope validation.Sco
 }
 
 func (c NilConstraint) ValidateString(value *string, scope validation.Scope) error {
-	if c.isIgnored {
-		return nil
-	}
-	if value == nil {
+	if c.isIgnored || value == nil {
 		return nil
 	}
 
@@ -431,10 +457,7 @@ func (c NilConstraint) ValidateString(value *string, scope validation.Scope) err
 }
 
 func (c NilConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
-	if c.isIgnored {
-		return nil
-	}
-	if value == nil {
+	if c.isIgnored || value == nil {
 		return nil
 	}
 
@@ -442,10 +465,7 @@ func (c NilConstraint) ValidateTime(value *time.Time, scope validation.Scope) er
 }
 
 func (c NilConstraint) ValidateIterable(value generic.Iterable, scope validation.Scope) error {
-	if c.isIgnored {
-		return nil
-	}
-	if value.IsNil() {
+	if c.isIgnored || value.IsNil() {
 		return nil
 	}
 
@@ -453,7 +473,7 @@ func (c NilConstraint) ValidateIterable(value generic.Iterable, scope validation
 }
 
 func (c NilConstraint) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(code.Nil, c.messageTemplate).
+	return scope.BuildViolation(c.code, c.messageTemplate).
 		SetParameters(c.messageParameters...).
 		CreateViolation()
 }
@@ -462,9 +482,9 @@ func (c NilConstraint) newViolation(scope validation.Scope) validation.Violation
 type BoolConstraint struct {
 	isIgnored         bool
 	expected          bool
+	code              string
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
-	code              string
 }
 
 // IsTrue creates a BoolConstraint to check that a value is not strictly equal to true.
@@ -475,8 +495,8 @@ type BoolConstraint struct {
 func IsTrue() BoolConstraint {
 	return BoolConstraint{
 		expected:        true,
-		messageTemplate: message.True,
 		code:            code.True,
+		messageTemplate: message.True,
 	}
 }
 
@@ -488,14 +508,9 @@ func IsTrue() BoolConstraint {
 func IsFalse() BoolConstraint {
 	return BoolConstraint{
 		expected:        false,
-		messageTemplate: message.False,
 		code:            code.False,
+		messageTemplate: message.False,
 	}
-}
-
-// Name is the constraint name.
-func (c BoolConstraint) Name() string {
-	return "BoolConstraint"
 }
 
 // SetUp always returns no error.
@@ -503,10 +518,21 @@ func (c BoolConstraint) SetUp() error {
 	return nil
 }
 
+// Name is the constraint name.
+func (c BoolConstraint) Name() string {
+	return "BoolConstraint"
+}
+
 // When enables conditional validation of this constraint. If the expression evaluates to false,
 // then the constraint will be ignored.
 func (c BoolConstraint) When(condition bool) BoolConstraint {
 	c.isIgnored = !condition
+	return c
+}
+
+// Code overrides default code for produced violation.
+func (c BoolConstraint) Code(code string) BoolConstraint {
+	c.code = code
 	return c
 }
 

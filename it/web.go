@@ -72,6 +72,7 @@ type URLConstraint struct {
 	isIgnored              bool
 	supportsRelativeSchema bool
 	schemas                []string
+	code                   string
 	messageTemplate        string
 	messageParameters      validation.TemplateParameterList
 }
@@ -83,6 +84,7 @@ type URLConstraint struct {
 func IsURL() URLConstraint {
 	return URLConstraint{
 		schemas:         []string{"http", "https"},
+		code:            code.InvalidURL,
 		messageTemplate: message.InvalidURL,
 	}
 }
@@ -116,6 +118,12 @@ func (c URLConstraint) WithSchemas(schemas ...string) URLConstraint {
 	return c
 }
 
+// Code overrides default code for produced violation.
+func (c URLConstraint) Code(code string) URLConstraint {
+	c.code = code
+	return c
+}
+
 // Message sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message. Also, you can use default parameters:
 //
@@ -146,13 +154,12 @@ func (c URLConstraint) ValidateString(value *string, scope validation.Scope) err
 		return nil
 	}
 
-	return scope.BuildViolation(code.InvalidURL, c.messageTemplate).
+	return scope.BuildViolation(c.code, c.messageTemplate).
 		SetParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ value }}", Value: *value},
 			)...,
 		).
-		AddParameter("{{ value }}", *value).
 		CreateViolation()
 }
 
@@ -162,6 +169,9 @@ type IPConstraint struct {
 	isIgnored    bool
 	validate     func(value string, restrictions ...validate.IPRestriction) error
 	restrictions []validate.IPRestriction
+
+	invalidCode    string
+	prohibitedCode string
 
 	invalidMessageTemplate      string
 	invalidMessageParameters    validation.TemplateParameterList
@@ -187,6 +197,8 @@ func IsIPv6() IPConstraint {
 func newIPConstraint(validate func(value string, restrictions ...validate.IPRestriction) error) IPConstraint {
 	return IPConstraint{
 		validate:                  validate,
+		invalidCode:               code.InvalidIP,
+		prohibitedCode:            code.ProhibitedIP,
 		invalidMessageTemplate:    message.InvalidIP,
 		prohibitedMessageTemplate: message.ProhibitedIP,
 	}
@@ -212,6 +224,18 @@ func (c IPConstraint) DenyPrivateIP() IPConstraint {
 // DenyIP can be used to deny custom range of IP addresses.
 func (c IPConstraint) DenyIP(restrict func(ip net.IP) bool) IPConstraint {
 	c.restrictions = append(c.restrictions, restrict)
+	return c
+}
+
+// InvalidCode overrides default code for violation produced on invalid IP case.
+func (c IPConstraint) InvalidCode(code string) IPConstraint {
+	c.invalidCode = code
+	return c
+}
+
+// ProhibitedCode overrides default code for violation produced on prohibited IP case.
+func (c IPConstraint) ProhibitedCode(code string) IPConstraint {
+	c.prohibitedCode = code
 	return c
 }
 
@@ -262,10 +286,10 @@ func (c IPConstraint) validateIP(value string, scope validation.Scope) error {
 	var parameters validation.TemplateParameterList
 
 	if errors.Is(err, validate.ErrProhibited) {
-		builder = scope.BuildViolation(code.ProhibitedIP, c.prohibitedMessageTemplate)
+		builder = scope.BuildViolation(c.prohibitedCode, c.prohibitedMessageTemplate)
 		parameters = c.prohibitedMessageParameters
 	} else {
-		builder = scope.BuildViolation(code.InvalidIP, c.invalidMessageTemplate)
+		builder = scope.BuildViolation(c.invalidCode, c.invalidMessageTemplate)
 		parameters = c.invalidMessageParameters
 	}
 

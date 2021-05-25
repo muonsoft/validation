@@ -12,6 +12,7 @@ import (
 type ChoiceConstraint struct {
 	choices           map[string]bool
 	choicesValue      string
+	code              string
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
 	isIgnored         bool
@@ -30,6 +31,7 @@ func IsOneOfStrings(values ...string) ChoiceConstraint {
 	return ChoiceConstraint{
 		choices:         choices,
 		choicesValue:    strings.Join(values, ", "),
+		code:            code.NoSuchChoice,
 		messageTemplate: message.NoSuchChoice,
 	}
 }
@@ -46,6 +48,12 @@ func (c ChoiceConstraint) SetUp() error {
 // Name is the constraint name.
 func (c ChoiceConstraint) Name() string {
 	return "ChoiceConstraint"
+}
+
+// Code overrides default code for produced violation.
+func (c ChoiceConstraint) Code(code string) ChoiceConstraint {
+	c.code = code
+	return c
 }
 
 // Message sets the violation message template. You can set custom template parameters
@@ -75,7 +83,7 @@ func (c ChoiceConstraint) ValidateString(value *string, scope validation.Scope) 
 	}
 
 	return scope.
-		BuildViolation(code.NoSuchChoice, c.messageTemplate).
+		BuildViolation(c.code, c.messageTemplate).
 		SetParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ value }}", Value: *value},

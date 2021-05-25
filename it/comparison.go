@@ -348,6 +348,12 @@ func (c NumberComparisonConstraint) Name() string {
 	return "NumberComparisonConstraint"
 }
 
+// Code overrides default code for produced violation.
+func (c NumberComparisonConstraint) Code(code string) NumberComparisonConstraint {
+	c.code = code
+	return c
+}
+
 // Message sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message. Also, you can use default parameters:
 //
@@ -389,6 +395,7 @@ func (c NumberComparisonConstraint) ValidateNumber(value generic.Number, scope v
 // Otherwise, numbers are always compared as floating point numbers.
 type RangeConstraint struct {
 	isIgnored         bool
+	code              string
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
 	min               generic.Number
@@ -406,6 +413,7 @@ func IsBetweenIntegers(min, max int64) RangeConstraint {
 	return RangeConstraint{
 		min:             generic.NewNumberFromInt(min),
 		max:             generic.NewNumberFromInt(max),
+		code:            code.NotInRange,
 		messageTemplate: message.NotInRange,
 	}
 }
@@ -421,6 +429,7 @@ func IsBetweenFloats(min, max float64) RangeConstraint {
 	return RangeConstraint{
 		min:             generic.NewNumberFromFloat(min),
 		max:             generic.NewNumberFromFloat(max),
+		code:            code.NotInRange,
 		messageTemplate: message.NotInRange,
 	}
 }
@@ -437,6 +446,12 @@ func (c RangeConstraint) SetUp() error {
 // Name is the constraint name.
 func (c RangeConstraint) Name() string {
 	return "RangeConstraint"
+}
+
+// Code overrides default code for produced violation.
+func (c RangeConstraint) Code(code string) RangeConstraint {
+	c.code = code
+	return c
 }
 
 // Message sets the violation message template. You can set custom template parameters
@@ -470,7 +485,7 @@ func (c RangeConstraint) ValidateNumber(value generic.Number, scope validation.S
 }
 
 func (c RangeConstraint) newViolation(value generic.Number, scope validation.Scope) error {
-	return scope.BuildViolation(code.NotInRange, c.messageTemplate).
+	return scope.BuildViolation(c.code, c.messageTemplate).
 		SetParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ min }}", Value: c.min.String()},
@@ -531,6 +546,12 @@ func (c StringComparisonConstraint) SetUp() error {
 // Name is the constraint name.
 func (c StringComparisonConstraint) Name() string {
 	return "StringComparisonConstraint"
+}
+
+// Code overrides default code for produced violation.
+func (c StringComparisonConstraint) Code(code string) StringComparisonConstraint {
+	c.code = code
+	return c
 }
 
 // Message sets the violation message template. You can set custom template parameters
@@ -660,6 +681,12 @@ func (c TimeComparisonConstraint) Name() string {
 	return "TimeComparisonConstraint"
 }
 
+// Code overrides default code for produced violation.
+func (c TimeComparisonConstraint) Code(code string) TimeComparisonConstraint {
+	c.code = code
+	return c
+}
+
 // Message sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message. Also, you can use default parameters:
 //
@@ -708,6 +735,7 @@ func (c TimeComparisonConstraint) ValidateTime(value *time.Time, scope validatio
 // TimeRangeConstraint is used to check that a given time value is between some minimum and maximum.
 type TimeRangeConstraint struct {
 	isIgnored         bool
+	code              string
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
 	layout            string
@@ -722,6 +750,7 @@ type TimeRangeConstraint struct {
 //	err := validator.ValidateTime(&t, it.IsBetweenTime(time.Now().Add(time.Hour), time.Now().Add(2*time.Hour)))
 func IsBetweenTime(min, max time.Time) TimeRangeConstraint {
 	return TimeRangeConstraint{
+		code:            code.NotInRange,
 		messageTemplate: message.NotInRange,
 		layout:          time.RFC3339,
 		min:             min,
@@ -741,6 +770,12 @@ func (c TimeRangeConstraint) SetUp() error {
 // Name is the constraint name.
 func (c TimeRangeConstraint) Name() string {
 	return "TimeRangeConstraint"
+}
+
+// Code overrides default code for produced violation.
+func (c TimeRangeConstraint) Code(code string) TimeRangeConstraint {
+	c.code = code
+	return c
 }
 
 // Message sets the violation message template. You can set custom template parameters
@@ -783,7 +818,7 @@ func (c TimeRangeConstraint) ValidateTime(value *time.Time, scope validation.Sco
 }
 
 func (c TimeRangeConstraint) newViolation(value *time.Time, scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(code.NotInRange, c.messageTemplate).
+	return scope.BuildViolation(c.code, c.messageTemplate).
 		SetParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ min }}", Value: c.min.Format(c.layout)},
