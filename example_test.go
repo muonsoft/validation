@@ -575,3 +575,45 @@ func ExampleValidator_Validate_translationForCustomMessage() {
 	// Output:
 	// violation: теги должны содержать 1 элемент и более
 }
+
+func ExampleValidator_BuildViolation_buildingViolation() {
+	validator, err := validation.NewValidator()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	violation := validator.BuildViolation("clientCode", "Client message with {{ parameter }}.").
+		AddParameter("{{ parameter }}", "value").
+		CreateViolation()
+
+	fmt.Println(violation.Message())
+	// Output:
+	// Client message with value.
+}
+
+func ExampleValidator_BuildViolation_translatableParameter() {
+	validator, err := validation.NewValidator(
+		validation.Translations(map[language.Tag]map[string]catalog.Message{
+			language.Russian: {
+				"The operation is only possible for the {{ role }}.": catalog.String("Операция возможна только для {{ role }}."),
+				"administrator role": catalog.String("роли администратора"),
+			},
+		}),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	violation := validator.WithLanguage(language.Russian).
+		BuildViolation("clientCode", "The operation is only possible for the {{ role }}.").
+		SetParameters(validation.TemplateParameter{
+			Key:              "{{ role }}",
+			Value:            "administrator role",
+			NeedsTranslation: true,
+		}).
+		CreateViolation()
+
+	fmt.Println(violation.Message())
+	// Output:
+	// Операция возможна только для роли администратора.
+}

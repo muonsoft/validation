@@ -229,11 +229,6 @@ func (validator *Validator) AtIndex(index int) *Validator {
 }
 
 // BuildViolation can be used to build a custom violation on the client-side.
-//
-// Example
-//  err := validator.BuildViolation("", "").
-//      AddParameter("key", "value").
-//      CreateViolation()
 func (validator *Validator) BuildViolation(code, message string) *ViolationBuilder {
 	return validator.scope.BuildViolation(code, message)
 }
