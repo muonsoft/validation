@@ -100,11 +100,24 @@ func (c CountConstraint) When(condition bool) CountConstraint {
 	return c
 }
 
-// Codes overrides default codes for produced violation.
-func (c CountConstraint) Codes(minCode, maxCode, exactCode string) CountConstraint {
-	c.minCode = minCode
-	c.maxCode = maxCode
-	c.exactCode = exactCode
+// MinCode overrides default code for violation that will be shown if the
+// collection length is less than the minimum value.
+func (c CountConstraint) MinCode(code string) CountConstraint {
+	c.minCode = code
+	return c
+}
+
+// MaxCode overrides default code for violation that will be shown if the
+// collection length is greater than the maximum value.
+func (c CountConstraint) MaxCode(code string) CountConstraint {
+	c.maxCode = code
+	return c
+}
+
+// ExactCode overrides default code for violation that will be shown if minimum and
+// maximum values are equal and the length of the collection is not exactly this value.
+func (c CountConstraint) ExactCode(code string) CountConstraint {
+	c.exactCode = code
 	return c
 }
 

@@ -227,10 +227,15 @@ func (c IPConstraint) DenyIP(restrict func(ip net.IP) bool) IPConstraint {
 	return c
 }
 
-// Codes overrides default codes for produced violation.
-func (c IPConstraint) Codes(invalidCode, prohibitedCode string) IPConstraint {
-	c.invalidCode = invalidCode
-	c.prohibitedCode = prohibitedCode
+// InvalidCode overrides default code for violation produced on invalid IP case.
+func (c IPConstraint) InvalidCode(code string) IPConstraint {
+	c.invalidCode = code
+	return c
+}
+
+// ProhibitedCode overrides default code for violation produced on prohibited IP case.
+func (c IPConstraint) ProhibitedCode(code string) IPConstraint {
+	c.prohibitedCode = code
 	return c
 }
 

@@ -44,7 +44,7 @@ var lengthConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "HasMinLength violation with custom min message",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint: it.HasMinLength(2).
-			Codes("minCode", "maxCode", "exactCode").
+			MinCode("minCode").
 			MinMessage(
 				"Unexpected length {{ length }} at {{ custom }} value {{ value }}, should not be less than {{ limit }}.",
 				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
@@ -59,7 +59,7 @@ var lengthConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "HasMinLength violation with custom max message",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint: it.HasMaxLength(2).
-			Codes("minCode", "maxCode", "exactCode").
+			MaxCode("maxCode").
 			MaxMessage(
 				"Unexpected length {{ length }} at {{ custom }} value {{ value }}, should not be greater than {{ limit }}.",
 				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
@@ -74,7 +74,7 @@ var lengthConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "HasMinLength violation with custom exact message",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint: it.HasExactLength(2).
-			Codes("minCode", "maxCode", "exactCode").
+			ExactCode("exactCode").
 			ExactMessage(
 				"Unexpected length {{ length }} at {{ custom }} value {{ value }}, should be exactly {{ limit }}.",
 				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},

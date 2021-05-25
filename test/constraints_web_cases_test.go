@@ -200,7 +200,7 @@ var ipConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "IsIP violation with custom message",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint: it.IsIP().
-			Codes("invalidCode", "prohibitedCode").
+			InvalidCode("invalidCode").
 			InvalidMessage(
 				`Unexpected IP "{{ value }}" at {{ custom }}.`,
 				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
@@ -216,7 +216,7 @@ var ipConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint: it.IsIP().
 			DenyPrivateIP().
-			Codes("invalidCode", "prohibitedCode").
+			ProhibitedCode("prohibitedCode").
 			ProhibitedMessage(
 				`Unexpected IP "{{ value }}" at {{ custom }}.`,
 				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},

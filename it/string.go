@@ -102,11 +102,24 @@ func (c LengthConstraint) When(condition bool) LengthConstraint {
 	return c
 }
 
-// Codes overrides default codes for produced violation.
-func (c LengthConstraint) Codes(minCode, maxCode, exactCode string) LengthConstraint {
-	c.minCode = minCode
-	c.maxCode = maxCode
-	c.exactCode = exactCode
+// MinCode overrides default code for violation that will be shown if the string length
+// is less than the minimum value.
+func (c LengthConstraint) MinCode(code string) LengthConstraint {
+	c.minCode = code
+	return c
+}
+
+// MaxCode overrides default code for violation that will be shown if the string length
+// is greater than the maximum value.
+func (c LengthConstraint) MaxCode(code string) LengthConstraint {
+	c.maxCode = code
+	return c
+}
+
+// ExactCode overrides default code for violation that will be shown if minimum and maximum values
+// are equal and the length of the string is not exactly this value.
+func (c LengthConstraint) ExactCode(code string) LengthConstraint {
+	c.exactCode = code
 	return c
 }
 
