@@ -7,12 +7,14 @@ import (
 
 	languagepkg "github.com/muonsoft/language"
 	"github.com/muonsoft/validation"
+	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message/translations/russian"
 	"github.com/muonsoft/validation/validationtest"
 	"github.com/muonsoft/validation/validator"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/text/language"
+	"golang.org/x/text/message/catalog"
 )
 
 func TestValidator_Validate_WhenRussianIsDefaultLanguage_ExpectViolationTranslated(t *testing.T) {
@@ -172,6 +174,37 @@ func TestValidator_Validate_WhenRecursiveValidation_ExpectViolationTranslated(t 
 		return assert.Len(t, violations, 1) &&
 			assert.Equal(t, "Значение не должно быть пустым.", violations[0].Message())
 	})
+}
+
+func TestValidator_Validate_WhenTranslatableParameter_ExpectParameterTranslated(t *testing.T) {
+	validator := newValidator(
+		t,
+		validation.DefaultLanguage(language.Russian),
+		validation.Translations(map[language.Tag]map[string]catalog.Message{
+			language.Russian: {
+				"The operation is only possible for the {{ role }}.": catalog.String("Операция возможна только для {{ role }}."),
+				"administrator role": catalog.String("роли администратора"),
+			},
+		}),
+	)
+
+	v := ""
+	err := validator.Validate(
+		validation.String(
+			&v,
+			it.IsNotBlank().
+				Message(
+					"The operation is only possible for the {{ role }}.",
+					validation.TemplateParameter{
+						Key:              "{{ role }}",
+						Value:            "administrator role",
+						NeedsTranslation: true,
+					},
+				),
+		),
+	)
+
+	assertHasOneViolation(code.NotBlank, "Операция возможна только для роли администратора.")(t, err)
 }
 
 func TestValidate_WhenTranslationsLoadedAfterInit_ExpectTranslationsWorking(t *testing.T) {
