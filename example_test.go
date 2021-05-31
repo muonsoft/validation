@@ -297,6 +297,27 @@ func ExampleSequentially() {
 	// violation: This value should be blank.
 }
 
+func ExampleAtLeastOneOf() {
+	title := "bar"
+
+	err := validator.ValidateString(
+		&title,
+		validation.AtLeastOneOf(
+			it.IsBlank(),
+			it.HasMinLength(5),
+		),
+	)
+
+	if violations, ok := validation.UnwrapViolationList(err); ok {
+		for violation := violations.First(); violation != nil; violation = violation.Next() {
+			fmt.Println(violation)
+		}
+	}
+	// Output:
+	// violation: This value should be blank.
+	// violation: This value is too short. It should have 5 characters or more.
+}
+
 func ExampleValidator_Validate_basicValidation() {
 	s := ""
 
