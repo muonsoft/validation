@@ -318,6 +318,25 @@ func ExampleAtLeastOneOf() {
 	// violation: This value is too short. It should have 5 characters or more.
 }
 
+func ExampleNewCompoundConstraint() {
+	title := "bar"
+	isEmail := validation.NewCompoundConstraint(it.IsEmail(), it.HasLengthBetween(5, 200))
+
+	err := validator.ValidateString(
+		&title,
+		isEmail,
+	)
+
+	if violations, ok := validation.UnwrapViolationList(err); ok {
+		for violation := violations.First(); violation != nil; violation = violation.Next() {
+			fmt.Println(violation)
+		}
+	}
+	// Output:
+	// violation: This value is not a valid email address.
+	// violation: This value is too short. It should have 5 characters or more.
+}
+
 func ExampleValidator_Validate_basicValidation() {
 	s := ""
 
