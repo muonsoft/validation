@@ -12,7 +12,7 @@ import (
 )
 
 func TestValidateString_WhenConditionIsTrue_ExpectAllConstraintsOfThenBranchApplied(t *testing.T) {
-	value := foo
+	value := "foo"
 
 	err := validator.ValidateString(
 		&value,
@@ -32,7 +32,7 @@ func TestValidateString_WhenConditionIsTrue_ExpectAllConstraintsOfThenBranchAppl
 }
 
 func TestValidateString_WhenConditionIsFalse_ExpectAllConstraintsOfElseBranchApplied(t *testing.T) {
-	value := bar
+	value := "bar"
 
 	err := validator.ValidateString(
 		&value,
@@ -55,7 +55,7 @@ func TestValidateString_WhenConditionIsFalse_ExpectAllConstraintsOfElseBranchApp
 }
 
 func TestValidateString_WhenConditionIsFalseAndNoElseBranch_ExpectNoViolations(t *testing.T) {
-	value := foo
+	value := "foo"
 
 	err := validator.ValidateString(
 		&value,
@@ -69,7 +69,7 @@ func TestValidateString_WhenConditionIsFalseAndNoElseBranch_ExpectNoViolations(t
 }
 
 func TestValidateString_WhenThenBranchIsNotSet_ExpectError(t *testing.T) {
-	value := bar
+	value := "bar"
 
 	err := validator.ValidateString(
 		&value,
@@ -80,7 +80,7 @@ func TestValidateString_WhenThenBranchIsNotSet_ExpectError(t *testing.T) {
 }
 
 func TestValidate_WhenInvalidValueAtFirstConstraintOfSequentiallyConstraint_ExpectOneViolation(t *testing.T) {
-	value := foo
+	value := "foo"
 
 	err := validator.ValidateString(
 		&value,
@@ -98,7 +98,7 @@ func TestValidate_WhenInvalidValueAtFirstConstraintOfSequentiallyConstraint_Expe
 }
 
 func TestValidate_WhenSequentiallyConstraintsNotSet_ExpectError(t *testing.T) {
-	value := bar
+	value := "bar"
 
 	err := validator.ValidateString(
 		&value,
@@ -108,8 +108,8 @@ func TestValidate_WhenSequentiallyConstraintsNotSet_ExpectError(t *testing.T) {
 	assert.Error(t, err, "constraints for sequentially validation not set")
 }
 
-func TestValidate_WhenInvalidValueAtFirstConstraintOfAtLeastOneOfConstraint_ExpectOneViolation(t *testing.T) {
-	value := foo
+func TestValidate_WhenInvalidValueAtFirstConstraintOfAtLeastOneOfConstraint_ExpectAllViolation(t *testing.T) {
+	value := "foo"
 
 	err := validator.ValidateString(
 		&value,
@@ -128,13 +128,13 @@ func TestValidate_WhenInvalidValueAtFirstConstraintOfAtLeastOneOfConstraint_Expe
 }
 
 func TestValidate_WhenInvalidValueAtSecondConstraintOfAtLeastOneOfConstraint_ExpectNoViolation(t *testing.T) {
-	value := bar
+	value := "foo"
 
 	err := validator.ValidateString(
 		&value,
 		validation.AtLeastOneOf(
-			it.IsNotBlank(),
-			it.HasMinLength(5),
+			it.IsEqualToString("bar"),
+			it.IsEqualToString("foo"),
 		),
 	)
 
@@ -142,7 +142,7 @@ func TestValidate_WhenInvalidValueAtSecondConstraintOfAtLeastOneOfConstraint_Exp
 }
 
 func TestValidate_WhenAtLeastOneOfConstraintsNotSet_ExpectError(t *testing.T) {
-	value := bar
+	value := "bar"
 
 	err := validator.ValidateString(
 		&value,
