@@ -261,6 +261,53 @@ func (c SequentialConstraint) validate(
 	return violations, nil
 }
 
+// AtLeastOneOfConstraint is used to set constraints allowing checks that the value satisfies
+// at least one of the given constraints.
+// The validation stops as soon as one constraint is satisfied.
+type AtLeastOneOfConstraint struct {
+	constraints []Constraint
+}
+
+// AtLeastOneOf function used to set of constraints that the value satisfies at least one of the given constraints.
+// If the list is empty error will be returned.
+func AtLeastOneOf(constraints ...Constraint) AtLeastOneOfConstraint {
+	return AtLeastOneOfConstraint{constraints: constraints}
+}
+
+// Name is the constraint name.
+func (c AtLeastOneOfConstraint) Name() string {
+	return "AtLeastOneOfConstraint"
+}
+
+// SetUp will return an error if the list of constraints is empty.
+func (c AtLeastOneOfConstraint) SetUp() error {
+	if len(c.constraints) == 0 {
+		return errAtLeastOneOfConstraintsNotSet
+	}
+	return nil
+}
+
+func (c AtLeastOneOfConstraint) validate(
+	scope Scope,
+	validate ValidateByConstraintFunc,
+) (*ViolationList, error) {
+	violations := &ViolationList{}
+
+	for _, constraint := range c.constraints {
+		violation := validate(constraint, scope)
+		if violation == nil {
+			return nil, nil
+		}
+
+		err := violations.AppendFromError(violation)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return violations, nil
+}
+
 type notFoundConstraint struct {
 	key string
 }
