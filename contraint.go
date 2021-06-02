@@ -292,22 +292,17 @@ func (c AtLeastOneOfConstraint) validate(
 	validate ValidateByConstraintFunc,
 ) (*ViolationList, error) {
 	violations := &ViolationList{}
-	var isValidOneCheck bool
 
 	for _, constraint := range c.constraints {
 		violation := validate(constraint, scope)
 		if violation == nil {
-			isValidOneCheck = true
+			return nil, nil
 		}
 
 		err := violations.AppendFromError(violation)
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	if isValidOneCheck {
-		violations = &ViolationList{}
 	}
 
 	return violations, nil
