@@ -308,6 +308,46 @@ func (c AtLeastOneOfConstraint) validate(
 	return violations, nil
 }
 
+// CompoundConstraint is used to create your own set of reusable constraints, representing rules to use consistently.
+type CompoundConstraint struct {
+	constraints []Constraint
+}
+
+// Compound function used to create set of reusable constraints.
+// If the list is empty error will be returned.
+func Compound(constraints ...Constraint) CompoundConstraint {
+	return CompoundConstraint{constraints: constraints}
+}
+
+// Name is the constraint name.
+func (c CompoundConstraint) Name() string {
+	return "CompoundConstraint"
+}
+
+// SetUp will return an error if the list of constraints is empty.
+func (c CompoundConstraint) SetUp() error {
+	if len(c.constraints) == 0 {
+		return errCompoundConstraintsNotSet
+	}
+	return nil
+}
+
+func (c CompoundConstraint) validate(
+	scope Scope,
+	validate ValidateByConstraintFunc,
+) (*ViolationList, error) {
+	violations := &ViolationList{}
+
+	for _, constraint := range c.constraints {
+		err := violations.AppendFromError(validate(constraint, scope))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return violations, nil
+}
+
 type notFoundConstraint struct {
 	key string
 }
