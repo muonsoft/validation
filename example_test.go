@@ -318,9 +318,9 @@ func ExampleAtLeastOneOf() {
 	// violation: This value is too short. It should have 5 characters or more.
 }
 
-func ExampleNewCompoundConstraint() {
+func ExampleCompound() {
 	title := "bar"
-	isEmail := validation.NewCompoundConstraint(it.IsEmail(), it.HasLengthBetween(5, 200))
+	isEmail := validation.Compound(it.IsEmail(), it.HasLengthBetween(5, 200))
 
 	err := validator.ValidateString(
 		&title,

@@ -154,7 +154,7 @@ func TestValidate_WhenAtLeastOneOfConstraintsNotSet_ExpectError(t *testing.T) {
 
 func TestValidate_Compound_ExpectNoViolation(t *testing.T) {
 	value := "bar"
-	isEmployeeEmail := validation.NewCompoundConstraint(it.HasMinLength(5), it.IsEmail())
+	isEmployeeEmail := validation.Compound(it.HasMinLength(5), it.IsEmail())
 
 	err := validator.ValidateString(
 		&value,
@@ -171,7 +171,7 @@ func TestValidate_Compound_ExpectNoViolation(t *testing.T) {
 
 func TestValidate_WhenCompoundConstraintsNotSet_ExpectError(t *testing.T) {
 	value := "bar"
-	isEmployeeEmail := validation.NewCompoundConstraint()
+	isEmployeeEmail := validation.Compound()
 
 	err := validator.ValidateString(
 		&value,

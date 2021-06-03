@@ -313,9 +313,9 @@ type CompoundConstraint struct {
 	constraints []Constraint
 }
 
-// NewCompoundConstraint function used to create set of reusable constraints.
+// Compound function used to create set of reusable constraints.
 // If the list is empty error will be returned.
-func NewCompoundConstraint(constraints ...Constraint) CompoundConstraint {
+func Compound(constraints ...Constraint) CompoundConstraint {
 	return CompoundConstraint{constraints: constraints}
 }
 
