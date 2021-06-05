@@ -8,11 +8,10 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	languagepkg "github.com/muonsoft/language"
+	"github.com/muonsoft/language"
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message/translations/russian"
-	"golang.org/x/text/language"
 )
 
 type Book struct {
@@ -74,7 +73,7 @@ func ExampleValidator_Validate_httpHandler() {
 	handler = http.HandlerFunc(HandleBooks)
 	// middleware set up: we need to set supported languages
 	// detected language will be passed via request context
-	handler = languagepkg.NewMiddleware(handler, languagepkg.SupportedLanguages(language.English, language.Russian))
+	handler = language.NewMiddleware(handler, language.SupportedLanguages(language.English, language.Russian))
 
 	// creating request with the language-specific header
 	request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{}`))

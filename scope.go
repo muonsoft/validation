@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	languagepkg "github.com/muonsoft/language"
+	mslanguage "github.com/muonsoft/language"
 	"golang.org/x/text/language"
 )
 
@@ -34,7 +34,7 @@ func (s Scope) BuildViolation(code, message string) *ViolationBuilder {
 	if s.language != language.Und {
 		b.SetLanguage(s.language)
 	} else if s.context != nil {
-		b.SetLanguage(languagepkg.FromContext(s.context))
+		b.SetLanguage(mslanguage.FromContext(s.context))
 	}
 
 	return b

@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"time"
 
-	languagepkg "github.com/muonsoft/language"
+	mslanguage "github.com/muonsoft/language"
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message/translations/russian"
@@ -543,7 +543,7 @@ func ExampleValidator_Validate_translationsByContextArgument() {
 	}
 
 	s := ""
-	ctx := languagepkg.WithContext(context.Background(), language.Russian)
+	ctx := mslanguage.WithContext(context.Background(), language.Russian)
 	err = validator.Validate(
 		validation.Context(ctx),
 		validation.String(&s, it.IsNotBlank()),
@@ -561,7 +561,7 @@ func ExampleValidator_Validate_translationsByContextValidator() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	ctx := languagepkg.WithContext(context.Background(), language.Russian)
+	ctx := mslanguage.WithContext(context.Background(), language.Russian)
 	validator = validator.WithContext(ctx)
 
 	s := ""
