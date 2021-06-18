@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	mslanguage "github.com/muonsoft/language"
-	"golang.org/x/text/language"
+	"github.com/muonsoft/language"
 )
 
 // Scope holds the current state of validation. On the client-side of the package,
@@ -34,7 +33,7 @@ func (s Scope) BuildViolation(code, message string) *ViolationBuilder {
 	if s.language != language.Und {
 		b.SetLanguage(s.language)
 	} else if s.context != nil {
-		b.SetLanguage(mslanguage.FromContext(s.context))
+		b.SetLanguage(language.FromContext(s.context))
 	}
 
 	return b

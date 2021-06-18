@@ -390,12 +390,12 @@ for _, violation := range violations {
 The last way is to pass language via context. It is provided by the `github.com/muonsoft/language` package and can be useful in combination with [language middleware](https://github.com/muonsoft/language/blob/main/middleware.go). You can pass the context by using the `validation.Context()` argument or by creating a scoped validator with the `validator.WithContext()` method.
 
 ```golang
-// import mslanguage "github.com/muonsoft/language"
+// import "github.com/muonsoft/language"
 
 validator, _ := validation.NewValidator(
     validation.Translations(russian.Messages),
 )
-ctx := mslanguage.WithContext(context.Background(), language.Russian)
+ctx := language.WithContext(context.Background(), language.Russian)
 validator = validator.WithContext(ctx)
 
 s := ""

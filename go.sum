@@ -5,6 +5,10 @@ github.com/muonsoft/language v0.1.0 h1:rOrN6dKMjhDuw7oxdIz7f6Hf5U/faWkvcjJ5UtGeg
 github.com/muonsoft/language v0.1.0/go.mod h1:be1X9wxDjKiqqKfXU6eiUHxu4BrreJZx1GXguR29QFo=
 github.com/muonsoft/language v0.2.0 h1:YOWQ2T/prZx6z3t32xMUKibIrP2CQuHVGJ+xyZ2sPyc=
 github.com/muonsoft/language v0.2.0/go.mod h1:be1X9wxDjKiqqKfXU6eiUHxu4BrreJZx1GXguR29QFo=
+github.com/muonsoft/language v0.2.1-0.20210618104203-c0fcb03fa8b6 h1:MiktBECUqSFNr2iYFRUwd95y/zyOraB8Yy+FhgONOP0=
+github.com/muonsoft/language v0.2.1-0.20210618104203-c0fcb03fa8b6/go.mod h1:be1X9wxDjKiqqKfXU6eiUHxu4BrreJZx1GXguR29QFo=
+github.com/muonsoft/language v0.3.0 h1:KITWsOKhKavZUAA1v63NyG1IrPVYPeZkdltKfYXydI4=
+github.com/muonsoft/language v0.3.0/go.mod h1:be1X9wxDjKiqqKfXU6eiUHxu4BrreJZx1GXguR29QFo=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

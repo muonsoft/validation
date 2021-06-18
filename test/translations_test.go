@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	mslanguage "github.com/muonsoft/language"
+	"github.com/muonsoft/language"
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
@@ -13,7 +13,7 @@ import (
 	"github.com/muonsoft/validation/validationtest"
 	"github.com/muonsoft/validation/validator"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/text/language"
+	textlanguage "golang.org/x/text/language"
 	"golang.org/x/text/message/catalog"
 )
 
@@ -103,7 +103,7 @@ func TestValidator_Validate_WhenDefaultLanguageIsNotLoaded_ExpectError(t *testin
 func TestValidator_Validate_WhenTranslationLanguageInContextArgument_ExpectTranslationLanguageUsed(t *testing.T) {
 	v := newValidator(t, validation.Translations(russian.Messages))
 
-	ctx := mslanguage.WithContext(context.Background(), language.Russian)
+	ctx := language.WithContext(context.Background(), language.Russian)
 	err := v.Validate(
 		validation.Context(ctx),
 		validation.String(stringValue(""), it.IsNotBlank()),
@@ -129,7 +129,7 @@ func TestValidator_Validate_WhenTranslationLanguageInScopedValidator_ExpectTrans
 }
 
 func TestValidator_Validate_WhenTranslationLanguageInContextOfScopedValidator_ExpectTranslationLanguageUsed(t *testing.T) {
-	ctx := mslanguage.WithContext(context.Background(), language.Russian)
+	ctx := language.WithContext(context.Background(), language.Russian)
 	v := newValidator(t, validation.Translations(russian.Messages)).WithContext(ctx)
 
 	err := v.ValidateString(stringValue(""), it.IsNotBlank())
@@ -144,9 +144,9 @@ func TestValidator_Validate_WhenTranslationLanguageInContextOfScopedValidator_Ex
 func TestValidator_Validate_WhenTranslationLanguageParsedFromAcceptLanguageHeader_ExpectTranslationLanguageUsed(t *testing.T) {
 	v := newValidator(t, validation.Translations(russian.Messages))
 
-	matcher := language.NewMatcher([]language.Tag{language.Russian})
-	tag, _ := language.MatchStrings(matcher, "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7")
-	ctx := mslanguage.WithContext(context.Background(), tag)
+	matcher := textlanguage.NewMatcher([]language.Tag{language.Russian})
+	tag, _ := textlanguage.MatchStrings(matcher, "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7")
+	ctx := language.WithContext(context.Background(), tag)
 	err := v.Validate(
 		validation.Context(ctx),
 		validation.String(stringValue(""), it.IsNotBlank()),
