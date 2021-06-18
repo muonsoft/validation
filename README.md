@@ -63,6 +63,7 @@ List of common [validation arguments](https://pkg.go.dev/github.com/muonsoft/val
 * `validation.Bool()` - passes boolean value.
 * `validation.Number()` - passes any numeric value. At the moment it uses reflection for executing validation process.
 * `validation.String()` - passes string value.
+* `validation.Strings()` - passes slice of strings value.
 * `validation.Iterable()` - passes array, slice or a map. At the moment it uses reflection for executing validation process.
 * `validation.Countable()` - you can pass result of `len()` to use easy way of iterable validation based only on count of the elements.
 * `validation.Time()` - passes `time.Time` value.
@@ -76,6 +77,7 @@ For single value validation, you can use shorthand versions of the validation me
 * `validator.ValidateBool()`
 * `validator.ValidateNumber()`
 * `validator.ValidateString()`
+* `validator.ValidateStrings()`
 * `validator.ValidateIterable()`
 * `validator.ValidateCountable()`
 * `validator.ValidateTime()`
@@ -173,6 +175,7 @@ For a better experience with struct validation, you can use shorthand versions o
 * `validation.BoolProperty()`
 * `validation.NumberProperty()`
 * `validation.StringProperty()`
+* `validation.StringsProperty()`
 * `validation.IterableProperty()`
 * `validation.CountableProperty()`
 * `validation.TimeProperty()`
@@ -200,22 +203,25 @@ There are few ways to validate structs. The simplest one is to call the `validat
 ```golang
 document := Document{
     Title:    "",
-    Keywords: []string{""},
+    Keywords: []string{"", "book", "fantasy", "book"},
 }
 
 err := validator.Validate(
     validation.StringProperty("title", &document.Title, it.IsNotBlank()),
-    validation.CountableProperty("keywords", len(document.Keywords), it.HasCountBetween(2, 10)),
+    validation.CountableProperty("keywords", len(document.Keywords), it.HasCountBetween(5, 10)),
+    validation.StringsProperty("keywords", document.Keywords, it.HasUniqueValues()),
     validation.EachStringProperty("keywords", document.Keywords, it.IsNotBlank()),
 )
 
-violations := err.(validation.ViolationList)
-for _, violation := range violations {
-    fmt.Println(violation.Error())
+if violations, ok := validation.UnwrapViolationList(err); ok {
+    for violation := violations.First(); violation != nil; violation = violation.Next() {
+        fmt.Println(violation)
+    }
 }
 // Output:
 // violation at 'title': This value should not be blank.
-// violation at 'keywords': This collection should contain 2 elements or more.
+// violation at 'keywords': This collection should contain 5 elements or more.
+// violation at 'keywords': This collection should contain only unique elements.
 // violation at 'keywords[0]': This value should not be blank.
 ```
 
@@ -231,7 +237,9 @@ type Product struct {
 func (p Product) Validate(validator *validation.Validator) error {
     return validator.Validate(
         validation.StringProperty("name", &p.Name, it.IsNotBlank()),
-        validation.IterableProperty("tags", p.Tags, it.HasMinCount(1)),
+        validation.CountableProperty("tags", len(p.Tags), it.HasMinCount(5)),
+        validation.StringsProperty("tags", p.Tags, it.HasUniqueValues()),
+        validation.EachStringProperty("tags", p.Tags, it.IsNotBlank()),
         // this also runs validation on each of the components
         validation.IterableProperty("components", p.Components, it.HasMinCount(1)),
     )
@@ -253,6 +261,7 @@ func (c Component) Validate(validator *validation.Validator) error {
 func main() {
     p := Product{
         Name: "",
+        Tags: []string{"device", "", "phone", "device"},
         Components: []Component{
             {
                 ID:   1,
@@ -269,7 +278,9 @@ func main() {
     }
     // Output:
     // violation at 'name': This value should not be blank.
-    // violation at 'tags': This collection should contain 1 element or more.
+    // violation at 'tags': This collection should contain 5 elements or more.
+    // violation at 'tags': This collection should contain only unique elements.
+    // violation at 'tags[1]': This value should not be blank.
     // violation at 'components[0].name': This value should not be blank.
     // violation at 'components[0].tags': This collection should contain 1 element or more.
 }
@@ -313,13 +324,10 @@ Also, you can use helper function `validation.UnwrapViolationList()`.
 
 ```golang
 err := validator.Validate(/* validation arguments */)
-if err != nil {
-    violations, ok := validation.UnwrapViolationList(err)
-    if ok {
-        // handle violations
-    } else {
-        // handle internal error
-    }
+if violations, ok := validation.UnwrapViolationList(err); ok {
+    // handle violations
+} else if err != nil {
+    // handle internal error
 }
 ```
 
@@ -465,6 +473,7 @@ Everything you need to create a custom constraint is to implement one of the int
 * `BoolConstraint` - for validating boolean values;
 * `NumberConstraint` - for validating numeric values;
 * `StringConstraint` - for validating string values;
+* `StringsConstraint` - for validating slice of strings;
 * `IterableConstraint` - for validating iterable values: arrays, slices, or maps;
 * `CountableConstraint` - for validating iterable values based only on the count of elements;
 * `TimeConstraint` - for validating date\time values.

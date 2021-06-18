@@ -119,6 +119,20 @@ func (c NotBlankConstraint) ValidateString(value *string, scope validation.Scope
 	return c.newViolation(scope)
 }
 
+func (c NotBlankConstraint) ValidateStrings(values []string, scope validation.Scope) error {
+	if c.isIgnored {
+		return nil
+	}
+	if c.allowNil && values == nil {
+		return nil
+	}
+	if len(values) > 0 {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
 func (c NotBlankConstraint) ValidateIterable(value generic.Iterable, scope validation.Scope) error {
 	if c.isIgnored {
 		return nil
@@ -243,6 +257,14 @@ func (c BlankConstraint) ValidateString(value *string, scope validation.Scope) e
 	return c.newViolation(scope)
 }
 
+func (c BlankConstraint) ValidateStrings(values []string, scope validation.Scope) error {
+	if c.isIgnored || len(values) == 0 {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
 func (c BlankConstraint) ValidateIterable(value generic.Iterable, scope validation.Scope) error {
 	if c.isIgnored || value.Count() == 0 {
 		return nil
@@ -334,11 +356,16 @@ func (c NotNilConstraint) ValidateNil(scope validation.Scope) error {
 	return c.newViolation(scope)
 }
 
-func (c NotNilConstraint) ValidateNumber(value generic.Number, scope validation.Scope) error {
-	if c.isIgnored {
+func (c NotNilConstraint) ValidateBool(value *bool, scope validation.Scope) error {
+	if c.isIgnored || value != nil {
 		return nil
 	}
-	if !value.IsNil() {
+
+	return c.newViolation(scope)
+}
+
+func (c NotNilConstraint) ValidateNumber(value generic.Number, scope validation.Scope) error {
+	if c.isIgnored || !value.IsNil() {
 		return nil
 	}
 
@@ -346,10 +373,15 @@ func (c NotNilConstraint) ValidateNumber(value generic.Number, scope validation.
 }
 
 func (c NotNilConstraint) ValidateString(value *string, scope validation.Scope) error {
-	if c.isIgnored {
+	if c.isIgnored || value != nil {
 		return nil
 	}
-	if value != nil {
+
+	return c.newViolation(scope)
+}
+
+func (c NotNilConstraint) ValidateStrings(values []string, scope validation.Scope) error {
+	if c.isIgnored || values != nil {
 		return nil
 	}
 
@@ -357,10 +389,7 @@ func (c NotNilConstraint) ValidateString(value *string, scope validation.Scope) 
 }
 
 func (c NotNilConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
-	if c.isIgnored {
-		return nil
-	}
-	if value != nil {
+	if c.isIgnored || value != nil {
 		return nil
 	}
 
@@ -368,10 +397,7 @@ func (c NotNilConstraint) ValidateTime(value *time.Time, scope validation.Scope)
 }
 
 func (c NotNilConstraint) ValidateIterable(value generic.Iterable, scope validation.Scope) error {
-	if c.isIgnored {
-		return nil
-	}
-	if !value.IsNil() {
+	if c.isIgnored || !value.IsNil() {
 		return nil
 	}
 
@@ -440,6 +466,14 @@ func (c NilConstraint) ValidateNil(scope validation.Scope) error {
 	return nil
 }
 
+func (c NilConstraint) ValidateBool(value *bool, scope validation.Scope) error {
+	if c.isIgnored || value == nil {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
 func (c NilConstraint) ValidateNumber(value generic.Number, scope validation.Scope) error {
 	if c.isIgnored || value.IsNil() {
 		return nil
@@ -450,6 +484,14 @@ func (c NilConstraint) ValidateNumber(value generic.Number, scope validation.Sco
 
 func (c NilConstraint) ValidateString(value *string, scope validation.Scope) error {
 	if c.isIgnored || value == nil {
+		return nil
+	}
+
+	return c.newViolation(scope)
+}
+
+func (c NilConstraint) ValidateStrings(values []string, scope validation.Scope) error {
+	if c.isIgnored || values == nil {
 		return nil
 	}
 

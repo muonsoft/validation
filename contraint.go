@@ -43,6 +43,12 @@ type StringConstraint interface {
 	ValidateString(value *string, scope Scope) error
 }
 
+// StringsConstraint is used to build constraints to validate an array or a slice of strings.
+type StringsConstraint interface {
+	Constraint
+	ValidateStrings(values []string, scope Scope) error
+}
+
 // IterableConstraint is used to build constraints for validation of iterables (arrays, slices, or maps).
 //
 // At this moment working with numbers is based on reflection.

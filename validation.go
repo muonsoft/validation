@@ -173,6 +173,16 @@ func newStringValidator(value *string, options []Option) validateFunc {
 	})
 }
 
+func newStringsValidator(values []string, options []Option) validateFunc {
+	return newValidator(options, func(constraint Constraint, scope Scope) error {
+		if c, ok := constraint.(StringsConstraint); ok {
+			return c.ValidateStrings(values, scope)
+		}
+
+		return NewInapplicableConstraintError(constraint, "strings")
+	})
+}
+
 func newIterableValidator(iterable generic.Iterable, options []Option) validateFunc {
 	return func(scope Scope) (*ViolationList, error) {
 		err := scope.applyOptions(options...)

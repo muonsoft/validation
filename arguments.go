@@ -103,6 +103,20 @@ func StringProperty(name string, value *string, options ...Option) Argument {
 	return String(value, append([]Option{PropertyName(name)}, options...)...)
 }
 
+// Strings argument is used to validate slice of strings.
+func Strings(values []string, options ...Option) Argument {
+	return argumentFunc(func(arguments *Arguments) error {
+		arguments.addValidator(newStringsValidator(values, options))
+
+		return nil
+	})
+}
+
+// StringsProperty argument is an alias for Strings that automatically adds property name to the current scope.
+func StringsProperty(name string, values []string, options ...Option) Argument {
+	return Strings(values, append([]Option{PropertyName(name)}, options...)...)
+}
+
 // Iterable argument is used to validate arrays, slices, or maps. At the moment it uses reflection
 // to iterate over values. So you can expect a performance hit using this method. For better performance
 // it is recommended to make a custom type that implements the Validatable interface.

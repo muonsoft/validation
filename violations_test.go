@@ -270,6 +270,13 @@ func TestUnwrapViolationList_WrappedViolationList_UnwrappedViolationList(t *test
 	assert.Equal(t, wrapped, unwrapped)
 }
 
+func TestUnwrapViolationList_NoError_NoListAndFalse(t *testing.T) {
+	unwrapped, ok := validation.UnwrapViolationList(nil)
+
+	assert.Nil(t, unwrapped)
+	assert.False(t, ok)
+}
+
 func TestMarshalViolationToJSON(t *testing.T) {
 	validator := newValidator(t)
 

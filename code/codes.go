@@ -33,6 +33,7 @@ const (
 	NotNil            = "notNil"
 	NotPositive       = "notPositive"
 	NotPositiveOrZero = "notPositiveOrZero"
+	NotUnique         = "notUnique"
 	NotValid          = "notValid"
 	ProhibitedIP      = "prohibitedIP"
 	TooEarly          = "tooEarly"

@@ -13,3 +13,13 @@ func ExampleJSON() {
 	// true
 	// false
 }
+
+func ExampleUniqueStrings() {
+	fmt.Println(is.UniqueStrings([]string{}))
+	fmt.Println(is.UniqueStrings([]string{"one", "two", "three"}))
+	fmt.Println(is.UniqueStrings([]string{"one", "two", "one"}))
+	// Output:
+	// true
+	// true
+	// false
+}
