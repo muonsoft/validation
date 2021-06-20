@@ -50,6 +50,7 @@ const (
 	NotNil            = "This value should not be nil."
 	NotPositive       = "This value should be positive."
 	NotPositiveOrZero = "This value should be either positive or zero."
+	NotUnique         = "This collection should contain only unique elements."
 	NotValid          = "This value is not valid."
 	ProhibitedIP      = "This IP address is prohibited to use."
 	TooEarly          = "This value should be later than {{ comparedValue }}."

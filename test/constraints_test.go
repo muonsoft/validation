@@ -23,6 +23,7 @@ const (
 	intType       = "int"
 	floatType     = "float"
 	stringType    = "string"
+	stringsType   = "strings"
 	iterableType  = "iterable"
 	countableType = "countable"
 	timeType      = "time"
@@ -35,6 +36,7 @@ type ConstraintValidationTestCase struct {
 	intValue        *int64
 	floatValue      *float64
 	stringValue     *string
+	stringsValue    []string
 	timeValue       *time.Time
 	sliceValue      []string
 	mapValue        map[string]string
@@ -55,6 +57,7 @@ var validateTestCases = mergeTestCases(
 	choiceConstraintTestCases,
 	numberComparisonTestCases,
 	stringComparisonTestCases,
+	hasUniqueValuesTestCases,
 	customStringConstraintTestCases,
 	timeComparisonTestCases,
 	rangeComparisonTestCases,
@@ -116,6 +119,20 @@ func TestValidateString(t *testing.T) {
 
 		t.Run(test.name, func(t *testing.T) {
 			err := validator.ValidateString(test.stringValue, test.constraint)
+
+			test.assert(t, err)
+		})
+	}
+}
+
+func TestValidateStrings(t *testing.T) {
+	for _, test := range validateTestCases {
+		if !test.isApplicableFor(stringsType) {
+			continue
+		}
+
+		t.Run(test.name, func(t *testing.T) {
+			err := validator.ValidateStrings(test.stringsValue, test.constraint)
 
 			test.assert(t, err)
 		})

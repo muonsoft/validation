@@ -160,6 +160,11 @@ func (validator *Validator) ValidateString(value *string, options ...Option) err
 	return validator.Validate(String(value, options...))
 }
 
+// ValidateStrings is an alias for validating slice of strings.
+func (validator *Validator) ValidateStrings(values []string, options ...Option) error {
+	return validator.Validate(Strings(values, options...))
+}
+
 // ValidateIterable is an alias for validating a single iterable value (an array, slice, or map).
 func (validator *Validator) ValidateIterable(value interface{}, options ...Option) error {
 	return validator.Validate(Iterable(value, options...))

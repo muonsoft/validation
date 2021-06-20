@@ -97,6 +97,26 @@ func ExampleStringProperty() {
 	// violation at 'title': This value should not be blank.
 }
 
+func ExampleStrings() {
+	v := []string{"foo", "bar", "baz", "foo"}
+	err := validator.Validate(
+		validation.Strings(v, it.HasUniqueValues()),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation: This collection should contain only unique elements.
+}
+
+func ExampleStringsProperty() {
+	v := Book{Keywords: []string{"foo", "bar", "baz", "foo"}}
+	err := validator.Validate(
+		validation.StringsProperty("keywords", v.Keywords, it.HasUniqueValues()),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation at 'keywords': This collection should contain only unique elements.
+}
+
 func ExampleIterable() {
 	v := make([]string, 0)
 	err := validator.Validate(validation.Iterable(v, it.IsNotBlank()))
@@ -376,12 +396,13 @@ func ExampleValidator_Validate_basicStructValidation() {
 		Keywords []string
 	}{
 		Title:    "",
-		Keywords: []string{""},
+		Keywords: []string{"", "book", "fantasy", "book"},
 	}
 
 	err := validator.Validate(
 		validation.StringProperty("title", &document.Title, it.IsNotBlank()),
-		validation.CountableProperty("keywords", len(document.Keywords), it.HasCountBetween(2, 10)),
+		validation.CountableProperty("keywords", len(document.Keywords), it.HasCountBetween(5, 10)),
+		validation.StringsProperty("keywords", document.Keywords, it.HasUniqueValues()),
 		validation.EachStringProperty("keywords", document.Keywords, it.IsNotBlank()),
 	)
 
@@ -392,7 +413,8 @@ func ExampleValidator_Validate_basicStructValidation() {
 	}
 	// Output:
 	// violation at 'title': This value should not be blank.
-	// violation at 'keywords': This collection should contain 2 elements or more.
+	// violation at 'keywords': This collection should contain 5 elements or more.
+	// violation at 'keywords': This collection should contain only unique elements.
 	// violation at 'keywords[0]': This value should not be blank.
 }
 

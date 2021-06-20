@@ -76,6 +76,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.NotNil:            catalog.String("Значение не должно быть nil."),
 		message.NotPositive:       catalog.String("Значение должно быть положительным."),
 		message.NotPositiveOrZero: catalog.String("Значение должно быть положительным или равным нулю."),
+		message.NotUnique:         catalog.String("Эта коллекция должна содержать только уникальные элементы."),
 		message.NotValid:          catalog.String("Значение недопустимо."),
 		message.ProhibitedIP:      catalog.String("Этот IP-адрес запрещено использовать."),
 		message.TooEarly:          catalog.String("Значение должно быть позже чем {{ comparedValue }}."),

@@ -8,6 +8,30 @@ import (
 	"github.com/muonsoft/validation/validator"
 )
 
+func ExampleHasUniqueValues() {
+	v := []string{"foo", "bar", "baz", "foo"}
+	err := validator.ValidateStrings(v, it.HasUniqueValues())
+	fmt.Println(err)
+	// Output:
+	// violation: This collection should contain only unique elements.
+}
+
+func ExampleIsJSON_validJSON() {
+	v := `{"valid": true}`
+	err := validator.ValidateString(&v, it.IsJSON())
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsJSON_invalidJSON() {
+	v := `"invalid": true`
+	err := validator.ValidateString(&v, it.IsJSON())
+	fmt.Println(err)
+	// Output:
+	// violation: This value should be valid JSON.
+}
+
 func ExampleIsEmail_validEmail() {
 	v := "user@example.com"
 	err := validator.ValidateString(&v, it.IsEmail())

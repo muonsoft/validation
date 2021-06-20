@@ -17,7 +17,9 @@ type Product struct {
 func (p Product) Validate(validator *validation.Validator) error {
 	return validator.Validate(
 		validation.StringProperty("name", &p.Name, it.IsNotBlank()),
-		validation.IterableProperty("tags", p.Tags, it.HasMinCount(1)),
+		validation.CountableProperty("tags", len(p.Tags), it.HasMinCount(5)),
+		validation.StringsProperty("tags", p.Tags, it.HasUniqueValues()),
+		validation.EachStringProperty("tags", p.Tags, it.IsNotBlank()),
 		// this also runs validation on each of the components
 		validation.IterableProperty("components", p.Components, it.HasMinCount(1)),
 	)
@@ -39,6 +41,7 @@ func (c Component) Validate(validator *validation.Validator) error {
 func ExampleValidator_ValidateValidatable_validatableStruct() {
 	p := Product{
 		Name: "",
+		Tags: []string{"device", "", "phone", "device"},
 		Components: []Component{
 			{
 				ID:   1,
@@ -56,7 +59,9 @@ func ExampleValidator_ValidateValidatable_validatableStruct() {
 	}
 	// Output:
 	// violation at 'name': This value should not be blank.
-	// violation at 'tags': This collection should contain 1 element or more.
+	// violation at 'tags': This collection should contain 5 elements or more.
+	// violation at 'tags': This collection should contain only unique elements.
+	// violation at 'tags[1]': This value should not be blank.
 	// violation at 'components[0].name': This value should not be blank.
 	// violation at 'components[0].tags': This collection should contain 1 element or more.
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/generic"
+	"github.com/muonsoft/validation/is"
 	"github.com/muonsoft/validation/message"
 )
 
@@ -826,5 +827,63 @@ func (c TimeRangeConstraint) newViolation(value *time.Time, scope validation.Sco
 				validation.TemplateParameter{Key: "{{ value }}", Value: value.Format(c.layout)},
 			)...,
 		).
+		CreateViolation()
+}
+
+// UniqueConstraint is used to check that all elements of the given collection are unique.
+type UniqueConstraint struct {
+	isIgnored         bool
+	code              string
+	messageTemplate   string
+	messageParameters validation.TemplateParameterList
+}
+
+// HasUniqueValues checks that all elements of the given collection are unique
+// (none of them is present more than once).
+func HasUniqueValues() UniqueConstraint {
+	return UniqueConstraint{
+		code:            code.NotUnique,
+		messageTemplate: message.NotUnique,
+	}
+}
+
+// SetUp always returns no error.
+func (c UniqueConstraint) SetUp() error {
+	return nil
+}
+
+// Name is the constraint name.
+func (c UniqueConstraint) Name() string {
+	return "UniqueConstraint"
+}
+
+// Code overrides default code for produced violation.
+func (c UniqueConstraint) Code(code string) UniqueConstraint {
+	c.code = code
+	return c
+}
+
+// Message sets the violation message template. You can set custom template parameters
+// for injecting its values into the final message.
+func (c UniqueConstraint) Message(template string, parameters ...validation.TemplateParameter) UniqueConstraint {
+	c.messageTemplate = template
+	c.messageParameters = parameters
+	return c
+}
+
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
+func (c UniqueConstraint) When(condition bool) UniqueConstraint {
+	c.isIgnored = !condition
+	return c
+}
+
+func (c UniqueConstraint) ValidateStrings(values []string, scope validation.Scope) error {
+	if c.isIgnored || is.UniqueStrings(values) {
+		return nil
+	}
+
+	return scope.BuildViolation(c.code, c.messageTemplate).
+		SetParameters(c.messageParameters...).
 		CreateViolation()
 }

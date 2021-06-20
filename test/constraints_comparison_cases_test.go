@@ -6,6 +6,7 @@ import (
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
+	"github.com/muonsoft/validation/message"
 )
 
 var numberComparisonTestCases = mergeTestCases(
@@ -1086,5 +1087,61 @@ var isBetweenTimeTestCases = []ConstraintValidationTestCase{
 			).
 			When(true),
 		assert: assertHasOneViolation(code.NotInRange, "This value should be between 2021-04-04T12:30:00Z and 2021-04-04T12:40:00Z."),
+	},
+}
+
+var hasUniqueValuesTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "HasUniqueValues passes on nil",
+		isApplicableFor: specificValueTypes(stringsType),
+		constraint:      it.HasUniqueValues(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "HasUniqueValues passes on empty value",
+		isApplicableFor: specificValueTypes(stringsType),
+		constraint:      it.HasUniqueValues(),
+		stringsValue:    []string{},
+		assert:          assertNoError,
+	},
+	{
+		name:            "HasUniqueValues passes on unique values",
+		isApplicableFor: specificValueTypes(stringsType),
+		constraint:      it.HasUniqueValues(),
+		stringsValue:    []string{"one", "two", "three"},
+		assert:          assertNoError,
+	},
+	{
+		name:            "HasUniqueValues violation on duplicated values",
+		isApplicableFor: specificValueTypes(stringsType),
+		constraint:      it.HasUniqueValues(),
+		stringsValue:    []string{"one", "two", "one"},
+		assert:          assertHasOneViolation(code.NotUnique, message.NotUnique),
+	},
+	{
+		name:            "HasUniqueValues violation with custom message",
+		isApplicableFor: specificValueTypes(stringsType),
+		constraint: it.HasUniqueValues().
+			Code(customCode).
+			Message(
+				`Not unique values at {{ custom }}.`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		stringsValue: []string{"one", "two", "one"},
+		assert:       assertHasOneViolation(customCode, `Not unique values at parameter.`),
+	},
+	{
+		name:            "HasUniqueValues passes when condition is false",
+		isApplicableFor: specificValueTypes(stringsType),
+		constraint:      it.HasUniqueValues().When(false),
+		stringsValue:    []string{"one", "two", "one"},
+		assert:          assertNoError,
+	},
+	{
+		name:            "HasUniqueValues violation when condition is true",
+		isApplicableFor: specificValueTypes(stringsType),
+		constraint:      it.HasUniqueValues().When(true),
+		stringsValue:    []string{"one", "two", "one"},
+		assert:          assertHasOneViolation(code.NotUnique, message.NotUnique),
 	},
 }
