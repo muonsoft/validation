@@ -337,9 +337,9 @@ func validateIterableOfValidatables(scope Scope, iterable generic.Iterable) (*Vi
 	err := iterable.Iterate(func(key generic.Key, value interface{}) error {
 		s := scope
 		if key.IsIndex() {
-			s = s.atIndex(key.Index())
+			s = s.AtIndex(key.Index())
 		} else {
-			s = s.atProperty(key.String())
+			s = s.AtProperty(key.String())
 		}
 
 		validate := newValidValidator(value.(Validatable), nil)
