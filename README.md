@@ -47,7 +47,7 @@ The validation process is built around functional options and passing values by 
 ```golang
 s := ""
 
-err := validator.Validate(validation.String(&s, it.IsNotBlank()))
+err := validator.Validate(context.Background(), validation.String(&s, it.IsNotBlank()))
 
 violations := err.(validation.ViolationList)
 for _, violation := range violations {
@@ -137,6 +137,7 @@ You can pass a property name or an array index via `validation.PropertyName()` a
 s := ""
 
 err := validator.Validate(
+    context.Background(),
     validation.String(
         &s,
         validation.PropertyName("properties"),
@@ -161,7 +162,7 @@ err := validator.
     AtProperty("properties").
     AtIndex(1).
     AtProperty("tag").
-    Validate(validation.String(&s, it.IsNotBlank()))
+    Validate(context.Background(), validation.String(&s, it.IsNotBlank()))
 
 violation := err.(validation.ViolationList)[0]
 fmt.Println("property path:", violation.GetPropertyPath().Format())
@@ -187,6 +188,7 @@ For a better experience with struct validation, you can use shorthand versions o
 s := ""
 
 err := validator.Validate(
+    context.Background(),
     validation.StringProperty("property", &s, it.IsNotBlank()),
 )
 
@@ -207,6 +209,7 @@ document := Document{
 }
 
 err := validator.Validate(
+    context.Background(),
     validation.StringProperty("title", &document.Title, it.IsNotBlank()),
     validation.CountableProperty("keywords", len(document.Keywords), it.HasCountBetween(5, 10)),
     validation.StringsProperty("keywords", document.Keywords, it.HasUniqueValues()),
@@ -234,8 +237,9 @@ type Product struct {
     Components []Component
 }
 
-func (p Product) Validate(validator *validation.Validator) error {
+func (p Product) Validate(ctx context.Context, validator *validation.Validator) error {
     return validator.Validate(
+        ctx,
         validation.StringProperty("name", &p.Name, it.IsNotBlank()),
         validation.CountableProperty("tags", len(p.Tags), it.HasMinCount(5)),
         validation.StringsProperty("tags", p.Tags, it.HasUniqueValues()),
@@ -251,8 +255,9 @@ type Component struct {
     Tags []string
 }
 
-func (c Component) Validate(validator *validation.Validator) error {
+func (c Component) Validate(ctx context.Context, validator *validation.Validator) error {
     return validator.Validate(
+        ctx,
         validation.StringProperty("name", &c.Name, it.IsNotBlank()),
         validation.CountableProperty("tags", len(c.Tags), it.HasMinCount(1)),
     )
@@ -270,7 +275,7 @@ func main() {
         },
     }
     
-    err := validator.ValidateValidatable(p)
+    err := validator.ValidateValidatable(context.Background(), p)
     
     violations := err.(validation.ViolationList)
     for _, violation := range violations {
@@ -292,6 +297,7 @@ You can use the `When()` method on any of the built-in constraints to execute co
 
 ```golang
 err := validator.Validate(
+    context.Background(),
     validation.StringProperty("text", &note.Text, it.IsNotBlank().When(note.IsPublic)),
 )
 
@@ -364,7 +370,7 @@ validator, _ := validation.NewValidator(
 )
 
 s := ""
-err := validator.ValidateString(&s, it.IsNotBlank())
+err := validator.ValidateString(context.Background(), &s, it.IsNotBlank())
 
 violations := err.(validation.ViolationList)
 for _, violation := range violations {
@@ -383,6 +389,7 @@ validator, _ := validation.NewValidator(
 
 s := ""
 err := validator.Validate(
+    context.Background(),
     validation.Language(language.Russian),
     validation.String(&s, it.IsNotBlank()),
 )
@@ -395,7 +402,7 @@ for _, violation := range violations {
 // violation: Значение не должно быть пустым.
 ```
 
-The last way is to pass language via context. It is provided by the `github.com/muonsoft/language` package and can be useful in combination with [language middleware](https://github.com/muonsoft/language/blob/main/middleware.go). You can pass the context by using the `validation.Context()` argument or by creating a scoped validator with the `validator.WithContext()` method.
+The last way is to pass language via context. It is provided by the `github.com/muonsoft/language` package and can be useful in combination with [language middleware](https://github.com/muonsoft/language/blob/main/middleware.go).
 
 ```golang
 // import "github.com/muonsoft/language"
@@ -404,10 +411,9 @@ validator, _ := validation.NewValidator(
     validation.Translations(russian.Messages),
 )
 ctx := language.WithContext(context.Background(), language.Russian)
-validator = validator.WithContext(ctx)
 
 s := ""
-err := validator.ValidateString(&s, it.IsNotBlank())
+err := validator.ValidateString(ctx, &s, it.IsNotBlank())
 
 violations := err.(validation.ViolationList)
 for _, violation := range violations {
@@ -426,7 +432,7 @@ You may customize the violation message on any of the built-in constraints by ca
 ```golang
 s := ""
 
-err := validator.ValidateString(&s, it.IsNotBlank().Message("this value is required"))
+err := validator.ValidateString(context.Background(), &s, it.IsNotBlank().Message("this value is required"))
 
 violations := err.(validation.ViolationList)
 for _, violation := range violations {
@@ -453,6 +459,7 @@ validator, _ := validation.NewValidator(
 
 var tags []string
 err := validator.ValidateIterable(
+    context.Background(),
     tags,
     validation.Language(language.Russian),
     it.HasMinCount(1).MinMessage(customMessage),

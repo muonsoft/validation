@@ -99,11 +99,10 @@ func ExampleNewArgument_customArgumentConstraintValidator() {
 	isEntityUnique := &UniqueBrandConstraint{brands: repository}
 
 	brand := Brand{Name: "Apple"}
-	ctx := context.WithValue(context.Background(), exampleKey, "value")
 
 	err := validator.Validate(
 		// you can pass here the context value to the validation scope
-		validation.Context(ctx),
+		context.WithValue(context.Background(), exampleKey, "value"),
 		BrandArgument(&brand, it.IsNotBlank(), isEntityUnique),
 	)
 

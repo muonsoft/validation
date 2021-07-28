@@ -119,8 +119,8 @@ func StoredConstraint(key string, constraint Constraint) ValidatorOption {
 
 // Validate is the main validation method. It accepts validation arguments. Arguments can be
 // used to tune up the validation process or to pass values of a specific type.
-func (validator *Validator) Validate(arguments ...Argument) error {
-	args := &Arguments{scope: validator.scope}
+func (validator *Validator) Validate(ctx context.Context, arguments ...Argument) error {
+	args := &Arguments{scope: validator.scope.withContext(ctx)}
 	for _, argument := range arguments {
 		err := argument.set(args)
 		if err != nil {
@@ -141,75 +141,58 @@ func (validator *Validator) Validate(arguments ...Argument) error {
 }
 
 // ValidateValue is an alias for validating a single value of any supported type.
-func (validator *Validator) ValidateValue(value interface{}, options ...Option) error {
-	return validator.Validate(Value(value, options...))
+func (validator *Validator) ValidateValue(ctx context.Context, value interface{}, options ...Option) error {
+	return validator.Validate(ctx, Value(value, options...))
 }
 
 // ValidateBool is an alias for validating a single boolean value.
-func (validator *Validator) ValidateBool(value *bool, options ...Option) error {
-	return validator.Validate(Bool(value, options...))
+func (validator *Validator) ValidateBool(ctx context.Context, value *bool, options ...Option) error {
+	return validator.Validate(ctx, Bool(value, options...))
 }
 
 // ValidateNumber is an alias for validating a single numeric value (integer or float).
-func (validator *Validator) ValidateNumber(value interface{}, options ...Option) error {
-	return validator.Validate(Number(value, options...))
+func (validator *Validator) ValidateNumber(ctx context.Context, value interface{}, options ...Option) error {
+	return validator.Validate(ctx, Number(value, options...))
 }
 
 // ValidateString is an alias for validating a single string value.
-func (validator *Validator) ValidateString(value *string, options ...Option) error {
-	return validator.Validate(String(value, options...))
+func (validator *Validator) ValidateString(ctx context.Context, value *string, options ...Option) error {
+	return validator.Validate(ctx, String(value, options...))
 }
 
 // ValidateStrings is an alias for validating slice of strings.
-func (validator *Validator) ValidateStrings(values []string, options ...Option) error {
-	return validator.Validate(Strings(values, options...))
+func (validator *Validator) ValidateStrings(ctx context.Context, values []string, options ...Option) error {
+	return validator.Validate(ctx, Strings(values, options...))
 }
 
 // ValidateIterable is an alias for validating a single iterable value (an array, slice, or map).
-func (validator *Validator) ValidateIterable(value interface{}, options ...Option) error {
-	return validator.Validate(Iterable(value, options...))
+func (validator *Validator) ValidateIterable(ctx context.Context, value interface{}, options ...Option) error {
+	return validator.Validate(ctx, Iterable(value, options...))
 }
 
 // ValidateCountable is an alias for validating a single countable value (an array, slice, or map).
-func (validator *Validator) ValidateCountable(count int, options ...Option) error {
-	return validator.Validate(Countable(count, options...))
+func (validator *Validator) ValidateCountable(ctx context.Context, count int, options ...Option) error {
+	return validator.Validate(ctx, Countable(count, options...))
 }
 
 // ValidateTime is an alias for validating a single time value.
-func (validator *Validator) ValidateTime(value *time.Time, options ...Option) error {
-	return validator.Validate(Time(value, options...))
+func (validator *Validator) ValidateTime(ctx context.Context, value *time.Time, options ...Option) error {
+	return validator.Validate(ctx, Time(value, options...))
 }
 
 // ValidateEach is an alias for validating each value of an iterable (an array, slice, or map).
-func (validator *Validator) ValidateEach(value interface{}, options ...Option) error {
-	return validator.Validate(Each(value, options...))
+func (validator *Validator) ValidateEach(ctx context.Context, value interface{}, options ...Option) error {
+	return validator.Validate(ctx, Each(value, options...))
 }
 
 // ValidateEachString is an alias for validating each value of a strings slice.
-func (validator *Validator) ValidateEachString(values []string, options ...Option) error {
-	return validator.Validate(EachString(values, options...))
+func (validator *Validator) ValidateEachString(ctx context.Context, values []string, options ...Option) error {
+	return validator.Validate(ctx, EachString(values, options...))
 }
 
 // ValidateValidatable is an alias for validating value that implements the Validatable interface.
-func (validator *Validator) ValidateValidatable(validatable Validatable, options ...Option) error {
-	return validator.Validate(Valid(validatable, options...))
-}
-
-// Context returns context from current validation scope. By default it returns context.Background.
-// You can create scoped validator with context by calling WithContext method.
-func (validator *Validator) Context() context.Context {
-	return validator.scope.context
-}
-
-// WithContext method creates a new scoped validator with a given context. You can use this method to pass
-// a context value to all used constraints.
-//
-// Example
-//  err := validator.WithContext(request.Context()).Validate(
-//      String(&s, it.IsNotBlank()), // now all called constraints will use passed context in their methods
-//  )
-func (validator *Validator) WithContext(ctx context.Context) *Validator {
-	return newScopedValidator(validator.scope.withContext(ctx))
+func (validator *Validator) ValidateValidatable(ctx context.Context, validatable Validatable, options ...Option) error {
+	return validator.Validate(ctx, Valid(validatable, options...))
 }
 
 // WithLanguage method creates a new scoped validator with a given language tag. All created violations

@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/muonsoft/validation"
@@ -17,7 +18,7 @@ func TestWhenGlobalValidatorWithOverriddenNewViolation_ExpectCustomViolation(t *
 	}
 	defer validator.Reset()
 
-	err = validator.ValidateString(nil, it.IsNotBlank())
+	err = validator.ValidateString(context.Background(), nil, it.IsNotBlank())
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
@@ -28,7 +29,7 @@ func TestWhenGlobalValidatorWithOverriddenNewViolation_ExpectCustomViolation(t *
 func TestWhenValidatorWithOverriddenNewViolation_ExpectCustomViolation(t *testing.T) {
 	v := newValidator(t, validation.SetViolationFactory(mockNewViolationFunc()))
 
-	err := v.ValidateString(nil, it.IsNotBlank())
+	err := v.ValidateString(context.Background(), nil, it.IsNotBlank())
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()

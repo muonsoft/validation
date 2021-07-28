@@ -82,8 +82,9 @@ type StockItem struct {
 	Tags []string
 }
 
-func (s StockItem) Validate(validator *validation.Validator) error {
+func (s StockItem) Validate(ctx context.Context, validator *validation.Validator) error {
 	return validator.Validate(
+		ctx,
 		validation.StringProperty("name", &s.Name, it.IsNotBlank(), it.HasMaxLength(20)),
 		validation.EachStringProperty("tags", s.Tags, validator.ValidateBy("isTagExists")),
 	)
@@ -106,11 +107,10 @@ func ExampleValidator_ValidateBy_customServiceConstraint() {
 		Name: "War and peace",
 		Tags: []string{"book", "camera"},
 	}
-	ctx := context.WithValue(context.Background(), exampleKey, "value")
 
 	err = validator.Validate(
 		// you can pass here the context value to the validation scope
-		validation.Context(ctx),
+		context.WithValue(context.Background(), exampleKey, "value"),
 		validation.Valid(item),
 	)
 

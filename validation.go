@@ -7,6 +7,7 @@
 package validation
 
 import (
+	"context"
 	"reflect"
 	"time"
 
@@ -23,8 +24,9 @@ import (
 //      Keywords []string
 //  }
 //
-//  func (b Book) Validate(validator *validation.Validator) error {
+//  func (b Book) Validate(ctx context.Context, validator *validation.Validator) error {
 //      return validator.Validate(
+//          ctx,
 //          validation.StringProperty("title", &b.Title, it.IsNotBlank()),
 //          validation.StringProperty("author", &b.Author, it.IsNotBlank()),
 //          validation.CountableProperty("keywords", len(b.Keywords), it.HasCountBetween(1, 10)),
@@ -32,7 +34,7 @@ import (
 //      )
 //  }
 type Validatable interface {
-	Validate(validator *Validator) error
+	Validate(ctx context.Context, validator *Validator) error
 }
 
 // Filter is used for processing the list of errors to return a single ViolationList.
@@ -288,7 +290,7 @@ func newValidValidator(value Validatable, options []Option) validateFunc {
 			return nil, err
 		}
 
-		err = value.Validate(newScopedValidator(scope))
+		err = value.Validate(scope.context, newScopedValidator(scope))
 		violations, ok := UnwrapViolationList(err)
 		if ok {
 			return violations, nil

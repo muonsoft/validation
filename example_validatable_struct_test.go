@@ -1,6 +1,7 @@
 package validation_test
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/muonsoft/validation"
@@ -14,8 +15,9 @@ type Product struct {
 	Components []Component
 }
 
-func (p Product) Validate(validator *validation.Validator) error {
+func (p Product) Validate(ctx context.Context, validator *validation.Validator) error {
 	return validator.Validate(
+		ctx,
 		validation.StringProperty("name", &p.Name, it.IsNotBlank()),
 		validation.CountableProperty("tags", len(p.Tags), it.HasMinCount(5)),
 		validation.StringsProperty("tags", p.Tags, it.HasUniqueValues()),
@@ -31,8 +33,9 @@ type Component struct {
 	Tags []string
 }
 
-func (c Component) Validate(validator *validation.Validator) error {
+func (c Component) Validate(ctx context.Context, validator *validation.Validator) error {
 	return validator.Validate(
+		ctx,
 		validation.StringProperty("name", &c.Name, it.IsNotBlank()),
 		validation.CountableProperty("tags", len(c.Tags), it.HasMinCount(1)),
 	)
@@ -50,7 +53,7 @@ func ExampleValidator_ValidateValidatable_validatableStruct() {
 		},
 	}
 
-	err := validator.ValidateValidatable(p)
+	err := validator.ValidateValidatable(context.Background(), p)
 
 	if violations, ok := validation.UnwrapViolationList(err); ok {
 		for violation := violations.First(); violation != nil; violation = violation.Next() {

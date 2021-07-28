@@ -2,6 +2,7 @@ package validation_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -19,8 +20,9 @@ type File struct {
 // This validation will always check that file is valid.
 // Partial validation will be applied by AllowedFileExtensionConstraint
 // and AllowedFileSizeConstraint.
-func (f File) Validate(validator *validation.Validator) error {
+func (f File) Validate(ctx context.Context, validator *validation.Validator) error {
 	return validator.Validate(
+		ctx,
 		validation.StringProperty("name", &f.Name, it.HasLengthBetween(5, 50)),
 	)
 }
@@ -79,6 +81,7 @@ func (c AllowedFileExtensionConstraint) ValidateFile(file *File, scope validatio
 	extension := strings.ReplaceAll(filepath.Ext(file.Name), ".", "")
 
 	return scope.Validator().AtProperty("name").ValidateString(
+		scope.Context(),
 		&extension,
 		it.IsOneOfStrings(c.extensions...).Message("Not allowed extension. Must be one of: {{ choices }}."),
 	)
@@ -111,6 +114,7 @@ func (c AllowedFileSizeConstraint) ValidateFile(file *File, scope validation.Sco
 	size := len(file.Data)
 
 	return scope.Validator().ValidateNumber(
+		scope.Context(),
 		size,
 		it.IsGreaterThanInteger(c.minSize).Message("File size is too small."),
 		it.IsLessThanInteger(c.maxSize).Message("File size is too large."),
@@ -144,6 +148,7 @@ func ExampleScope_Validator() {
 		switch request.Section {
 		case "avatars":
 			err := validator.Validate(
+				context.Background(),
 				// common validation of validatable
 				validation.Valid(request.File),
 				// specific validation for file storage section
@@ -152,6 +157,7 @@ func ExampleScope_Validator() {
 			fmt.Println(err)
 		case "documents":
 			err := validator.Validate(
+				context.Background(),
 				// common validation of validatable
 				validation.Valid(request.File),
 				// specific validation for file storage section

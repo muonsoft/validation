@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/muonsoft/validation"
@@ -29,7 +30,7 @@ func TestValidate_WhenArgumentForGivenType_ExpectValidationExecuted(t *testing.T
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := validator.Validate(test.argument)
+			err := validator.Validate(context.Background(), test.argument)
 
 			validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 				t.Helper()
@@ -60,7 +61,7 @@ func TestValidate_WhenPropertyArgument_ExpectValidPathInViolation(t *testing.T) 
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := validator.Validate(test.argument)
+			err := validator.Validate(context.Background(), test.argument)
 
 			validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 				t.Helper()

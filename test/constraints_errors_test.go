@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -53,7 +54,7 @@ func TestValidator_Validate_WhenInapplicableConstraint_ExpectError(t *testing.T)
 	}
 	for _, test := range tests {
 		t.Run(test.valueType, func(t *testing.T) {
-			err := validator.Validate(test.argument)
+			err := validator.Validate(context.Background(), test.argument)
 
 			assertIsInapplicableConstraintError(t, err, test.valueType)
 		})
@@ -84,7 +85,7 @@ func TestValidator_Validate_WhenInvalidValue_ExpectError(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := validator.Validate(test.argument)
+			err := validator.Validate(context.Background(), test.argument)
 
 			assert.EqualError(t, err, test.expectedError)
 		})
@@ -93,6 +94,7 @@ func TestValidator_Validate_WhenInvalidValue_ExpectError(t *testing.T) {
 
 func TestValidator_Validate_WhenInvalidConstraintAtPropertyPath_ExpectErrorWithPropertyPath(t *testing.T) {
 	err := validator.Validate(
+		context.Background(),
 		validation.String(
 			nil,
 			validation.PropertyName("properties"),

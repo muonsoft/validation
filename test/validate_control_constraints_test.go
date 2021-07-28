@@ -1,20 +1,22 @@
 package test
 
 import (
+	"context"
+	"testing"
+
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/validationtest"
 	"github.com/muonsoft/validation/validator"
 	"github.com/stretchr/testify/assert"
-
-	"testing"
 )
 
 func TestValidateString_WhenConditionIsTrue_ExpectAllConstraintsOfThenBranchApplied(t *testing.T) {
 	value := "foo"
 
 	err := validator.ValidateString(
+		context.Background(),
 		&value,
 		validation.When(true).
 			Then(
@@ -35,6 +37,7 @@ func TestValidateString_WhenConditionIsFalse_ExpectAllConstraintsOfElseBranchApp
 	value := "bar"
 
 	err := validator.ValidateString(
+		context.Background(),
 		&value,
 		validation.When(false).
 			Then(
@@ -58,6 +61,7 @@ func TestValidateString_WhenConditionIsFalseAndNoElseBranch_ExpectNoViolations(t
 	value := "foo"
 
 	err := validator.ValidateString(
+		context.Background(),
 		&value,
 		validation.When(false).
 			Then(
@@ -72,6 +76,7 @@ func TestValidateString_WhenThenBranchIsNotSet_ExpectError(t *testing.T) {
 	value := "bar"
 
 	err := validator.ValidateString(
+		context.Background(),
 		&value,
 		validation.When(true),
 	)
@@ -83,6 +88,7 @@ func TestValidate_WhenInvalidValueAtFirstConstraintOfSequentiallyConstraint_Expe
 	value := "foo"
 
 	err := validator.ValidateString(
+		context.Background(),
 		&value,
 		validation.Sequentially(
 			it.IsBlank(),
@@ -101,6 +107,7 @@ func TestValidate_WhenSequentiallyConstraintsNotSet_ExpectError(t *testing.T) {
 	value := "bar"
 
 	err := validator.ValidateString(
+		context.Background(),
 		&value,
 		validation.Sequentially(),
 	)
@@ -112,6 +119,7 @@ func TestValidate_WhenInvalidValueAtFirstConstraintOfAtLeastOneOfConstraint_Expe
 	value := "foo"
 
 	err := validator.ValidateString(
+		context.Background(),
 		&value,
 		validation.AtLeastOneOf(
 			it.IsBlank(),
@@ -131,6 +139,7 @@ func TestValidate_WhenInvalidValueAtSecondConstraintOfAtLeastOneOfConstraint_Exp
 	value := "foo"
 
 	err := validator.ValidateString(
+		context.Background(),
 		&value,
 		validation.AtLeastOneOf(
 			it.IsEqualToString("bar"),
@@ -145,6 +154,7 @@ func TestValidate_WhenAtLeastOneOfConstraintsNotSet_ExpectError(t *testing.T) {
 	value := "bar"
 
 	err := validator.ValidateString(
+		context.Background(),
 		&value,
 		validation.AtLeastOneOf(),
 	)
@@ -157,6 +167,7 @@ func TestValidate_Compound_ExpectNoViolation(t *testing.T) {
 	isEmployeeEmail := validation.Compound(it.HasMinLength(5), it.IsEmail())
 
 	err := validator.ValidateString(
+		context.Background(),
 		&value,
 		isEmployeeEmail,
 	)
@@ -174,6 +185,7 @@ func TestValidate_WhenCompoundConstraintsNotSet_ExpectError(t *testing.T) {
 	isEmployeeEmail := validation.Compound()
 
 	err := validator.ValidateString(
+		context.Background(),
 		&value,
 		isEmployeeEmail,
 	)

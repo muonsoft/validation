@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/muonsoft/validation"
@@ -14,18 +15,19 @@ type Property struct {
 
 type Properties []Property
 
-func (p Property) Validate(validator *validation.Validator) error {
+func (p Property) Validate(ctx context.Context, validator *validation.Validator) error {
 	return validator.Validate(
+		ctx,
 		validation.StringProperty("name", &p.Name, it.IsNotBlank()),
 		validation.ValidProperty("properties", p.Properties),
 	)
 }
 
-func (properties Properties) Validate(validator *validation.Validator) error {
+func (properties Properties) Validate(ctx context.Context, validator *validation.Validator) error {
 	violations := validation.ViolationList{}
 
 	for i := range properties {
-		err := validator.AtIndex(i).ValidateValidatable(properties[i])
+		err := validator.AtIndex(i).ValidateValidatable(ctx, properties[i])
 		err = violations.AppendFromError(err)
 		if err != nil {
 			return err
@@ -46,7 +48,7 @@ func BenchmarkViolationsGeneration(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		validator.ValidateValidatable(properties)
+		validator.ValidateValidatable(context.Background(), properties)
 	}
 }
 

@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/muonsoft/validation"
@@ -14,7 +15,7 @@ import (
 func TestValidateIterable_WhenSliceOfValidatable_ExpectViolationsWithValidPaths(t *testing.T) {
 	strings := []mockValidatableString{{value: ""}}
 
-	err := validator.ValidateValue(strings)
+	err := validator.ValidateValue(context.Background(), strings)
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
@@ -29,7 +30,7 @@ func TestValidateIterable_WhenSliceOfValidatable_ExpectViolationsWithValidPaths(
 func TestValidateIterable_WhenSliceOfValidatableWithConstraints_ExpectCollectionViolationsWithValidPaths(t *testing.T) {
 	strings := []mockValidatableString{{value: ""}}
 
-	err := validator.ValidateValue(strings, it.HasMinCount(2))
+	err := validator.ValidateValue(context.Background(), strings, it.HasMinCount(2))
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
@@ -46,7 +47,7 @@ func TestValidateIterable_WhenSliceOfValidatableWithConstraints_ExpectCollection
 func TestValidateIterable_WhenMapOfValidatable_ExpectViolationsWithValidPaths(t *testing.T) {
 	strings := map[string]mockValidatableString{"key": {value: ""}}
 
-	err := validator.ValidateValue(strings)
+	err := validator.ValidateValue(context.Background(), strings)
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
@@ -61,7 +62,7 @@ func TestValidateIterable_WhenMapOfValidatable_ExpectViolationsWithValidPaths(t 
 func TestValidateIterable_WhenMapOfValidatableWithConstraints_ExpectCollectionViolationsWithValidPaths(t *testing.T) {
 	strings := map[string]mockValidatableString{"key": {value: ""}}
 
-	err := validator.ValidateValue(strings, it.HasMinCount(2))
+	err := validator.ValidateValue(context.Background(), strings, it.HasMinCount(2))
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()

@@ -1,6 +1,7 @@
 package validation_test
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/muonsoft/validation"
@@ -15,11 +16,12 @@ type Company struct {
 
 type Companies []Company
 
-func (companies Companies) Validate(validator *validation.Validator) error {
+func (companies Companies) Validate(ctx context.Context, validator *validation.Validator) error {
 	violations := validation.ViolationList{}
 
 	for i, company := range companies {
 		err := validator.AtIndex(i).Validate(
+			ctx,
 			validation.StringProperty("name", &company.Name, it.IsNotBlank()),
 			validation.StringProperty("address", &company.Address, it.IsNotBlank(), it.HasMinLength(3)),
 		)
@@ -42,7 +44,7 @@ func ExampleValidator_ValidateValidatable_validatableSlice() {
 		{"", "x"},
 	}
 
-	err := validator.ValidateValidatable(companies)
+	err := validator.ValidateValidatable(context.Background(), companies)
 
 	if violations, ok := validation.UnwrapViolationList(err); ok {
 		for violation := violations.First(); violation != nil; violation = violation.Next() {

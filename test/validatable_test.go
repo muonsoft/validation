@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/muonsoft/validation"
@@ -18,8 +19,9 @@ type Product struct {
 	Components []Component
 }
 
-func (p Product) Validate(validator *validation.Validator) error {
+func (p Product) Validate(ctx context.Context, validator *validation.Validator) error {
 	return validator.Validate(
+		ctx,
 		validation.String(
 			&p.Name,
 			validation.PropertyName("name"),
@@ -44,8 +46,9 @@ type Component struct {
 	Tags []string
 }
 
-func (c Component) Validate(validator *validation.Validator) error {
+func (c Component) Validate(ctx context.Context, validator *validation.Validator) error {
 	return validator.Validate(
+		ctx,
 		validation.String(
 			&c.Name,
 			validation.PropertyName("name"),
@@ -70,7 +73,7 @@ func TestValidateValue_WhenStructWithComplexRules_ExpectViolations(t *testing.T)
 		},
 	}
 
-	err := validator.ValidateValue(p)
+	err := validator.ValidateValue(context.Background(), p)
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
@@ -92,6 +95,7 @@ func TestValidateValue_WhenValidatableString_ExpectValidationExecutedWithPassedO
 	validatable := mockValidatableString{value: ""}
 
 	err := validator.ValidateValue(
+		context.Background(),
 		validatable,
 		validation.PropertyName("top"),
 		it.IsNotBlank().Message("ignored"),
@@ -104,6 +108,7 @@ func TestValidateValidatable_WhenValidatableString_ExpectValidationExecutedWithP
 	validatable := mockValidatableString{value: ""}
 
 	err := validator.ValidateValidatable(
+		context.Background(),
 		validatable,
 		validation.PropertyName("top"),
 		it.IsNotBlank().Message("ignored"),
@@ -116,6 +121,7 @@ func TestValidateValue_WhenValidatableStruct_ExpectValidationExecutedWithPassedO
 	validatable := mockValidatableStruct{}
 
 	err := validator.ValidateValue(
+		context.Background(),
 		validatable,
 		validation.PropertyName("top"),
 		it.IsNotBlank().Message("ignored"),

@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/muonsoft/validation"
@@ -15,7 +16,7 @@ type property struct {
 	Value []*property
 }
 
-func (p property) Validate(validator *validation.Validator) error {
+func (p property) Validate(ctx context.Context, validator *validation.Validator) error {
 	arguments := []validation.Argument{
 		validation.StringProperty(
 			"name",
@@ -39,7 +40,7 @@ func (p property) Validate(validator *validation.Validator) error {
 		)
 	}
 
-	return validator.Validate(arguments...)
+	return validator.Validate(ctx, arguments...)
 }
 
 func TestValidate_AtProperty_WhenGivenRecursiveProperties_ExpectViolationWithProperty(t *testing.T) {
@@ -64,7 +65,7 @@ func TestValidate_AtProperty_WhenGivenRecursiveProperties_ExpectViolationWithPro
 		},
 	}
 
-	err := validator.ValidateIterable(properties)
+	err := validator.ValidateIterable(context.Background(), properties)
 
 	assertHasOneViolationAtPath(code.NotBlank, message.NotBlank, "[0].value[0].value[0].name")(t, err)
 }
@@ -74,6 +75,7 @@ func TestValidate_WhenPathIsSetViaOptions_ExpectViolationAtPath(t *testing.T) {
 	v := ""
 
 	err := validator.Validate(
+		context.Background(),
 		validation.String(
 			&v,
 			validation.PropertyName("properties"),
@@ -89,7 +91,7 @@ func TestValidate_WhenPathIsSetViaOptions_ExpectViolationAtPath(t *testing.T) {
 func TestValidate_AtProperty_WhenGivenProperty_ExpectViolationWithProperty(t *testing.T) {
 	validator := newValidator(t)
 
-	err := validator.AtProperty("property").ValidateString(stringValue(""), it.IsNotBlank())
+	err := validator.AtProperty("property").ValidateString(context.Background(), stringValue(""), it.IsNotBlank())
 
 	assertHasOneViolationAtPath(code.NotBlank, message.NotBlank, "property")(t, err)
 }
@@ -97,7 +99,7 @@ func TestValidate_AtProperty_WhenGivenProperty_ExpectViolationWithProperty(t *te
 func TestValidate_AtIndex_WhenGivenIndex_ExpectViolationWithIndex(t *testing.T) {
 	validator := newValidator(t)
 
-	err := validator.AtIndex(1).ValidateString(stringValue(""), it.IsNotBlank())
+	err := validator.AtIndex(1).ValidateString(context.Background(), stringValue(""), it.IsNotBlank())
 
 	assertHasOneViolationAtPath(code.NotBlank, message.NotBlank, "[1]")(t, err)
 }

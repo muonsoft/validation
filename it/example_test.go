@@ -1,6 +1,7 @@
 package it_test
 
 import (
+	"context"
 	"fmt"
 	"net"
 
@@ -10,7 +11,7 @@ import (
 
 func ExampleHasUniqueValues() {
 	v := []string{"foo", "bar", "baz", "foo"}
-	err := validator.ValidateStrings(v, it.HasUniqueValues())
+	err := validator.ValidateStrings(context.Background(), v, it.HasUniqueValues())
 	fmt.Println(err)
 	// Output:
 	// violation: This collection should contain only unique elements.
@@ -18,7 +19,7 @@ func ExampleHasUniqueValues() {
 
 func ExampleIsJSON_validJSON() {
 	v := `{"valid": true}`
-	err := validator.ValidateString(&v, it.IsJSON())
+	err := validator.ValidateString(context.Background(), &v, it.IsJSON())
 	fmt.Println(err)
 	// Output:
 	// <nil>
@@ -26,7 +27,7 @@ func ExampleIsJSON_validJSON() {
 
 func ExampleIsJSON_invalidJSON() {
 	v := `"invalid": true`
-	err := validator.ValidateString(&v, it.IsJSON())
+	err := validator.ValidateString(context.Background(), &v, it.IsJSON())
 	fmt.Println(err)
 	// Output:
 	// violation: This value should be valid JSON.
@@ -34,7 +35,7 @@ func ExampleIsJSON_invalidJSON() {
 
 func ExampleIsEmail_validEmail() {
 	v := "user@example.com"
-	err := validator.ValidateString(&v, it.IsEmail())
+	err := validator.ValidateString(context.Background(), &v, it.IsEmail())
 	fmt.Println(err)
 	// Output:
 	// <nil>
@@ -42,7 +43,7 @@ func ExampleIsEmail_validEmail() {
 
 func ExampleIsEmail_invalidEmail() {
 	v := "user example.com"
-	err := validator.ValidateString(&v, it.IsEmail())
+	err := validator.ValidateString(context.Background(), &v, it.IsEmail())
 	fmt.Println(err)
 	// Output:
 	// violation: This value is not a valid email address.
@@ -50,7 +51,7 @@ func ExampleIsEmail_invalidEmail() {
 
 func ExampleIsHTML5Email_validEmail() {
 	v := "{}~!@example.com"
-	err := validator.ValidateString(&v, it.IsEmail())
+	err := validator.ValidateString(context.Background(), &v, it.IsEmail())
 	fmt.Println(err)
 	// Output:
 	// <nil>
@@ -58,7 +59,7 @@ func ExampleIsHTML5Email_validEmail() {
 
 func ExampleIsHTML5Email_invalidEmail() {
 	v := "@example.com"
-	err := validator.ValidateString(&v, it.IsEmail())
+	err := validator.ValidateString(context.Background(), &v, it.IsEmail())
 	fmt.Println(err)
 	// Output:
 	// violation: This value is not a valid email address.
@@ -66,7 +67,7 @@ func ExampleIsHTML5Email_invalidEmail() {
 
 func ExampleIsHostname_validHostname() {
 	v := "example.com"
-	err := validator.ValidateString(&v, it.IsHostname())
+	err := validator.ValidateString(context.Background(), &v, it.IsHostname())
 	fmt.Println(err)
 	// Output:
 	// <nil>
@@ -74,7 +75,7 @@ func ExampleIsHostname_validHostname() {
 
 func ExampleIsHostname_invalidHostname() {
 	v := "example-.com"
-	err := validator.ValidateString(&v, it.IsHostname())
+	err := validator.ValidateString(context.Background(), &v, it.IsHostname())
 	fmt.Println(err)
 	// Output:
 	// violation: This value is not a valid hostname.
@@ -82,7 +83,7 @@ func ExampleIsHostname_invalidHostname() {
 
 func ExampleIsHostname_reservedHostname() {
 	v := "example.localhost"
-	err := validator.ValidateString(&v, it.IsHostname())
+	err := validator.ValidateString(context.Background(), &v, it.IsHostname())
 	fmt.Println(err)
 	// Output:
 	// violation: This value is not a valid hostname.
@@ -90,7 +91,7 @@ func ExampleIsHostname_reservedHostname() {
 
 func ExampleIsLooseHostname_validHostname() {
 	v := "example.com"
-	err := validator.ValidateString(&v, it.IsLooseHostname())
+	err := validator.ValidateString(context.Background(), &v, it.IsLooseHostname())
 	fmt.Println(err)
 	// Output:
 	// <nil>
@@ -98,7 +99,7 @@ func ExampleIsLooseHostname_validHostname() {
 
 func ExampleIsLooseHostname_invalidHostname() {
 	v := "example-.com"
-	err := validator.ValidateString(&v, it.IsLooseHostname())
+	err := validator.ValidateString(context.Background(), &v, it.IsLooseHostname())
 	fmt.Println(err)
 	// Output:
 	// violation: This value is not a valid hostname.
@@ -106,7 +107,7 @@ func ExampleIsLooseHostname_invalidHostname() {
 
 func ExampleIsLooseHostname_reservedHostname() {
 	v := "example.localhost"
-	err := validator.ValidateString(&v, it.IsLooseHostname())
+	err := validator.ValidateString(context.Background(), &v, it.IsLooseHostname())
 	fmt.Println(err)
 	// Output:
 	// <nil>
@@ -114,7 +115,7 @@ func ExampleIsLooseHostname_reservedHostname() {
 
 func ExampleIsURL_validURL() {
 	v := "http://example.com"
-	err := validator.ValidateString(&v, it.IsURL())
+	err := validator.ValidateString(context.Background(), &v, it.IsURL())
 	fmt.Println(err)
 	// Output:
 	// <nil>
@@ -122,7 +123,7 @@ func ExampleIsURL_validURL() {
 
 func ExampleIsURL_invalidURL() {
 	v := "example.com"
-	err := validator.ValidateString(&v, it.IsURL())
+	err := validator.ValidateString(context.Background(), &v, it.IsURL())
 	fmt.Println(err)
 	// Output:
 	// violation: This value is not a valid URL.
@@ -130,7 +131,7 @@ func ExampleIsURL_invalidURL() {
 
 func ExampleURLConstraint_WithRelativeSchema() {
 	v := "//example.com"
-	err := validator.ValidateString(&v, it.IsURL().WithRelativeSchema())
+	err := validator.ValidateString(context.Background(), &v, it.IsURL().WithRelativeSchema())
 	fmt.Println(err)
 	// Output:
 	// <nil>
@@ -138,7 +139,7 @@ func ExampleURLConstraint_WithRelativeSchema() {
 
 func ExampleURLConstraint_WithSchemas() {
 	v := "ftp://example.com"
-	err := validator.ValidateString(&v, it.IsURL().WithSchemas("http", "https", "ftp"))
+	err := validator.ValidateString(context.Background(), &v, it.IsURL().WithSchemas("http", "https", "ftp"))
 	fmt.Println(err)
 	// Output:
 	// <nil>
@@ -146,7 +147,7 @@ func ExampleURLConstraint_WithSchemas() {
 
 func ExampleIsIP_validIP() {
 	v := "123.123.123.123"
-	err := validator.ValidateString(&v, it.IsIP())
+	err := validator.ValidateString(context.Background(), &v, it.IsIP())
 	fmt.Println(err)
 	// Output:
 	// <nil>
@@ -154,7 +155,7 @@ func ExampleIsIP_validIP() {
 
 func ExampleIsIP_invalidIP() {
 	v := "123.123.123.345"
-	err := validator.ValidateString(&v, it.IsIP())
+	err := validator.ValidateString(context.Background(), &v, it.IsIP())
 	fmt.Println(err)
 	// Output:
 	// violation: This is not a valid IP address.
@@ -162,7 +163,7 @@ func ExampleIsIP_invalidIP() {
 
 func ExampleIsIPv4_validIP() {
 	v := "123.123.123.123"
-	err := validator.ValidateString(&v, it.IsIPv4())
+	err := validator.ValidateString(context.Background(), &v, it.IsIPv4())
 	fmt.Println(err)
 	// Output:
 	// <nil>
@@ -170,7 +171,7 @@ func ExampleIsIPv4_validIP() {
 
 func ExampleIsIPv4_invalidIP() {
 	v := "123.123.123.345"
-	err := validator.ValidateString(&v, it.IsIPv4())
+	err := validator.ValidateString(context.Background(), &v, it.IsIPv4())
 	fmt.Println(err)
 	// Output:
 	// violation: This is not a valid IP address.
@@ -178,7 +179,7 @@ func ExampleIsIPv4_invalidIP() {
 
 func ExampleIsIPv6_validIP() {
 	v := "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
-	err := validator.ValidateString(&v, it.IsIPv6())
+	err := validator.ValidateString(context.Background(), &v, it.IsIPv6())
 	fmt.Println(err)
 	// Output:
 	// <nil>
@@ -186,7 +187,7 @@ func ExampleIsIPv6_validIP() {
 
 func ExampleIsIPv6_invalidIP() {
 	v := "z001:0db8:85a3:0000:0000:8a2e:0370:7334"
-	err := validator.ValidateString(&v, it.IsIPv6())
+	err := validator.ValidateString(context.Background(), &v, it.IsIPv6())
 	fmt.Println(err)
 	// Output:
 	// violation: This is not a valid IP address.
@@ -194,7 +195,7 @@ func ExampleIsIPv6_invalidIP() {
 
 func ExampleIPConstraint_DenyPrivateIP_restrictedPrivateIPv4() {
 	v := "192.168.1.0"
-	err := validator.ValidateString(&v, it.IsIP().DenyPrivateIP())
+	err := validator.ValidateString(context.Background(), &v, it.IsIP().DenyPrivateIP())
 	fmt.Println(err)
 	// Output:
 	// violation: This IP address is prohibited to use.
@@ -202,7 +203,7 @@ func ExampleIPConstraint_DenyPrivateIP_restrictedPrivateIPv4() {
 
 func ExampleIPConstraint_DenyPrivateIP_restrictedPrivateIPv6() {
 	v := "fdfe:dcba:9876:ffff:fdc6:c46b:bb8f:7d4c"
-	err := validator.ValidateString(&v, it.IsIPv6().DenyPrivateIP())
+	err := validator.ValidateString(context.Background(), &v, it.IsIPv6().DenyPrivateIP())
 	fmt.Println(err)
 	// Output:
 	// violation: This IP address is prohibited to use.
@@ -210,7 +211,7 @@ func ExampleIPConstraint_DenyPrivateIP_restrictedPrivateIPv6() {
 
 func ExampleIPConstraint_DenyIP() {
 	v := "127.0.0.1"
-	err := validator.ValidateString(&v, it.IsIP().DenyIP(func(ip net.IP) bool {
+	err := validator.ValidateString(context.Background(), &v, it.IsIP().DenyIP(func(ip net.IP) bool {
 		return ip.IsLoopback()
 	}))
 	fmt.Println(err)
