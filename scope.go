@@ -39,6 +39,20 @@ func (s Scope) BuildViolation(code, message string) *ViolationBuilder {
 	return b
 }
 
+// AtProperty returns a copy of the scope with property path appended by the given property name.
+func (s Scope) AtProperty(name string) Scope {
+	s.propertyPath = s.propertyPath.WithProperty(name)
+
+	return s
+}
+
+// AtIndex returns a copy of the scope with property path appended by the given array index.
+func (s Scope) AtIndex(index int) Scope {
+	s.propertyPath = s.propertyPath.WithIndex(index)
+
+	return s
+}
+
 // Validator creates a new validator for the given scope. This validator can be used to perform
 // complex validation on a custom constraint using existing constraints.
 func (s Scope) Validator() *Validator {
@@ -84,18 +98,6 @@ func (s Scope) withContext(ctx context.Context) Scope {
 
 func (s Scope) withLanguage(tag language.Tag) Scope {
 	s.language = tag
-
-	return s
-}
-
-func (s Scope) atProperty(name string) Scope {
-	s.propertyPath = s.propertyPath.WithProperty(name)
-
-	return s
-}
-
-func (s Scope) atIndex(index int) Scope {
-	s.propertyPath = s.propertyPath.WithIndex(index)
 
 	return s
 }
