@@ -208,12 +208,12 @@ func (validator *Validator) WithLanguage(tag language.Tag) *Validator {
 
 // AtProperty method creates a new scoped validator with injected property name element to scope property path.
 func (validator *Validator) AtProperty(name string) *Validator {
-	return newScopedValidator(validator.scope.atProperty(name))
+	return newScopedValidator(validator.scope.AtProperty(name))
 }
 
 // AtIndex method creates a new scoped validator with injected array index element to scope property path.
 func (validator *Validator) AtIndex(index int) *Validator {
-	return newScopedValidator(validator.scope.atIndex(index))
+	return newScopedValidator(validator.scope.AtIndex(index))
 }
 
 // BuildViolation can be used to build a custom violation on the client-side.
