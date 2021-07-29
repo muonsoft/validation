@@ -119,11 +119,11 @@ func AtIndex(index int) *validation.Validator {
 // BuildViolation can be used to build a custom violation on the client-side.
 //
 // Example
-//  err := validator.BuildViolation("", "").
+//  err := validator.BuildViolation(context.Background(), "", "").
 //      AddParameter("key", "value").
 //      CreateViolation()
-func BuildViolation(code, message string) *validation.ViolationBuilder {
-	return validator.BuildViolation(code, message)
+func BuildViolation(ctx context.Context, code, message string) *validation.ViolationBuilder {
+	return validator.BuildViolation(ctx, code, message)
 }
 
 // ValidateBy is used to get the constraint from the internal validator store.

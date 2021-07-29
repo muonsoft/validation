@@ -217,8 +217,8 @@ func (validator *Validator) AtIndex(index int) *Validator {
 }
 
 // BuildViolation can be used to build a custom violation on the client-side.
-func (validator *Validator) BuildViolation(code, message string) *ViolationBuilder {
-	return validator.scope.BuildViolation(code, message)
+func (validator *Validator) BuildViolation(ctx context.Context, code, message string) *ViolationBuilder {
+	return validator.scope.withContext(ctx).BuildViolation(code, message)
 }
 
 // ValidateBy is used to get the constraint from the internal validator store.

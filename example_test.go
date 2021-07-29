@@ -662,7 +662,7 @@ func ExampleValidator_BuildViolation_buildingViolation() {
 		log.Fatal(err)
 	}
 
-	violation := validator.BuildViolation("clientCode", "Client message with {{ parameter }}.").
+	violation := validator.BuildViolation(context.Background(), "clientCode", "Client message with {{ parameter }}.").
 		AddParameter("{{ parameter }}", "value").
 		CreateViolation()
 
@@ -685,7 +685,7 @@ func ExampleValidator_BuildViolation_translatableParameter() {
 	}
 
 	violation := validator.WithLanguage(language.Russian).
-		BuildViolation("clientCode", "The operation is only possible for the {{ role }}.").
+		BuildViolation(context.Background(), "clientCode", "The operation is only possible for the {{ role }}.").
 		SetParameters(validation.TemplateParameter{
 			Key:              "{{ role }}",
 			Value:            "administrator role",
@@ -700,8 +700,8 @@ func ExampleValidator_BuildViolation_translatableParameter() {
 
 func ExampleViolationList_First() {
 	violations := validation.NewViolationList(
-		validator.BuildViolation("", "foo").CreateViolation(),
-		validator.BuildViolation("", "bar").CreateViolation(),
+		validator.BuildViolation(context.Background(), "", "foo").CreateViolation(),
+		validator.BuildViolation(context.Background(), "", "bar").CreateViolation(),
 	)
 
 	for violation := violations.First(); violation != nil; violation = violation.Next() {
@@ -714,7 +714,7 @@ func ExampleViolationList_First() {
 
 func ExampleViolationList_AppendFromError_addingViolation() {
 	violations := validation.NewViolationList()
-	err := validator.BuildViolation("", "foo").CreateViolation()
+	err := validator.BuildViolation(context.Background(), "", "foo").CreateViolation()
 
 	appendErr := violations.AppendFromError(err)
 
@@ -728,8 +728,8 @@ func ExampleViolationList_AppendFromError_addingViolation() {
 func ExampleViolationList_AppendFromError_addingViolationList() {
 	violations := validation.NewViolationList()
 	err := validation.NewViolationList(
-		validator.BuildViolation("", "foo").CreateViolation(),
-		validator.BuildViolation("", "bar").CreateViolation(),
+		validator.BuildViolation(context.Background(), "", "foo").CreateViolation(),
+		validator.BuildViolation(context.Background(), "", "bar").CreateViolation(),
 	)
 
 	appendErr := violations.AppendFromError(err)
