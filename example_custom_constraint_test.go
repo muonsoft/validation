@@ -48,7 +48,7 @@ func ExampleValidator_Validate_customConstraint() {
 
 	err := validator.Validate(
 		context.Background(),
-		validation.String(&s, it.IsNotBlank(), IsNumeric()),
+		validation.String(s, it.IsNotBlank(), IsNumeric()),
 	)
 
 	fmt.Println(err)

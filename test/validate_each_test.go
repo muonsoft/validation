@@ -15,7 +15,7 @@ import (
 func TestValidateEach_WhenSliceOfStrings_ExpectViolationOnEachElement(t *testing.T) {
 	strings := []string{"", ""}
 
-	err := validator.ValidateEach(context.Background(), strings, it.IsNotBlank())
+	err := validator.Validate(context.Background(), validation.Each(strings, it.IsNotBlank()))
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
@@ -32,7 +32,7 @@ func TestValidateEach_WhenSliceOfStrings_ExpectViolationOnEachElement(t *testing
 func TestValidateEach_WhenMapOfStrings_ExpectViolationOnEachElement(t *testing.T) {
 	strings := map[string]string{"key1": "", "key2": ""}
 
-	err := validator.ValidateEach(context.Background(), strings, it.IsNotBlank())
+	err := validator.Validate(context.Background(), validation.Each(strings, it.IsNotBlank()))
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
@@ -49,7 +49,7 @@ func TestValidateEach_WhenMapOfStrings_ExpectViolationOnEachElement(t *testing.T
 func TestValidateEachString_WhenSliceOfStrings_ExpectViolationOnEachElement(t *testing.T) {
 	strings := []string{"", ""}
 
-	err := validator.ValidateEachString(context.Background(), strings, it.IsNotBlank())
+	err := validator.Validate(context.Background(), validation.EachString(strings, it.IsNotBlank()))
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()

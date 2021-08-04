@@ -23,7 +23,7 @@ type File struct {
 func (f File) Validate(ctx context.Context, validator *validation.Validator) error {
 	return validator.Validate(
 		ctx,
-		validation.StringProperty("name", &f.Name, it.HasLengthBetween(5, 50)),
+		validation.StringProperty("name", f.Name, it.HasLengthBetween(5, 50)),
 	)
 }
 
@@ -80,10 +80,12 @@ func (c AllowedFileExtensionConstraint) ValidateFile(file *File, scope validatio
 
 	extension := strings.ReplaceAll(filepath.Ext(file.Name), ".", "")
 
-	return scope.Validator().AtProperty("name").ValidateString(
+	return scope.Validator().AtProperty("name").Validate(
 		scope.Context(),
-		&extension,
-		it.IsOneOfStrings(c.extensions...).Message("Not allowed extension. Must be one of: {{ choices }}."),
+		validation.String(
+			extension,
+			it.IsOneOfStrings(c.extensions...).Message("Not allowed extension. Must be one of: {{ choices }}."),
+		),
 	)
 }
 
@@ -113,11 +115,13 @@ func (c AllowedFileSizeConstraint) ValidateFile(file *File, scope validation.Sco
 
 	size := len(file.Data)
 
-	return scope.Validator().ValidateNumber(
+	return scope.Validator().Validate(
 		scope.Context(),
-		size,
-		it.IsGreaterThanInteger(c.minSize).Message("File size is too small."),
-		it.IsLessThanInteger(c.maxSize).Message("File size is too large."),
+		validation.Number(
+			size,
+			it.IsGreaterThanInteger(c.minSize).Message("File size is too small."),
+			it.IsLessThanInteger(c.maxSize).Message("File size is too large."),
+		),
 	)
 }
 

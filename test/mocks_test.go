@@ -113,7 +113,7 @@ func (mock mockValidatableString) Validate(ctx context.Context, validator *valid
 	return validator.Validate(
 		ctx,
 		validation.String(
-			&mock.value,
+			mock.value,
 			validation.PropertyName("value"),
 			it.IsNotBlank(),
 		),
@@ -141,7 +141,7 @@ func (mock mockValidatableStruct) Validate(ctx context.Context, validator *valid
 			it.IsNotBlank(),
 		),
 		validation.String(
-			&mock.stringValue,
+			mock.stringValue,
 			validation.PropertyName("stringValue"),
 			it.IsNotBlank(),
 		),

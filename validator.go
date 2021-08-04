@@ -103,8 +103,7 @@ func SetViolationFactory(factory ViolationFactory) ValidatorOption {
 //		log.Fatal(err)
 //	}
 //
-//	s := "
-//	err = validator.ValidateString(&s, validator.ValidateBy("isTagExists"))
+//	err = validator.ValidateString("", validator.ValidateBy("isTagExists"))
 func StoredConstraint(key string, constraint Constraint) ValidatorOption {
 	return func(validator *Validator) error {
 		if _, exists := validator.scope.constraints[key]; exists {
@@ -146,7 +145,7 @@ func (validator *Validator) ValidateValue(ctx context.Context, value interface{}
 }
 
 // ValidateBool is an alias for validating a single boolean value.
-func (validator *Validator) ValidateBool(ctx context.Context, value *bool, options ...Option) error {
+func (validator *Validator) ValidateBool(ctx context.Context, value bool, options ...Option) error {
 	return validator.Validate(ctx, Bool(value, options...))
 }
 
@@ -156,7 +155,7 @@ func (validator *Validator) ValidateNumber(ctx context.Context, value interface{
 }
 
 // ValidateString is an alias for validating a single string value.
-func (validator *Validator) ValidateString(ctx context.Context, value *string, options ...Option) error {
+func (validator *Validator) ValidateString(ctx context.Context, value string, options ...Option) error {
 	return validator.Validate(ctx, String(value, options...))
 }
 
@@ -176,7 +175,7 @@ func (validator *Validator) ValidateCountable(ctx context.Context, count int, op
 }
 
 // ValidateTime is an alias for validating a single time value.
-func (validator *Validator) ValidateTime(ctx context.Context, value *time.Time, options ...Option) error {
+func (validator *Validator) ValidateTime(ctx context.Context, value time.Time, options ...Option) error {
 	return validator.Validate(ctx, Time(value, options...))
 }
 
@@ -193,6 +192,18 @@ func (validator *Validator) ValidateEachString(ctx context.Context, values []str
 // ValidateValidatable is an alias for validating value that implements the Validatable interface.
 func (validator *Validator) ValidateValidatable(ctx context.Context, validatable Validatable, options ...Option) error {
 	return validator.Validate(ctx, Valid(validatable, options...))
+}
+
+// ValidateBy is used to get the constraint from the internal validator store.
+// If the constraint does not exist, then the validator will
+// return a ConstraintNotFoundError during the validation process.
+// For storing a constraint you should use the StoredConstraint option.
+func (validator *Validator) ValidateBy(constraintKey string) Constraint {
+	if constraint, exists := validator.scope.constraints[constraintKey]; exists {
+		return constraint
+	}
+
+	return notFoundConstraint{key: constraintKey}
 }
 
 // WithLanguage method creates a new scoped validator with a given language tag. All created violations
@@ -219,16 +230,4 @@ func (validator *Validator) AtIndex(index int) *Validator {
 // BuildViolation can be used to build a custom violation on the client-side.
 func (validator *Validator) BuildViolation(ctx context.Context, code, message string) *ViolationBuilder {
 	return validator.scope.withContext(ctx).BuildViolation(code, message)
-}
-
-// ValidateBy is used to get the constraint from the internal validator store.
-// If the constraint does not exist, then the validator will
-// return a ConstraintNotFoundError during the validation process.
-// For storing a constraint you should use the StoreConstraint method.
-func (validator *Validator) ValidateBy(constraintKey string) Constraint {
-	if constraint, exists := validator.scope.constraints[constraintKey]; exists {
-		return constraint
-	}
-
-	return notFoundConstraint{key: constraintKey}
 }

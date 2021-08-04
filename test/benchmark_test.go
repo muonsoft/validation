@@ -18,7 +18,7 @@ type Properties []Property
 func (p Property) Validate(ctx context.Context, validator *validation.Validator) error {
 	return validator.Validate(
 		ctx,
-		validation.StringProperty("name", &p.Name, it.IsNotBlank()),
+		validation.StringProperty("name", p.Name, it.IsNotBlank()),
 		validation.ValidProperty("properties", p.Properties),
 	)
 }
@@ -27,7 +27,7 @@ func (properties Properties) Validate(ctx context.Context, validator *validation
 	violations := validation.ViolationList{}
 
 	for i := range properties {
-		err := validator.AtIndex(i).ValidateValidatable(ctx, properties[i])
+		err := validator.AtIndex(i).Validate(ctx, validation.Valid(properties[i]))
 		err = violations.AppendFromError(err)
 		if err != nil {
 			return err
@@ -48,7 +48,7 @@ func BenchmarkViolationsGeneration(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		validator.ValidateValidatable(context.Background(), properties)
+		validator.Validate(context.Background(), validation.Valid(properties))
 	}
 }
 

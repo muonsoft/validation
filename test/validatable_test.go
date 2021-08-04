@@ -23,7 +23,7 @@ func (p Product) Validate(ctx context.Context, validator *validation.Validator) 
 	return validator.Validate(
 		ctx,
 		validation.String(
-			&p.Name,
+			p.Name,
 			validation.PropertyName("name"),
 			it.IsNotBlank(),
 		),
@@ -50,7 +50,7 @@ func (c Component) Validate(ctx context.Context, validator *validation.Validator
 	return validator.Validate(
 		ctx,
 		validation.String(
-			&c.Name,
+			c.Name,
 			validation.PropertyName("name"),
 			it.IsNotBlank(),
 		),
@@ -73,7 +73,7 @@ func TestValidateValue_WhenStructWithComplexRules_ExpectViolations(t *testing.T)
 		},
 	}
 
-	err := validator.ValidateValue(context.Background(), p)
+	err := validator.Validate(context.Background(), validation.Valid(p))
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
@@ -94,11 +94,13 @@ func TestValidateValue_WhenStructWithComplexRules_ExpectViolations(t *testing.T)
 func TestValidateValue_WhenValidatableString_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
 	validatable := mockValidatableString{value: ""}
 
-	err := validator.ValidateValue(
+	err := validator.Validate(
 		context.Background(),
-		validatable,
-		validation.PropertyName("top"),
-		it.IsNotBlank().Message("ignored"),
+		validation.Value(
+			validatable,
+			validation.PropertyName("top"),
+			it.IsNotBlank().Message("ignored"),
+		),
 	)
 
 	assertHasOneViolationAtPath(code.NotBlank, message.NotBlank, "top.value")(t, err)
@@ -107,11 +109,13 @@ func TestValidateValue_WhenValidatableString_ExpectValidationExecutedWithPassedO
 func TestValidateValidatable_WhenValidatableString_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
 	validatable := mockValidatableString{value: ""}
 
-	err := validator.ValidateValidatable(
+	err := validator.Validate(
 		context.Background(),
-		validatable,
-		validation.PropertyName("top"),
-		it.IsNotBlank().Message("ignored"),
+		validation.Valid(
+			validatable,
+			validation.PropertyName("top"),
+			it.IsNotBlank().Message("ignored"),
+		),
 	)
 
 	assertHasOneViolationAtPath(code.NotBlank, message.NotBlank, "top.value")(t, err)
@@ -120,11 +124,13 @@ func TestValidateValidatable_WhenValidatableString_ExpectValidationExecutedWithP
 func TestValidateValue_WhenValidatableStruct_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
 	validatable := mockValidatableStruct{}
 
-	err := validator.ValidateValue(
+	err := validator.Validate(
 		context.Background(),
-		validatable,
-		validation.PropertyName("top"),
-		it.IsNotBlank().Message("ignored"),
+		validation.Value(
+			validatable,
+			validation.PropertyName("top"),
+			it.IsNotBlank().Message("ignored"),
+		),
 	)
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {

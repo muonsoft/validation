@@ -18,7 +18,7 @@ func TestWhenGlobalValidatorWithOverriddenNewViolation_ExpectCustomViolation(t *
 	}
 	defer validator.Reset()
 
-	err = validator.ValidateString(context.Background(), nil, it.IsNotBlank())
+	err = validator.Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
@@ -29,7 +29,7 @@ func TestWhenGlobalValidatorWithOverriddenNewViolation_ExpectCustomViolation(t *
 func TestWhenValidatorWithOverriddenNewViolation_ExpectCustomViolation(t *testing.T) {
 	v := newValidator(t, validation.SetViolationFactory(mockNewViolationFunc()))
 
-	err := v.ValidateString(context.Background(), nil, it.IsNotBlank())
+	err := v.Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()

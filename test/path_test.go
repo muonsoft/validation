@@ -20,12 +20,12 @@ func (p property) Validate(ctx context.Context, validator *validation.Validator)
 	arguments := []validation.Argument{
 		validation.StringProperty(
 			"name",
-			&p.Name,
+			p.Name,
 			it.IsNotBlank(),
 		),
 		validation.StringProperty(
 			"type",
-			&p.Type,
+			p.Type,
 			it.IsNotBlank(),
 		),
 	}
@@ -65,7 +65,7 @@ func TestValidate_AtProperty_WhenGivenRecursiveProperties_ExpectViolationWithPro
 		},
 	}
 
-	err := validator.ValidateIterable(context.Background(), properties)
+	err := validator.Validate(context.Background(), validation.Iterable(properties))
 
 	assertHasOneViolationAtPath(code.NotBlank, message.NotBlank, "[0].value[0].value[0].name")(t, err)
 }
@@ -77,7 +77,7 @@ func TestValidate_WhenPathIsSetViaOptions_ExpectViolationAtPath(t *testing.T) {
 	err := validator.Validate(
 		context.Background(),
 		validation.String(
-			&v,
+			v,
 			validation.PropertyName("properties"),
 			validation.ArrayIndex(0),
 			validation.PropertyName("value"),
@@ -91,7 +91,9 @@ func TestValidate_WhenPathIsSetViaOptions_ExpectViolationAtPath(t *testing.T) {
 func TestValidate_AtProperty_WhenGivenProperty_ExpectViolationWithProperty(t *testing.T) {
 	validator := newValidator(t)
 
-	err := validator.AtProperty("property").ValidateString(context.Background(), stringValue(""), it.IsNotBlank())
+	err := validator.
+		AtProperty("property").
+		Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
 	assertHasOneViolationAtPath(code.NotBlank, message.NotBlank, "property")(t, err)
 }
@@ -99,7 +101,9 @@ func TestValidate_AtProperty_WhenGivenProperty_ExpectViolationWithProperty(t *te
 func TestValidate_AtIndex_WhenGivenIndex_ExpectViolationWithIndex(t *testing.T) {
 	validator := newValidator(t)
 
-	err := validator.AtIndex(1).ValidateString(context.Background(), stringValue(""), it.IsNotBlank())
+	err := validator.
+		AtIndex(1).
+		Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
 	assertHasOneViolationAtPath(code.NotBlank, message.NotBlank, "[1]")(t, err)
 }

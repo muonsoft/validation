@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/validator"
@@ -45,12 +46,12 @@ func TestValidator_Validate_WhenInapplicableConstraint_ExpectError(t *testing.T)
 		valueType string
 		argument  validation.Argument
 	}{
-		{boolType, validation.Bool(nil, nilConstraint{})},
+		{boolType, validation.Bool(false, nilConstraint{})},
 		{"number", validation.Number(intValue(0), nilConstraint{})},
-		{stringType, validation.String(nilString, nilConstraint{})},
+		{stringType, validation.String("", nilConstraint{})},
 		{iterableType, validation.Iterable([]string{}, nilConstraint{})},
 		{countableType, validation.Countable(0, nilConstraint{})},
-		{timeType, validation.Time(nil, nilConstraint{})},
+		{timeType, validation.Time(time.Time{}, nilConstraint{})},
 	}
 	for _, test := range tests {
 		t.Run(test.valueType, func(t *testing.T) {
@@ -96,7 +97,7 @@ func TestValidator_Validate_WhenInvalidConstraintAtPropertyPath_ExpectErrorWithP
 	err := validator.Validate(
 		context.Background(),
 		validation.String(
-			nil,
+			"",
 			validation.PropertyName("properties"),
 			validation.ArrayIndex(1),
 			validation.PropertyName("error"),

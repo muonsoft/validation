@@ -22,8 +22,8 @@ func (companies Companies) Validate(ctx context.Context, validator *validation.V
 	for i, company := range companies {
 		err := validator.AtIndex(i).Validate(
 			ctx,
-			validation.StringProperty("name", &company.Name, it.IsNotBlank()),
-			validation.StringProperty("address", &company.Address, it.IsNotBlank(), it.HasMinLength(3)),
+			validation.StringProperty("name", company.Name, it.IsNotBlank()),
+			validation.StringProperty("address", company.Address, it.IsNotBlank(), it.HasMinLength(3)),
 		)
 		// appending violations from err
 		err = violations.AppendFromError(err)
@@ -44,7 +44,7 @@ func ExampleValidator_ValidateValidatable_validatableSlice() {
 		{"", "x"},
 	}
 
-	err := validator.ValidateValidatable(context.Background(), companies)
+	err := validator.Validate(context.Background(), validation.Valid(companies))
 
 	if violations, ok := validation.UnwrapViolationList(err); ok {
 		for violation := violations.First(); violation != nil; violation = violation.Next() {

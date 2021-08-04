@@ -85,7 +85,7 @@ func (p Property) Validate(ctx context.Context, validator *validation.Validator)
 		contextWithNextNestingLevel(ctx),
 		// Executing validation for maximum nesting level of properties.
 		PropertyArgument(&p, ItIsNotDeeperThan(3)),
-		validation.StringProperty("name", &p.Name, it.IsNotBlank()),
+		validation.StringProperty("name", p.Name, it.IsNotBlank()),
 		// This should run recursive validation for properties.
 		validation.IterableProperty("properties", p.Properties),
 	)

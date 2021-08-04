@@ -46,7 +46,7 @@ func ValidateValue(ctx context.Context, value interface{}, options ...validation
 }
 
 // ValidateBool is an alias for validating a single boolean value.
-func ValidateBool(ctx context.Context, value *bool, options ...validation.Option) error {
+func ValidateBool(ctx context.Context, value bool, options ...validation.Option) error {
 	return validator.ValidateBool(ctx, value, options...)
 }
 
@@ -56,7 +56,7 @@ func ValidateNumber(ctx context.Context, value interface{}, options ...validatio
 }
 
 // ValidateString is an alias for validating a single string value.
-func ValidateString(ctx context.Context, value *string, options ...validation.Option) error {
+func ValidateString(ctx context.Context, value string, options ...validation.Option) error {
 	return validator.ValidateString(ctx, value, options...)
 }
 
@@ -76,7 +76,7 @@ func ValidateCountable(ctx context.Context, count int, options ...validation.Opt
 }
 
 // ValidateTime is an alias for validating a single time value.
-func ValidateTime(ctx context.Context, value *time.Time, options ...validation.Option) error {
+func ValidateTime(ctx context.Context, value time.Time, options ...validation.Option) error {
 	return validator.ValidateTime(ctx, value, options...)
 }
 
@@ -93,6 +93,14 @@ func ValidateEachString(ctx context.Context, strings []string, options ...valida
 // ValidateValidatable is an alias for validating value that implements the Validatable interface.
 func ValidateValidatable(ctx context.Context, validatable validation.Validatable, options ...validation.Option) error {
 	return validator.ValidateValidatable(ctx, validatable, options...)
+}
+
+// ValidateBy is used to get the constraint from the internal validator store.
+// If the constraint does not exist, then the validator will
+// return a ConstraintNotFoundError during the validation process.
+// For storing a constraint you should use the validation.StoredConstraint option.
+func ValidateBy(constraintKey string) validation.Constraint {
+	return validator.ValidateBy(constraintKey)
 }
 
 // WithLanguage method creates a new scoped validator with a given language tag. All created violations
@@ -124,12 +132,4 @@ func AtIndex(index int) *validation.Validator {
 //      CreateViolation()
 func BuildViolation(ctx context.Context, code, message string) *validation.ViolationBuilder {
 	return validator.BuildViolation(ctx, code, message)
-}
-
-// ValidateBy is used to get the constraint from the internal validator store.
-// If the constraint does not exist, then the validator will
-// return a ConstraintNotFoundError during the validation process.
-// For storing a constraint you should use the validation.StoredConstraint option.
-func ValidateBy(constraintKey string) validation.Constraint {
-	return validator.ValidateBy(constraintKey)
 }
