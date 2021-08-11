@@ -79,14 +79,13 @@ type recursionKey string
 
 const nestingLevelKey recursionKey = "nestingLevel"
 
-func (p Property) Validate(validator *validation.Validator) error {
-	// Incrementing nesting level in context with special function.
-	ctx := contextWithNextNestingLevel(validator.Context())
-
-	return validator.WithContext(ctx).Validate(
+func (p Property) Validate(ctx context.Context, validator *validation.Validator) error {
+	return validator.Validate(
+		// Incrementing nesting level in context with special function.
+		contextWithNextNestingLevel(ctx),
 		// Executing validation for maximum nesting level of properties.
 		PropertyArgument(&p, ItIsNotDeeperThan(3)),
-		validation.StringProperty("name", &p.Name, it.IsNotBlank()),
+		validation.StringProperty("name", p.Name, it.IsNotBlank()),
 		// This should run recursive validation for properties.
 		validation.IterableProperty("properties", p.Properties),
 	)
@@ -102,7 +101,7 @@ func contextWithNextNestingLevel(ctx context.Context) context.Context {
 	return context.WithValue(ctx, nestingLevelKey, level+1)
 }
 
-func ExampleValidator_Context_usingContextWithRecursion() {
+func ExampleValidator_Validate_usingContextWithRecursion() {
 	properties := []Property{
 		{
 			Name: "top",
@@ -123,7 +122,7 @@ func ExampleValidator_Context_usingContextWithRecursion() {
 		},
 	}
 
-	err := validator.ValidateIterable(properties)
+	err := validator.Validate(context.Background(), validation.Iterable(properties))
 
 	fmt.Println(err)
 	// Output:

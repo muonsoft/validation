@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/muonsoft/validation"
@@ -42,7 +43,10 @@ func TestValidateValue_WhenValueOfType_ExpectValueValidated(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := validator.ValidateValue(test.value, validation.PropertyName("property"), it.IsNotBlank())
+			err := validator.Validate(
+				context.Background(),
+				validation.Value(test.value, validation.PropertyName("property"), it.IsNotBlank()),
+			)
 
 			assertHasOneViolationAtPath(code.NotBlank, message.NotBlank, "property")(t, err)
 		})

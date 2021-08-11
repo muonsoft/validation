@@ -1,7 +1,9 @@
 package test
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
@@ -17,19 +19,22 @@ func TestValidate_WhenArgumentForGivenType_ExpectValidationExecuted(t *testing.T
 		argument validation.Argument
 	}{
 		{"Value", validation.Value(stringValue(""), it.IsNotBlank())},
-		{"Bool", validation.Bool(boolValue(false), it.IsNotBlank())},
+		{"Bool", validation.Bool(false, it.IsNotBlank())},
+		{"NilBool", validation.NilBool(boolValue(false), it.IsNotBlank())},
 		{"Number", validation.Number(0, it.IsNotBlank())},
-		{"String", validation.String(stringValue(""), it.IsNotBlank())},
+		{"String", validation.String("", it.IsNotBlank())},
+		{"NilString", validation.NilString(stringValue(""), it.IsNotBlank())},
 		{"Iterable", validation.Iterable([]string{}, it.IsNotBlank())},
 		{"Countable", validation.Countable(0, it.IsNotBlank())},
-		{"Time", validation.Time(nilTime, it.IsNotBlank())},
+		{"Time", validation.Time(time.Time{}, it.IsNotBlank())},
+		{"NilTime", validation.NilTime(nilTime, it.IsNotBlank())},
 		{"Each", validation.Each([]string{""}, it.IsNotBlank())},
 		{"EachString", validation.EachString([]string{""}, it.IsNotBlank())},
 		{"Valid", validation.Valid(mockValidatableString{""}, it.IsNotBlank())},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := validator.Validate(test.argument)
+			err := validator.Validate(context.Background(), test.argument)
 
 			validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 				t.Helper()
@@ -48,19 +53,22 @@ func TestValidate_WhenPropertyArgument_ExpectValidPathInViolation(t *testing.T) 
 		expectedPath string
 	}{
 		{"PropertyValue", validation.PropertyValue("property", stringValue(""), opts...), "property.internal"},
-		{"BoolProperty", validation.BoolProperty("property", boolValue(false), opts...), "property.internal"},
+		{"BoolProperty", validation.BoolProperty("property", false, opts...), "property.internal"},
+		{"NilBoolProperty", validation.NilBoolProperty("property", boolValue(false), opts...), "property.internal"},
 		{"NumberProperty", validation.NumberProperty("property", 0, opts...), "property.internal"},
-		{"StringProperty", validation.StringProperty("property", stringValue(""), opts...), "property.internal"},
+		{"StringProperty", validation.StringProperty("property", "", opts...), "property.internal"},
+		{"NilStringProperty", validation.NilStringProperty("property", stringValue(""), opts...), "property.internal"},
 		{"IterableProperty", validation.IterableProperty("property", []string{}, opts...), "property.internal"},
 		{"CountableProperty", validation.CountableProperty("property", 0, opts...), "property.internal"},
-		{"TimeProperty", validation.TimeProperty("property", nilTime, opts...), "property.internal"},
+		{"TimeProperty", validation.TimeProperty("property", time.Time{}, opts...), "property.internal"},
+		{"NilTimeProperty", validation.NilTimeProperty("property", nilTime, opts...), "property.internal"},
 		{"EachProperty", validation.EachProperty("property", []string{""}, opts...), "property.internal[0]"},
 		{"EachStringProperty", validation.EachStringProperty("property", []string{""}, opts...), "property.internal[0]"},
 		{"ValidProperty", validation.ValidProperty("property", mockValidatableString{""}, opts...), "property.internal.value"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := validator.Validate(test.argument)
+			err := validator.Validate(context.Background(), test.argument)
 
 			validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 				t.Helper()

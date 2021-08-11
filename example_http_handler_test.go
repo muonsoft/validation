@@ -1,6 +1,7 @@
 package validation_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -20,10 +21,11 @@ type Book struct {
 	Keywords []string `json:"keywords"`
 }
 
-func (b Book) Validate(validator *validation.Validator) error {
+func (b Book) Validate(ctx context.Context, validator *validation.Validator) error {
 	return validator.Validate(
-		validation.StringProperty("title", &b.Title, it.IsNotBlank()),
-		validation.StringProperty("author", &b.Author, it.IsNotBlank()),
+		ctx,
+		validation.StringProperty("title", b.Title, it.IsNotBlank()),
+		validation.StringProperty("author", b.Author, it.IsNotBlank()),
 		validation.CountableProperty("keywords", len(b.Keywords), it.HasCountBetween(1, 10)),
 		validation.EachStringProperty("keywords", b.Keywords, it.IsNotBlank()),
 	)
@@ -44,7 +46,7 @@ func HandleBooks(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = validator.WithContext(request.Context()).ValidateValidatable(book)
+	err = validator.Validate(request.Context(), validation.Valid(book))
 	if err != nil {
 		violations, ok := validation.UnwrapViolationList(err)
 		if ok {

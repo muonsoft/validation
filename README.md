@@ -45,9 +45,7 @@ go get -u github.com/muonsoft/validation
 The validation process is built around functional options and passing values by specific typed arguments. A common way to use validation is to call the `validator.Validate` method and pass the argument option with the list of validation constraints.
 
 ```golang
-s := ""
-
-err := validator.Validate(validation.String(&s, it.IsNotBlank()))
+err := validator.Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
 violations := err.(validation.ViolationList)
 for _, violation := range violations {
@@ -61,12 +59,15 @@ List of common [validation arguments](https://pkg.go.dev/github.com/muonsoft/val
 
 * `validation.Value()` - passes any value. It uses reflection to detect the type of the argument and pass it to a specific validation method.
 * `validation.Bool()` - passes boolean value.
+* `validation.NilBool()` - passes nillable boolean value.
 * `validation.Number()` - passes any numeric value. At the moment it uses reflection for executing validation process.
 * `validation.String()` - passes string value.
+* `validation.NilString()` - passes nillable string value.
 * `validation.Strings()` - passes slice of strings value.
 * `validation.Iterable()` - passes array, slice or a map. At the moment it uses reflection for executing validation process.
 * `validation.Countable()` - you can pass result of `len()` to use easy way of iterable validation based only on count of the elements.
 * `validation.Time()` - passes `time.Time` value.
+* `validation.NilTime()` - passes nillable `time.Time` value.
 * `validation.Each()` - passes array, slice or a map. Used to validate each value of iterable. It uses reflection.
 * `validation.EachString()` - passes slice of strings. This is more performant version than `Each`.
 * `validation.Valid()` - passes `Validatable` value to run embedded validation.
@@ -134,11 +135,10 @@ The [property path](https://pkg.go.dev/github.com/muonsoft/validation#PropertyPa
 You can pass a property name or an array index via `validation.PropertyName()` and `validation.ArrayIndex()` options.
 
 ```golang
-s := ""
-
 err := validator.Validate(
+    context.Background(),
     validation.String(
-        &s,
+        "",
         validation.PropertyName("properties"),
         validation.ArrayIndex(1),
         validation.PropertyName("tag"),
@@ -155,13 +155,11 @@ fmt.Println("property path:", violation.GetPropertyPath().Format())
 Also, you can create scoped validator by using `valdiator.AtProperty()` or `validator.AtIndex()` methods. It can be used to validate a couple of attributes of one object.
 
 ```golang
-s := ""
-
 err := validator.
     AtProperty("properties").
     AtIndex(1).
     AtProperty("tag").
-    Validate(validation.String(&s, it.IsNotBlank()))
+    Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
 violation := err.(validation.ViolationList)[0]
 fmt.Println("property path:", violation.GetPropertyPath().Format())
@@ -173,21 +171,23 @@ For a better experience with struct validation, you can use shorthand versions o
 
 * `validation.PropertyValue()`
 * `validation.BoolProperty()`
+* `validation.NilBoolProperty()`
 * `validation.NumberProperty()`
 * `validation.StringProperty()`
+* `validation.NilStringProperty()`
 * `validation.StringsProperty()`
 * `validation.IterableProperty()`
 * `validation.CountableProperty()`
 * `validation.TimeProperty()`
+* `validation.NilTimeProperty()`
 * `validation.EachProperty()`
 * `validation.EachStringProperty()`
 * `validation.ValidProperty()`
 
 ```golang
-s := ""
-
 err := validator.Validate(
-    validation.StringProperty("property", &s, it.IsNotBlank()),
+    context.Background(),
+    validation.StringProperty("property", "", it.IsNotBlank()),
 )
 
 violation := err.(validation.ViolationList)[0]
@@ -207,7 +207,8 @@ document := Document{
 }
 
 err := validator.Validate(
-    validation.StringProperty("title", &document.Title, it.IsNotBlank()),
+    context.Background(),
+    validation.StringProperty("title", document.Title, it.IsNotBlank()),
     validation.CountableProperty("keywords", len(document.Keywords), it.HasCountBetween(5, 10)),
     validation.StringsProperty("keywords", document.Keywords, it.HasUniqueValues()),
     validation.EachStringProperty("keywords", document.Keywords, it.IsNotBlank()),
@@ -234,9 +235,10 @@ type Product struct {
     Components []Component
 }
 
-func (p Product) Validate(validator *validation.Validator) error {
+func (p Product) Validate(ctx context.Context, validator *validation.Validator) error {
     return validator.Validate(
-        validation.StringProperty("name", &p.Name, it.IsNotBlank()),
+        ctx,
+        validation.StringProperty("name", p.Name, it.IsNotBlank()),
         validation.CountableProperty("tags", len(p.Tags), it.HasMinCount(5)),
         validation.StringsProperty("tags", p.Tags, it.HasUniqueValues()),
         validation.EachStringProperty("tags", p.Tags, it.IsNotBlank()),
@@ -251,9 +253,10 @@ type Component struct {
     Tags []string
 }
 
-func (c Component) Validate(validator *validation.Validator) error {
+func (c Component) Validate(ctx context.Context, validator *validation.Validator) error {
     return validator.Validate(
-        validation.StringProperty("name", &c.Name, it.IsNotBlank()),
+        ctx,
+        validation.StringProperty("name", c.Name, it.IsNotBlank()),
         validation.CountableProperty("tags", len(c.Tags), it.HasMinCount(1)),
     )
 }
@@ -270,7 +273,7 @@ func main() {
         },
     }
     
-    err := validator.ValidateValidatable(p)
+    err := validator.ValidateValidatable(context.Background(), p)
     
     violations := err.(validation.ViolationList)
     for _, violation := range violations {
@@ -292,7 +295,8 @@ You can use the `When()` method on any of the built-in constraints to execute co
 
 ```golang
 err := validator.Validate(
-    validation.StringProperty("text", &note.Text, it.IsNotBlank().When(note.IsPublic)),
+    context.Background(),
+    validation.StringProperty("text", note.Text, it.IsNotBlank().When(note.IsPublic)),
 )
 
 violations := err.(validation.ViolationList)
@@ -363,8 +367,7 @@ validator, _ := validation.NewValidator(
     validation.DefaultLanguage(language.Russian),
 )
 
-s := ""
-err := validator.ValidateString(&s, it.IsNotBlank())
+err := validator.ValidateString(context.Background(), "", it.IsNotBlank())
 
 violations := err.(validation.ViolationList)
 for _, violation := range violations {
@@ -381,10 +384,10 @@ validator, _ := validation.NewValidator(
     validation.Translations(russian.Messages),
 )
 
-s := ""
 err := validator.Validate(
+    context.Background(),
     validation.Language(language.Russian),
-    validation.String(&s, it.IsNotBlank()),
+    validation.String("", it.IsNotBlank()),
 )
 
 violations := err.(validation.ViolationList)
@@ -395,7 +398,7 @@ for _, violation := range violations {
 // violation: Значение не должно быть пустым.
 ```
 
-The last way is to pass language via context. It is provided by the `github.com/muonsoft/language` package and can be useful in combination with [language middleware](https://github.com/muonsoft/language/blob/main/middleware.go). You can pass the context by using the `validation.Context()` argument or by creating a scoped validator with the `validator.WithContext()` method.
+The last way is to pass language via context. It is provided by the `github.com/muonsoft/language` package and can be useful in combination with [language middleware](https://github.com/muonsoft/language/blob/main/middleware.go).
 
 ```golang
 // import "github.com/muonsoft/language"
@@ -404,10 +407,8 @@ validator, _ := validation.NewValidator(
     validation.Translations(russian.Messages),
 )
 ctx := language.WithContext(context.Background(), language.Russian)
-validator = validator.WithContext(ctx)
 
-s := ""
-err := validator.ValidateString(&s, it.IsNotBlank())
+err := validator.ValidateString(ctx, "", it.IsNotBlank())
 
 violations := err.(validation.ViolationList)
 for _, violation := range violations {
@@ -424,9 +425,7 @@ You can see the complex example with handling HTTP request [here](https://pkg.go
 You may customize the violation message on any of the built-in constraints by calling the `Message()` method or similar if the constraint has more than one template. Also, you can include template parameters in it. See details of a specific constraint to know what parameters are available.
 
 ```golang
-s := ""
-
-err := validator.ValidateString(&s, it.IsNotBlank().Message("this value is required"))
+err := validator.ValidateString(context.Background(), "", it.IsNotBlank().Message("this value is required"))
 
 violations := err.(validation.ViolationList)
 for _, violation := range violations {
@@ -453,6 +452,7 @@ validator, _ := validation.NewValidator(
 
 var tags []string
 err := validator.ValidateIterable(
+    context.Background(),
     tags,
     validation.Language(language.Russian),
     it.HasMinCount(1).MinMessage(customMessage),

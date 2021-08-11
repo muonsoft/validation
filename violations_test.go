@@ -1,6 +1,7 @@
 package validation_test
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,7 +14,7 @@ import (
 func TestViolation_Error_MessageOnly_ErrorWithMessage(t *testing.T) {
 	validator := newValidator(t)
 
-	violation := validator.BuildViolation("", "message").CreateViolation()
+	violation := validator.BuildViolation(context.Background(), "", "message").CreateViolation()
 
 	assert.Equal(t, "violation: message", violation.Error())
 }
@@ -177,7 +178,7 @@ func TestViolationList_Filter_ViolationsWithCodes_FilteredList(t *testing.T) {
 
 func TestViolation_Error_MessageAndPropertyPath_ErrorWithPropertyPathAndMessage(t *testing.T) {
 	validator := newValidator(t)
-	violation := validator.BuildViolation("", "message").
+	violation := validator.BuildViolation(context.Background(), "", "message").
 		SetPropertyPath(validation.NewPropertyPath(validation.PropertyNameElement("propertyPath"))).
 		CreateViolation()
 
@@ -189,14 +190,14 @@ func TestViolation_Error_MessageAndPropertyPath_ErrorWithPropertyPathAndMessage(
 func TestViolationList_Error_CoupleOfViolations_JoinedMessage(t *testing.T) {
 	validator := newValidator(t)
 	violations := validation.NewViolationList(
-		validator.BuildViolation("", "first message").
+		validator.BuildViolation(context.Background(), "", "first message").
 			SetPropertyPath(
 				validation.NewPropertyPath(
 					validation.PropertyNameElement("path"),
 					validation.ArrayIndexElement(0)),
 			).
 			CreateViolation(),
-		validator.BuildViolation("", "second message").
+		validator.BuildViolation(context.Background(), "", "second message").
 			SetPropertyPath(
 				validation.NewPropertyPath(
 					validation.PropertyNameElement("path"),
@@ -287,7 +288,7 @@ func TestMarshalViolationToJSON(t *testing.T) {
 	}{
 		{
 			name: "full data",
-			violation: validator.BuildViolation("code", "message").
+			violation: validator.BuildViolation(context.Background(), "code", "message").
 				SetParameters(validation.TemplateParameter{Key: "key", Value: "value"}).
 				SetPropertyPath(
 					validation.NewPropertyPath(
@@ -304,7 +305,7 @@ func TestMarshalViolationToJSON(t *testing.T) {
 		},
 		{
 			name:         "empty data",
-			violation:    validator.BuildViolation("", "").CreateViolation(),
+			violation:    validator.BuildViolation(context.Background(), "", "").CreateViolation(),
 			expectedJSON: `{"code": "", "message": ""}`,
 		},
 	}
@@ -335,14 +336,14 @@ func TestMarshalViolationListToJSON(t *testing.T) {
 		{
 			name: "empty data",
 			list: validation.NewViolationList(
-				validator.BuildViolation("", "").CreateViolation(),
+				validator.BuildViolation(context.Background(), "", "").CreateViolation(),
 			),
 			expectedJSON: `[{"code": "", "message": ""}]`,
 		},
 		{
 			name: "one full violation",
 			list: validation.NewViolationList(
-				validator.BuildViolation("code", "message").
+				validator.BuildViolation(context.Background(), "code", "message").
 					SetParameters(validation.TemplateParameter{Key: "key", Value: "value"}).
 					SetPropertyPath(
 						validation.NewPropertyPath(
@@ -363,7 +364,7 @@ func TestMarshalViolationListToJSON(t *testing.T) {
 		{
 			name: "two violations",
 			list: validation.NewViolationList(
-				validator.BuildViolation("code", "message").
+				validator.BuildViolation(context.Background(), "code", "message").
 					SetParameters(validation.TemplateParameter{Key: "key", Value: "value"}).
 					SetPropertyPath(
 						validation.NewPropertyPath(
@@ -372,7 +373,7 @@ func TestMarshalViolationListToJSON(t *testing.T) {
 							validation.PropertyNameElement("name"),
 						),
 					).CreateViolation(),
-				validator.BuildViolation("code", "message").
+				validator.BuildViolation(context.Background(), "code", "message").
 					SetParameters(validation.TemplateParameter{Key: "key", Value: "value"}).
 					SetPropertyPath(
 						validation.NewPropertyPath(
@@ -410,7 +411,7 @@ func TestMarshalViolationListToJSON(t *testing.T) {
 func newViolationWithCode(t *testing.T, code string) validation.Violation {
 	t.Helper()
 	validator := newValidator(t)
-	violation := validator.BuildViolation(code, "").CreateViolation()
+	violation := validator.BuildViolation(context.Background(), code, "").CreateViolation()
 	return violation
 }
 
@@ -419,7 +420,7 @@ func newViolationList(t *testing.T, codes ...string) *validation.ViolationList {
 	validator := newValidator(t)
 	violations := validation.NewViolationList()
 	for _, code := range codes {
-		violation := validator.BuildViolation(code, "").CreateViolation()
+		violation := validator.BuildViolation(context.Background(), code, "").CreateViolation()
 		violations.Append(violation)
 	}
 	return violations

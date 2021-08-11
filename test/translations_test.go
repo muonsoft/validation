@@ -35,7 +35,7 @@ func TestValidator_Validate_WhenRussianIsDefaultLanguage_ExpectViolationTranslat
 	}
 	for _, test := range tests {
 		t.Run("plural form for "+strconv.Itoa(test.maxCount), func(t *testing.T) {
-			err := v.ValidateCountable(10, it.HasMaxCount(test.maxCount))
+			err := v.Validate(context.Background(), validation.Countable(10, it.HasMaxCount(test.maxCount)))
 
 			validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 				t.Helper()
@@ -61,6 +61,7 @@ func TestValidator_Validate_WhenRussianIsPassedViaArgument_ExpectViolationTransl
 	for _, test := range tests {
 		t.Run("plural form for "+strconv.Itoa(test.maxCount), func(t *testing.T) {
 			err := v.Validate(
+				context.Background(),
 				validation.Language(language.Russian),
 				validation.Countable(10, it.HasMaxCount(test.maxCount)),
 			)
@@ -82,8 +83,9 @@ func TestValidator_Validate_WhenCustomDefaultLanguageAndUndefinedTranslationLang
 	)
 
 	err := v.Validate(
+		context.Background(),
 		validation.Language(language.Afrikaans),
-		validation.String(stringValue(""), it.IsNotBlank()),
+		validation.String("", it.IsNotBlank()),
 	)
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
@@ -105,8 +107,8 @@ func TestValidator_Validate_WhenTranslationLanguageInContextArgument_ExpectTrans
 
 	ctx := language.WithContext(context.Background(), language.Russian)
 	err := v.Validate(
-		validation.Context(ctx),
-		validation.String(stringValue(""), it.IsNotBlank()),
+		ctx,
+		validation.String("", it.IsNotBlank()),
 	)
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
@@ -119,7 +121,7 @@ func TestValidator_Validate_WhenTranslationLanguageInContextArgument_ExpectTrans
 func TestValidator_Validate_WhenTranslationLanguageInScopedValidator_ExpectTranslationLanguageUsed(t *testing.T) {
 	v := newValidator(t, validation.Translations(russian.Messages)).WithLanguage(language.Russian)
 
-	err := v.ValidateString(stringValue(""), it.IsNotBlank())
+	err := v.Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
@@ -130,9 +132,9 @@ func TestValidator_Validate_WhenTranslationLanguageInScopedValidator_ExpectTrans
 
 func TestValidator_Validate_WhenTranslationLanguageInContextOfScopedValidator_ExpectTranslationLanguageUsed(t *testing.T) {
 	ctx := language.WithContext(context.Background(), language.Russian)
-	v := newValidator(t, validation.Translations(russian.Messages)).WithContext(ctx)
+	v := newValidator(t, validation.Translations(russian.Messages))
 
-	err := v.ValidateString(stringValue(""), it.IsNotBlank())
+	err := v.Validate(ctx, validation.String("", it.IsNotBlank()))
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
@@ -147,10 +149,7 @@ func TestValidator_Validate_WhenTranslationLanguageParsedFromAcceptLanguageHeade
 	matcher := textlanguage.NewMatcher([]language.Tag{language.Russian})
 	tag, _ := textlanguage.MatchStrings(matcher, "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7")
 	ctx := language.WithContext(context.Background(), tag)
-	err := v.Validate(
-		validation.Context(ctx),
-		validation.String(stringValue(""), it.IsNotBlank()),
-	)
+	err := v.Validate(ctx, validation.String("", it.IsNotBlank()))
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
@@ -167,7 +166,7 @@ func TestValidator_Validate_WhenRecursiveValidation_ExpectViolationTranslated(t 
 	)
 	values := []mockValidatableString{{value: ""}}
 
-	err := v.ValidateIterable(values, it.IsNotBlank())
+	err := v.Validate(context.Background(), validation.Iterable(values, it.IsNotBlank()))
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()
@@ -190,8 +189,9 @@ func TestValidator_Validate_WhenTranslatableParameter_ExpectParameterTranslated(
 
 	v := ""
 	err := validator.Validate(
+		context.Background(),
 		validation.String(
-			&v,
+			v,
 			it.IsNotBlank().
 				Message(
 					"The operation is only possible for the {{ role }}.",
@@ -217,7 +217,7 @@ func TestValidate_WhenTranslationsLoadedAfterInit_ExpectTranslationsWorking(t *t
 	}
 	defer validator.Reset()
 
-	err = validator.ValidateString(stringValue(""), it.IsNotBlank())
+	err = validator.Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
 	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
 		t.Helper()

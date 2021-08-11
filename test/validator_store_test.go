@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/muonsoft/validation"
@@ -13,8 +14,10 @@ import (
 func TestValidator_ValidateBy_WhenConstraintExists_ExpectValidationByStoredConstraint(t *testing.T) {
 	validator := newValidator(t, validation.StoredConstraint("notBlank", it.IsNotBlank()))
 
-	s := ""
-	err := validator.ValidateString(&s, validator.ValidateBy("notBlank"))
+	err := validator.Validate(
+		context.Background(),
+		validation.String("", validator.ValidateBy("notBlank")),
+	)
 
 	assertHasOneViolation(code.NotBlank, message.NotBlank)(t, err)
 }
@@ -22,8 +25,10 @@ func TestValidator_ValidateBy_WhenConstraintExists_ExpectValidationByStoredConst
 func TestValidator_ValidateBy_WhenConstraintDoesNotExist_ExpectError(t *testing.T) {
 	validator := newValidator(t)
 
-	s := ""
-	err := validator.ValidateString(&s, validator.ValidateBy("notBlank"))
+	err := validator.Validate(
+		context.Background(),
+		validation.String("", validator.ValidateBy("notBlank")),
+	)
 
 	assert.EqualError(t, err, `failed to set up constraint "notFoundConstraint": constraint with key "notBlank" is not stored in the validator`)
 }

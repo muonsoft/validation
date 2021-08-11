@@ -1,7 +1,6 @@
 package validation
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -54,7 +53,21 @@ func PropertyValue(name string, value interface{}, options ...Option) Argument {
 }
 
 // Bool argument is used to validate boolean values.
-func Bool(value *bool, options ...Option) Argument {
+func Bool(value bool, options ...Option) Argument {
+	return argumentFunc(func(arguments *Arguments) error {
+		arguments.addValidator(newBoolValidator(&value, options))
+
+		return nil
+	})
+}
+
+// BoolProperty argument is an alias for Bool that automatically adds property name to the current scope.
+func BoolProperty(name string, value bool, options ...Option) Argument {
+	return Bool(value, append([]Option{PropertyName(name)}, options...)...)
+}
+
+// NilBool argument is used to validate nillable boolean values.
+func NilBool(value *bool, options ...Option) Argument {
 	return argumentFunc(func(arguments *Arguments) error {
 		arguments.addValidator(newBoolValidator(value, options))
 
@@ -62,9 +75,9 @@ func Bool(value *bool, options ...Option) Argument {
 	})
 }
 
-// BoolProperty argument is an alias for Bool that automatically adds property name to the current scope.
-func BoolProperty(name string, value *bool, options ...Option) Argument {
-	return Bool(value, append([]Option{PropertyName(name)}, options...)...)
+// NilBoolProperty argument is an alias for NilBool that automatically adds property name to the current scope.
+func NilBoolProperty(name string, value *bool, options ...Option) Argument {
+	return NilBool(value, append([]Option{PropertyName(name)}, options...)...)
 }
 
 // Number argument is used to validate numbers (any types of integers or floats). At the moment it uses
@@ -90,7 +103,21 @@ func NumberProperty(name string, value interface{}, options ...Option) Argument 
 }
 
 // String argument is used to validate strings.
-func String(value *string, options ...Option) Argument {
+func String(value string, options ...Option) Argument {
+	return argumentFunc(func(arguments *Arguments) error {
+		arguments.addValidator(newStringValidator(&value, options))
+
+		return nil
+	})
+}
+
+// StringProperty argument is an alias for String that automatically adds property name to the current scope.
+func StringProperty(name string, value string, options ...Option) Argument {
+	return String(value, append([]Option{PropertyName(name)}, options...)...)
+}
+
+// NilString argument is used to validate nillable strings.
+func NilString(value *string, options ...Option) Argument {
 	return argumentFunc(func(arguments *Arguments) error {
 		arguments.addValidator(newStringValidator(value, options))
 
@@ -98,9 +125,9 @@ func String(value *string, options ...Option) Argument {
 	})
 }
 
-// StringProperty argument is an alias for String that automatically adds property name to the current scope.
-func StringProperty(name string, value *string, options ...Option) Argument {
-	return String(value, append([]Option{PropertyName(name)}, options...)...)
+// NilStringProperty argument is an alias for NilString that automatically adds property name to the current scope.
+func NilStringProperty(name string, value *string, options ...Option) Argument {
+	return NilString(value, append([]Option{PropertyName(name)}, options...)...)
 }
 
 // Strings argument is used to validate slice of strings.
@@ -156,7 +183,21 @@ func CountableProperty(name string, count int, options ...Option) Argument {
 }
 
 // Time argument is used to validate time.Time value.
-func Time(value *time.Time, options ...Option) Argument {
+func Time(value time.Time, options ...Option) Argument {
+	return argumentFunc(func(arguments *Arguments) error {
+		arguments.addValidator(newTimeValidator(&value, options))
+
+		return nil
+	})
+}
+
+// TimeProperty argument is an alias for Time that automatically adds property name to the current scope.
+func TimeProperty(name string, value time.Time, options ...Option) Argument {
+	return Time(value, append([]Option{PropertyName(name)}, options...)...)
+}
+
+// NilTime argument is used to validate nillable time.Time value.
+func NilTime(value *time.Time, options ...Option) Argument {
 	return argumentFunc(func(arguments *Arguments) error {
 		arguments.addValidator(newTimeValidator(value, options))
 
@@ -164,9 +205,9 @@ func Time(value *time.Time, options ...Option) Argument {
 	})
 }
 
-// TimeProperty argument is an alias for Time that automatically adds property name to the current scope.
-func TimeProperty(name string, value *time.Time, options ...Option) Argument {
-	return Time(value, append([]Option{PropertyName(name)}, options...)...)
+// NilTimeProperty argument is an alias for NilTime that automatically adds property name to the current scope.
+func NilTimeProperty(name string, value *time.Time, options ...Option) Argument {
+	return NilTime(value, append([]Option{PropertyName(name)}, options...)...)
 }
 
 // Each is used to validate each value of iterable (array, slice, or map). At the moment it uses reflection
@@ -220,21 +261,6 @@ func Valid(value Validatable, options ...Option) Argument {
 // ValidProperty argument is an alias for Valid that automatically adds property name to the current scope.
 func ValidProperty(name string, value Validatable, options ...Option) Argument {
 	return Valid(value, append([]Option{PropertyName(name)}, options...)...)
-}
-
-// Context can be used to pass context to validation constraints via scope.
-//
-// Example
-//  err := validator.Validate(
-//      Context(request.Context()),
-//      String(&s, it.IsNotBlank()), // now all called constraints will use passed context in their methods
-//  )
-func Context(ctx context.Context) Argument {
-	return argumentFunc(func(arguments *Arguments) error {
-		arguments.scope.context = ctx
-
-		return nil
-	})
 }
 
 // Language argument sets the current language for translation of a violation message.

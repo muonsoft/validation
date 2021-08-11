@@ -1,6 +1,7 @@
 package validation_test
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 
@@ -46,7 +47,8 @@ func ExampleValidator_Validate_customConstraint() {
 	s := "alpha"
 
 	err := validator.Validate(
-		validation.String(&s, it.IsNotBlank(), IsNumeric()),
+		context.Background(),
+		validation.String(s, it.IsNotBlank(), IsNumeric()),
 	)
 
 	fmt.Println(err)

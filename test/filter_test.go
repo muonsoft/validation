@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -17,7 +18,7 @@ func TestFilter_WhenNoViolations_ExpectNil(t *testing.T) {
 }
 
 func TestFilter_WhenSingleViolation_ExpectViolationInList(t *testing.T) {
-	violation := validator.BuildViolation("code", "message").CreateViolation()
+	violation := validator.BuildViolation(context.Background(), "code", "message").CreateViolation()
 	wrapped := fmt.Errorf("error: %w", violation)
 
 	err := validation.Filter(nil, wrapped)
@@ -29,7 +30,7 @@ func TestFilter_WhenSingleViolation_ExpectViolationInList(t *testing.T) {
 }
 
 func TestFilter_WhenViolationList_ExpectViolationsInList(t *testing.T) {
-	violation := validator.BuildViolation("code", "message").CreateViolation()
+	violation := validator.BuildViolation(context.Background(), "code", "message").CreateViolation()
 	violations := validation.NewViolationList(violation)
 	wrapped := fmt.Errorf("error: %w", violations)
 

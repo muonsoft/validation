@@ -19,7 +19,7 @@ import (
 
 func ExampleValue() {
 	v := ""
-	err := validator.Validate(validation.Value(v, it.IsNotBlank()))
+	err := validator.Validate(context.Background(), validation.Value(v, it.IsNotBlank()))
 	fmt.Println(err)
 	// Output:
 	// violation: This value should not be blank.
@@ -28,6 +28,7 @@ func ExampleValue() {
 func ExamplePropertyValue() {
 	v := Book{Title: ""}
 	err := validator.Validate(
+		context.Background(),
 		validation.PropertyValue("title", v.Title, it.IsNotBlank()),
 	)
 	fmt.Println(err)
@@ -37,7 +38,7 @@ func ExamplePropertyValue() {
 
 func ExampleBool() {
 	v := false
-	err := validator.Validate(validation.Bool(&v, it.IsTrue()))
+	err := validator.Validate(context.Background(), validation.Bool(v, it.IsTrue()))
 	fmt.Println(err)
 	// Output:
 	// violation: This value should be true.
@@ -50,7 +51,31 @@ func ExampleBoolProperty() {
 		IsPublished: false,
 	}
 	err := validator.Validate(
-		validation.BoolProperty("isPublished", &v.IsPublished, it.IsTrue()),
+		context.Background(),
+		validation.BoolProperty("isPublished", v.IsPublished, it.IsTrue()),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation at 'isPublished': This value should be true.
+}
+
+func ExampleNilBool() {
+	v := false
+	err := validator.Validate(context.Background(), validation.NilBool(&v, it.IsTrue()))
+	fmt.Println(err)
+	// Output:
+	// violation: This value should be true.
+}
+
+func ExampleNilBoolProperty() {
+	v := struct {
+		IsPublished bool
+	}{
+		IsPublished: false,
+	}
+	err := validator.Validate(
+		context.Background(),
+		validation.NilBoolProperty("isPublished", &v.IsPublished, it.IsTrue()),
 	)
 	fmt.Println(err)
 	// Output:
@@ -59,7 +84,10 @@ func ExampleBoolProperty() {
 
 func ExampleNumber() {
 	v := 5
-	err := validator.Validate(validation.Number(&v, it.IsGreaterThanInteger(5)))
+	err := validator.Validate(
+		context.Background(),
+		validation.Number(&v, it.IsGreaterThanInteger(5)),
+	)
 	fmt.Println(err)
 	// Output:
 	// violation: This value should be greater than 5.
@@ -72,6 +100,7 @@ func ExampleNumberProperty() {
 		Count: 5,
 	}
 	err := validator.Validate(
+		context.Background(),
 		validation.NumberProperty("count", &v.Count, it.IsGreaterThanInteger(5)),
 	)
 	fmt.Println(err)
@@ -81,7 +110,10 @@ func ExampleNumberProperty() {
 
 func ExampleString() {
 	v := ""
-	err := validator.Validate(validation.String(&v, it.IsNotBlank()))
+	err := validator.Validate(
+		context.Background(),
+		validation.String(v, it.IsNotBlank()),
+	)
 	fmt.Println(err)
 	// Output:
 	// violation: This value should not be blank.
@@ -90,7 +122,30 @@ func ExampleString() {
 func ExampleStringProperty() {
 	v := Book{Title: ""}
 	err := validator.Validate(
-		validation.StringProperty("title", &v.Title, it.IsNotBlank()),
+		context.Background(),
+		validation.StringProperty("title", v.Title, it.IsNotBlank()),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation at 'title': This value should not be blank.
+}
+
+func ExampleNilString() {
+	v := ""
+	err := validator.Validate(
+		context.Background(),
+		validation.NilString(&v, it.IsNotBlank()),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation: This value should not be blank.
+}
+
+func ExampleNilStringProperty() {
+	v := Book{Title: ""}
+	err := validator.Validate(
+		context.Background(),
+		validation.NilStringProperty("title", &v.Title, it.IsNotBlank()),
 	)
 	fmt.Println(err)
 	// Output:
@@ -100,6 +155,7 @@ func ExampleStringProperty() {
 func ExampleStrings() {
 	v := []string{"foo", "bar", "baz", "foo"}
 	err := validator.Validate(
+		context.Background(),
 		validation.Strings(v, it.HasUniqueValues()),
 	)
 	fmt.Println(err)
@@ -110,6 +166,7 @@ func ExampleStrings() {
 func ExampleStringsProperty() {
 	v := Book{Keywords: []string{"foo", "bar", "baz", "foo"}}
 	err := validator.Validate(
+		context.Background(),
 		validation.StringsProperty("keywords", v.Keywords, it.HasUniqueValues()),
 	)
 	fmt.Println(err)
@@ -119,7 +176,10 @@ func ExampleStringsProperty() {
 
 func ExampleIterable() {
 	v := make([]string, 0)
-	err := validator.Validate(validation.Iterable(v, it.IsNotBlank()))
+	err := validator.Validate(
+		context.Background(),
+		validation.Iterable(v, it.IsNotBlank()),
+	)
 	fmt.Println(err)
 	// Output:
 	// violation: This value should not be blank.
@@ -128,6 +188,7 @@ func ExampleIterable() {
 func ExampleIterableProperty() {
 	v := Product{Tags: []string{}}
 	err := validator.Validate(
+		context.Background(),
 		validation.IterableProperty("tags", v.Tags, it.IsNotBlank()),
 	)
 	fmt.Println(err)
@@ -137,7 +198,10 @@ func ExampleIterableProperty() {
 
 func ExampleCountable() {
 	s := []string{"a", "b"}
-	err := validator.Validate(validation.Countable(len(s), it.HasMinCount(3)))
+	err := validator.Validate(
+		context.Background(),
+		validation.Countable(len(s), it.HasMinCount(3)),
+	)
 	fmt.Println(err)
 	// Output:
 	// violation: This collection should contain 3 elements or more.
@@ -146,6 +210,7 @@ func ExampleCountable() {
 func ExampleCountableProperty() {
 	v := Product{Tags: []string{"a", "b"}}
 	err := validator.Validate(
+		context.Background(),
 		validation.CountableProperty("tags", len(v.Tags), it.HasMinCount(3)),
 	)
 	fmt.Println(err)
@@ -157,7 +222,8 @@ func ExampleTime() {
 	t := time.Now()
 	compared, _ := time.Parse(time.RFC3339, "2006-01-02T15:00:00Z")
 	err := validator.Validate(
-		validation.Time(&t, it.IsEarlierThan(compared)),
+		context.Background(),
+		validation.Time(t, it.IsEarlierThan(compared)),
 	)
 	fmt.Println(err)
 	// Output:
@@ -172,7 +238,36 @@ func ExampleTimeProperty() {
 	}
 	compared, _ := time.Parse(time.RFC3339, "2006-01-02T15:00:00Z")
 	err := validator.Validate(
-		validation.TimeProperty("createdAt", &v.CreatedAt, it.IsEarlierThan(compared)),
+		context.Background(),
+		validation.TimeProperty("createdAt", v.CreatedAt, it.IsEarlierThan(compared)),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation at 'createdAt': This value should be earlier than 2006-01-02T15:00:00Z.
+}
+
+func ExampleNilTime() {
+	t := time.Now()
+	compared, _ := time.Parse(time.RFC3339, "2006-01-02T15:00:00Z")
+	err := validator.Validate(
+		context.Background(),
+		validation.NilTime(&t, it.IsEarlierThan(compared)),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation: This value should be earlier than 2006-01-02T15:00:00Z.
+}
+
+func ExampleNilTimeProperty() {
+	v := struct {
+		CreatedAt time.Time
+	}{
+		CreatedAt: time.Now(),
+	}
+	compared, _ := time.Parse(time.RFC3339, "2006-01-02T15:00:00Z")
+	err := validator.Validate(
+		context.Background(),
+		validation.NilTimeProperty("createdAt", &v.CreatedAt, it.IsEarlierThan(compared)),
 	)
 	fmt.Println(err)
 	// Output:
@@ -181,7 +276,10 @@ func ExampleTimeProperty() {
 
 func ExampleEach() {
 	v := []string{""}
-	err := validator.Validate(validation.Each(v, it.IsNotBlank()))
+	err := validator.Validate(
+		context.Background(),
+		validation.Each(v, it.IsNotBlank()),
+	)
 	fmt.Println(err)
 	// Output:
 	// violation at '[0]': This value should not be blank.
@@ -190,6 +288,7 @@ func ExampleEach() {
 func ExampleEachProperty() {
 	v := Product{Tags: []string{""}}
 	err := validator.Validate(
+		context.Background(),
 		validation.EachProperty("tags", v.Tags, it.IsNotBlank()),
 	)
 	fmt.Println(err)
@@ -199,7 +298,10 @@ func ExampleEachProperty() {
 
 func ExampleEachString() {
 	v := []string{""}
-	err := validator.Validate(validation.EachString(v, it.IsNotBlank()))
+	err := validator.Validate(
+		context.Background(),
+		validation.EachString(v, it.IsNotBlank()),
+	)
 	fmt.Println(err)
 	// Output:
 	// violation at '[0]': This value should not be blank.
@@ -208,6 +310,7 @@ func ExampleEachString() {
 func ExampleEachStringProperty() {
 	v := Product{Tags: []string{""}}
 	err := validator.Validate(
+		context.Background(),
 		validation.EachStringProperty("tags", v.Tags, it.IsNotBlank()),
 	)
 	fmt.Println(err)
@@ -227,7 +330,7 @@ func ExampleNewCustomStringConstraint() {
 	)
 
 	s := "foo"
-	err := validator.ValidateString(&s, constraint)
+	err := validator.Validate(context.Background(), validation.String(s, constraint))
 
 	fmt.Println(err)
 	// Output:
@@ -249,14 +352,15 @@ func ExampleWhen() {
 	}
 
 	err := validator.Validate(
+		context.Background(),
 		validation.StringProperty(
 			"cardType",
-			&payment.CardType,
+			payment.CardType,
 			it.IsOneOfStrings("Visa", "MasterCard"),
 		),
 		validation.StringProperty(
 			"cardNumber",
-			&payment.CardNumber,
+			payment.CardNumber,
 			validation.
 				When(payment.CardType == "Visa").
 				Then(it.Matches(visaRegex)).
@@ -271,12 +375,12 @@ func ExampleWhen() {
 
 func ExampleConditionalConstraint_Then() {
 	v := "foo"
-	err := validator.ValidateString(
-		&v,
-		validation.When(true).
-			Then(
-				it.Matches(regexp.MustCompile(`^\w+$`)),
-			),
+	err := validator.Validate(
+		context.Background(),
+		validation.String(
+			v,
+			validation.When(true).Then(it.Matches(regexp.MustCompile(`^\w+$`))),
+		),
 	)
 	fmt.Println(err)
 	// Output:
@@ -285,15 +389,14 @@ func ExampleConditionalConstraint_Then() {
 
 func ExampleConditionalConstraint_Else() {
 	v := "123"
-	err := validator.ValidateString(
-		&v,
-		validation.When(false).
-			Then(
-				it.Matches(regexp.MustCompile(`^\w+$`)),
-			).
-			Else(
-				it.Matches(regexp.MustCompile(`^\d+$`)),
-			),
+	err := validator.Validate(
+		context.Background(),
+		validation.String(
+			v,
+			validation.When(false).
+				Then(it.Matches(regexp.MustCompile(`^\w+$`))).
+				Else(it.Matches(regexp.MustCompile(`^\d+$`))),
+		),
 	)
 	fmt.Println(err)
 	// Output:
@@ -303,11 +406,14 @@ func ExampleConditionalConstraint_Else() {
 func ExampleSequentially() {
 	title := "bar"
 
-	err := validator.ValidateString(
-		&title,
-		validation.Sequentially(
-			it.IsBlank(),
-			it.HasMinLength(5),
+	err := validator.Validate(
+		context.Background(),
+		validation.String(
+			title,
+			validation.Sequentially(
+				it.IsBlank(),       // validation will fail on first constraint
+				it.HasMinLength(5), // this constraint will be ignored
+			),
 		),
 	)
 
@@ -319,11 +425,14 @@ func ExampleSequentially() {
 func ExampleAtLeastOneOf() {
 	title := "bar"
 
-	err := validator.ValidateString(
-		&title,
-		validation.AtLeastOneOf(
-			it.IsBlank(),
-			it.HasMinLength(5),
+	err := validator.Validate(
+		context.Background(),
+		validation.String(
+			title,
+			validation.AtLeastOneOf(
+				it.IsBlank(),
+				it.HasMinLength(5),
+			),
 		),
 	)
 
@@ -341,9 +450,9 @@ func ExampleCompound() {
 	title := "bar"
 	isEmail := validation.Compound(it.IsEmail(), it.HasLengthBetween(5, 200))
 
-	err := validator.ValidateString(
-		&title,
-		isEmail,
+	err := validator.Validate(
+		context.Background(),
+		validation.String(title, isEmail),
 	)
 
 	if violations, ok := validation.UnwrapViolationList(err); ok {
@@ -363,7 +472,7 @@ func ExampleValidator_Validate_basicValidation() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = validator.Validate(validation.String(&s, it.IsNotBlank()))
+	err = validator.Validate(context.Background(), validation.String(s, it.IsNotBlank()))
 
 	fmt.Println(err)
 	// Output:
@@ -373,7 +482,7 @@ func ExampleValidator_Validate_basicValidation() {
 func ExampleValidator_Validate_singletonValidator() {
 	s := ""
 
-	err := validator.Validate(validation.String(&s, it.IsNotBlank()))
+	err := validator.Validate(context.Background(), validation.String(s, it.IsNotBlank()))
 
 	fmt.Println(err)
 	// Output:
@@ -381,9 +490,7 @@ func ExampleValidator_Validate_singletonValidator() {
 }
 
 func ExampleValidator_ValidateString_shorthandAlias() {
-	s := ""
-
-	err := validator.ValidateString(&s, it.IsNotBlank())
+	err := validator.ValidateString(context.Background(), "", it.IsNotBlank())
 
 	fmt.Println(err)
 	// Output:
@@ -400,7 +507,8 @@ func ExampleValidator_Validate_basicStructValidation() {
 	}
 
 	err := validator.Validate(
-		validation.StringProperty("title", &document.Title, it.IsNotBlank()),
+		context.Background(),
+		validation.StringProperty("title", document.Title, it.IsNotBlank()),
 		validation.CountableProperty("keywords", len(document.Keywords), it.HasCountBetween(5, 10)),
 		validation.StringsProperty("keywords", document.Keywords, it.HasUniqueValues()),
 		validation.EachStringProperty("keywords", document.Keywords, it.IsNotBlank()),
@@ -430,8 +538,9 @@ func ExampleValidator_Validate_conditionalValidationOnConstraint() {
 
 	for i, note := range notes {
 		err := validator.Validate(
-			validation.StringProperty("name", &note.Title, it.IsNotBlank()),
-			validation.StringProperty("text", &note.Text, it.IsNotBlank().When(note.IsPublic)),
+			context.Background(),
+			validation.StringProperty("name", note.Title, it.IsNotBlank()),
+			validation.StringProperty("text", note.Text, it.IsNotBlank().When(note.IsPublic)),
 		)
 		if violations, ok := validation.UnwrapViolationList(err); ok {
 			for violation := violations.First(); violation != nil; violation = violation.Next() {
@@ -448,8 +557,9 @@ func ExampleValidator_Validate_passingPropertyPathViaOptions() {
 	s := ""
 
 	err := validator.Validate(
+		context.Background(),
 		validation.String(
-			&s,
+			s,
 			validation.PropertyName("properties"),
 			validation.ArrayIndex(1),
 			validation.PropertyName("tag"),
@@ -470,7 +580,7 @@ func ExampleValidator_Validate_propertyPathWithScopedValidator() {
 		AtProperty("properties").
 		AtIndex(1).
 		AtProperty("tag").
-		Validate(validation.String(&s, it.IsNotBlank()))
+		Validate(context.Background(), validation.String(s, it.IsNotBlank()))
 
 	violation := err.(*validation.ViolationList).First()
 	fmt.Println("property path:", violation.PropertyPath().String())
@@ -482,9 +592,10 @@ func ExampleValidator_Validate_propertyPathBySpecialArgument() {
 	s := ""
 
 	err := validator.Validate(
+		context.Background(),
 		// this is an alias for
 		// validation.String(&s, validation.PropertyName("property"), it.IsNotBlank()),
-		validation.StringProperty("property", &s, it.IsNotBlank()),
+		validation.StringProperty("property", s, it.IsNotBlank()),
 	)
 
 	violation := err.(*validation.ViolationList).First()
@@ -497,7 +608,8 @@ func ExampleValidator_AtProperty() {
 	book := &Book{Title: ""}
 
 	err := validator.AtProperty("book").Validate(
-		validation.StringProperty("title", &book.Title, it.IsNotBlank()),
+		context.Background(),
+		validation.StringProperty("title", book.Title, it.IsNotBlank()),
 	)
 
 	violation := err.(*validation.ViolationList).First()
@@ -510,7 +622,8 @@ func ExampleValidator_AtIndex() {
 	books := []Book{{Title: ""}}
 
 	err := validator.AtIndex(0).Validate(
-		validation.StringProperty("title", &books[0].Title, it.IsNotBlank()),
+		context.Background(),
+		validation.StringProperty("title", books[0].Title, it.IsNotBlank()),
 	)
 
 	violation := err.(*validation.ViolationList).First()
@@ -529,7 +642,7 @@ func ExampleValidator_Validate_translationsByDefaultLanguage() {
 	}
 
 	s := ""
-	err = validator.ValidateString(&s, it.IsNotBlank())
+	err = validator.Validate(context.Background(), validation.String(s, it.IsNotBlank()))
 
 	fmt.Println(err)
 	// Output:
@@ -546,8 +659,9 @@ func ExampleValidator_Validate_translationsByArgument() {
 
 	s := ""
 	err = validator.Validate(
+		context.Background(),
 		validation.Language(language.Russian),
-		validation.String(&s, it.IsNotBlank()),
+		validation.String(s, it.IsNotBlank()),
 	)
 
 	fmt.Println(err)
@@ -566,27 +680,9 @@ func ExampleValidator_Validate_translationsByContextArgument() {
 	s := ""
 	ctx := language.WithContext(context.Background(), language.Russian)
 	err = validator.Validate(
-		validation.Context(ctx),
-		validation.String(&s, it.IsNotBlank()),
+		ctx,
+		validation.String(s, it.IsNotBlank()),
 	)
-
-	fmt.Println(err)
-	// Output:
-	// violation: Значение не должно быть пустым.
-}
-
-func ExampleValidator_Validate_translationsByContextValidator() {
-	validator, err := validation.NewValidator(
-		validation.Translations(russian.Messages),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-	ctx := language.WithContext(context.Background(), language.Russian)
-	validator = validator.WithContext(ctx)
-
-	s := ""
-	err = validator.ValidateString(&s, it.IsNotBlank())
 
 	fmt.Println(err)
 	// Output:
@@ -596,7 +692,10 @@ func ExampleValidator_Validate_translationsByContextValidator() {
 func ExampleValidator_Validate_customizingErrorMessage() {
 	s := ""
 
-	err := validator.ValidateString(&s, it.IsNotBlank().Message("this value is required"))
+	err := validator.Validate(
+		context.Background(),
+		validation.String(s, it.IsNotBlank().Message("this value is required")),
+	)
 
 	fmt.Println(err)
 	// Output:
@@ -621,6 +720,7 @@ func ExampleValidator_Validate_translationForCustomMessage() {
 
 	var tags []string
 	err = validator.Validate(
+		context.Background(),
 		validation.Language(language.Russian),
 		validation.Iterable(tags, it.HasMinCount(1).MinMessage(customMessage)),
 	)
@@ -636,7 +736,7 @@ func ExampleValidator_BuildViolation_buildingViolation() {
 		log.Fatal(err)
 	}
 
-	violation := validator.BuildViolation("clientCode", "Client message with {{ parameter }}.").
+	violation := validator.BuildViolation(context.Background(), "clientCode", "Client message with {{ parameter }}.").
 		AddParameter("{{ parameter }}", "value").
 		CreateViolation()
 
@@ -659,7 +759,7 @@ func ExampleValidator_BuildViolation_translatableParameter() {
 	}
 
 	violation := validator.WithLanguage(language.Russian).
-		BuildViolation("clientCode", "The operation is only possible for the {{ role }}.").
+		BuildViolation(context.Background(), "clientCode", "The operation is only possible for the {{ role }}.").
 		SetParameters(validation.TemplateParameter{
 			Key:              "{{ role }}",
 			Value:            "administrator role",
@@ -674,8 +774,8 @@ func ExampleValidator_BuildViolation_translatableParameter() {
 
 func ExampleViolationList_First() {
 	violations := validation.NewViolationList(
-		validator.BuildViolation("", "foo").CreateViolation(),
-		validator.BuildViolation("", "bar").CreateViolation(),
+		validator.BuildViolation(context.Background(), "", "foo").CreateViolation(),
+		validator.BuildViolation(context.Background(), "", "bar").CreateViolation(),
 	)
 
 	for violation := violations.First(); violation != nil; violation = violation.Next() {
@@ -688,7 +788,7 @@ func ExampleViolationList_First() {
 
 func ExampleViolationList_AppendFromError_addingViolation() {
 	violations := validation.NewViolationList()
-	err := validator.BuildViolation("", "foo").CreateViolation()
+	err := validator.BuildViolation(context.Background(), "", "foo").CreateViolation()
 
 	appendErr := violations.AppendFromError(err)
 
@@ -702,8 +802,8 @@ func ExampleViolationList_AppendFromError_addingViolation() {
 func ExampleViolationList_AppendFromError_addingViolationList() {
 	violations := validation.NewViolationList()
 	err := validation.NewViolationList(
-		validator.BuildViolation("", "foo").CreateViolation(),
-		validator.BuildViolation("", "bar").CreateViolation(),
+		validator.BuildViolation(context.Background(), "", "foo").CreateViolation(),
+		validator.BuildViolation(context.Background(), "", "bar").CreateViolation(),
 	)
 
 	appendErr := violations.AppendFromError(err)

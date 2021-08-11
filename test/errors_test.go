@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -10,7 +11,7 @@ import (
 )
 
 func TestValidator_Validate_WhenNotSupportedType_ExpectError(t *testing.T) {
-	err := validator.Validate(validation.Value(func() {}))
+	err := validator.Validate(context.Background(), validation.Value(func() {}))
 
 	var notValidatable *validation.NotValidatableError
 	assert.True(t, errors.As(err, &notValidatable))

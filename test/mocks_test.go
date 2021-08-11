@@ -1,11 +1,12 @@
 package test
 
 import (
+	"context"
+	"time"
+
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/it"
 	"golang.org/x/text/language"
-
-	"time"
 )
 
 var (
@@ -19,12 +20,6 @@ var (
 	emptySlice []string
 	emptyMap   map[string]string
 	emptyTime  time.Time
-)
-
-type contextKey string
-
-const (
-	defaultContextKey contextKey = "defaultContextKey"
 )
 
 func boolValue(b bool) *bool {
@@ -114,10 +109,11 @@ type mockValidatableString struct {
 	value string
 }
 
-func (mock mockValidatableString) Validate(validator *validation.Validator) error {
+func (mock mockValidatableString) Validate(ctx context.Context, validator *validation.Validator) error {
 	return validator.Validate(
+		ctx,
 		validation.String(
-			&mock.value,
+			mock.value,
 			validation.PropertyName("value"),
 			it.IsNotBlank(),
 		),
@@ -131,8 +127,9 @@ type mockValidatableStruct struct {
 	structValue mockValidatableString
 }
 
-func (mock mockValidatableStruct) Validate(validator *validation.Validator) error {
+func (mock mockValidatableStruct) Validate(ctx context.Context, validator *validation.Validator) error {
 	return validator.Validate(
+		ctx,
 		validation.Number(
 			mock.intValue,
 			validation.PropertyName("intValue"),
@@ -144,7 +141,7 @@ func (mock mockValidatableStruct) Validate(validator *validation.Validator) erro
 			it.IsNotBlank(),
 		),
 		validation.String(
-			&mock.stringValue,
+			mock.stringValue,
 			validation.PropertyName("stringValue"),
 			it.IsNotBlank(),
 		),
