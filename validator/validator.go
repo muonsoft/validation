@@ -105,11 +105,6 @@ func ValidateBy(constraintKey string) validation.Constraint {
 
 // WithLanguage method creates a new scoped validator with a given language tag. All created violations
 // will be translated into this language.
-//
-// Example
-//  err := validator.WithLanguage(language.Russian).Validate(
-//      validation.ValidateString(&s, it.IsNotBlank()), // violation from this constraint will be translated
-//  )
 func WithLanguage(tag language.Tag) *validation.Validator {
 	return validator.WithLanguage(tag)
 }
@@ -125,11 +120,6 @@ func AtIndex(index int) *validation.Validator {
 }
 
 // BuildViolation can be used to build a custom violation on the client-side.
-//
-// Example
-//  err := validator.BuildViolation(context.Background(), "", "").
-//      AddParameter("key", "value").
-//      CreateViolation()
 func BuildViolation(ctx context.Context, code, message string) *validation.ViolationBuilder {
 	return validator.BuildViolation(ctx, code, message)
 }

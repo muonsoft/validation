@@ -26,10 +26,6 @@ type NumberComparisonConstraint struct {
 // IsEqualToInteger checks that the number (integer or float) is equal to the specified integer value.
 // Values are compared as integers if the compared and specified values are integers.
 // Otherwise, numbers are always compared as floating point numbers.
-//
-// Example
-//  v := 1
-//  err := validator.ValidateNumber(&v, it.IsEqualToInteger(2))
 func IsEqualToInteger(value int64) NumberComparisonConstraint {
 	v := generic.NewNumberFromInt(value)
 
@@ -46,10 +42,6 @@ func IsEqualToInteger(value int64) NumberComparisonConstraint {
 // IsEqualToFloat checks that the number (integer or float) is equal to the specified float value.
 // Values are compared as integers if the compared and specified values are integers.
 // Otherwise, numbers are always compared as floating point numbers.
-//
-// Example
-//  v := 1.1
-//  err := validator.ValidateNumber(&v, it.IsEqualToFloat(1.2))
 func IsEqualToFloat(value float64) NumberComparisonConstraint {
 	v := generic.NewNumberFromFloat(value)
 
@@ -66,10 +58,6 @@ func IsEqualToFloat(value float64) NumberComparisonConstraint {
 // IsNotEqualToInteger checks that the number (integer or float) is not equal to the specified integer value.
 // Values are compared as integers if the compared and specified values are integers.
 // Otherwise, numbers are always compared as floating point numbers.
-//
-// Example
-//  v := 1
-//  err := validator.ValidateNumber(&v, it.IsNotEqualToInteger(1))
 func IsNotEqualToInteger(value int64) NumberComparisonConstraint {
 	v := generic.NewNumberFromInt(value)
 
@@ -86,10 +74,6 @@ func IsNotEqualToInteger(value int64) NumberComparisonConstraint {
 // IsNotEqualToFloat checks that the number (integer or float) is not equal to the specified float value.
 // Values are compared as integers if the compared and specified values are integers.
 // Otherwise, numbers are always compared as floating point numbers.
-//
-// Example
-//  v := 1.1
-//  err := validator.ValidateNumber(&v, it.IsNotEqualToFloat(1.1))
 func IsNotEqualToFloat(value float64) NumberComparisonConstraint {
 	v := generic.NewNumberFromFloat(value)
 
@@ -106,10 +90,6 @@ func IsNotEqualToFloat(value float64) NumberComparisonConstraint {
 // IsLessThanInteger checks that the number (integer or float) is less than the specified integer value.
 // Values are compared as integers if the compared and specified values are integers.
 // Otherwise, numbers are always compared as floating point numbers.
-//
-// Example
-//  v := 1
-//  err := validator.ValidateNumber(&v, it.IsLessThanInteger(1))
 func IsLessThanInteger(value int64) NumberComparisonConstraint {
 	v := generic.NewNumberFromInt(value)
 
@@ -126,10 +106,6 @@ func IsLessThanInteger(value int64) NumberComparisonConstraint {
 // IsLessThanFloat checks that the number (integer or float) is less than the specified float value.
 // Values are compared as integers if the compared and specified values are integers.
 // Otherwise, numbers are always compared as floating point numbers.
-//
-// Example
-//  v := 1.1
-//  err := validator.ValidateNumber(&v, it.IsLessThanFloat(1.1))
 func IsLessThanFloat(value float64) NumberComparisonConstraint {
 	v := generic.NewNumberFromFloat(value)
 
@@ -146,10 +122,6 @@ func IsLessThanFloat(value float64) NumberComparisonConstraint {
 // IsLessThanOrEqualInteger checks that the number (integer or float) is less than or
 // equal to the specified integer value. Values are compared as integers if the compared
 // and specified values are integers. Otherwise, numbers are always compared as floating point numbers.
-//
-// Example
-//  v := 1
-//  err := validator.ValidateNumber(&v, it.IsLessThanOrEqualInteger(2))
 func IsLessThanOrEqualInteger(value int64) NumberComparisonConstraint {
 	v := generic.NewNumberFromInt(value)
 
@@ -166,10 +138,6 @@ func IsLessThanOrEqualInteger(value int64) NumberComparisonConstraint {
 // IsLessThanOrEqualFloat checks that the number (integer or float) is less than or
 // equal to the specified float value. Values are compared as integers if the compared
 // and specified values are integers. Otherwise, numbers are always compared as floating point numbers.
-//
-// Example
-//  v := 1.1
-//  err := validator.ValidateNumber(&v, it.IsLessThanOrEqualFloat(1.2))
 func IsLessThanOrEqualFloat(value float64) NumberComparisonConstraint {
 	v := generic.NewNumberFromFloat(value)
 
@@ -186,10 +154,6 @@ func IsLessThanOrEqualFloat(value float64) NumberComparisonConstraint {
 // IsGreaterThanInteger checks that the number (integer or float) is greater than the specified integer value.
 // Values are compared as integers if the compared and specified values are integers.
 // Otherwise, numbers are always compared as floating point numbers.
-//
-// Example
-//  v := 1
-//  err := validator.ValidateNumber(&v, it.IsGreaterThanInteger(1))
 func IsGreaterThanInteger(value int64) NumberComparisonConstraint {
 	v := generic.NewNumberFromInt(value)
 
@@ -206,10 +170,6 @@ func IsGreaterThanInteger(value int64) NumberComparisonConstraint {
 // IsGreaterThanFloat checks that the number (integer or float) is greater than the specified float value.
 // Values are compared as integers if the compared and specified values are integers.
 // Otherwise, numbers are always compared as floating point numbers.
-//
-// Example
-//  v := 1.1
-//  err := validator.ValidateNumber(&v, it.IsGreaterThanFloat(1.1))
 func IsGreaterThanFloat(value float64) NumberComparisonConstraint {
 	v := generic.NewNumberFromFloat(value)
 
@@ -226,10 +186,6 @@ func IsGreaterThanFloat(value float64) NumberComparisonConstraint {
 // IsGreaterThanOrEqualInteger checks that the number (integer or float) is greater than or
 // equal to the specified integer value. Values are compared as integers if the compared
 // and specified values are integers. Otherwise, numbers are always compared as floating point numbers.
-//
-// Example
-//  v := 1
-//  err := validator.ValidateNumber(&v, it.IsGreaterThanOrEqualInteger(2))
 func IsGreaterThanOrEqualInteger(value int64) NumberComparisonConstraint {
 	v := generic.NewNumberFromInt(value)
 
@@ -246,10 +202,6 @@ func IsGreaterThanOrEqualInteger(value int64) NumberComparisonConstraint {
 // IsGreaterThanOrEqualFloat checks that the number (integer or float) is greater than or
 // equal to the specified float value. Values are compared as integers if the compared
 // and specified values are integers. Otherwise, numbers are always compared as floating point numbers.
-//
-// Example
-//  v := 1.1
-//  err := validator.ValidateNumber(&v, it.IsGreaterThanOrEqualFloat(1.2))
 func IsGreaterThanOrEqualFloat(value float64) NumberComparisonConstraint {
 	v := generic.NewNumberFromFloat(value)
 
@@ -265,10 +217,6 @@ func IsGreaterThanOrEqualFloat(value float64) NumberComparisonConstraint {
 
 // IsPositive checks that the value is a positive number (integer or float). Zero is neither
 // positive nor negative. If you want to allow zero use IsPositiveOrZero comparison.
-//
-// Example
-//  v := -1
-//  err := validator.ValidateNumber(&v, it.IsPositive())
 func IsPositive() NumberComparisonConstraint {
 	v := generic.NewNumberFromInt(0)
 
@@ -284,10 +232,6 @@ func IsPositive() NumberComparisonConstraint {
 
 // IsPositiveOrZero checks that the value is a positive number (integer or float) or equal to zero.
 // If you don't want to allow zero as a valid value, use IsPositive comparison.
-//
-// Example
-//  v := -1
-//  err := validator.ValidateNumber(&v, it.IsPositiveOrZero())
 func IsPositiveOrZero() NumberComparisonConstraint {
 	v := generic.NewNumberFromInt(0)
 
@@ -303,10 +247,6 @@ func IsPositiveOrZero() NumberComparisonConstraint {
 
 // IsNegative checks that the value is a negative number (integer or float). Zero is neither
 // positive nor negative. If you want to allow zero use IsNegativeOrZero comparison.
-//
-// Example
-//  v := 1
-//  err := validator.ValidateNumber(&v, it.IsNegative())
 func IsNegative() NumberComparisonConstraint {
 	v := generic.NewNumberFromInt(0)
 
@@ -322,10 +262,6 @@ func IsNegative() NumberComparisonConstraint {
 
 // IsNegativeOrZero checks that the value is a negative number (integer or float) or equal to zero.
 // If you don't want to allow zero as a valid value, use IsNegative comparison.
-//
-// Example
-//  v := -1
-//  err := validator.ValidateNumber(&v, it.IsNegativeOrZero())
 func IsNegativeOrZero() NumberComparisonConstraint {
 	v := generic.NewNumberFromInt(0)
 
@@ -406,10 +342,6 @@ type RangeConstraint struct {
 // IsBetweenIntegers checks that the number (integer or float) is between specified minimum and
 // maximum integer values. Values are compared as integers if the compared and specified
 // values are integers. Otherwise, numbers are always compared as floating point numbers.
-//
-// Example
-//	v := 1
-//	err := validator.ValidateNumber(&v, it.IsBetweenIntegers(10, 20))
 func IsBetweenIntegers(min, max int64) RangeConstraint {
 	return RangeConstraint{
 		min:             generic.NewNumberFromInt(min),
@@ -422,10 +354,6 @@ func IsBetweenIntegers(min, max int64) RangeConstraint {
 // IsBetweenFloats checks that the number (integer or float) is between specified minimum and
 // maximum float values. Values are compared as integers if the compared and specified
 // values are integers. Otherwise, numbers are always compared as floating point numbers.
-//
-// Example
-//	v := 1.1
-//	err := validator.ValidateNumber(&v, it.IsBetweenFloats(10.111, 20.222))
 func IsBetweenFloats(min, max float64) RangeConstraint {
 	return RangeConstraint{
 		min:             generic.NewNumberFromFloat(min),
@@ -508,10 +436,6 @@ type StringComparisonConstraint struct {
 }
 
 // IsEqualToString checks that the string value is equal to the specified string value.
-//
-// Example
-//  v := "actual"
-//  err := validator.ValidateString(&v, it.IsEqualToString("expected"))
 func IsEqualToString(value string) StringComparisonConstraint {
 	return StringComparisonConstraint{
 		code:            code.Equal,
@@ -524,10 +448,6 @@ func IsEqualToString(value string) StringComparisonConstraint {
 }
 
 // IsNotEqualToString checks that the string value is not equal to the specified string value.
-//
-// Example
-//  v := "expected"
-//  err := validator.ValidateString(&v, it.IsNotEqualToString("expected"))
 func IsNotEqualToString(value string) StringComparisonConstraint {
 	return StringComparisonConstraint{
 		code:            code.NotEqual,
@@ -605,10 +525,6 @@ type TimeComparisonConstraint struct {
 }
 
 // IsEarlierThan checks that the given time is earlier than the specified value.
-//
-// Example
-//  t := time.Now()
-//  err := validator.ValidateTime(&t, it.IsEarlierThan(time.Now().Add(time.Hour)))
 func IsEarlierThan(value time.Time) TimeComparisonConstraint {
 	return TimeComparisonConstraint{
 		code:            code.TooLate,
@@ -622,10 +538,6 @@ func IsEarlierThan(value time.Time) TimeComparisonConstraint {
 }
 
 // IsEarlierThanOrEqual checks that the given time is earlier or equal to the specified value.
-//
-// Example
-//  t := time.Now()
-//  err := validator.ValidateTime(&t, it.IsEarlierThanOrEqual(time.Now().Add(time.Hour)))
 func IsEarlierThanOrEqual(value time.Time) TimeComparisonConstraint {
 	return TimeComparisonConstraint{
 		code:            code.TooLateOrEqual,
@@ -639,10 +551,6 @@ func IsEarlierThanOrEqual(value time.Time) TimeComparisonConstraint {
 }
 
 // IsLaterThan checks that the given time is later than the specified value.
-//
-// Example
-//  t := time.Now()
-//  err := validator.ValidateTime(&t, it.IsLaterThan(time.Now().Sub(time.Hour)))
 func IsLaterThan(value time.Time) TimeComparisonConstraint {
 	return TimeComparisonConstraint{
 		code:            code.TooEarly,
@@ -656,10 +564,6 @@ func IsLaterThan(value time.Time) TimeComparisonConstraint {
 }
 
 // IsLaterThanOrEqual checks that the given time is later or equal to the specified value.
-//
-// Example
-//  t := time.Now()
-//  err := validator.ValidateTime(&t, it.IsLaterThanOrEqual(time.Now().Sub(time.Hour)))
 func IsLaterThanOrEqual(value time.Time) TimeComparisonConstraint {
 	return TimeComparisonConstraint{
 		code:            code.TooEarlyOrEqual,
@@ -745,10 +649,6 @@ type TimeRangeConstraint struct {
 }
 
 // IsBetweenTime checks that the time is between specified minimum and maximum time values.
-//
-// Example
-//	t := time.Now()
-//	err := validator.ValidateTime(&t, it.IsBetweenTime(time.Now().Add(time.Hour), time.Now().Add(2*time.Hour)))
 func IsBetweenTime(min, max time.Time) TimeRangeConstraint {
 	return TimeRangeConstraint{
 		code:            code.NotInRange,

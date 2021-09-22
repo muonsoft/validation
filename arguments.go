@@ -264,12 +264,6 @@ func ValidProperty(name string, value Validatable, options ...Option) Argument {
 }
 
 // Language argument sets the current language for translation of a violation message.
-//
-// Example
-//  err := validator.Validate(
-//      Language(language.Russian),
-//      String(&s, it.IsNotBlank()), // all violations created in scope will be translated into Russian
-//  )
 func Language(tag language.Tag) Argument {
 	return argumentFunc(func(arguments *Arguments) error {
 		arguments.scope.language = tag
