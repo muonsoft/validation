@@ -45,40 +45,24 @@ func newCountConstraint(min int, max int, checkMin bool, checkMax bool) CountCon
 
 // HasMinCount creates a CountConstraint that checks the length of the iterable (slice, array, or map)
 // is greater than the minimum value.
-//
-// Example
-//  v := []int{1, 2}
-//  err := validator.ValidateIterable(v, it.HasMinCount(3))
 func HasMinCount(min int) CountConstraint {
 	return newCountConstraint(min, 0, true, false)
 }
 
 // HasMaxCount creates a CountConstraint that checks the length of the iterable (slice, array, or map)
 // is less than the maximum value.
-//
-// Example
-//  v := []int{1, 2}
-//  err := validator.ValidateIterable(v, it.HasMaxCount(1))
 func HasMaxCount(max int) CountConstraint {
 	return newCountConstraint(0, max, false, true)
 }
 
 // HasCountBetween creates a CountConstraint that checks the length of the iterable (slice, array, or map)
 // is between some minimum and maximum value.
-//
-// Example
-//  v := []int{1, 2}
-//  err := validator.ValidateIterable(v, it.HasCountBetween(3, 10))
 func HasCountBetween(min int, max int) CountConstraint {
 	return newCountConstraint(min, max, true, true)
 }
 
 // HasExactCount creates a CountConstraint that checks the length of the iterable (slice, array, or map)
 // has exact value.
-//
-// Example
-//  v := []int{1, 2}
-//  err := validator.ValidateIterable(v, it.HasExactCount(3))
 func HasExactCount(count int) CountConstraint {
 	return newCountConstraint(count, count, true, true)
 }

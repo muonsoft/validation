@@ -19,18 +19,6 @@ type ValidatorOption func(validator *Validator) error
 
 // NewValidator is a constructor for creating an instance of Validator.
 // You can configure it by using validator options.
-//
-// Example
-//  validator, err := validation.NewValidator(
-//      validation.DefaultLanguage(language.Russian), // passing default language of translations
-//      validation.Translations(russian.Messages), // setting up custom or built-in translations
-//      validation.SetViolationFactory(userViolationFactory), // if you want to override creation of violations
-//  )
-//
-//  // don't forget to check for errors
-//  if err != nil {
-//      fmt.Println(err)
-//  }
 func NewValidator(options ...ValidatorOption) (*Validator, error) {
 	validator := &Validator{scope: newScope()}
 
@@ -67,13 +55,6 @@ func DefaultLanguage(tag language.Tag) ValidatorOption {
 // To use a custom language you have to load translations on validator initialization.
 // Built-in translations are available in the sub-packages of the package "github.com/muonsoft/message/translations".
 // The translation mechanism is provided by the "golang.org/x/text" package (be aware, it has no stable version yet).
-//
-// Example
-//  // import "github.com/muonsoft/validation/message/translations/russian"
-//
-//  validator, err := validation.NewValidator(
-//      validation.Translations(russian.Messages),
-//  )
 func Translations(messages map[language.Tag]map[string]catalog.Message) ValidatorOption {
 	return func(validator *Validator) error {
 		return validator.scope.translator.loadMessages(messages)
@@ -94,16 +75,6 @@ func SetViolationFactory(factory ViolationFactory) ValidatorOption {
 // custom or prepared constraints to Validatable.
 //
 // If the constraint already exists, a ConstraintAlreadyStoredError will be returned.
-//
-// Example
-//	validator, err := validation.NewValidator(
-//		validation.StoredConstraint("isTagExists", isTagExistsConstraint)
-//	)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//
-//	err = validator.ValidateString("", validator.ValidateBy("isTagExists"))
 func StoredConstraint(key string, constraint Constraint) ValidatorOption {
 	return func(validator *Validator) error {
 		if _, exists := validator.scope.constraints[key]; exists {
@@ -208,11 +179,6 @@ func (validator *Validator) ValidateBy(constraintKey string) Constraint {
 
 // WithLanguage method creates a new scoped validator with a given language tag. All created violations
 // will be translated into this language.
-//
-// Example
-//  err := validator.WithLanguage(language.Russian).Validate(
-//      validation.ValidateString(&s, it.IsNotBlank()), // violation from this constraint will be translated
-//  )
 func (validator *Validator) WithLanguage(tag language.Tag) *Validator {
 	return newScopedValidator(validator.scope.withLanguage(tag))
 }

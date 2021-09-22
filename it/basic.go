@@ -21,10 +21,6 @@ type NotBlankConstraint struct {
 }
 
 // IsNotBlank creates a NotBlankConstraint for checking that value is not empty.
-//
-// Example
-//  s := ""
-//  err := validator.ValidateString(&s, it.IsNotBlank())
 func IsNotBlank() NotBlankConstraint {
 	return NotBlankConstraint{
 		code:            code.NotBlank,
@@ -187,10 +183,6 @@ type BlankConstraint struct {
 }
 
 // IsBlank creates a BlankConstraint for checking that value is empty.
-//
-// Example
-//  s := "foo"
-//  err := validator.ValidateString(&s, it.IsBlank())
 func IsBlank() BlankConstraint {
 	return BlankConstraint{
 		code:            code.Blank,
@@ -306,10 +298,6 @@ type NotNilConstraint struct {
 }
 
 // IsNotNil creates a NotNilConstraint to check that a value is not strictly equal to nil.
-//
-// Example
-//  var s *string
-//  err := validator.ValidateString(s, it.IsNotNil())
 func IsNotNil() NotNilConstraint {
 	return NotNilConstraint{
 		code:            code.NotNil,
@@ -420,10 +408,6 @@ type NilConstraint struct {
 }
 
 // IsNil creates a NilConstraint to check that a value is strictly equal to nil.
-//
-// Example
-//  var s *string
-//  err := validator.ValidateString(s, it.IsNil())
 func IsNil() NilConstraint {
 	return NilConstraint{
 		code:            code.Nil,
@@ -530,10 +514,6 @@ type BoolConstraint struct {
 }
 
 // IsTrue creates a BoolConstraint to check that a value is not strictly equal to true.
-//
-// Example
-//  var b *bool
-//  err := validator.ValidateBool(b, it.IsTrue())
 func IsTrue() BoolConstraint {
 	return BoolConstraint{
 		expected:        true,
@@ -543,10 +523,6 @@ func IsTrue() BoolConstraint {
 }
 
 // IsFalse creates a BoolConstraint to check that a value is not strictly equal to false.
-//
-// Example
-//  var b *bool
-//  err := validator.ValidateBool(b, it.IsFalse())
 func IsFalse() BoolConstraint {
 	return BoolConstraint{
 		expected:        false,

@@ -17,6 +17,24 @@ import (
 	"golang.org/x/text/message/catalog"
 )
 
+func ExampleNewValidator() {
+	validator, err := validation.NewValidator(
+		validation.DefaultLanguage(language.English), // passing default language of translations
+		validation.Translations(russian.Messages),    // setting up custom or built-in translations
+		// validation.SetViolationFactory(userViolationFactory), // if you want to override creation of violations
+	)
+
+	// don't forget to check for errors
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = validator.Validate(context.Background(), validation.String("", it.IsNotBlank()))
+	fmt.Println(err)
+	// Output:
+	// violation: This value should not be blank.
+}
+
 func ExampleValue() {
 	v := ""
 	err := validator.Validate(context.Background(), validation.Value(v, it.IsNotBlank()))
@@ -632,6 +650,41 @@ func ExampleValidator_AtIndex() {
 	// property path: [0].title
 }
 
+func ExampleLanguage() {
+	validator, err := validation.NewValidator(validation.Translations(russian.Messages))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	s := ""
+	err = validator.Validate(
+		context.Background(),
+		validation.Language(language.Russian),
+		validation.String(s, it.IsNotBlank()),
+	)
+
+	fmt.Println(err)
+	// Output:
+	// violation: Значение не должно быть пустым.
+}
+
+func ExampleValidator_WithLanguage() {
+	validator, err := validation.NewValidator(validation.Translations(russian.Messages))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	s := ""
+	err = validator.WithLanguage(language.Russian).Validate(
+		context.Background(),
+		validation.String(s, it.IsNotBlank()),
+	)
+
+	fmt.Println(err)
+	// Output:
+	// violation: Значение не должно быть пустым.
+}
+
 func ExampleValidator_Validate_translationsByDefaultLanguage() {
 	validator, err := validation.NewValidator(
 		validation.Translations(russian.Messages),
@@ -670,6 +723,26 @@ func ExampleValidator_Validate_translationsByArgument() {
 }
 
 func ExampleValidator_Validate_translationsByContextArgument() {
+	validator, err := validation.NewValidator(
+		validation.Translations(russian.Messages),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	s := ""
+	ctx := language.WithContext(context.Background(), language.Russian)
+	err = validator.Validate(
+		ctx,
+		validation.String(s, it.IsNotBlank()),
+	)
+
+	fmt.Println(err)
+	// Output:
+	// violation: Значение не должно быть пустым.
+}
+
+func ExampleTranslations() {
 	validator, err := validation.NewValidator(
 		validation.Translations(russian.Messages),
 	)
@@ -826,4 +899,18 @@ func ExampleViolationList_AppendFromError_addingError() {
 	// Output:
 	// append error: error
 	// violations length: 0
+}
+
+func ExampleStoredConstraint() {
+	validator, err := validation.NewValidator(
+		validation.StoredConstraint("notEmpty", it.IsNotBlank().Message("value should not be empty")),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = validator.ValidateString(context.Background(), "", validator.ValidateBy("notEmpty"))
+	fmt.Println(err)
+	// Output:
+	// violation: value should not be empty
 }
