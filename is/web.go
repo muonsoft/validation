@@ -1,17 +1,11 @@
 package is
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/muonsoft/validation/validate"
 )
-
-var reservedTopLevelDomains = []string{
-	"example",
-	"invalid",
-	"localhost",
-	"test",
-}
 
 // Email is used for simplified validation of an email address. It allows all values
 // with an "@" symbol in, and a "." in the second host part of the email address.
@@ -89,3 +83,24 @@ func StrictHostname(value string) bool {
 
 	return true
 }
+
+var reservedTopLevelDomains = []string{
+	"example",
+	"invalid",
+	"localhost",
+	"test",
+}
+
+const (
+	looseEmailPattern = `^.+\@\S+\.\S+$`
+	html5EmailPattern = "^[a-zA-Z0-9.!#$%&\\'*+\\\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$"
+
+	// source https://stackoverflow.com/questions/106179/regular-expression-to-match-dns-hostname-or-ip-address
+	hostnamePattern = `^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$`
+)
+
+var (
+	looseEmailRegex = regexp.MustCompile(looseEmailPattern)
+	html5EmailRegex = regexp.MustCompile(html5EmailPattern)
+	hostnameRegex   = regexp.MustCompile(hostnamePattern)
+)

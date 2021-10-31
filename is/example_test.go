@@ -7,6 +7,60 @@ import (
 	"github.com/muonsoft/validation/validate"
 )
 
+func ExampleJSON() {
+	fmt.Println(is.JSON(`{"valid": true}`)) // valid
+	fmt.Println(is.JSON(`"invalid": true`)) // invalid
+	// Output:
+	// true
+	// false
+}
+
+func ExampleInteger() {
+	fmt.Println(is.Integer("123"))
+	fmt.Println(is.Integer("123.123"))
+	fmt.Println(is.Integer("-123"))
+	fmt.Println(is.Integer("123foo"))
+	// Output:
+	// true
+	// false
+	// true
+	// false
+}
+
+func ExampleNumber() {
+	fmt.Println(is.Number("123"))
+	fmt.Println(is.Number("123.123"))
+	fmt.Println(is.Number("123e123"))
+	fmt.Println(is.Number("-123"))
+	fmt.Println(is.Number("123foo"))
+	// Output:
+	// true
+	// true
+	// true
+	// true
+	// false
+}
+
+func ExampleStringInList() {
+	fmt.Println(is.StringInList("foo", nil))
+	fmt.Println(is.StringInList("foo", []string{"bar", "baz"}))
+	fmt.Println(is.StringInList("foo", []string{"bar", "baz", "foo"}))
+	// Output:
+	// false
+	// false
+	// true
+}
+
+func ExampleUniqueStrings() {
+	fmt.Println(is.UniqueStrings([]string{}))
+	fmt.Println(is.UniqueStrings([]string{"one", "two", "three"}))
+	fmt.Println(is.UniqueStrings([]string{"one", "two", "one"}))
+	// Output:
+	// true
+	// true
+	// false
+}
+
 func ExampleEmail() {
 	fmt.Println(is.Email("user@example.com"))         // valid
 	fmt.Println(is.Email("{}~!@example.com"))         // valid
