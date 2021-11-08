@@ -336,6 +336,14 @@ func ExampleEachStringProperty() {
 	// violation at 'tags[0]': This value should not be blank.
 }
 
+func ExampleCheck() {
+	v := 123
+	err := validator.Validate(context.Background(), validation.Check(v > 321))
+	fmt.Println(err)
+	// Output:
+	// violation: This value is not valid.
+}
+
 func ExampleNewCustomStringConstraint() {
 	validate := func(s string) bool {
 		return s == "valid"

@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/generic"
+	"github.com/muonsoft/validation/message"
 	"golang.org/x/text/language"
 )
 
@@ -249,7 +251,7 @@ func EachStringProperty(name string, values []string, options ...Option) Argumen
 }
 
 // Valid is used to run validation on the Validatable type. This method is recommended
-// to run a complex validation process.
+// to build a complex validation process.
 func Valid(value Validatable, options ...Option) Argument {
 	return argumentFunc(func(arguments *Arguments) error {
 		arguments.addValidator(newValidValidator(value, options))
@@ -261,6 +263,27 @@ func Valid(value Validatable, options ...Option) Argument {
 // ValidProperty argument is an alias for Valid that automatically adds property name to the current scope.
 func ValidProperty(name string, value Validatable, options ...Option) Argument {
 	return Valid(value, append([]Option{PropertyName(name)}, options...)...)
+}
+
+// Check argument can be useful for quickly checking the result of some simple expression
+// that returns a boolean value.
+func Check(isValid bool) Checker {
+	return Checker{
+		isValid:         isValid,
+		code:            code.NotValid,
+		messageTemplate: message.NotValid,
+	}
+}
+
+// CheckProperty argument is an alias for Check that automatically adds property name to the current scope.
+// It is useful to apply a simple checks on structs.
+func CheckProperty(name string, isValid bool) Checker {
+	return Checker{
+		propertyName:    name,
+		isValid:         isValid,
+		code:            code.NotValid,
+		messageTemplate: message.NotValid,
+	}
 }
 
 // Language argument sets the current language for translation of a violation message.
@@ -280,4 +303,48 @@ func NewArgument(options []Option, validate ValidateByConstraintFunc) Argument {
 
 		return nil
 	})
+}
+
+// Checker is an argument that can be useful for quickly checking the result of
+// some simple expression that returns a boolean value.
+type Checker struct {
+	isValid           bool
+	propertyName      string
+	code              string
+	messageTemplate   string
+	messageParameters TemplateParameterList
+}
+
+// Code overrides default code for produced violation.
+func (c Checker) Code(code string) Checker {
+	c.code = code
+	return c
+}
+
+// Message sets the violation message template. You can set custom template parameters
+// for injecting its values into the final message.
+func (c Checker) Message(template string, parameters ...TemplateParameter) Checker {
+	c.messageTemplate = template
+	c.messageParameters = parameters
+	return c
+}
+
+func (c Checker) set(arguments *Arguments) error {
+	arguments.addValidator(c.validate)
+	return nil
+}
+
+func (c Checker) validate(scope Scope) (*ViolationList, error) {
+	if c.isValid {
+		return nil, nil
+	}
+	if c.propertyName != "" {
+		scope = scope.AtProperty(c.propertyName)
+	}
+
+	violation := scope.BuildViolation(c.code, c.messageTemplate).
+		SetParameters(c.messageParameters...).
+		CreateViolation()
+
+	return NewViolationList(violation), nil
 }

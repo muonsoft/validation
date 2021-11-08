@@ -44,3 +44,15 @@ func AssertIsViolationList(t *testing.T, err error, assert AssertViolationListFu
 
 	return assert(t, violations.AsSlice())
 }
+
+func AssertOneViolationInList(t *testing.T, err error, assert AssertViolationFunc) bool {
+	t.Helper()
+	return AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
+		t.Helper()
+		if len(violations) != 1 {
+			t.Errorf("failed asserting that violations list contains exactly one violation, actual count is %d", len(violations))
+			return false
+		}
+		return assert(t, violations[0])
+	})
+}
