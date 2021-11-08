@@ -8,6 +8,7 @@ import (
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
+	"github.com/muonsoft/validation/message"
 	"github.com/muonsoft/validation/validationtest"
 	"github.com/muonsoft/validation/validator"
 	"github.com/stretchr/testify/assert"
@@ -36,9 +37,9 @@ func TestValidate_WhenArgumentForGivenType_ExpectValidationExecuted(t *testing.T
 		t.Run(test.name, func(t *testing.T) {
 			err := validator.Validate(context.Background(), test.argument)
 
-			validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
+			validationtest.AssertOneViolationInList(t, err, func(t *testing.T, violation validation.Violation) bool {
 				t.Helper()
-				return assert.Len(t, violations, 1) && assert.Equal(t, code.NotBlank, violations[0].Code())
+				return assert.Equal(t, code.NotBlank, violation.Code())
 			})
 		})
 	}
@@ -70,11 +71,54 @@ func TestValidate_WhenPropertyArgument_ExpectValidPathInViolation(t *testing.T) 
 		t.Run(test.name, func(t *testing.T) {
 			err := validator.Validate(context.Background(), test.argument)
 
-			validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
+			validationtest.AssertOneViolationInList(t, err, func(t *testing.T, violation validation.Violation) bool {
 				t.Helper()
-				return assert.Len(t, violations, 1) &&
-					assert.Equal(t, test.expectedPath, violations[0].PropertyPath().String())
+				return assert.Equal(t, test.expectedPath, violation.PropertyPath().String())
 			})
 		})
 	}
+}
+
+func TestCheck_WhenFalse_ExpectViolation(t *testing.T) {
+	err := validator.Validate(context.Background(), validation.Check(false))
+
+	validationtest.AssertOneViolationInList(t, err, func(t *testing.T, violation validation.Violation) bool {
+		t.Helper()
+		return assert.Equal(t, code.NotValid, violation.Code()) &&
+			assert.Equal(t, message.NotValid, violation.Message()) &&
+			assert.Equal(t, "", violation.PropertyPath().String())
+	})
+}
+
+func TestCheck_WhenCustomCodeAndTemplate_ExpectCodeAndTemplateInViolation(t *testing.T) {
+	err := validator.Validate(
+		context.Background(),
+		validation.Check(false).
+			Code("custom").
+			Message("message with {{ value }}", validation.TemplateParameter{Key: "{{ value }}", Value: "value"}),
+	)
+
+	validationtest.AssertOneViolationInList(t, err, func(t *testing.T, violation validation.Violation) bool {
+		t.Helper()
+		return assert.Equal(t, "custom", violation.Code()) &&
+			assert.Equal(t, "message with value", violation.Message()) &&
+			assert.Equal(t, "", violation.PropertyPath().String())
+	})
+}
+
+func TestCheck_WhenTrue_ExpectNoViolation(t *testing.T) {
+	err := validator.Validate(context.Background(), validation.Check(true))
+
+	assert.NoError(t, err)
+}
+
+func TestCheckProperty_WhenFalse_ExpectPropertyNameInViolation(t *testing.T) {
+	err := validator.Validate(context.Background(), validation.CheckProperty("propertyName", false))
+
+	validationtest.AssertOneViolationInList(t, err, func(t *testing.T, violation validation.Violation) bool {
+		t.Helper()
+		return assert.Equal(t, code.NotValid, violation.Code()) &&
+			assert.Equal(t, message.NotValid, violation.Message()) &&
+			assert.Equal(t, "propertyName", violation.PropertyPath().String())
+	})
 }
