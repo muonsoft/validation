@@ -112,6 +112,12 @@ func TestCheck_WhenTrue_ExpectNoViolation(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestCheck_When_WhenConditionIsFalse_ExpectNoViolation(t *testing.T) {
+	err := validator.Validate(context.Background(), validation.Check(false).When(false))
+
+	assert.NoError(t, err)
+}
+
 func TestCheckProperty_WhenFalse_ExpectPropertyNameInViolation(t *testing.T) {
 	err := validator.Validate(context.Background(), validation.CheckProperty("propertyName", false))
 
