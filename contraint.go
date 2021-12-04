@@ -227,6 +227,7 @@ func (c ConditionalConstraint) validate(
 // SequentialConstraint is used to set constraints allowing to interrupt the validation once
 // the first violation is raised.
 type SequentialConstraint struct {
+	isIgnored   bool
 	constraints []Constraint
 }
 
@@ -249,10 +250,21 @@ func (c SequentialConstraint) SetUp() error {
 	return nil
 }
 
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
+func (c SequentialConstraint) When(condition bool) SequentialConstraint {
+	c.isIgnored = !condition
+	return c
+}
+
 func (c SequentialConstraint) validate(
 	scope Scope,
 	validate ValidateByConstraintFunc,
 ) (*ViolationList, error) {
+	if c.isIgnored {
+		return nil, nil
+	}
+
 	violations := &ViolationList{}
 
 	for _, constraint := range c.constraints {
@@ -271,6 +283,7 @@ func (c SequentialConstraint) validate(
 // at least one of the given constraints.
 // The validation stops as soon as one constraint is satisfied.
 type AtLeastOneOfConstraint struct {
+	isIgnored   bool
 	constraints []Constraint
 }
 
@@ -293,10 +306,21 @@ func (c AtLeastOneOfConstraint) SetUp() error {
 	return nil
 }
 
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
+func (c AtLeastOneOfConstraint) When(condition bool) AtLeastOneOfConstraint {
+	c.isIgnored = !condition
+	return c
+}
+
 func (c AtLeastOneOfConstraint) validate(
 	scope Scope,
 	validate ValidateByConstraintFunc,
 ) (*ViolationList, error) {
+	if c.isIgnored {
+		return nil, nil
+	}
+
 	violations := &ViolationList{}
 
 	for _, constraint := range c.constraints {
@@ -316,6 +340,7 @@ func (c AtLeastOneOfConstraint) validate(
 
 // CompoundConstraint is used to create your own set of reusable constraints, representing rules to use consistently.
 type CompoundConstraint struct {
+	isIgnored   bool
 	constraints []Constraint
 }
 
@@ -338,10 +363,21 @@ func (c CompoundConstraint) SetUp() error {
 	return nil
 }
 
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
+func (c CompoundConstraint) When(condition bool) CompoundConstraint {
+	c.isIgnored = !condition
+	return c
+}
+
 func (c CompoundConstraint) validate(
 	scope Scope,
 	validate ValidateByConstraintFunc,
 ) (*ViolationList, error) {
+	if c.isIgnored {
+		return nil, nil
+	}
+
 	violations := &ViolationList{}
 
 	for _, constraint := range c.constraints {

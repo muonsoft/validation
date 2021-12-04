@@ -83,7 +83,7 @@ func TestValidate_WhenThenBranchIsNotSet_ExpectError(t *testing.T) {
 		validation.String(value, validation.When(true)),
 	)
 
-	assert.Error(t, err, "then branch of conditional constraint not set")
+	assert.EqualError(t, err, `failed to set up constraint "ConditionalConstraint": then branch of conditional constraint not set`)
 }
 
 func TestValidate_WhenInvalidValueAtFirstConstraintOfSequentiallyConstraint_ExpectOneViolation(t *testing.T) {
@@ -107,6 +107,20 @@ func TestValidate_WhenInvalidValueAtFirstConstraintOfSequentiallyConstraint_Expe
 	})
 }
 
+func TestValidate_WhenSequentiallyConstraintIsDisabled_ExpectNoErrors(t *testing.T) {
+	value := "foo"
+
+	err := validator.Validate(
+		context.Background(),
+		validation.String(
+			value,
+			validation.Sequentially(it.IsBlank()).When(false),
+		),
+	)
+
+	assert.NoError(t, err)
+}
+
 func TestValidate_WhenSequentiallyConstraintsNotSet_ExpectError(t *testing.T) {
 	value := "bar"
 
@@ -115,7 +129,7 @@ func TestValidate_WhenSequentiallyConstraintsNotSet_ExpectError(t *testing.T) {
 		validation.String(value, validation.Sequentially()),
 	)
 
-	assert.Error(t, err, "constraints for sequentially validation not set")
+	assert.EqualError(t, err, `failed to set up constraint "SequentialConstraint": constraints for sequentially validation not set`)
 }
 
 func TestValidate_WhenInvalidValueAtFirstConstraintOfAtLeastOneOfConstraint_ExpectAllViolation(t *testing.T) {
@@ -138,6 +152,20 @@ func TestValidate_WhenInvalidValueAtFirstConstraintOfAtLeastOneOfConstraint_Expe
 			assert.Equal(t, code.Blank, violations[0].Code()) &&
 			assert.Equal(t, code.LengthTooFew, violations[1].Code())
 	})
+}
+
+func TestValidate_WhenAtLeastOneOfConstraintIsDisabled_ExpectNoError(t *testing.T) {
+	value := "foo"
+
+	err := validator.Validate(
+		context.Background(),
+		validation.String(
+			value,
+			validation.AtLeastOneOf(it.IsBlank()).When(false),
+		),
+	)
+
+	assert.NoError(t, err)
 }
 
 func TestValidate_WhenInvalidValueAtSecondConstraintOfAtLeastOneOfConstraint_ExpectNoViolation(t *testing.T) {
@@ -165,10 +193,10 @@ func TestValidate_WhenAtLeastOneOfConstraintsNotSet_ExpectError(t *testing.T) {
 		validation.String(value, validation.AtLeastOneOf()),
 	)
 
-	assert.Error(t, err, "constraints for at least one of validation not set")
+	assert.EqualError(t, err, `failed to set up constraint "AtLeastOneOfConstraint": constraints for at least one of validation not set`)
 }
 
-func TestValidate_Compound_ExpectNoViolation(t *testing.T) {
+func TestValidate_WhenCompoundWithFailingConstraint_ExpectViolation(t *testing.T) {
 	value := "bar"
 	isEmployeeEmail := validation.Compound(it.HasMinLength(5), it.IsEmail())
 
@@ -185,6 +213,18 @@ func TestValidate_Compound_ExpectNoViolation(t *testing.T) {
 	})
 }
 
+func TestValidate_WhenCompoundIsDisabled_ExpectNoError(t *testing.T) {
+	value := "bar"
+	isEmployeeEmail := validation.Compound(it.HasMinLength(5), it.IsEmail())
+
+	err := validator.Validate(
+		context.Background(),
+		validation.String(value, isEmployeeEmail.When(false)),
+	)
+
+	assert.NoError(t, err)
+}
+
 func TestValidate_WhenCompoundConstraintsNotSet_ExpectError(t *testing.T) {
 	value := "bar"
 	isEmployeeEmail := validation.Compound()
@@ -194,5 +234,5 @@ func TestValidate_WhenCompoundConstraintsNotSet_ExpectError(t *testing.T) {
 		validation.String(value, isEmployeeEmail),
 	)
 
-	assert.Error(t, err, "constraints for compound validation not set")
+	assert.EqualError(t, err, `failed to set up constraint "CompoundConstraint": constraints for compound validation not set`)
 }

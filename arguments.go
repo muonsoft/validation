@@ -308,11 +308,19 @@ func NewArgument(options []Option, validate ValidateByConstraintFunc) Argument {
 // Checker is an argument that can be useful for quickly checking the result of
 // some simple expression that returns a boolean value.
 type Checker struct {
+	isIgnored         bool
 	isValid           bool
 	propertyName      string
 	code              string
 	messageTemplate   string
 	messageParameters TemplateParameterList
+}
+
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
+func (c Checker) When(condition bool) Checker {
+	c.isIgnored = !condition
+	return c
 }
 
 // Code overrides default code for produced violation.
@@ -335,7 +343,7 @@ func (c Checker) set(arguments *Arguments) error {
 }
 
 func (c Checker) validate(scope Scope) (*ViolationList, error) {
-	if c.isValid {
+	if c.isValid || c.isIgnored {
 		return nil, nil
 	}
 	if c.propertyName != "" {
