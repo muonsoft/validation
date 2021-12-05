@@ -151,3 +151,11 @@ func (mock mockValidatableStruct) Validate(ctx context.Context, validator *valid
 		),
 	)
 }
+
+type mockTranslator struct {
+	translate func(tag language.Tag, message string, pluralCount int) string
+}
+
+func (m mockTranslator) Translate(tag language.Tag, message string, pluralCount int) string {
+	return m.translate(tag, message, pluralCount)
+}

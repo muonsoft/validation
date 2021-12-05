@@ -16,22 +16,29 @@ import (
 
 var validator, _ = validation.NewValidator()
 
-// SetOptions can be used to set up a singleton validator. Make sure you call this function once
-// at the initialization of your application.
-func SetOptions(options ...validation.ValidatorOption) error {
-	for _, setOption := range options {
-		err := setOption(validator)
-		if err != nil {
-			return err
-		}
-	}
+// SetUp can be used to set up a new instance of singleton validator. Make sure you call this function once
+// at the initialization of your application because it totally replaces validator instance.
+func SetUp(options ...validation.ValidatorOption) (err error) {
+	validator, err = validation.NewValidator(options...)
 
-	return nil
+	return err
+}
+
+// SetOptions can be used to set up a new instance of singleton validator. Make sure you call this function once
+// at the initialization of your application because it totally replaces validator instance.
+//
+// Deprecated: use SetUp function instead.
+func SetOptions(options ...validation.ValidatorOption) (err error) {
+	validator, err = validation.NewValidator(options...)
+
+	return err
 }
 
 // Reset function recreates singleton validator. Generally, it can be used in tests.
+//
+// Deprecated: use SetUp function instead.
 func Reset() {
-	validator, _ = validation.NewValidator()
+	_ = SetUp()
 }
 
 // Validate is the main validation method. It accepts validation arguments. Arguments can be

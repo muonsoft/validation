@@ -420,6 +420,25 @@ for _, violation := range violations {
 
 You can see the complex example with handling HTTP request [here](https://pkg.go.dev/github.com/muonsoft/validation#example-Validator.Validate-HttpHandler).
 
+Also, there is an ability to totally override translations behaviour. You can use your own translator by implementing `validation.Translator` interface and passing it to validator constructor via `SetTranslator` option.
+
+```golang
+type CustomTranslator struct {
+    // some attributes
+}
+
+func (t *CustromTranslator) Translate(tag language.Tag, message string, pluralCount int) string {
+    // your implementation of translation mechanism
+}
+
+translator := &CustomTranslator{}
+
+validator, err := validation.NewValidator(validation.SetTranslator(translator))
+if err != nil {
+    log.Fatal(err)
+}
+```
+
 ### Customizing violation messages
 
 You may customize the violation message on any of the built-in constraints by calling the `Message()` method or similar if the constraint has more than one template. Also, you can include template parameters in it. See details of a specific constraint to know what parameters are available.

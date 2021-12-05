@@ -100,3 +100,6 @@ issues:
     - path: arguments.go
       linters:
         - unparam
+    - path: validator/validator.go
+      linters:
+        - staticcheck
