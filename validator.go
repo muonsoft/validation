@@ -2,8 +2,10 @@ package validation
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	"github.com/muonsoft/validation/message/translations"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message/catalog"
 )
@@ -14,25 +16,61 @@ type Validator struct {
 	scope Scope
 }
 
+// Translator is used to translate violation messages. By default, validator uses an implementation from
+// "github.com/muonsoft/validation/message/translations" package based on "golang.org/x/text" package.
+// You can set up your own implementation by using SetTranslator option.
+type Translator interface {
+	Translate(tag language.Tag, message string, pluralCount int) string
+}
+
+// ValidatorOptions is a temporary structure for collecting functional options ValidatorOption.
+type ValidatorOptions struct {
+	translatorOptions []translations.TranslatorOption
+	translator        Translator
+	violationFactory  ViolationFactory
+	constraints       map[string]Constraint
+}
+
+func newValidatorOptions() *ValidatorOptions {
+	return &ValidatorOptions{
+		constraints: map[string]Constraint{},
+	}
+}
+
 // ValidatorOption is a base type for configuration options used to create a new instance of Validator.
-type ValidatorOption func(validator *Validator) error
+type ValidatorOption func(options *ValidatorOptions) error
 
 // NewValidator is a constructor for creating an instance of Validator.
 // You can configure it by using validator options.
 func NewValidator(options ...ValidatorOption) (*Validator, error) {
-	validator := &Validator{scope: newScope()}
+	var err error
 
+	opts := newValidatorOptions()
 	for _, setOption := range options {
-		err := setOption(validator)
+		err = setOption(opts)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	err := validator.scope.translator.init()
-	if err != nil {
-		return nil, err
+	if opts.translator != nil && len(opts.translatorOptions) > 0 {
+		return nil, errTranslatorOptionsDenied
 	}
+	if opts.translator == nil {
+		opts.translator, err = translations.NewTranslator(opts.translatorOptions...)
+		if err != nil {
+			return nil, fmt.Errorf("failed to set up default translator: %w", err)
+		}
+	}
+	if opts.violationFactory == nil {
+		opts.violationFactory = newViolationFactory(opts.translator)
+	}
+
+	validator := &Validator{scope: newScope(
+		opts.translator,
+		opts.violationFactory,
+		opts.constraints,
+	)}
 
 	return validator, nil
 }
@@ -41,30 +79,42 @@ func newScopedValidator(scope Scope) *Validator {
 	return &Validator{scope: scope}
 }
 
-// DefaultLanguage is used to set up the default language for translation of violation messages.
+// DefaultLanguage option is used to set up the default language for translation of violation messages.
 func DefaultLanguage(tag language.Tag) ValidatorOption {
-	return func(validator *Validator) error {
-		validator.scope.translator.defaultLanguage = tag
+	return func(options *ValidatorOptions) error {
+		options.translatorOptions = append(options.translatorOptions, translations.DefaultLanguage(tag))
+
 		return nil
 	}
 }
 
-// Translations is used to load translation messages into the validator.
+// Translations option is used to load translation messages into the validator.
 //
 // By default, all violation messages are generated in the English language with pluralization capabilities.
 // To use a custom language you have to load translations on validator initialization.
 // Built-in translations are available in the sub-packages of the package "github.com/muonsoft/message/translations".
 // The translation mechanism is provided by the "golang.org/x/text" package (be aware, it has no stable version yet).
 func Translations(messages map[language.Tag]map[string]catalog.Message) ValidatorOption {
-	return func(validator *Validator) error {
-		return validator.scope.translator.loadMessages(messages)
+	return func(options *ValidatorOptions) error {
+		options.translatorOptions = append(options.translatorOptions, translations.SetTranslations(messages))
+
+		return nil
 	}
 }
 
-// SetViolationFactory can be used to override the mechanism of violation creation.
+// SetTranslator option is used to set up the custom implementation of message violation translator.
+func SetTranslator(translator Translator) ValidatorOption {
+	return func(options *ValidatorOptions) error {
+		options.translator = translator
+
+		return nil
+	}
+}
+
+// SetViolationFactory option can be used to override the mechanism of violation creation.
 func SetViolationFactory(factory ViolationFactory) ValidatorOption {
-	return func(validator *Validator) error {
-		validator.scope.violationFactory = factory
+	return func(options *ValidatorOptions) error {
+		options.violationFactory = factory
 
 		return nil
 	}
@@ -76,12 +126,12 @@ func SetViolationFactory(factory ViolationFactory) ValidatorOption {
 //
 // If the constraint already exists, a ConstraintAlreadyStoredError will be returned.
 func StoredConstraint(key string, constraint Constraint) ValidatorOption {
-	return func(validator *Validator) error {
-		if _, exists := validator.scope.constraints[key]; exists {
+	return func(options *ValidatorOptions) error {
+		if _, exists := options.constraints[key]; exists {
 			return ConstraintAlreadyStoredError{Key: key}
 		}
 
-		validator.scope.constraints[key] = constraint
+		options.constraints[key] = constraint
 
 		return nil
 	}

@@ -397,10 +397,10 @@ func (v internalViolation) MarshalJSON() ([]byte, error) {
 }
 
 type internalViolationFactory struct {
-	translator *Translator
+	translator Translator
 }
 
-func newViolationFactory(translator *Translator) *internalViolationFactory {
+func newViolationFactory(translator Translator) *internalViolationFactory {
 	return &internalViolationFactory{translator: translator}
 }
 
@@ -412,11 +412,11 @@ func (factory *internalViolationFactory) CreateViolation(
 	propertyPath *PropertyPath,
 	lang language.Tag,
 ) Violation {
-	message := factory.translator.translate(lang, messageTemplate, pluralCount)
+	message := factory.translator.Translate(lang, messageTemplate, pluralCount)
 
 	for i := range parameters {
 		if parameters[i].NeedsTranslation {
-			parameters[i].Value = factory.translator.translate(lang, parameters[i].Value, 0)
+			parameters[i].Value = factory.translator.Translate(lang, parameters[i].Value, 0)
 		}
 	}
 

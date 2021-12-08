@@ -13,7 +13,7 @@ type Scope struct {
 	context          context.Context
 	propertyPath     *PropertyPath
 	language         language.Tag
-	translator       *Translator
+	translator       Translator
 	violationFactory ViolationFactory
 	constraints      map[string]Constraint
 }
@@ -102,13 +102,15 @@ func (s Scope) withLanguage(tag language.Tag) Scope {
 	return s
 }
 
-func newScope() Scope {
-	translator := newTranslator()
-
+func newScope(
+	translator Translator,
+	violationFactory ViolationFactory,
+	constraints map[string]Constraint,
+) Scope {
 	return Scope{
 		context:          context.Background(),
 		translator:       translator,
-		violationFactory: newViolationFactory(translator),
-		constraints:      make(map[string]Constraint),
+		violationFactory: violationFactory,
+		constraints:      constraints,
 	}
 }
