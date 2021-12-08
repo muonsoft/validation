@@ -1,12 +1,12 @@
 package it
 
 import (
+	"time"
+
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/generic"
 	"github.com/muonsoft/validation/message"
-
-	"time"
 )
 
 // NotBlankConstraint checks that a value is not blank: not equal to zero, an empty string, an empty

@@ -59,6 +59,7 @@ type validateFunc func(scope Scope) (*ViolationList, error)
 
 var validatableType = reflect.TypeOf((*Validatable)(nil)).Elem()
 
+//nolint:cyclop
 func newValueValidator(value interface{}, options []Option) (validateFunc, error) {
 	switch v := value.(type) {
 	case Validatable:
@@ -270,6 +271,7 @@ func newEachStringValidator(values []string, options []Option) validateFunc {
 		violations := &ViolationList{}
 
 		for i := range values {
+			//nolint:gocritic
 			opts := append(options, ArrayIndex(i))
 			validate := newStringValidator(&values[i], opts)
 			vs, err := validate(scope)

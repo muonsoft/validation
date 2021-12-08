@@ -1,15 +1,22 @@
 linters:
   enable:
     - asciicheck
+    - bidichk
     - bodyclose
+    - contextcheck
+    - cyclop
     - deadcode
     - depguard
     - dogsled
     - dupl
+    - durationcheck
     - errcheck
+    - errorlint
+    - exportloopref
     - forbidigo
+    - forcetypeassert
     - funlen
-    - gochecknoinits
+    - gci
     - gocognit
     - goconst
     - gocritic
@@ -18,29 +25,36 @@ linters:
     - godox
     - goerr113
     - gofmt
+    - gofumpt
     - goimports
-    - golint
     - gomodguard
     - goprintffuncname
     - gosec
     - gosimple
     - govet
+    - importas
     - ineffassign
     - lll
     - makezero
-    - maligned
     - misspell
     - nakedret
     - nestif
+    - nilerr
+    - noctx
     - noctx
     - nolintlint
     - prealloc
+    - predeclared
+    - promlinter
+    - revive
     - rowserrcheck
-    - scopelint
-    - staticcheck
+    - sqlclosecheck
     - structcheck
     - stylecheck
+    - tenv
+    - testpackage
     - thelper
+    - tparallel
     - typecheck
     - unconvert
     - unparam
@@ -53,22 +67,28 @@ issues:
     # Exclude some linters from running on tests files.
     - path: _test\.go
       linters:
-        - dogsled
+        - contextcheck
+        - cyclop
         - dupl
         - errcheck
+        - errorlint
+        - exportloopref
+        - forcetypeassert
         - funlen
         - gochecknoglobals
+        - goconst
         - gocyclo
         - goerr113
         - gosec
         - lll
-        - scopelint
     - path: example.*_test\.go
       linters:
-        - dogsled
+        - contextcheck
+        - cyclop
         - dupl
         - errcheck
-        - forbidigo
+        - exportloopref
+        - forcetypeassert
         - funlen
         - gochecknoglobals
         - goconst
@@ -76,12 +96,14 @@ issues:
         - goerr113
         - gosec
         - lll
-        - scopelint
     - path: test
       linters:
-        - dogsled
+        - contextcheck
+        - cyclop
         - dupl
         - errcheck
+        - exportloopref
+        - forcetypeassert
         - funlen
         - gochecknoglobals
         - goconst
@@ -89,7 +111,7 @@ issues:
         - goerr113
         - gosec
         - lll
-        - scopelint
+        - testpackage
         - unparam
     - path: is/web.go
       linters:
@@ -103,3 +125,6 @@ issues:
     - path: validator/validator.go
       linters:
         - staticcheck
+    - path: generic
+      linters:
+        - testpackage

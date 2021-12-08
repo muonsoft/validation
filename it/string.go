@@ -1,14 +1,14 @@
 package it
 
 import (
+	"regexp"
+	"strconv"
+	"unicode/utf8"
+
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/is"
 	"github.com/muonsoft/validation/message"
-
-	"regexp"
-	"strconv"
-	"unicode/utf8"
 )
 
 // LengthConstraint checks that a given string length is between some minimum and maximum value.

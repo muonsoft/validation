@@ -8,9 +8,7 @@ import (
 	"strings"
 )
 
-var (
-	ErrUnexpectedSchema = errors.New("unexpected schema")
-)
+var ErrUnexpectedSchema = errors.New("unexpected schema")
 
 // URL is used to validate that value is a valid URL string. By default (if no schemas are passed),
 // the function checks only for the http:// and https:// schemas. Use the schemas argument
@@ -160,6 +158,4 @@ const (
 	urlPattern    = `(?i)^` + urlSchema + urlBasicAuth + urlHost + urlPort + urlPath + urlQuery + urlFragment + `$`
 )
 
-var (
-	urlRegex = regexp.MustCompile(urlPattern)
-)
+var urlRegex = regexp.MustCompile(urlPattern)

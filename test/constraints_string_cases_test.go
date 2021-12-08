@@ -1,12 +1,12 @@
 package test
 
 import (
+	"regexp"
+
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
-
-	"regexp"
 )
 
 var lengthConstraintTestCases = []ConstraintValidationTestCase{

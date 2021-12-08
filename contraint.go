@@ -1,11 +1,11 @@
 package validation
 
 import (
+	"time"
+
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/generic"
 	"github.com/muonsoft/validation/message"
-
-	"time"
 )
 
 // Constraint is the base interface to build validation constraints.

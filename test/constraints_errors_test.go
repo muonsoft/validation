@@ -11,8 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type nilConstraint struct {
-}
+type nilConstraint struct{}
 
 func (c nilConstraint) SetUp() error {
 	return nil
@@ -26,8 +25,7 @@ func (c nilConstraint) ValidateNil(scope validation.Scope) error {
 	return nil
 }
 
-type errConstraint struct {
-}
+type errConstraint struct{}
 
 func (c errConstraint) SetUp() error {
 	return errors.New("error")

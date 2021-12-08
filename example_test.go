@@ -23,7 +23,6 @@ func ExampleNewValidator() {
 		validation.Translations(russian.Messages),    // setting up custom or built-in translations
 		// validation.SetViolationFactory(userViolationFactory), // if you want to override creation of violations
 	)
-
 	// don't forget to check for errors
 	if err != nil {
 		log.Fatal(err)

@@ -1,12 +1,12 @@
 package test
 
 import (
+	"time"
+
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
-
-	"time"
 )
 
 var isNotBlankConstraintTestCases = []ConstraintValidationTestCase{

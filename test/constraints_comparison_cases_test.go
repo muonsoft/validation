@@ -779,35 +779,35 @@ var isEarlierThanTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsEarlierThan passes on nil",
 		isApplicableFor: specificValueTypes(timeType),
-		constraint:      it.IsEarlierThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		constraint:      it.IsEarlierThan(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
 		assert:          assertNoError,
 	},
 	{
 		name:            "IsEarlierThan violation on greater value",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 40, 0, 0, time.UTC)),
-		constraint:      it.IsEarlierThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		timeValue:       timeValue(time.Date(2021, 0o3, 29, 12, 40, 0, 0, time.UTC)),
+		constraint:      it.IsEarlierThan(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
 		assert:          assertHasOneViolation(code.TooLate, "This value should be earlier than 2021-03-29T12:30:00Z."),
 	},
 	{
 		name:            "IsEarlierThan violation on equal value",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
-		constraint:      it.IsEarlierThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		timeValue:       timeValue(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
+		constraint:      it.IsEarlierThan(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
 		assert:          assertHasOneViolation(code.TooLate, "This value should be earlier than 2021-03-29T12:30:00Z."),
 	},
 	{
 		name:            "IsEarlierThan passes on less value",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 29, 29, 0, time.UTC)),
-		constraint:      it.IsEarlierThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		timeValue:       timeValue(time.Date(2021, 0o3, 29, 12, 29, 29, 0, time.UTC)),
+		constraint:      it.IsEarlierThan(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
 		assert:          assertNoError,
 	},
 	{
 		name:            "IsEarlierThan violation with custom message",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 40, 0, 0, time.UTC)),
-		constraint: it.IsEarlierThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)).
+		timeValue:       timeValue(time.Date(2021, 0o3, 29, 12, 40, 0, 0, time.UTC)),
+		constraint: it.IsEarlierThan(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)).
 			Code(customCode).
 			Message(
 				`Unexpected value "{{ value }}" at {{ custom }}, expected value must be earlier than "{{ comparedValue }}".`,
@@ -821,8 +821,8 @@ var isEarlierThanTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsEarlierThan violation with custom message and time layout",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 40, 0, 0, time.UTC)),
-		constraint: it.IsEarlierThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)).
+		timeValue:       timeValue(time.Date(2021, 0o3, 29, 12, 40, 0, 0, time.UTC)),
+		constraint: it.IsEarlierThan(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)).
 			Message(`Unexpected value "{{ value }}", expected value must be earlier than "{{ comparedValue }}".`).
 			Layout(time.RFC822),
 		assert: assertHasOneViolation(
@@ -833,16 +833,16 @@ var isEarlierThanTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsEarlierThan passes when condition is false",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 40, 0, 0, time.UTC)),
-		constraint: it.IsEarlierThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)).
+		timeValue:       timeValue(time.Date(2021, 0o3, 29, 12, 40, 0, 0, time.UTC)),
+		constraint: it.IsEarlierThan(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)).
 			When(false),
 		assert: assertNoError,
 	},
 	{
 		name:            "IsEarlierThan violation when condition is true",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 40, 0, 0, time.UTC)),
-		constraint: it.IsEarlierThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)).
+		timeValue:       timeValue(time.Date(2021, 0o3, 29, 12, 40, 0, 0, time.UTC)),
+		constraint: it.IsEarlierThan(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)).
 			When(true),
 		assert: assertHasOneViolation(code.TooLate, "This value should be earlier than 2021-03-29T12:30:00Z."),
 	},
@@ -852,35 +852,35 @@ var isEarlierThanOrEqualTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsEarlierThanOrEqual passes on nil",
 		isApplicableFor: specificValueTypes(timeType),
-		constraint:      it.IsEarlierThanOrEqual(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		constraint:      it.IsEarlierThanOrEqual(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
 		assert:          assertNoError,
 	},
 	{
 		name:            "IsEarlierThanOrEqual violation on greater value",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 40, 0, 0, time.UTC)),
-		constraint:      it.IsEarlierThanOrEqual(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		timeValue:       timeValue(time.Date(2021, 0o3, 29, 12, 40, 0, 0, time.UTC)),
+		constraint:      it.IsEarlierThanOrEqual(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
 		assert:          assertHasOneViolation(code.TooLateOrEqual, "This value should be earlier than or equal to 2021-03-29T12:30:00Z."),
 	},
 	{
 		name:            "IsEarlierThanOrEqual passes on equal value",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
-		constraint:      it.IsEarlierThanOrEqual(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		timeValue:       timeValue(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
+		constraint:      it.IsEarlierThanOrEqual(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
 		assert:          assertNoError,
 	},
 	{
 		name:            "IsEarlierThanOrEqual passes on equal value with different time zone",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
-		constraint:      it.IsEarlierThanOrEqual(time.Date(2021, 03, 29, 8, 30, 0, 0, givenLocation("America/New_York"))),
+		timeValue:       timeValue(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
+		constraint:      it.IsEarlierThanOrEqual(time.Date(2021, 0o3, 29, 8, 30, 0, 0, givenLocation("America/New_York"))),
 		assert:          assertNoError,
 	},
 	{
 		name:            "IsEarlierThanOrEqual passes on less value",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 29, 29, 0, time.UTC)),
-		constraint:      it.IsEarlierThanOrEqual(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		timeValue:       timeValue(time.Date(2021, 0o3, 29, 12, 29, 29, 0, time.UTC)),
+		constraint:      it.IsEarlierThanOrEqual(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
 		assert:          assertNoError,
 	},
 }
@@ -889,28 +889,28 @@ var isLaterThanTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsLaterThan passes on nil",
 		isApplicableFor: specificValueTypes(timeType),
-		constraint:      it.IsLaterThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		constraint:      it.IsLaterThan(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
 		assert:          assertNoError,
 	},
 	{
 		name:            "IsLaterThan passes on greater value",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 40, 0, 0, time.UTC)),
-		constraint:      it.IsLaterThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		timeValue:       timeValue(time.Date(2021, 0o3, 29, 12, 40, 0, 0, time.UTC)),
+		constraint:      it.IsLaterThan(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
 		assert:          assertNoError,
 	},
 	{
 		name:            "IsLaterThan violation on equal value",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
-		constraint:      it.IsLaterThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		timeValue:       timeValue(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
+		constraint:      it.IsLaterThan(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
 		assert:          assertHasOneViolation(code.TooEarly, "This value should be later than 2021-03-29T12:30:00Z."),
 	},
 	{
 		name:            "IsLaterThan violation on less value",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 29, 29, 0, time.UTC)),
-		constraint:      it.IsLaterThan(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		timeValue:       timeValue(time.Date(2021, 0o3, 29, 12, 29, 29, 0, time.UTC)),
+		constraint:      it.IsLaterThan(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
 		assert:          assertHasOneViolation(code.TooEarly, "This value should be later than 2021-03-29T12:30:00Z."),
 	},
 }
@@ -919,35 +919,35 @@ var isLaterThanOrEqualTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsLaterThanOrEqual passes on nil",
 		isApplicableFor: specificValueTypes(timeType),
-		constraint:      it.IsLaterThanOrEqual(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		constraint:      it.IsLaterThanOrEqual(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
 		assert:          assertNoError,
 	},
 	{
 		name:            "IsLaterThanOrEqual passes on greater value",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 40, 0, 0, time.UTC)),
-		constraint:      it.IsLaterThanOrEqual(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		timeValue:       timeValue(time.Date(2021, 0o3, 29, 12, 40, 0, 0, time.UTC)),
+		constraint:      it.IsLaterThanOrEqual(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
 		assert:          assertNoError,
 	},
 	{
 		name:            "IsLaterThanOrEqual passes on equal value",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
-		constraint:      it.IsLaterThanOrEqual(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		timeValue:       timeValue(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
+		constraint:      it.IsLaterThanOrEqual(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
 		assert:          assertNoError,
 	},
 	{
 		name:            "IsLaterThanOrEqual passes on equal value with different time zone",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
-		constraint:      it.IsLaterThanOrEqual(time.Date(2021, 03, 29, 8, 30, 0, 0, givenLocation("America/New_York"))),
+		timeValue:       timeValue(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
+		constraint:      it.IsLaterThanOrEqual(time.Date(2021, 0o3, 29, 8, 30, 0, 0, givenLocation("America/New_York"))),
 		assert:          assertNoError,
 	},
 	{
 		name:            "IsLaterThanOrEqual violation on less value",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 03, 29, 12, 29, 29, 0, time.UTC)),
-		constraint:      it.IsLaterThanOrEqual(time.Date(2021, 03, 29, 12, 30, 0, 0, time.UTC)),
+		timeValue:       timeValue(time.Date(2021, 0o3, 29, 12, 29, 29, 0, time.UTC)),
+		constraint:      it.IsLaterThanOrEqual(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)),
 		assert:          assertHasOneViolation(code.TooEarlyOrEqual, "This value should be later than or equal to 2021-03-29T12:30:00Z."),
 	},
 }
@@ -957,8 +957,8 @@ var isBetweenTimeTestCases = []ConstraintValidationTestCase{
 		name:            "IsBetweenTime error on equal min and max",
 		isApplicableFor: specificValueTypes(timeType),
 		constraint: it.IsBetweenTime(
-			*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
-			*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
+			*timeValue(time.Date(2021, 0o4, 4, 12, 30, 0, 0, time.UTC)),
+			*timeValue(time.Date(2021, 0o4, 4, 12, 30, 0, 0, time.UTC)),
 		),
 		assert: assertError(`failed to set up constraint "TimeRangeConstraint": invalid range`),
 	},
@@ -966,8 +966,8 @@ var isBetweenTimeTestCases = []ConstraintValidationTestCase{
 		name:            "IsBetweenTime error on equal min and max in different time zones",
 		isApplicableFor: specificValueTypes(timeType),
 		constraint: it.IsBetweenTime(
-			*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
-			*timeValue(time.Date(2021, 04, 4, 8, 30, 0, 0, givenLocation("America/New_York"))),
+			*timeValue(time.Date(2021, 0o4, 4, 12, 30, 0, 0, time.UTC)),
+			*timeValue(time.Date(2021, 0o4, 4, 8, 30, 0, 0, givenLocation("America/New_York"))),
 		),
 		assert: assertError(`failed to set up constraint "TimeRangeConstraint": invalid range`),
 	},
@@ -975,8 +975,8 @@ var isBetweenTimeTestCases = []ConstraintValidationTestCase{
 		name:            "IsBetweenTime error on min greater than max",
 		isApplicableFor: specificValueTypes(timeType),
 		constraint: it.IsBetweenTime(
-			*timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
-			*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
+			*timeValue(time.Date(2021, 0o4, 4, 12, 40, 0, 0, time.UTC)),
+			*timeValue(time.Date(2021, 0o4, 4, 12, 30, 0, 0, time.UTC)),
 		),
 		assert: assertError(`failed to set up constraint "TimeRangeConstraint": invalid range`),
 	},
@@ -984,59 +984,59 @@ var isBetweenTimeTestCases = []ConstraintValidationTestCase{
 		name:            "IsBetweenTime passes on nil",
 		isApplicableFor: specificValueTypes(timeType),
 		constraint: it.IsBetweenTime(
-			*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
-			*timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
+			*timeValue(time.Date(2021, 0o4, 4, 12, 30, 0, 0, time.UTC)),
+			*timeValue(time.Date(2021, 0o4, 4, 12, 40, 0, 0, time.UTC)),
 		),
 		assert: assertNoError,
 	},
 	{
 		name:            "IsBetweenTime violation on value less than min",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 04, 4, 12, 20, 0, 0, time.UTC)),
+		timeValue:       timeValue(time.Date(2021, 0o4, 4, 12, 20, 0, 0, time.UTC)),
 		constraint: it.IsBetweenTime(
-			*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
-			*timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
+			*timeValue(time.Date(2021, 0o4, 4, 12, 30, 0, 0, time.UTC)),
+			*timeValue(time.Date(2021, 0o4, 4, 12, 40, 0, 0, time.UTC)),
 		),
 		assert: assertHasOneViolation(code.NotInRange, "This value should be between 2021-04-04T12:30:00Z and 2021-04-04T12:40:00Z."),
 	},
 	{
 		name:            "IsBetweenTime violation on value greater than max",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 04, 4, 12, 50, 0, 0, time.UTC)),
+		timeValue:       timeValue(time.Date(2021, 0o4, 4, 12, 50, 0, 0, time.UTC)),
 		constraint: it.IsBetweenTime(
-			*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
-			*timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
+			*timeValue(time.Date(2021, 0o4, 4, 12, 30, 0, 0, time.UTC)),
+			*timeValue(time.Date(2021, 0o4, 4, 12, 40, 0, 0, time.UTC)),
 		),
 		assert: assertHasOneViolation(code.NotInRange, "This value should be between 2021-04-04T12:30:00Z and 2021-04-04T12:40:00Z."),
 	},
 	{
 		name:            "IsBetweenTime passes on value equal to min",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
+		timeValue:       timeValue(time.Date(2021, 0o4, 4, 12, 30, 0, 0, time.UTC)),
 		constraint: it.IsBetweenTime(
-			*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
-			*timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
+			*timeValue(time.Date(2021, 0o4, 4, 12, 30, 0, 0, time.UTC)),
+			*timeValue(time.Date(2021, 0o4, 4, 12, 40, 0, 0, time.UTC)),
 		),
 		assert: assertNoError,
 	},
 	{
 		name:            "IsBetweenTime passes on value equal to max",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
+		timeValue:       timeValue(time.Date(2021, 0o4, 4, 12, 40, 0, 0, time.UTC)),
 		constraint: it.IsBetweenTime(
-			*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
-			*timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
+			*timeValue(time.Date(2021, 0o4, 4, 12, 30, 0, 0, time.UTC)),
+			*timeValue(time.Date(2021, 0o4, 4, 12, 40, 0, 0, time.UTC)),
 		),
 		assert: assertNoError,
 	},
 	{
 		name:            "IsBetweenTime violation with custom message",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 04, 4, 12, 20, 0, 0, time.UTC)),
+		timeValue:       timeValue(time.Date(2021, 0o4, 4, 12, 20, 0, 0, time.UTC)),
 		constraint: it.
 			IsBetweenTime(
-				*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
-				*timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
+				*timeValue(time.Date(2021, 0o4, 4, 12, 30, 0, 0, time.UTC)),
+				*timeValue(time.Date(2021, 0o4, 4, 12, 40, 0, 0, time.UTC)),
 			).
 			Code(customCode).
 			Message(
@@ -1051,11 +1051,11 @@ var isBetweenTimeTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsBetweenTime violation with custom message and time layout",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 04, 4, 12, 20, 0, 0, time.UTC)),
+		timeValue:       timeValue(time.Date(2021, 0o4, 4, 12, 20, 0, 0, time.UTC)),
 		constraint: it.
 			IsBetweenTime(
-				*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
-				*timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
+				*timeValue(time.Date(2021, 0o4, 4, 12, 30, 0, 0, time.UTC)),
+				*timeValue(time.Date(2021, 0o4, 4, 12, 40, 0, 0, time.UTC)),
 			).
 			Message(`Unexpected value "{{ value }}", expected value must be between "{{ min }}" and "{{ max }}".`).
 			Layout(time.RFC822),
@@ -1067,11 +1067,11 @@ var isBetweenTimeTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsBetweenTime passes when condition is false",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 04, 4, 12, 20, 0, 0, time.UTC)),
+		timeValue:       timeValue(time.Date(2021, 0o4, 4, 12, 20, 0, 0, time.UTC)),
 		constraint: it.
 			IsBetweenTime(
-				*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
-				*timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
+				*timeValue(time.Date(2021, 0o4, 4, 12, 30, 0, 0, time.UTC)),
+				*timeValue(time.Date(2021, 0o4, 4, 12, 40, 0, 0, time.UTC)),
 			).
 			When(false),
 		assert: assertNoError,
@@ -1079,11 +1079,11 @@ var isBetweenTimeTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsBetweenTime violation when condition is true",
 		isApplicableFor: specificValueTypes(timeType),
-		timeValue:       timeValue(time.Date(2021, 04, 4, 12, 20, 0, 0, time.UTC)),
+		timeValue:       timeValue(time.Date(2021, 0o4, 4, 12, 20, 0, 0, time.UTC)),
 		constraint: it.
 			IsBetweenTime(
-				*timeValue(time.Date(2021, 04, 4, 12, 30, 0, 0, time.UTC)),
-				*timeValue(time.Date(2021, 04, 4, 12, 40, 0, 0, time.UTC)),
+				*timeValue(time.Date(2021, 0o4, 4, 12, 30, 0, 0, time.UTC)),
+				*timeValue(time.Date(2021, 0o4, 4, 12, 40, 0, 0, time.UTC)),
 			).
 			When(true),
 		assert: assertHasOneViolation(code.NotInRange, "This value should be between 2021-04-04T12:30:00Z and 2021-04-04T12:40:00Z."),
