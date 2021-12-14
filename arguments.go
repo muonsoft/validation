@@ -265,6 +265,26 @@ func ValidProperty(name string, value Validatable, options ...Option) Argument {
 	return Valid(value, append([]Option{PropertyName(name)}, options...)...)
 }
 
+// CheckNoViolations is a special argument that checks err for violations. If err contains Violation or ViolationList
+// then these violations will be appended into returned violation list from the validator. If err contains an error
+// that does not implement an error interface, then the validation process will be terminated and
+// this error will be returned.
+func CheckNoViolations(err error) Argument {
+	return argumentFunc(func(arguments *Arguments) error {
+		arguments.addValidator(func(scope Scope) (*ViolationList, error) {
+			violations := NewViolationList()
+			fatal := violations.AppendFromError(err)
+			if fatal != nil {
+				return nil, fatal
+			}
+
+			return violations, nil
+		})
+
+		return nil
+	})
+}
+
 // Check argument can be useful for quickly checking the result of some simple expression
 // that returns a boolean value.
 func Check(isValid bool) Checker {

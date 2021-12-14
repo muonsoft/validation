@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/muonsoft/validation/validationtest"
 	"github.com/muonsoft/validation/validator"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestValidate_WhenArgumentForGivenType_ExpectValidationExecuted(t *testing.T) {
@@ -127,4 +129,31 @@ func TestCheckProperty_WhenFalse_ExpectPropertyNameInViolation(t *testing.T) {
 			assert.Equal(t, message.NotValid, violation.Message()) &&
 			assert.Equal(t, "propertyName", violation.PropertyPath().String())
 	})
+}
+
+func TestCheckNoViolations_WhenThereAreViolations_ExpectAppendedViolationsReturned(t *testing.T) {
+	violations := validator.ValidateString(context.Background(), "", it.IsNotBlank())
+
+	err := validator.Validate(
+		context.Background(),
+		validation.CheckNoViolations(violations),
+		validation.Check(false),
+	)
+
+	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
+		t.Helper()
+		require.Len(t, violations, 2)
+		return assert.Equal(t, code.NotBlank, violations[0].Code()) &&
+			assert.Equal(t, code.NotValid, violations[1].Code())
+	})
+}
+
+func TestCheckNoViolations_WhenThereIsAnError_ExpectError(t *testing.T) {
+	err := validator.Validate(
+		context.Background(),
+		validation.CheckNoViolations(fmt.Errorf("error")),
+		validation.Check(false),
+	)
+
+	assert.EqualError(t, err, "error")
 }
