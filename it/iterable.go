@@ -37,9 +37,9 @@ func newCountConstraint(min int, max int, checkMin bool, checkMax bool) CountCon
 		minCode:              code.CountTooFew,
 		maxCode:              code.CountTooMany,
 		exactCode:            code.CountExact,
-		minMessageTemplate:   message.CountTooFew,
-		maxMessageTemplate:   message.CountTooMany,
-		exactMessageTemplate: message.CountExact,
+		minMessageTemplate:   message.Templates[code.CountTooFew],
+		maxMessageTemplate:   message.Templates[code.CountTooMany],
+		exactMessageTemplate: message.Templates[code.CountExact],
 	}
 }
 

@@ -39,9 +39,9 @@ func newLengthConstraint(min int, max int, checkMin bool, checkMax bool) LengthC
 		minCode:              code.LengthTooFew,
 		maxCode:              code.LengthTooMany,
 		exactCode:            code.LengthExact,
-		minMessageTemplate:   message.LengthTooFew,
-		maxMessageTemplate:   message.LengthTooMany,
-		exactMessageTemplate: message.LengthExact,
+		minMessageTemplate:   message.Templates[code.LengthTooFew],
+		maxMessageTemplate:   message.Templates[code.LengthTooMany],
+		exactMessageTemplate: message.Templates[code.LengthExact],
 	}
 }
 
@@ -203,7 +203,7 @@ func Matches(regex *regexp.Regexp) RegexConstraint {
 		regex:           regex,
 		match:           true,
 		code:            code.MatchingFailed,
-		messageTemplate: message.NotValid,
+		messageTemplate: message.Templates[code.NotValid],
 	}
 }
 
@@ -213,7 +213,7 @@ func DoesNotMatch(regex *regexp.Regexp) RegexConstraint {
 		regex:           regex,
 		match:           false,
 		code:            code.MatchingFailed,
-		messageTemplate: message.NotValid,
+		messageTemplate: message.Templates[code.NotValid],
 	}
 }
 
@@ -278,6 +278,6 @@ func IsJSON() validation.CustomStringConstraint {
 		is.JSON,
 		"JSONConstraint",
 		code.InvalidJSON,
-		message.InvalidJSON,
+		message.Templates[code.InvalidJSON],
 	)
 }

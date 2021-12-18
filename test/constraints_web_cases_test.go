@@ -35,7 +35,7 @@ var urlConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsURL(),
 		stringValue:     stringValue("example.com"),
-		assert:          assertHasOneViolation(code.InvalidURL, message.InvalidURL),
+		assert:          assertHasOneViolation(code.InvalidURL, message.Templates[code.InvalidURL]),
 	},
 	{
 		name:            "IsURL error on empty schemas",
@@ -89,7 +89,7 @@ var urlConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsURL().When(true),
 		stringValue:     stringValue("example.com"),
-		assert:          assertHasOneViolation(code.InvalidURL, message.InvalidURL),
+		assert:          assertHasOneViolation(code.InvalidURL, message.Templates[code.InvalidURL]),
 	},
 }
 
@@ -106,7 +106,7 @@ var emailConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsEmail(),
 		stringValue:     stringValue("invalid"),
-		assert:          assertHasOneViolation(code.InvalidEmail, message.InvalidEmail),
+		assert:          assertHasOneViolation(code.InvalidEmail, message.Templates[code.InvalidEmail]),
 	},
 	{
 		name:            "IsHTML5Email passes on valid email",
@@ -120,7 +120,7 @@ var emailConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsHTML5Email(),
 		stringValue:     stringValue("invalid"),
-		assert:          assertHasOneViolation(code.InvalidEmail, message.InvalidEmail),
+		assert:          assertHasOneViolation(code.InvalidEmail, message.Templates[code.InvalidEmail]),
 	},
 }
 
@@ -150,7 +150,7 @@ var ipConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsIP(),
 		stringValue:     stringValue("123.123.123.321"),
-		assert:          assertHasOneViolation(code.InvalidIP, message.InvalidIP),
+		assert:          assertHasOneViolation(code.InvalidIP, message.Templates[code.InvalidIP]),
 	},
 	{
 		name:            "IsIPv4 passes on valid IP v4",
@@ -164,7 +164,7 @@ var ipConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsIPv4(),
 		stringValue:     stringValue("2001:0db8:85a3:0000:0000:8a2e:0370:7334"),
-		assert:          assertHasOneViolation(code.InvalidIP, message.InvalidIP),
+		assert:          assertHasOneViolation(code.InvalidIP, message.Templates[code.InvalidIP]),
 	},
 	{
 		name:            "IsIPv6 passes on valid IP v6",
@@ -178,14 +178,14 @@ var ipConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsIPv6(),
 		stringValue:     stringValue("123.123.123.123"),
-		assert:          assertHasOneViolation(code.InvalidIP, message.InvalidIP),
+		assert:          assertHasOneViolation(code.InvalidIP, message.Templates[code.InvalidIP]),
 	},
 	{
 		name:            "IsIP violation on private IP",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsIP().DenyPrivateIP(),
 		stringValue:     stringValue("192.168.1.0"),
-		assert:          assertHasOneViolation(code.ProhibitedIP, message.ProhibitedIP),
+		assert:          assertHasOneViolation(code.ProhibitedIP, message.Templates[code.ProhibitedIP]),
 	},
 	{
 		name:            "IsIP violation on custom IP",
@@ -194,7 +194,7 @@ var ipConstraintTestCases = []ConstraintValidationTestCase{
 			return ip.IsLoopback()
 		}),
 		stringValue: stringValue("127.0.0.1"),
-		assert:      assertHasOneViolation(code.ProhibitedIP, message.ProhibitedIP),
+		assert:      assertHasOneViolation(code.ProhibitedIP, message.Templates[code.ProhibitedIP]),
 	},
 	{
 		name:            "IsIP violation with custom message",
@@ -239,7 +239,7 @@ var ipConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsIP().When(true),
 		stringValue:     stringValue("123.123.123.321"),
-		assert:          assertHasOneViolation(code.InvalidIP, message.InvalidIP),
+		assert:          assertHasOneViolation(code.InvalidIP, message.Templates[code.InvalidIP]),
 	},
 }
 
@@ -256,14 +256,14 @@ var hostnameConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsHostname(),
 		stringValue:     stringValue("example-.com"),
-		assert:          assertHasOneViolation(code.InvalidHostname, message.InvalidHostname),
+		assert:          assertHasOneViolation(code.InvalidHostname, message.Templates[code.InvalidHostname]),
 	},
 	{
 		name:            "IsHostname violation on reserved hostname",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsHostname(),
 		stringValue:     stringValue("example.localhost"),
-		assert:          assertHasOneViolation(code.InvalidHostname, message.InvalidHostname),
+		assert:          assertHasOneViolation(code.InvalidHostname, message.Templates[code.InvalidHostname]),
 	},
 	{
 		name:            "IsLooseHostname passes on valid hostname",
@@ -277,7 +277,7 @@ var hostnameConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsLooseHostname(),
 		stringValue:     stringValue("example-.com"),
-		assert:          assertHasOneViolation(code.InvalidHostname, message.InvalidHostname),
+		assert:          assertHasOneViolation(code.InvalidHostname, message.Templates[code.InvalidHostname]),
 	},
 	{
 		name:            "IsLooseHostname passes on reserved hostname",

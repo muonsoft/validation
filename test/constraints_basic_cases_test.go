@@ -14,7 +14,7 @@ var isNotBlankConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "IsNotBlank violation on nil",
 		isApplicableFor: anyValueType,
 		constraint:      it.IsNotBlank(),
-		assert:          assertHasOneViolation(code.NotBlank, message.NotBlank),
+		assert:          assertHasOneViolation(code.NotBlank, message.Templates[code.NotBlank]),
 	},
 	{
 		name:            "IsNotBlank violation on empty value",
@@ -27,7 +27,7 @@ var isNotBlankConstraintTestCases = []ConstraintValidationTestCase{
 		sliceValue:      []string{},
 		mapValue:        map[string]string{},
 		constraint:      it.IsNotBlank(),
-		assert:          assertHasOneViolation(code.NotBlank, message.NotBlank),
+		assert:          assertHasOneViolation(code.NotBlank, message.Templates[code.NotBlank]),
 	},
 	{
 		name:            "IsNotBlank violation on empty value when condition is true",
@@ -40,7 +40,7 @@ var isNotBlankConstraintTestCases = []ConstraintValidationTestCase{
 		sliceValue:      []string{},
 		mapValue:        map[string]string{},
 		constraint:      it.IsNotBlank().When(true),
-		assert:          assertHasOneViolation(code.NotBlank, message.NotBlank),
+		assert:          assertHasOneViolation(code.NotBlank, message.Templates[code.NotBlank]),
 	},
 	{
 		name:            "IsNotBlank violation on nil with custom message",
@@ -94,7 +94,7 @@ var isBlankConstraintTestCases = []ConstraintValidationTestCase{
 		sliceValue:      []string{"a"},
 		mapValue:        map[string]string{"a": "a"},
 		constraint:      it.IsBlank(),
-		assert:          assertHasOneViolation(code.Blank, message.Blank),
+		assert:          assertHasOneViolation(code.Blank, message.Templates[code.Blank]),
 	},
 	{
 		name:            "IsBlank violation on value when condition is true",
@@ -108,7 +108,7 @@ var isBlankConstraintTestCases = []ConstraintValidationTestCase{
 		sliceValue:      []string{"a"},
 		mapValue:        map[string]string{"a": "a"},
 		constraint:      it.IsBlank().When(true),
-		assert:          assertHasOneViolation(code.Blank, message.Blank),
+		assert:          assertHasOneViolation(code.Blank, message.Templates[code.Blank]),
 	},
 	{
 		name:            "IsBlank violation on value with custom message",
@@ -170,7 +170,7 @@ var isNotNilConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "IsNotNil violation on nil",
 		isApplicableFor: exceptValueTypes(countableType),
 		constraint:      it.IsNotNil(),
-		assert:          assertHasOneViolation(code.NotNil, message.NotNil),
+		assert:          assertHasOneViolation(code.NotNil, message.Templates[code.NotNil]),
 	},
 	{
 		name:            "IsNotNil passes on empty value",
@@ -252,7 +252,7 @@ var isNilConstraintTestCases = []ConstraintValidationTestCase{
 		sliceValue:      []string{},
 		mapValue:        map[string]string{},
 		constraint:      it.IsNil(),
-		assert:          assertHasOneViolation(code.Nil, message.Nil),
+		assert:          assertHasOneViolation(code.Nil, message.Templates[code.Nil]),
 	},
 	{
 		name:            "IsNil passes on nil when condition is true",
@@ -291,7 +291,7 @@ var isNilConstraintTestCases = []ConstraintValidationTestCase{
 		sliceValue:      []string{},
 		mapValue:        map[string]string{},
 		constraint:      it.IsNil(),
-		assert:          assertHasOneViolation(code.Nil, message.Nil),
+		assert:          assertHasOneViolation(code.Nil, message.Templates[code.Nil]),
 	},
 	{
 		name:            "IsNil passes on empty value when condition is false",
@@ -321,14 +321,14 @@ var isTrueConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(boolType),
 		boolValue:       boolValue(false),
 		constraint:      it.IsTrue(),
-		assert:          assertHasOneViolation(code.True, message.True),
+		assert:          assertHasOneViolation(code.True, message.Templates[code.True]),
 	},
 	{
 		name:            "IsTrue violation on empty value when condition is true",
 		isApplicableFor: specificValueTypes(boolType),
 		boolValue:       boolValue(false),
 		constraint:      it.IsTrue().When(true),
-		assert:          assertHasOneViolation(code.True, message.True),
+		assert:          assertHasOneViolation(code.True, message.Templates[code.True]),
 	},
 	{
 		name:            "IsTrue violation on empty value with custom message",
@@ -377,7 +377,7 @@ var isFalseConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(boolType),
 		boolValue:       boolValue(true),
 		constraint:      it.IsFalse().When(true),
-		assert:          assertHasOneViolation(code.False, message.False),
+		assert:          assertHasOneViolation(code.False, message.Templates[code.False]),
 	},
 	{
 		name:            "IsFalse violation on error value with custom message",

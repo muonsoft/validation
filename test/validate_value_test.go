@@ -48,7 +48,7 @@ func TestValidateValue_WhenValueOfType_ExpectValueValidated(t *testing.T) {
 				validation.Value(test.value, validation.PropertyName("property"), it.IsNotBlank()),
 			)
 
-			assertHasOneViolationAtPath(code.NotBlank, message.NotBlank, "property")(t, err)
+			assertHasOneViolationAtPath(code.NotBlank, message.Templates[code.NotBlank], "property")(t, err)
 		})
 	}
 }

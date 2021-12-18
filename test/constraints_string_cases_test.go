@@ -150,7 +150,7 @@ var regexConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.Matches(regexp.MustCompile("^[a-z]+$")).When(true),
 		stringValue:     stringValue("1"),
-		assert:          assertHasOneViolation(code.MatchingFailed, message.NotValid),
+		assert:          assertHasOneViolation(code.MatchingFailed, message.Templates[code.NotValid]),
 	},
 	{
 		name:            "Matches violation with custom message",
@@ -176,7 +176,7 @@ var regexConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("a"),
 		constraint:      it.DoesNotMatch(regexp.MustCompile("^[a-z]+$")),
-		assert:          assertHasOneViolation(code.MatchingFailed, message.NotValid),
+		assert:          assertHasOneViolation(code.MatchingFailed, message.Templates[code.NotValid]),
 	},
 	{
 		name:            "DoesNotMatch passes on expected string",
@@ -200,6 +200,6 @@ var jsonConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsJSON(),
 		stringValue:     stringValue(`"invalid": true`),
-		assert:          assertHasOneViolation(code.InvalidJSON, message.InvalidJSON),
+		assert:          assertHasOneViolation(code.InvalidJSON, message.Templates[code.InvalidJSON]),
 	},
 }

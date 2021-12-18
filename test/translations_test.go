@@ -38,11 +38,7 @@ func TestValidator_Validate_WhenRussianIsDefaultLanguage_ExpectViolationTranslat
 		t.Run("plural form for "+strconv.Itoa(test.maxCount), func(t *testing.T) {
 			err := v.Validate(context.Background(), validation.Countable(10, it.HasMaxCount(test.maxCount)))
 
-			validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-				t.Helper()
-				return assert.Len(t, violations, 1) &&
-					assert.Equal(t, test.expectedMessage, violations[0].Message())
-			})
+			validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithMessage(test.expectedMessage)
 		})
 	}
 }
@@ -67,11 +63,7 @@ func TestValidator_Validate_WhenRussianIsPassedViaArgument_ExpectViolationTransl
 				validation.Countable(10, it.HasMaxCount(test.maxCount)),
 			)
 
-			validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-				t.Helper()
-				return assert.Len(t, violations, 1) &&
-					assert.Equal(t, test.expectedMessage, violations[0].Message())
-			})
+			validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithMessage(test.expectedMessage)
 		})
 	}
 }
@@ -89,11 +81,7 @@ func TestValidator_Validate_WhenCustomDefaultLanguageAndUndefinedTranslationLang
 		validation.String("", it.IsNotBlank()),
 	)
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-		t.Helper()
-		return assert.Len(t, violations, 1) &&
-			assert.Equal(t, "Значение не должно быть пустым.", violations[0].Message())
-	})
+	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithMessage("Значение не должно быть пустым.")
 }
 
 func TestValidator_Validate_WhenDefaultLanguageIsNotLoaded_ExpectError(t *testing.T) {
@@ -112,11 +100,7 @@ func TestValidator_Validate_WhenTranslationLanguageInContextArgument_ExpectTrans
 		validation.String("", it.IsNotBlank()),
 	)
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-		t.Helper()
-		return assert.Len(t, violations, 1) &&
-			assert.Equal(t, "Значение не должно быть пустым.", violations[0].Message())
-	})
+	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithMessage("Значение не должно быть пустым.")
 }
 
 func TestValidator_Validate_WhenTranslationLanguageInScopedValidator_ExpectTranslationLanguageUsed(t *testing.T) {
@@ -124,11 +108,7 @@ func TestValidator_Validate_WhenTranslationLanguageInScopedValidator_ExpectTrans
 
 	err := v.Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-		t.Helper()
-		return assert.Len(t, violations, 1) &&
-			assert.Equal(t, "Значение не должно быть пустым.", violations[0].Message())
-	})
+	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithMessage("Значение не должно быть пустым.")
 }
 
 func TestValidator_Validate_WhenTranslationLanguageInContextOfScopedValidator_ExpectTranslationLanguageUsed(t *testing.T) {
@@ -137,11 +117,7 @@ func TestValidator_Validate_WhenTranslationLanguageInContextOfScopedValidator_Ex
 
 	err := v.Validate(ctx, validation.String("", it.IsNotBlank()))
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-		t.Helper()
-		return assert.Len(t, violations, 1) &&
-			assert.Equal(t, "Значение не должно быть пустым.", violations[0].Message())
-	})
+	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithMessage("Значение не должно быть пустым.")
 }
 
 func TestValidator_Validate_WhenTranslationLanguageParsedFromAcceptLanguageHeader_ExpectTranslationLanguageUsed(t *testing.T) {
@@ -152,11 +128,7 @@ func TestValidator_Validate_WhenTranslationLanguageParsedFromAcceptLanguageHeade
 	ctx := language.WithContext(context.Background(), tag)
 	err := v.Validate(ctx, validation.String("", it.IsNotBlank()))
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-		t.Helper()
-		return assert.Len(t, violations, 1) &&
-			assert.Equal(t, "Значение не должно быть пустым.", violations[0].Message())
-	})
+	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithMessage("Значение не должно быть пустым.")
 }
 
 func TestValidator_Validate_WhenRecursiveValidation_ExpectViolationTranslated(t *testing.T) {
@@ -169,11 +141,7 @@ func TestValidator_Validate_WhenRecursiveValidation_ExpectViolationTranslated(t 
 
 	err := v.Validate(context.Background(), validation.Iterable(values, it.IsNotBlank()))
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-		t.Helper()
-		return assert.Len(t, violations, 1) &&
-			assert.Equal(t, "Значение не должно быть пустым.", violations[0].Message())
-	})
+	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithMessage("Значение не должно быть пустым.")
 }
 
 func TestValidator_Validate_WhenTranslatableParameter_ExpectParameterTranslated(t *testing.T) {
@@ -220,16 +188,12 @@ func TestValidate_WhenTranslationsLoadedAfterInit_ExpectTranslationsWorking(t *t
 
 	err = validator.Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-		t.Helper()
-		return assert.Len(t, violations, 1) &&
-			assert.Equal(t, "Значение не должно быть пустым.", violations[0].Message())
-	})
+	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithMessage("Значение не должно быть пустым.")
 }
 
 func TestValidate_WhenTranslatorIsOverridden_ExpectTranslationsByOverriddenTranslator(t *testing.T) {
 	translator := mockTranslator{translate: func(tag textlanguage.Tag, msg string, pluralCount int) string {
-		if msg == message.NotBlank {
+		if msg == message.Templates[code.NotBlank] {
 			return "expected message"
 		}
 		return "unexpected message"
@@ -238,10 +202,7 @@ func TestValidate_WhenTranslatorIsOverridden_ExpectTranslationsByOverriddenTrans
 
 	err := validator.ValidateString(context.Background(), "", it.IsNotBlank())
 
-	validationtest.AssertOneViolationInList(t, err, func(t *testing.T, violation validation.Violation) bool {
-		t.Helper()
-		return assert.Equal(t, "expected message", violation.Message())
-	})
+	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithMessage("expected message")
 }
 
 func TestValidate_WhenTranslatorIsOverriddenAndTranslationsPasses_ExpectError(t *testing.T) {

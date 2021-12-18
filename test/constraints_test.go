@@ -202,8 +202,8 @@ func TestValidateNil(t *testing.T) {
 		nilConstraint validation.NilConstraint
 		assert        func(t *testing.T, err error)
 	}{
-		{"not blank", it.IsNotBlank(), assertHasOneViolation(code.NotBlank, message.NotBlank)},
-		{"not blank when true", it.IsNotBlank().When(true), assertHasOneViolation(code.NotBlank, message.NotBlank)},
+		{"not blank", it.IsNotBlank(), assertHasOneViolation(code.NotBlank, message.Templates[code.NotBlank])},
+		{"not blank when true", it.IsNotBlank().When(true), assertHasOneViolation(code.NotBlank, message.Templates[code.NotBlank])},
 		{"not blank when false", it.IsNotBlank().When(false), assertNoError},
 		{"not blank when nil allowed", it.IsNotBlank().AllowNil(), assertNoError},
 		{"blank", it.IsBlank(), assertNoError},

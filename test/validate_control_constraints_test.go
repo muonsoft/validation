@@ -27,12 +27,7 @@ func TestValidate_WhenConditionIsTrue_ExpectAllConstraintsOfThenBranchApplied(t 
 		),
 	)
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-		t.Helper()
-		return assert.Len(t, violations, 2) &&
-			assert.Equal(t, code.Blank, violations[0].Code()) &&
-			assert.Equal(t, code.LengthTooFew, violations[1].Code())
-	})
+	validationtest.Assert(t, err).IsViolationList().WithCodes(code.Blank, code.LengthTooFew)
 }
 
 func TestValidate_WhenConditionIsFalse_ExpectAllConstraintsOfElseBranchApplied(t *testing.T) {
@@ -53,12 +48,7 @@ func TestValidate_WhenConditionIsFalse_ExpectAllConstraintsOfElseBranchApplied(t
 		),
 	)
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-		t.Helper()
-		return assert.Len(t, violations, 2) &&
-			assert.Equal(t, code.Blank, violations[0].Code()) &&
-			assert.Equal(t, code.LengthTooFew, violations[1].Code())
-	})
+	validationtest.Assert(t, err).IsViolationList().WithCodes(code.Blank, code.LengthTooFew)
 }
 
 func TestValidate_WhenConditionIsFalseAndNoElseBranch_ExpectNoViolations(t *testing.T) {
@@ -100,11 +90,7 @@ func TestValidate_WhenInvalidValueAtFirstConstraintOfSequentiallyConstraint_Expe
 		),
 	)
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-		t.Helper()
-		return assert.Len(t, violations, 1) &&
-			assert.Equal(t, code.Blank, violations[0].Code())
-	})
+	validationtest.Assert(t, err).IsViolationList().WithCodes(code.Blank)
 }
 
 func TestValidate_WhenSequentiallyConstraintIsDisabled_ExpectNoErrors(t *testing.T) {
@@ -146,12 +132,7 @@ func TestValidate_WhenInvalidValueAtFirstConstraintOfAtLeastOneOfConstraint_Expe
 		),
 	)
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-		t.Helper()
-		return assert.Len(t, violations, 2) &&
-			assert.Equal(t, code.Blank, violations[0].Code()) &&
-			assert.Equal(t, code.LengthTooFew, violations[1].Code())
-	})
+	validationtest.Assert(t, err).IsViolationList().WithCodes(code.Blank, code.LengthTooFew)
 }
 
 func TestValidate_WhenAtLeastOneOfConstraintIsDisabled_ExpectNoError(t *testing.T) {
@@ -205,12 +186,7 @@ func TestValidate_WhenCompoundWithFailingConstraint_ExpectViolation(t *testing.T
 		validation.String(value, isEmployeeEmail),
 	)
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-		t.Helper()
-		return assert.Len(t, violations, 2) &&
-			assert.Equal(t, code.LengthTooFew, violations[0].Code()) &&
-			assert.Equal(t, code.InvalidEmail, violations[1].Code())
-	})
+	validationtest.Assert(t, err).IsViolationList().WithCodes(code.LengthTooFew, code.InvalidEmail)
 }
 
 func TestValidate_WhenCompoundIsDisabled_ExpectNoError(t *testing.T) {

@@ -40,7 +40,7 @@ var customStringConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      validation.NewCustomStringConstraint(invalidString),
 		stringValue:     stringValue("foo"),
-		assert:          assertHasOneViolation(code.NotValid, message.NotValid),
+		assert:          assertHasOneViolation(code.NotValid, message.Templates[code.NotValid]),
 	},
 	{
 		name:            "CustomStringConstraint violation with given code and message",
@@ -74,6 +74,6 @@ var customStringConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      validation.NewCustomStringConstraint(invalidString).When(true),
 		stringValue:     stringValue("foo"),
-		assert:          assertHasOneViolation(code.NotValid, message.NotValid),
+		assert:          assertHasOneViolation(code.NotValid, message.Templates[code.NotValid]),
 	},
 }

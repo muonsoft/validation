@@ -29,7 +29,7 @@ func IsOneOfStrings(values ...string) ChoiceConstraint {
 		choices:         choices,
 		choicesValue:    strings.Join(values, ", "),
 		code:            code.NoSuchChoice,
-		messageTemplate: message.NoSuchChoice,
+		messageTemplate: message.Templates[code.NoSuchChoice],
 	}
 }
 

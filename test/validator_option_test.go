@@ -20,9 +20,10 @@ func TestWhenGlobalValidatorWithOverriddenNewViolation_ExpectCustomViolation(t *
 
 	err = validator.Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-		t.Helper()
-		return assert.Len(t, violations, 1) && assert.IsType(t, &mockViolation{}, violations[0])
+	validationtest.Assert(t, err).IsViolationList().Assert(func(tb testing.TB, violations []validation.Violation) {
+		tb.Helper()
+		assert.Len(tb, violations, 1)
+		assert.IsType(tb, &mockViolation{}, violations[0])
 	})
 }
 
@@ -31,8 +32,9 @@ func TestWhenValidatorWithOverriddenNewViolation_ExpectCustomViolation(t *testin
 
 	err := v.Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-		t.Helper()
-		return assert.Len(t, violations, 1) && assert.IsType(t, &mockViolation{}, violations[0])
+	validationtest.Assert(t, err).IsViolationList().Assert(func(tb testing.TB, violations []validation.Violation) {
+		tb.Helper()
+		assert.Len(tb, violations, 1)
+		assert.IsType(tb, &mockViolation{}, violations[0])
 	})
 }

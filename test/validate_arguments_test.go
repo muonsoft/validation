@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -37,10 +38,7 @@ func TestValidate_WhenArgumentForGivenType_ExpectValidationExecuted(t *testing.T
 		t.Run(test.name, func(t *testing.T) {
 			err := validator.Validate(context.Background(), test.argument)
 
-			validationtest.AssertOneViolationInList(t, err, func(t *testing.T, violation validation.Violation) bool {
-				t.Helper()
-				return assert.Equal(t, code.NotBlank, violation.Code())
-			})
+			validationtest.Assert(t, err).IsViolationList().WithCodes(code.NotBlank)
 		})
 	}
 }
@@ -71,10 +69,7 @@ func TestValidate_WhenPropertyArgument_ExpectValidPathInViolation(t *testing.T) 
 		t.Run(test.name, func(t *testing.T) {
 			err := validator.Validate(context.Background(), test.argument)
 
-			validationtest.AssertOneViolationInList(t, err, func(t *testing.T, violation validation.Violation) bool {
-				t.Helper()
-				return assert.Equal(t, test.expectedPath, violation.PropertyPath().String())
-			})
+			validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithPropertyPath(test.expectedPath)
 		})
 	}
 }
@@ -82,12 +77,11 @@ func TestValidate_WhenPropertyArgument_ExpectValidPathInViolation(t *testing.T) 
 func TestCheck_WhenFalse_ExpectViolation(t *testing.T) {
 	err := validator.Validate(context.Background(), validation.Check(false))
 
-	validationtest.AssertOneViolationInList(t, err, func(t *testing.T, violation validation.Violation) bool {
-		t.Helper()
-		return assert.Equal(t, code.NotValid, violation.Code()) &&
-			assert.Equal(t, message.NotValid, violation.Message()) &&
-			assert.Equal(t, "", violation.PropertyPath().String())
-	})
+	validationtest.Assert(t, err).IsViolationList().
+		WithOneViolation().
+		WithCode(code.NotValid).
+		WithMessage(message.Templates[code.NotValid]).
+		WithPropertyPath("")
 }
 
 func TestCheck_WhenCustomCodeAndTemplate_ExpectCodeAndTemplateInViolation(t *testing.T) {
@@ -98,12 +92,11 @@ func TestCheck_WhenCustomCodeAndTemplate_ExpectCodeAndTemplateInViolation(t *tes
 			Message("message with {{ value }}", validation.TemplateParameter{Key: "{{ value }}", Value: "value"}),
 	)
 
-	validationtest.AssertOneViolationInList(t, err, func(t *testing.T, violation validation.Violation) bool {
-		t.Helper()
-		return assert.Equal(t, "custom", violation.Code()) &&
-			assert.Equal(t, "message with value", violation.Message()) &&
-			assert.Equal(t, "", violation.PropertyPath().String())
-	})
+	validationtest.Assert(t, err).IsViolationList().
+		WithOneViolation().
+		WithCode("custom").
+		WithMessage("message with value").
+		WithPropertyPath("")
 }
 
 func TestCheck_WhenTrue_ExpectNoViolation(t *testing.T) {
@@ -121,10 +114,33 @@ func TestCheck_When_WhenConditionIsFalse_ExpectNoViolation(t *testing.T) {
 func TestCheckProperty_WhenFalse_ExpectPropertyNameInViolation(t *testing.T) {
 	err := validator.Validate(context.Background(), validation.CheckProperty("propertyName", false))
 
-	validationtest.AssertOneViolationInList(t, err, func(t *testing.T, violation validation.Violation) bool {
-		t.Helper()
-		return assert.Equal(t, code.NotValid, violation.Code()) &&
-			assert.Equal(t, message.NotValid, violation.Message()) &&
-			assert.Equal(t, "propertyName", violation.PropertyPath().String())
-	})
+	validationtest.Assert(t, err).IsViolationList().WithAttributes(
+		validationtest.ViolationAttributes{
+			Code:         code.NotValid,
+			Message:      message.Templates[code.NotValid],
+			PropertyPath: "propertyName",
+		},
+	)
+}
+
+func TestCheckNoViolations_WhenThereAreViolations_ExpectAppendedViolationsReturned(t *testing.T) {
+	violations := validator.ValidateString(context.Background(), "", it.IsNotBlank())
+
+	err := validator.Validate(
+		context.Background(),
+		validation.CheckNoViolations(violations),
+		validation.Check(false),
+	)
+
+	validationtest.Assert(t, err).IsViolationList().WithCodes(code.NotBlank, code.NotValid)
+}
+
+func TestCheckNoViolations_WhenThereIsAnError_ExpectError(t *testing.T) {
+	err := validator.Validate(
+		context.Background(),
+		validation.CheckNoViolations(fmt.Errorf("error")),
+		validation.Check(false),
+	)
+
+	assert.EqualError(t, err, "error")
 }

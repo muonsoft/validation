@@ -503,6 +503,10 @@ Also, you can combine several types of constraints. See examples for more detail
 * [custom constraint as a service](https://pkg.go.dev/github.com/muonsoft/validation#example-Validator.ValidateBy-CustomServiceConstraint).
 * [custom constraint with custom argument for domain type](https://pkg.go.dev/github.com/muonsoft/validation#example-NewArgument-CustomArgumentConstraintValidator).
 
+### Recommendations for storing violations in a database
+
+If you have a need to store violations in persistent storage (database), then it is recommended to store only code, property path, and template parameters. It is not recommended to store message templates because they can contain mistakes and can be changed more frequently than violation codes. The better practice is to store messages in separate storage with translations and to load them by violation codes. So make sure that violation codes are unique and have only one specific message template. To restore the violations from a storage load a code, property path, template parameters, and find a message template by the violation code. To make a violation code unique it is recommended to use a namespaced value, for example `app.product.emptyTags`.
+
 ## Contributing
 
 You may help this project by

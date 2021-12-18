@@ -34,6 +34,54 @@ func TestNewViolationList(t *testing.T) {
 	}
 }
 
+func TestViolationList_Len_WhenNil_ExpectZero(t *testing.T) {
+	var violations *validation.ViolationList
+
+	length := violations.Len()
+
+	assert.Equal(t, 0, length)
+}
+
+func TestViolationList_Each_WhenMultipleViolations_ExpectAllIterated(t *testing.T) {
+	violations := validation.NewViolationList(
+		newViolationWithCode(t, "first"),
+		newViolationWithCode(t, "second"),
+		newViolationWithCode(t, "third"),
+	)
+	iterated := make([]string, 0)
+	indices := make([]int, 0)
+
+	err := violations.Each(func(i int, violation validation.Violation) error {
+		iterated = append(iterated, violation.Code())
+		indices = append(indices, i)
+		return nil
+	})
+
+	assert.NoError(t, err)
+	assert.Equal(t, []int{0, 1, 2}, indices)
+	assert.Equal(t, []string{"first", "second", "third"}, iterated)
+}
+
+func TestViolationList_Each_WhenErrorReturned_ExpectLoopBreak(t *testing.T) {
+	violations := validation.NewViolationList(
+		newViolationWithCode(t, "first"),
+		newViolationWithCode(t, "second"),
+		newViolationWithCode(t, "third"),
+	)
+	iterated := make([]string, 0)
+	indices := make([]int, 0)
+
+	err := violations.Each(func(i int, violation validation.Violation) error {
+		iterated = append(iterated, violation.Code())
+		indices = append(indices, i)
+		return fmt.Errorf("error at %d", i)
+	})
+
+	assert.EqualError(t, err, "error at 0")
+	assert.Equal(t, []int{0}, indices)
+	assert.Equal(t, []string{"first"}, iterated)
+}
+
 func TestViolationList_Join(t *testing.T) {
 	tests := []struct {
 		name          string

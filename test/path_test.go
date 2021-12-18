@@ -67,7 +67,7 @@ func TestValidate_AtProperty_WhenGivenRecursiveProperties_ExpectViolationWithPro
 
 	err := validator.Validate(context.Background(), validation.Iterable(properties))
 
-	assertHasOneViolationAtPath(code.NotBlank, message.NotBlank, "[0].value[0].value[0].name")(t, err)
+	assertHasOneViolationAtPath(code.NotBlank, message.Templates[code.NotBlank], "[0].value[0].value[0].name")(t, err)
 }
 
 func TestValidate_WhenPathIsSetViaOptions_ExpectViolationAtPath(t *testing.T) {
@@ -85,7 +85,7 @@ func TestValidate_WhenPathIsSetViaOptions_ExpectViolationAtPath(t *testing.T) {
 		),
 	)
 
-	assertHasOneViolationAtPath(code.NotBlank, message.NotBlank, customPath)(t, err)
+	assertHasOneViolationAtPath(code.NotBlank, message.Templates[code.NotBlank], customPath)(t, err)
 }
 
 func TestValidate_AtProperty_WhenGivenProperty_ExpectViolationWithProperty(t *testing.T) {
@@ -95,7 +95,7 @@ func TestValidate_AtProperty_WhenGivenProperty_ExpectViolationWithProperty(t *te
 		AtProperty("property").
 		Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
-	assertHasOneViolationAtPath(code.NotBlank, message.NotBlank, "property")(t, err)
+	assertHasOneViolationAtPath(code.NotBlank, message.Templates[code.NotBlank], "property")(t, err)
 }
 
 func TestValidate_AtIndex_WhenGivenIndex_ExpectViolationWithIndex(t *testing.T) {
@@ -105,5 +105,5 @@ func TestValidate_AtIndex_WhenGivenIndex_ExpectViolationWithIndex(t *testing.T) 
 		AtIndex(1).
 		Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
-	assertHasOneViolationAtPath(code.NotBlank, message.NotBlank, "[1]")(t, err)
+	assertHasOneViolationAtPath(code.NotBlank, message.Templates[code.NotBlank], "[1]")(t, err)
 }

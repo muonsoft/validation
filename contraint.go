@@ -93,7 +93,7 @@ func NewCustomStringConstraint(isValid func(string) bool, parameters ...string) 
 		isValid:         isValid,
 		name:            "CustomStringConstraint",
 		code:            code.NotValid,
-		messageTemplate: message.NotValid,
+		messageTemplate: message.Templates[code.NotValid],
 	}
 
 	if len(parameters) > 0 {
