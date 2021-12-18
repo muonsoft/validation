@@ -39,7 +39,7 @@ var choiceConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("not-expected"),
 		constraint:      it.IsOneOfStrings("expected"),
-		assert:          assertHasOneViolation(code.NoSuchChoice, message.NoSuchChoice),
+		assert:          assertHasOneViolation(code.NoSuchChoice, message.Templates[code.NoSuchChoice]),
 	},
 	{
 		name:            "IsOneOfStrings violation on missing value with custom message",
@@ -68,6 +68,6 @@ var choiceConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("not-expected"),
 		constraint:      it.IsOneOfStrings("expected").When(true),
-		assert:          assertHasOneViolation(code.NoSuchChoice, message.NoSuchChoice),
+		assert:          assertHasOneViolation(code.NoSuchChoice, message.Templates[code.NoSuchChoice]),
 	},
 }

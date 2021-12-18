@@ -19,7 +19,7 @@ func TestValidator_ValidateBy_WhenConstraintExists_ExpectValidationByStoredConst
 		validation.String("", validator.ValidateBy("notBlank")),
 	)
 
-	assertHasOneViolation(code.NotBlank, message.NotBlank)(t, err)
+	assertHasOneViolation(code.NotBlank, message.Templates[code.NotBlank])(t, err)
 }
 
 func TestValidator_ValidateBy_WhenConstraintDoesNotExist_ExpectError(t *testing.T) {

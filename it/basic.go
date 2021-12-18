@@ -24,7 +24,7 @@ type NotBlankConstraint struct {
 func IsNotBlank() NotBlankConstraint {
 	return NotBlankConstraint{
 		code:            code.NotBlank,
-		messageTemplate: message.NotBlank,
+		messageTemplate: message.Templates[code.NotBlank],
 	}
 }
 
@@ -186,7 +186,7 @@ type BlankConstraint struct {
 func IsBlank() BlankConstraint {
 	return BlankConstraint{
 		code:            code.Blank,
-		messageTemplate: message.Blank,
+		messageTemplate: message.Templates[code.Blank],
 	}
 }
 
@@ -301,7 +301,7 @@ type NotNilConstraint struct {
 func IsNotNil() NotNilConstraint {
 	return NotNilConstraint{
 		code:            code.NotNil,
-		messageTemplate: message.NotNil,
+		messageTemplate: message.Templates[code.NotNil],
 	}
 }
 
@@ -411,7 +411,7 @@ type NilConstraint struct {
 func IsNil() NilConstraint {
 	return NilConstraint{
 		code:            code.Nil,
-		messageTemplate: message.Nil,
+		messageTemplate: message.Templates[code.Nil],
 	}
 }
 
@@ -518,7 +518,7 @@ func IsTrue() BoolConstraint {
 	return BoolConstraint{
 		expected:        true,
 		code:            code.True,
-		messageTemplate: message.True,
+		messageTemplate: message.Templates[code.True],
 	}
 }
 
@@ -527,7 +527,7 @@ func IsFalse() BoolConstraint {
 	return BoolConstraint{
 		expected:        false,
 		code:            code.False,
-		messageTemplate: message.False,
+		messageTemplate: message.Templates[code.False],
 	}
 }
 

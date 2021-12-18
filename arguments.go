@@ -291,7 +291,7 @@ func Check(isValid bool) Checker {
 	return Checker{
 		isValid:         isValid,
 		code:            code.NotValid,
-		messageTemplate: message.NotValid,
+		messageTemplate: message.Templates[code.NotValid],
 	}
 }
 
@@ -302,7 +302,7 @@ func CheckProperty(name string, isValid bool) Checker {
 		propertyName:    name,
 		isValid:         isValid,
 		code:            code.NotValid,
-		messageTemplate: message.NotValid,
+		messageTemplate: message.Templates[code.NotValid],
 	}
 }
 

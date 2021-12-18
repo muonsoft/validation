@@ -1116,7 +1116,7 @@ var hasUniqueValuesTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringsType),
 		constraint:      it.HasUniqueValues(),
 		stringsValue:    []string{"one", "two", "one"},
-		assert:          assertHasOneViolation(code.NotUnique, message.NotUnique),
+		assert:          assertHasOneViolation(code.NotUnique, message.Templates[code.NotUnique]),
 	},
 	{
 		name:            "HasUniqueValues violation with custom message",
@@ -1142,6 +1142,6 @@ var hasUniqueValuesTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringsType),
 		constraint:      it.HasUniqueValues().When(true),
 		stringsValue:    []string{"one", "two", "one"},
-		assert:          assertHasOneViolation(code.NotUnique, message.NotUnique),
+		assert:          assertHasOneViolation(code.NotUnique, message.Templates[code.NotUnique]),
 	},
 }

@@ -193,7 +193,7 @@ func TestValidate_WhenTranslationsLoadedAfterInit_ExpectTranslationsWorking(t *t
 
 func TestValidate_WhenTranslatorIsOverridden_ExpectTranslationsByOverriddenTranslator(t *testing.T) {
 	translator := mockTranslator{translate: func(tag textlanguage.Tag, msg string, pluralCount int) string {
-		if msg == message.NotBlank {
+		if msg == message.Templates[code.NotBlank] {
 			return "expected message"
 		}
 		return "unexpected message"

@@ -31,7 +31,7 @@ func IsEqualToInteger(value int64) NumberComparisonConstraint {
 
 	return NumberComparisonConstraint{
 		code:            code.Equal,
-		messageTemplate: message.Equal,
+		messageTemplate: message.Templates[code.Equal],
 		comparedValue:   v.String(),
 		isValid: func(n generic.Number) bool {
 			return n.IsEqualTo(v)
@@ -47,7 +47,7 @@ func IsEqualToFloat(value float64) NumberComparisonConstraint {
 
 	return NumberComparisonConstraint{
 		code:            code.Equal,
-		messageTemplate: message.Equal,
+		messageTemplate: message.Templates[code.Equal],
 		comparedValue:   v.String(),
 		isValid: func(n generic.Number) bool {
 			return n.IsEqualTo(v)
@@ -63,7 +63,7 @@ func IsNotEqualToInteger(value int64) NumberComparisonConstraint {
 
 	return NumberComparisonConstraint{
 		code:            code.NotEqual,
-		messageTemplate: message.NotEqual,
+		messageTemplate: message.Templates[code.NotEqual],
 		comparedValue:   v.String(),
 		isValid: func(n generic.Number) bool {
 			return !n.IsEqualTo(v)
@@ -79,7 +79,7 @@ func IsNotEqualToFloat(value float64) NumberComparisonConstraint {
 
 	return NumberComparisonConstraint{
 		code:            code.NotEqual,
-		messageTemplate: message.NotEqual,
+		messageTemplate: message.Templates[code.NotEqual],
 		comparedValue:   v.String(),
 		isValid: func(n generic.Number) bool {
 			return !n.IsEqualTo(v)
@@ -95,7 +95,7 @@ func IsLessThanInteger(value int64) NumberComparisonConstraint {
 
 	return NumberComparisonConstraint{
 		code:            code.TooHigh,
-		messageTemplate: message.TooHigh,
+		messageTemplate: message.Templates[code.TooHigh],
 		comparedValue:   v.String(),
 		isValid: func(n generic.Number) bool {
 			return n.IsLessThan(v)
@@ -111,7 +111,7 @@ func IsLessThanFloat(value float64) NumberComparisonConstraint {
 
 	return NumberComparisonConstraint{
 		code:            code.TooHigh,
-		messageTemplate: message.TooHigh,
+		messageTemplate: message.Templates[code.TooHigh],
 		comparedValue:   v.String(),
 		isValid: func(n generic.Number) bool {
 			return n.IsLessThan(v)
@@ -127,7 +127,7 @@ func IsLessThanOrEqualInteger(value int64) NumberComparisonConstraint {
 
 	return NumberComparisonConstraint{
 		code:            code.TooHighOrEqual,
-		messageTemplate: message.TooHighOrEqual,
+		messageTemplate: message.Templates[code.TooHighOrEqual],
 		comparedValue:   v.String(),
 		isValid: func(n generic.Number) bool {
 			return n.IsLessThan(v) || n.IsEqualTo(v)
@@ -143,7 +143,7 @@ func IsLessThanOrEqualFloat(value float64) NumberComparisonConstraint {
 
 	return NumberComparisonConstraint{
 		code:            code.TooHighOrEqual,
-		messageTemplate: message.TooHighOrEqual,
+		messageTemplate: message.Templates[code.TooHighOrEqual],
 		comparedValue:   v.String(),
 		isValid: func(n generic.Number) bool {
 			return n.IsLessThan(v) || n.IsEqualTo(v)
@@ -159,7 +159,7 @@ func IsGreaterThanInteger(value int64) NumberComparisonConstraint {
 
 	return NumberComparisonConstraint{
 		code:            code.TooLow,
-		messageTemplate: message.TooLow,
+		messageTemplate: message.Templates[code.TooLow],
 		comparedValue:   v.String(),
 		isValid: func(n generic.Number) bool {
 			return n.IsGreaterThan(v)
@@ -175,7 +175,7 @@ func IsGreaterThanFloat(value float64) NumberComparisonConstraint {
 
 	return NumberComparisonConstraint{
 		code:            code.TooLow,
-		messageTemplate: message.TooLow,
+		messageTemplate: message.Templates[code.TooLow],
 		comparedValue:   v.String(),
 		isValid: func(n generic.Number) bool {
 			return n.IsGreaterThan(v)
@@ -191,7 +191,7 @@ func IsGreaterThanOrEqualInteger(value int64) NumberComparisonConstraint {
 
 	return NumberComparisonConstraint{
 		code:            code.TooLowOrEqual,
-		messageTemplate: message.TooLowOrEqual,
+		messageTemplate: message.Templates[code.TooLowOrEqual],
 		comparedValue:   v.String(),
 		isValid: func(n generic.Number) bool {
 			return n.IsGreaterThan(v) || n.IsEqualTo(v)
@@ -207,7 +207,7 @@ func IsGreaterThanOrEqualFloat(value float64) NumberComparisonConstraint {
 
 	return NumberComparisonConstraint{
 		code:            code.TooLowOrEqual,
-		messageTemplate: message.TooLowOrEqual,
+		messageTemplate: message.Templates[code.TooLowOrEqual],
 		comparedValue:   v.String(),
 		isValid: func(n generic.Number) bool {
 			return n.IsGreaterThan(v) || n.IsEqualTo(v)
@@ -222,7 +222,7 @@ func IsPositive() NumberComparisonConstraint {
 
 	return NumberComparisonConstraint{
 		code:            code.NotPositive,
-		messageTemplate: message.NotPositive,
+		messageTemplate: message.Templates[code.NotPositive],
 		comparedValue:   v.String(),
 		isValid: func(n generic.Number) bool {
 			return n.IsGreaterThan(v)
@@ -237,7 +237,7 @@ func IsPositiveOrZero() NumberComparisonConstraint {
 
 	return NumberComparisonConstraint{
 		code:            code.NotPositiveOrZero,
-		messageTemplate: message.NotPositiveOrZero,
+		messageTemplate: message.Templates[code.NotPositiveOrZero],
 		comparedValue:   v.String(),
 		isValid: func(n generic.Number) bool {
 			return n.IsGreaterThan(v) || n.IsEqualTo(v)
@@ -252,7 +252,7 @@ func IsNegative() NumberComparisonConstraint {
 
 	return NumberComparisonConstraint{
 		code:            code.NotNegative,
-		messageTemplate: message.NotNegative,
+		messageTemplate: message.Templates[code.NotNegative],
 		comparedValue:   v.String(),
 		isValid: func(n generic.Number) bool {
 			return n.IsLessThan(v)
@@ -267,7 +267,7 @@ func IsNegativeOrZero() NumberComparisonConstraint {
 
 	return NumberComparisonConstraint{
 		code:            code.NotNegativeOrZero,
-		messageTemplate: message.NotNegativeOrZero,
+		messageTemplate: message.Templates[code.NotNegativeOrZero],
 		comparedValue:   v.String(),
 		isValid: func(n generic.Number) bool {
 			return n.IsLessThan(v) || n.IsEqualTo(v)
@@ -347,7 +347,7 @@ func IsBetweenIntegers(min, max int64) RangeConstraint {
 		min:             generic.NewNumberFromInt(min),
 		max:             generic.NewNumberFromInt(max),
 		code:            code.NotInRange,
-		messageTemplate: message.NotInRange,
+		messageTemplate: message.Templates[code.NotInRange],
 	}
 }
 
@@ -359,7 +359,7 @@ func IsBetweenFloats(min, max float64) RangeConstraint {
 		min:             generic.NewNumberFromFloat(min),
 		max:             generic.NewNumberFromFloat(max),
 		code:            code.NotInRange,
-		messageTemplate: message.NotInRange,
+		messageTemplate: message.Templates[code.NotInRange],
 	}
 }
 
@@ -439,7 +439,7 @@ type StringComparisonConstraint struct {
 func IsEqualToString(value string) StringComparisonConstraint {
 	return StringComparisonConstraint{
 		code:            code.Equal,
-		messageTemplate: message.Equal,
+		messageTemplate: message.Templates[code.Equal],
 		comparedValue:   value,
 		isValid: func(actualValue string) bool {
 			return value == actualValue
@@ -451,7 +451,7 @@ func IsEqualToString(value string) StringComparisonConstraint {
 func IsNotEqualToString(value string) StringComparisonConstraint {
 	return StringComparisonConstraint{
 		code:            code.NotEqual,
-		messageTemplate: message.NotEqual,
+		messageTemplate: message.Templates[code.NotEqual],
 		comparedValue:   value,
 		isValid: func(actualValue string) bool {
 			return value != actualValue
@@ -528,7 +528,7 @@ type TimeComparisonConstraint struct {
 func IsEarlierThan(value time.Time) TimeComparisonConstraint {
 	return TimeComparisonConstraint{
 		code:            code.TooLate,
-		messageTemplate: message.TooLate,
+		messageTemplate: message.Templates[code.TooLate],
 		comparedValue:   value,
 		layout:          time.RFC3339,
 		isValid: func(actualValue time.Time) bool {
@@ -541,7 +541,7 @@ func IsEarlierThan(value time.Time) TimeComparisonConstraint {
 func IsEarlierThanOrEqual(value time.Time) TimeComparisonConstraint {
 	return TimeComparisonConstraint{
 		code:            code.TooLateOrEqual,
-		messageTemplate: message.TooLateOrEqual,
+		messageTemplate: message.Templates[code.TooLateOrEqual],
 		comparedValue:   value,
 		layout:          time.RFC3339,
 		isValid: func(actualValue time.Time) bool {
@@ -554,7 +554,7 @@ func IsEarlierThanOrEqual(value time.Time) TimeComparisonConstraint {
 func IsLaterThan(value time.Time) TimeComparisonConstraint {
 	return TimeComparisonConstraint{
 		code:            code.TooEarly,
-		messageTemplate: message.TooEarly,
+		messageTemplate: message.Templates[code.TooEarly],
 		comparedValue:   value,
 		layout:          time.RFC3339,
 		isValid: func(actualValue time.Time) bool {
@@ -567,7 +567,7 @@ func IsLaterThan(value time.Time) TimeComparisonConstraint {
 func IsLaterThanOrEqual(value time.Time) TimeComparisonConstraint {
 	return TimeComparisonConstraint{
 		code:            code.TooEarlyOrEqual,
-		messageTemplate: message.TooEarlyOrEqual,
+		messageTemplate: message.Templates[code.TooEarlyOrEqual],
 		comparedValue:   value,
 		layout:          time.RFC3339,
 		isValid: func(actualValue time.Time) bool {
@@ -652,7 +652,7 @@ type TimeRangeConstraint struct {
 func IsBetweenTime(min, max time.Time) TimeRangeConstraint {
 	return TimeRangeConstraint{
 		code:            code.NotInRange,
-		messageTemplate: message.NotInRange,
+		messageTemplate: message.Templates[code.NotInRange],
 		layout:          time.RFC3339,
 		min:             min,
 		max:             max,
@@ -743,7 +743,7 @@ type UniqueConstraint struct {
 func HasUniqueValues() UniqueConstraint {
 	return UniqueConstraint{
 		code:            code.NotUnique,
-		messageTemplate: message.NotUnique,
+		messageTemplate: message.Templates[code.NotUnique],
 	}
 }
 

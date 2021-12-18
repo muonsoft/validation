@@ -125,6 +125,9 @@ issues:
     - path: validator/validator.go
       linters:
         - staticcheck
+    - path: message/translations/*/*
+      linters:
+        - lll
     - path: generic
       linters:
         - testpackage

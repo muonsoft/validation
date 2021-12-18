@@ -80,7 +80,7 @@ func TestCheck_WhenFalse_ExpectViolation(t *testing.T) {
 	validationtest.Assert(t, err).IsViolationList().
 		WithOneViolation().
 		WithCode(code.NotValid).
-		WithMessage(message.NotValid).
+		WithMessage(message.Templates[code.NotValid]).
 		WithPropertyPath("")
 }
 
@@ -117,7 +117,7 @@ func TestCheckProperty_WhenFalse_ExpectPropertyNameInViolation(t *testing.T) {
 	validationtest.Assert(t, err).IsViolationList().WithAttributes(
 		validationtest.ViolationAttributes{
 			Code:         code.NotValid,
-			Message:      message.NotValid,
+			Message:      message.Templates[code.NotValid],
 			PropertyPath: "propertyName",
 		},
 	)

@@ -18,7 +18,7 @@ func IsEmail() validation.CustomStringConstraint {
 		is.Email,
 		"EmailConstraint",
 		code.InvalidEmail,
-		message.InvalidEmail,
+		message.Templates[code.InvalidEmail],
 	)
 }
 
@@ -29,7 +29,7 @@ func IsHTML5Email() validation.CustomStringConstraint {
 		is.HTML5Email,
 		"HTML5EmailConstraint",
 		code.InvalidEmail,
-		message.InvalidEmail,
+		message.Templates[code.InvalidEmail],
 	)
 }
 
@@ -48,7 +48,7 @@ func IsHostname() validation.CustomStringConstraint {
 		is.StrictHostname,
 		"HostnameConstraint",
 		code.InvalidHostname,
-		message.InvalidHostname,
+		message.Templates[code.InvalidHostname],
 	)
 }
 
@@ -60,7 +60,7 @@ func IsLooseHostname() validation.CustomStringConstraint {
 		is.Hostname,
 		"LooseHostnameConstraint",
 		code.InvalidHostname,
-		message.InvalidHostname,
+		message.Templates[code.InvalidHostname],
 	)
 }
 
@@ -85,7 +85,7 @@ func IsURL() URLConstraint {
 	return URLConstraint{
 		schemas:         []string{"http", "https"},
 		code:            code.InvalidURL,
-		messageTemplate: message.InvalidURL,
+		messageTemplate: message.Templates[code.InvalidURL],
 	}
 }
 
@@ -199,8 +199,8 @@ func newIPConstraint(validate func(value string, restrictions ...validate.IPRest
 		validate:                  validate,
 		invalidCode:               code.InvalidIP,
 		prohibitedCode:            code.ProhibitedIP,
-		invalidMessageTemplate:    message.InvalidIP,
-		prohibitedMessageTemplate: message.ProhibitedIP,
+		invalidMessageTemplate:    message.Templates[code.InvalidIP],
+		prohibitedMessageTemplate: message.Templates[code.ProhibitedIP],
 	}
 }
 
