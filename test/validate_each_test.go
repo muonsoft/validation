@@ -17,16 +17,10 @@ func TestValidateEach_WhenSliceOfStrings_ExpectViolationOnEachElement(t *testing
 
 	err := validator.Validate(context.Background(), validation.Each(strings, it.IsNotBlank()))
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-		t.Helper()
-		if assert.Len(t, violations, 2) {
-			assert.Equal(t, code.NotBlank, violations[0].Code())
-			assert.Equal(t, "[0]", violations[0].PropertyPath().String())
-			assert.Equal(t, code.NotBlank, violations[1].Code())
-			assert.Equal(t, "[1]", violations[1].PropertyPath().String())
-		}
-		return true
-	})
+	validationtest.Assert(t, err).IsViolationList().WithAttributes(
+		validationtest.ViolationAttributes{Code: code.NotBlank, PropertyPath: "[0]"},
+		validationtest.ViolationAttributes{Code: code.NotBlank, PropertyPath: "[1]"},
+	)
 }
 
 func TestValidateEach_WhenMapOfStrings_ExpectViolationOnEachElement(t *testing.T) {
@@ -34,15 +28,14 @@ func TestValidateEach_WhenMapOfStrings_ExpectViolationOnEachElement(t *testing.T
 
 	err := validator.Validate(context.Background(), validation.Each(strings, it.IsNotBlank()))
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-		t.Helper()
-		if assert.Len(t, violations, 2) {
-			assert.Equal(t, code.NotBlank, violations[0].Code())
-			assert.Contains(t, violations[0].PropertyPath().String(), "key")
-			assert.Equal(t, code.NotBlank, violations[1].Code())
-			assert.Contains(t, violations[1].PropertyPath().String(), "key")
+	validationtest.Assert(t, err).IsViolationList().Assert(func(tb testing.TB, violations []validation.Violation) {
+		tb.Helper()
+		if assert.Len(tb, violations, 2) {
+			assert.Equal(tb, code.NotBlank, violations[0].Code())
+			assert.Contains(tb, violations[0].PropertyPath().String(), "key")
+			assert.Equal(tb, code.NotBlank, violations[1].Code())
+			assert.Contains(tb, violations[1].PropertyPath().String(), "key")
 		}
-		return true
 	})
 }
 
@@ -51,14 +44,8 @@ func TestValidateEachString_WhenSliceOfStrings_ExpectViolationOnEachElement(t *t
 
 	err := validator.Validate(context.Background(), validation.EachString(strings, it.IsNotBlank()))
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-		t.Helper()
-		if assert.Len(t, violations, 2) {
-			assert.Equal(t, code.NotBlank, violations[0].Code())
-			assert.Equal(t, "[0]", violations[0].PropertyPath().String())
-			assert.Equal(t, code.NotBlank, violations[1].Code())
-			assert.Equal(t, "[1]", violations[1].PropertyPath().String())
-		}
-		return true
-	})
+	validationtest.Assert(t, err).IsViolationList().WithAttributes(
+		validationtest.ViolationAttributes{Code: code.NotBlank, PropertyPath: "[0]"},
+		validationtest.ViolationAttributes{Code: code.NotBlank, PropertyPath: "[1]"},
+	)
 }

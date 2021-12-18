@@ -105,7 +105,26 @@ func NewViolationList(violations ...Violation) *ViolationList {
 
 // Len returns length of the linked list.
 func (list *ViolationList) Len() int {
+	if list == nil {
+		return 0
+	}
+
 	return list.len
+}
+
+// Each can be used to iterate over ViolationList by a callback function. If callback returns
+// any error, then it will be returned as a result of Each function.
+func (list *ViolationList) Each(f func(i int, violation Violation) error) error {
+	i := 0
+	for violation := list.First(); violation != nil; violation = violation.Next() {
+		err := f(i, violation)
+		if err != nil {
+			return err
+		}
+		i++
+	}
+
+	return nil
 }
 
 // First returns the first element of the linked list.
@@ -153,7 +172,7 @@ func (list *ViolationList) Join(violations *ViolationList) {
 
 // Error returns a formatted list of errors as a string.
 func (list *ViolationList) Error() string {
-	if list.len == 0 {
+	if list == nil || list.len == 0 {
 		return "the list of violations is empty, it looks like you forgot to use the AsError method somewhere"
 	}
 
@@ -195,7 +214,7 @@ func (list *ViolationList) AppendFromError(err error) error {
 // Has can be used to check that at least one of the violations contains one of the specific codes.
 // For an empty list of codes, it should always returns false.
 func (list *ViolationList) Has(codes ...string) bool {
-	for e := list.first; e != nil; e = e.next {
+	for e := list.First(); e != nil; e = e.next {
 		if e.violation.Is(codes...) {
 			return true
 		}
@@ -208,7 +227,7 @@ func (list *ViolationList) Has(codes ...string) bool {
 func (list *ViolationList) Filter(codes ...string) *ViolationList {
 	filtered := &ViolationList{}
 
-	for e := list.first; e != nil; e = e.next {
+	for e := list.First(); e != nil; e = e.next {
 		if e.violation.Is(codes...) {
 			filtered.Append(e.violation)
 		}
@@ -220,7 +239,7 @@ func (list *ViolationList) Filter(codes ...string) *ViolationList {
 // AsError converts the list of violations to an error. This method correctly handles cases where
 // the list of violations is empty. It returns nil on an empty list, indicating that the validation was successful.
 func (list *ViolationList) AsError() error {
-	if list.len == 0 {
+	if list == nil || list.len == 0 {
 		return nil
 	}
 
@@ -232,7 +251,7 @@ func (list *ViolationList) AsSlice() []Violation {
 	violations := make([]Violation, list.len)
 
 	i := 0
-	for e := list.first; e != nil; e = e.next {
+	for e := list.First(); e != nil; e = e.next {
 		violations[i] = e.violation
 		i++
 	}
@@ -245,15 +264,17 @@ func (list *ViolationList) AsSlice() []Violation {
 func (list *ViolationList) MarshalJSON() ([]byte, error) {
 	b := bytes.Buffer{}
 	b.WriteRune('[')
-	for e := list.first; e != nil; e = e.next {
+	i := 0
+	for e := list.First(); e != nil; e = e.next {
 		data, err := json.Marshal(e.violation)
 		if err != nil {
-			return nil, fmt.Errorf("failed to marshal violation: %w", err)
+			return nil, fmt.Errorf("failed to marshal violation at %d: %w", i, err)
 		}
 		b.Write(data)
 		if e.next != nil {
 			b.WriteRune(',')
 		}
+		i++
 	}
 	b.WriteRune(']')
 

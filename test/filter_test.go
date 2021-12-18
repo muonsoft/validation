@@ -23,10 +23,7 @@ func TestFilter_WhenSingleViolation_ExpectViolationInList(t *testing.T) {
 
 	err := validation.Filter(nil, wrapped)
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-		t.Helper()
-		return assert.Len(t, violations, 1) && assert.Equal(t, violation, violations[0])
-	})
+	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithCode("code").WithMessage("message")
 }
 
 func TestFilter_WhenViolationList_ExpectViolationsInList(t *testing.T) {
@@ -36,10 +33,7 @@ func TestFilter_WhenViolationList_ExpectViolationsInList(t *testing.T) {
 
 	err := validation.Filter(nil, wrapped)
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-		t.Helper()
-		return assert.Len(t, violations, 1) && assert.Equal(t, violation, violations[0])
-	})
+	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithCode("code").WithMessage("message")
 }
 
 func TestFilter_WhenUnexpectedError_ExpectError(t *testing.T) {

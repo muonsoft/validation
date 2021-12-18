@@ -12,33 +12,18 @@ import (
 func assertHasOneViolation(code, message string) func(t *testing.T, err error) {
 	return func(t *testing.T, err error) {
 		t.Helper()
-		validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-			t.Helper()
-
-			if assert.Len(t, violations, 1) {
-				return assert.Equal(t, code, violations[0].Code()) &&
-					assert.Equal(t, message, violations[0].Message())
-			}
-
-			return false
-		})
+		validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithCode(code).WithMessage(message)
 	}
 }
 
 func assertHasOneViolationAtPath(code, message, path string) func(t *testing.T, err error) {
 	return func(t *testing.T, err error) {
 		t.Helper()
-		validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-			t.Helper()
-
-			if assert.Len(t, violations, 1) {
-				return assert.Equal(t, code, violations[0].Code()) &&
-					assert.Equal(t, message, violations[0].Message()) &&
-					assert.Equal(t, path, violations[0].PropertyPath().String())
-			}
-
-			return false
-		})
+		validationtest.Assert(t, err).IsViolationList().
+			WithOneViolation().
+			WithCode(code).
+			WithMessage(message).
+			WithPropertyPath(path)
 	}
 }
 

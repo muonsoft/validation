@@ -5,11 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/validationtest"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestValidate_ArgumentAliases_WhenAliasMethodForGivenType_ExpectValidationExecuted(t *testing.T) {
@@ -32,10 +30,7 @@ func TestValidate_ArgumentAliases_WhenAliasMethodForGivenType_ExpectValidationEx
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			validationtest.AssertIsViolationList(t, test.err, func(t *testing.T, violations []validation.Violation) bool {
-				t.Helper()
-				return assert.Len(t, violations, 1) && assert.Equal(t, code.NotBlank, violations[0].Code())
-			})
+			validationtest.Assert(t, test.err).IsViolationList().WithCodes(code.NotBlank)
 		})
 	}
 }

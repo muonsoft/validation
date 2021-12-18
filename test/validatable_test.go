@@ -10,7 +10,6 @@ import (
 	"github.com/muonsoft/validation/message"
 	"github.com/muonsoft/validation/validationtest"
 	"github.com/muonsoft/validation/validator"
-	"github.com/stretchr/testify/assert"
 )
 
 type Product struct {
@@ -75,20 +74,12 @@ func TestValidateValue_WhenStructWithComplexRules_ExpectViolations(t *testing.T)
 
 	err := validator.Validate(context.Background(), validation.Valid(p))
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-		t.Helper()
-		if assert.Len(t, violations, 4) {
-			assert.Equal(t, code.NotBlank, violations[0].Code())
-			assert.Equal(t, "name", violations[0].PropertyPath().String())
-			assert.Equal(t, code.CountTooFew, violations[1].Code())
-			assert.Equal(t, "tags", violations[1].PropertyPath().String())
-			assert.Equal(t, code.NotBlank, violations[2].Code())
-			assert.Equal(t, "components[0].name", violations[2].PropertyPath().String())
-			assert.Equal(t, code.CountTooFew, violations[3].Code())
-			assert.Equal(t, "components[0].tags", violations[3].PropertyPath().String())
-		}
-		return true
-	})
+	validationtest.Assert(t, err).IsViolationList().WithAttributes(
+		validationtest.ViolationAttributes{Code: code.NotBlank, PropertyPath: "name"},
+		validationtest.ViolationAttributes{Code: code.CountTooFew, PropertyPath: "tags"},
+		validationtest.ViolationAttributes{Code: code.NotBlank, PropertyPath: "components[0].name"},
+		validationtest.ViolationAttributes{Code: code.CountTooFew, PropertyPath: "components[0].tags"},
+	)
 }
 
 func TestValidateValue_WhenValidatableString_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
@@ -133,14 +124,10 @@ func TestValidateValue_WhenValidatableStruct_ExpectValidationExecutedWithPassedO
 		),
 	)
 
-	validationtest.AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
-		t.Helper()
-		if assert.Len(t, violations, 4) {
-			assert.Equal(t, "top.intValue", violations[0].PropertyPath().String())
-			assert.Equal(t, "top.floatValue", violations[1].PropertyPath().String())
-			assert.Equal(t, "top.stringValue", violations[2].PropertyPath().String())
-			assert.Equal(t, "top.structValue.value", violations[3].PropertyPath().String())
-		}
-		return true
-	})
+	validationtest.Assert(t, err).IsViolationList().WithAttributes(
+		validationtest.ViolationAttributes{PropertyPath: "top.intValue"},
+		validationtest.ViolationAttributes{PropertyPath: "top.floatValue"},
+		validationtest.ViolationAttributes{PropertyPath: "top.stringValue"},
+		validationtest.ViolationAttributes{PropertyPath: "top.structValue.value"},
+	)
 }

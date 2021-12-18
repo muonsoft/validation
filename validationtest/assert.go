@@ -1,8 +1,3 @@
-// Copyright 2021 Igor Lazarev. All rights reserved.
-// Use of this source code is governed by a MIT-style
-// license that can be found in the LICENSE file.
-
-// Package validationtest contains helper functions for testing purposes.
 package validationtest
 
 import (
@@ -15,6 +10,7 @@ type AssertViolationFunc func(t *testing.T, violation validation.Violation) bool
 
 type AssertViolationListFunc func(t *testing.T, violations []validation.Violation) bool
 
+// Deprecated: use Assert instead.
 func AssertIsViolation(t *testing.T, err error, assert AssertViolationFunc) bool {
 	t.Helper()
 	if err == nil {
@@ -30,6 +26,7 @@ func AssertIsViolation(t *testing.T, err error, assert AssertViolationFunc) bool
 	return assert(t, violation)
 }
 
+// Deprecated: use Assert instead.
 func AssertIsViolationList(t *testing.T, err error, assert AssertViolationListFunc) bool {
 	t.Helper()
 	if err == nil {
@@ -45,6 +42,7 @@ func AssertIsViolationList(t *testing.T, err error, assert AssertViolationListFu
 	return assert(t, violations.AsSlice())
 }
 
+// Deprecated: use Assert instead.
 func AssertOneViolationInList(t *testing.T, err error, assert AssertViolationFunc) bool {
 	t.Helper()
 	return AssertIsViolationList(t, err, func(t *testing.T, violations []validation.Violation) bool {
