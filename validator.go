@@ -170,10 +170,11 @@ func (validator *Validator) ValidateBool(ctx context.Context, value bool, option
 	return validator.Validate(ctx, Bool(value, options...))
 }
 
-// ValidateNumber is an alias for validating a single numeric value (integer or float).
-func (validator *Validator) ValidateNumber(ctx context.Context, value interface{}, options ...Option) error {
-	return validator.Validate(ctx, Number(value, options...))
-}
+//
+// // ValidateNumber is an alias for validating a single numeric value (integer or float).
+// func (validator *Validator) ValidateNumber(ctx context.Context, value interface{}, options ...Option) error {
+// 	return validator.Validate(ctx, Number(value, options...))
+// }
 
 // ValidateString is an alias for validating a single string value.
 func (validator *Validator) ValidateString(ctx context.Context, value string, options ...Option) error {

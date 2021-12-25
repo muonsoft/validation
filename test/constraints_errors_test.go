@@ -45,7 +45,7 @@ func TestValidator_Validate_WhenInapplicableConstraint_ExpectError(t *testing.T)
 		argument  validation.Argument
 	}{
 		{boolType, validation.Bool(false, nilConstraint{})},
-		{"number", validation.Number(intValue(0), nilConstraint{})},
+		{"number", validation.Number(0, nilConstraint{})},
 		{stringType, validation.String("", nilConstraint{})},
 		{iterableType, validation.Iterable([]string{}, nilConstraint{})},
 		{countableType, validation.Countable(0, nilConstraint{})},
@@ -66,11 +66,11 @@ func TestValidator_Validate_WhenInvalidValue_ExpectError(t *testing.T) {
 		argument      validation.Argument
 		expectedError string
 	}{
-		{
-			name:          "invalid number",
-			argument:      validation.Number("string"),
-			expectedError: `cannot convert value "string" to number: value of type string is not numeric`,
-		},
+		// {
+		// 	name:          "invalid number",
+		// 	argument:      validation.Number("string"),
+		// 	expectedError: `cannot convert value "string" to number: value of type string is not numeric`,
+		// },
 		{
 			name:          "invalid iterable",
 			argument:      validation.Iterable("string"),

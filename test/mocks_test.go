@@ -26,7 +26,7 @@ func boolValue(b bool) *bool {
 	return &b
 }
 
-func intValue(i int64) *int64 {
+func intValue(i int) *int {
 	return &i
 }
 

@@ -30,6 +30,10 @@ This package is under active development and API may be changed until the first 
 
 First stable version aimed to be released after [generics implementation](https://go.googlesource.com/proposal/+/refs/heads/master/design/go2draft-contracts.md) in Golang.
 
+### TODO for migration to generics
+
+* [ ] write warning about numeric types (when using non-default types such as uint, int64)
+
 ## Installation
 
 Run the following command to install the package

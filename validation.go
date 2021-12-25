@@ -78,15 +78,15 @@ func newValueValidator(value interface{}, options []Option) (validateFunc, error
 	case reflect.Bool:
 		b := v.Bool()
 		return newBoolValidator(&b, options), nil
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
-		reflect.Float32, reflect.Float64:
-		n, err := generic.NewNumber(value)
-		if err != nil {
-			return nil, err
-		}
-
-		return newNumberValidator(*n, options), nil
+	// case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+	// 	reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+	// 	reflect.Float32, reflect.Float64:
+	// 	n, err := generic.NewNumber(value)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	//
+	// 	return newNumberValidator(*n, options), nil
 	case reflect.String:
 		s := v.String()
 		return newStringValidator(&s, options), nil
@@ -112,15 +112,15 @@ func newValuePointerValidator(value reflect.Value, options []Option) (validateFu
 	case reflect.Bool:
 		b := p.Bool()
 		return newBoolValidator(&b, options), nil
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
-		reflect.Float32, reflect.Float64:
-		n, err := generic.NewNumber(p.Interface())
-		if err != nil {
-			return nil, err
-		}
-
-		return newNumberValidator(*n, options), nil
+	// case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+	// 	reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+	// 	reflect.Float32, reflect.Float64:
+	// 	n, err := generic.NewNumber(p.Interface())
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	//
+	// 	return newNumberValidator(*n, options), nil
 	case reflect.String:
 		s := p.String()
 		return newStringValidator(&s, options), nil
@@ -156,13 +156,13 @@ func newBoolValidator(value *bool, options []Option) validateFunc {
 	})
 }
 
-func newNumberValidator(value generic.Number, options []Option) validateFunc {
+func newNumberValidator[T Numeric](value *T, options []Option) validateFunc {
 	return newValidator(options, func(constraint Constraint, scope Scope) error {
-		if c, ok := constraint.(NumberConstraint); ok {
+		if c, ok := constraint.(NumberConstraint[T]); ok {
 			return c.ValidateNumber(value, scope)
 		}
 
-		return NewInapplicableConstraintError(constraint, "number")
+		return NewInapplicableConstraintError(constraint, reflect.TypeOf(value).String())
 	})
 }
 

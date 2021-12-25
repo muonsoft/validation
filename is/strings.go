@@ -1,6 +1,7 @@
 package is
 
 // StringInList returns true if one of the elements of the list is equal to the string.
+// Deprecated: use generic InList instead.
 func StringInList(s string, list []string) bool {
 	for _, ls := range list {
 		if ls == s {
@@ -12,6 +13,7 @@ func StringInList(s string, list []string) bool {
 }
 
 // UniqueStrings checks that slice of strings has unique values.
+// Deprecated: use generic Unique instead.
 func UniqueStrings(values []string) bool {
 	if len(values) == 0 {
 		return true

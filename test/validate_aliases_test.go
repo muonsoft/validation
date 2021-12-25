@@ -19,7 +19,7 @@ func TestValidate_ArgumentAliases_WhenAliasMethodForGivenType_ExpectValidationEx
 	}{
 		{"ValidateValue", validator.ValidateValue(context.Background(), "", it.IsNotBlank())},
 		{"ValidateBool", validator.ValidateBool(context.Background(), false, it.IsNotBlank())},
-		{"ValidateNumber", validator.ValidateNumber(context.Background(), 0, it.IsNotBlank())},
+		// {"ValidateNumber", validator.ValidateNumber(context.Background(), 0, it.IsNotBlank())},
 		{"ValidateString", validator.ValidateString(context.Background(), "", it.IsNotBlank())},
 		{"ValidateIterable", validator.ValidateIterable(context.Background(), []string{}, it.IsNotBlank())},
 		{"ValidateCountable", validator.ValidateCountable(context.Background(), 0, it.IsNotBlank())},

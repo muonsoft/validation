@@ -12,7 +12,8 @@ import (
 // NotBlankConstraint checks that a value is not blank: not equal to zero, an empty string, an empty
 // slice/array, an empty map, false or nil. Nil behavior is configurable via AllowNil() method.
 // To check that a value is not nil only use NotNilConstraint.
-type NotBlankConstraint struct {
+type NotBlankConstraint[T comparable] struct {
+	blank             T
 	isIgnored         bool
 	allowNil          bool
 	code              string
@@ -21,51 +22,51 @@ type NotBlankConstraint struct {
 }
 
 // IsNotBlank creates a NotBlankConstraint for checking that value is not empty.
-func IsNotBlank() NotBlankConstraint {
-	return NotBlankConstraint{
+func IsNotBlank[T comparable]() NotBlankConstraint[T] {
+	return NotBlankConstraint[T]{
 		code:            code.NotBlank,
 		messageTemplate: message.Templates[code.NotBlank],
 	}
 }
 
 // SetUp always returns no error.
-func (c NotBlankConstraint) SetUp() error {
+func (c NotBlankConstraint[T]) SetUp() error {
 	return nil
 }
 
 // Name is the constraint name.
-func (c NotBlankConstraint) Name() string {
+func (c NotBlankConstraint[T]) Name() string {
 	return "NotBlankConstraint"
 }
 
 // AllowNil makes nil values valid.
-func (c NotBlankConstraint) AllowNil() NotBlankConstraint {
+func (c NotBlankConstraint[T]) AllowNil() NotBlankConstraint[T] {
 	c.allowNil = true
 	return c
 }
 
 // When enables conditional validation of this constraint. If the expression evaluates to false,
 // then the constraint will be ignored.
-func (c NotBlankConstraint) When(condition bool) NotBlankConstraint {
+func (c NotBlankConstraint[T]) When(condition bool) NotBlankConstraint[T] {
 	c.isIgnored = !condition
 	return c
 }
 
 // Code overrides default code for produced violation.
-func (c NotBlankConstraint) Code(code string) NotBlankConstraint {
+func (c NotBlankConstraint[T]) Code(code string) NotBlankConstraint[T] {
 	c.code = code
 	return c
 }
 
 // Message sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message.
-func (c NotBlankConstraint) Message(template string, parameters ...validation.TemplateParameter) NotBlankConstraint {
+func (c NotBlankConstraint[T]) Message(template string, parameters ...validation.TemplateParameter) NotBlankConstraint[T] {
 	c.messageTemplate = template
 	c.messageParameters = parameters
 	return c
 }
 
-func (c NotBlankConstraint) ValidateNil(scope validation.Scope) error {
+func (c NotBlankConstraint[T]) ValidateNil(scope validation.Scope) error {
 	if c.isIgnored || c.allowNil {
 		return nil
 	}
@@ -73,7 +74,7 @@ func (c NotBlankConstraint) ValidateNil(scope validation.Scope) error {
 	return c.newViolation(scope)
 }
 
-func (c NotBlankConstraint) ValidateBool(value *bool, scope validation.Scope) error {
+func (c NotBlankConstraint[T]) ValidateBool(value *bool, scope validation.Scope) error {
 	if c.isIgnored {
 		return nil
 	}
@@ -87,21 +88,21 @@ func (c NotBlankConstraint) ValidateBool(value *bool, scope validation.Scope) er
 	return c.newViolation(scope)
 }
 
-func (c NotBlankConstraint) ValidateNumber(value generic.Number, scope validation.Scope) error {
+func (c NotBlankConstraint[T]) ValidateNumber(value *T, scope validation.Scope) error {
 	if c.isIgnored {
 		return nil
 	}
-	if c.allowNil && value.IsNil() {
+	if c.allowNil && value == nil {
 		return nil
 	}
-	if !value.IsNil() && !value.IsZero() {
+	if value != nil && *value != c.blank {
 		return nil
 	}
 
 	return c.newViolation(scope)
 }
 
-func (c NotBlankConstraint) ValidateString(value *string, scope validation.Scope) error {
+func (c NotBlankConstraint[T]) ValidateString(value *string, scope validation.Scope) error {
 	if c.isIgnored {
 		return nil
 	}
@@ -115,7 +116,7 @@ func (c NotBlankConstraint) ValidateString(value *string, scope validation.Scope
 	return c.newViolation(scope)
 }
 
-func (c NotBlankConstraint) ValidateStrings(values []string, scope validation.Scope) error {
+func (c NotBlankConstraint[T]) ValidateStrings(values []string, scope validation.Scope) error {
 	if c.isIgnored {
 		return nil
 	}
@@ -129,7 +130,7 @@ func (c NotBlankConstraint) ValidateStrings(values []string, scope validation.Sc
 	return c.newViolation(scope)
 }
 
-func (c NotBlankConstraint) ValidateIterable(value generic.Iterable, scope validation.Scope) error {
+func (c NotBlankConstraint[T]) ValidateIterable(value generic.Iterable, scope validation.Scope) error {
 	if c.isIgnored {
 		return nil
 	}
@@ -143,7 +144,7 @@ func (c NotBlankConstraint) ValidateIterable(value generic.Iterable, scope valid
 	return c.newViolation(scope)
 }
 
-func (c NotBlankConstraint) ValidateCountable(count int, scope validation.Scope) error {
+func (c NotBlankConstraint[T]) ValidateCountable(count int, scope validation.Scope) error {
 	if c.isIgnored || count > 0 {
 		return nil
 	}
@@ -151,7 +152,7 @@ func (c NotBlankConstraint) ValidateCountable(count int, scope validation.Scope)
 	return c.newViolation(scope)
 }
 
-func (c NotBlankConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
+func (c NotBlankConstraint[T]) ValidateTime(value *time.Time, scope validation.Scope) error {
 	if c.isIgnored {
 		return nil
 	}
@@ -167,7 +168,7 @@ func (c NotBlankConstraint) ValidateTime(value *time.Time, scope validation.Scop
 	return c.newViolation(scope)
 }
 
-func (c NotBlankConstraint) newViolation(scope validation.Scope) validation.Violation {
+func (c NotBlankConstraint[T]) newViolation(scope validation.Scope) validation.Violation {
 	return scope.BuildViolation(c.code, c.messageTemplate).
 		SetParameters(c.messageParameters...).
 		CreateViolation()

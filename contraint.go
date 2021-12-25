@@ -1,12 +1,17 @@
 package validation
 
 import (
+	"constraints"
 	"time"
 
 	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/generic"
 	"github.com/muonsoft/validation/message"
 )
+
+type Numeric interface {
+	constraints.Integer | constraints.Float
+}
 
 // Constraint is the base interface to build validation constraints.
 type Constraint interface {
@@ -17,6 +22,7 @@ type Constraint interface {
 
 // NilConstraint is used for constraints that need to check value for nil. In common case
 // you do not need to implement it in your constraints because nil values should be ignored.
+// Deprecated: will be removed.
 type NilConstraint interface {
 	Constraint
 	ValidateNil(scope Scope) error
@@ -32,9 +38,9 @@ type BoolConstraint interface {
 //
 // At this moment working with numbers is based on reflection.
 // Be aware. This constraint is subject to be changed after generics implementation in Go.
-type NumberConstraint interface {
+type NumberConstraint[T Numeric] interface {
 	Constraint
-	ValidateNumber(value generic.Number, scope Scope) error
+	ValidateNumber(value *T, scope Scope) error
 }
 
 // StringConstraint is used to build constraints for string values validation.
@@ -44,6 +50,7 @@ type StringConstraint interface {
 }
 
 // StringsConstraint is used to build constraints to validate an array or a slice of strings.
+// Deprecated: will be replaced by SliceConstraint.
 type StringsConstraint interface {
 	Constraint
 	ValidateStrings(values []string, scope Scope) error
@@ -53,6 +60,8 @@ type StringsConstraint interface {
 //
 // At this moment working with numbers is based on reflection.
 // Be aware. This constraint is subject to be changed after generics implementation in Go.
+//
+// Deprecated: will be replaced by SliceConstraint and MapConstraint.
 type IterableConstraint interface {
 	Constraint
 	ValidateIterable(value generic.Iterable, scope Scope) error

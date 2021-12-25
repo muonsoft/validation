@@ -18,7 +18,7 @@ type Properties []Property
 func (p Property) Validate(ctx context.Context, validator *validation.Validator) error {
 	return validator.Validate(
 		ctx,
-		validation.StringProperty("name", p.Name, it.IsNotBlank()),
+		validation.StringProperty("name", p.Name, it.IsNotBlank[string]()),
 		validation.ValidProperty("properties", p.Properties),
 	)
 }

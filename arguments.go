@@ -86,21 +86,24 @@ func NilBoolProperty(name string, value *bool, options ...Option) Argument {
 // reflection to detect numeric value. Given value is internally converted into int64 or float64 to make comparisons.
 //
 // Warning! This method will be changed after generics implementation in Go.
-func Number(value interface{}, options ...Option) Argument {
+func Number[T Numeric](value T, options ...Option) Argument {
 	return argumentFunc(func(arguments *Arguments) error {
-		number, err := generic.NewNumber(value)
-		if err != nil {
-			return fmt.Errorf(`cannot convert value "%v" to number: %w`, value, err)
-		}
+		arguments.addValidator(newNumberValidator(&value, options))
 
-		arguments.addValidator(newNumberValidator(*number, options))
+		return nil
+	})
+}
+
+func NilNumber[T Numeric](value *T, options ...Option) Argument {
+	return argumentFunc(func(arguments *Arguments) error {
+		arguments.addValidator(newNumberValidator(value, options))
 
 		return nil
 	})
 }
 
 // NumberProperty argument is an alias for Number that automatically adds property name to the current scope.
-func NumberProperty(name string, value interface{}, options ...Option) Argument {
+func NumberProperty[T Numeric](name string, value T, options ...Option) Argument {
 	return Number(value, append([]Option{PropertyName(name)}, options...)...)
 }
 
