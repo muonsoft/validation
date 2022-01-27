@@ -97,6 +97,14 @@ var isEqualToIntegerTestCases = []ConstraintValidationTestCase{
 		assert:          assertNoError,
 	},
 	{
+		name:            "IsEqualToInteger passes when groups not match",
+		isApplicableFor: specificValueTypes(intType, floatType),
+		intValue:        intValue(0),
+		floatValue:      floatValue(0),
+		constraint:      it.IsEqualToInteger(1).WhenGroups(testGroup),
+		assert:          assertNoError,
+	},
+	{
 		name:            "IsEqualToInteger violation when condition is true",
 		isApplicableFor: specificValueTypes(intType, floatType),
 		intValue:        intValue(0),
@@ -652,6 +660,14 @@ var isBetweenIntegersTestCases = []ConstraintValidationTestCase{
 		assert:          assertNoError,
 	},
 	{
+		name:            "IsBetweenIntegers passes when groups not match",
+		isApplicableFor: specificValueTypes(intType, floatType),
+		intValue:        intValue(0),
+		floatValue:      floatValue(0),
+		constraint:      it.IsBetweenIntegers(1, 2).WhenGroups(testGroup),
+		assert:          assertNoError,
+	},
+	{
 		name:            "IsBetweenIntegers violation when condition is true",
 		isApplicableFor: specificValueTypes(intType, floatType),
 		intValue:        intValue(0),
@@ -741,6 +757,13 @@ var isEqualToStringTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("actual"),
 		constraint:      it.IsEqualToString("expected").When(false),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsEqualToString passes when groups not match",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("actual"),
+		constraint:      it.IsEqualToString("expected").WhenGroups(testGroup),
 		assert:          assertNoError,
 	},
 	{
@@ -834,17 +857,22 @@ var isEarlierThanTestCases = []ConstraintValidationTestCase{
 		name:            "IsEarlierThan passes when condition is false",
 		isApplicableFor: specificValueTypes(timeType),
 		timeValue:       timeValue(time.Date(2021, 0o3, 29, 12, 40, 0, 0, time.UTC)),
-		constraint: it.IsEarlierThan(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)).
-			When(false),
-		assert: assertNoError,
+		constraint:      it.IsEarlierThan(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)).When(false),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsEarlierThan passes when groups not match",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 0o3, 29, 12, 40, 0, 0, time.UTC)),
+		constraint:      it.IsEarlierThan(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)).WhenGroups(testGroup),
+		assert:          assertNoError,
 	},
 	{
 		name:            "IsEarlierThan violation when condition is true",
 		isApplicableFor: specificValueTypes(timeType),
 		timeValue:       timeValue(time.Date(2021, 0o3, 29, 12, 40, 0, 0, time.UTC)),
-		constraint: it.IsEarlierThan(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)).
-			When(true),
-		assert: assertHasOneViolation(code.TooLate, "This value should be earlier than 2021-03-29T12:30:00Z."),
+		constraint:      it.IsEarlierThan(time.Date(2021, 0o3, 29, 12, 30, 0, 0, time.UTC)).When(true),
+		assert:          assertHasOneViolation(code.TooLate, "This value should be earlier than 2021-03-29T12:30:00Z."),
 	},
 }
 
@@ -1077,6 +1105,18 @@ var isBetweenTimeTestCases = []ConstraintValidationTestCase{
 		assert: assertNoError,
 	},
 	{
+		name:            "IsBetweenTime passes when groups not match",
+		isApplicableFor: specificValueTypes(timeType),
+		timeValue:       timeValue(time.Date(2021, 0o4, 4, 12, 20, 0, 0, time.UTC)),
+		constraint: it.
+			IsBetweenTime(
+				*timeValue(time.Date(2021, 0o4, 4, 12, 30, 0, 0, time.UTC)),
+				*timeValue(time.Date(2021, 0o4, 4, 12, 40, 0, 0, time.UTC)),
+			).
+			WhenGroups(testGroup),
+		assert: assertNoError,
+	},
+	{
 		name:            "IsBetweenTime violation when condition is true",
 		isApplicableFor: specificValueTypes(timeType),
 		timeValue:       timeValue(time.Date(2021, 0o4, 4, 12, 20, 0, 0, time.UTC)),
@@ -1134,6 +1174,13 @@ var hasUniqueValuesTestCases = []ConstraintValidationTestCase{
 		name:            "HasUniqueValues passes when condition is false",
 		isApplicableFor: specificValueTypes(stringsType),
 		constraint:      it.HasUniqueValues().When(false),
+		stringsValue:    []string{"one", "two", "one"},
+		assert:          assertNoError,
+	},
+	{
+		name:            "HasUniqueValues passes when groups not match",
+		isApplicableFor: specificValueTypes(stringsType),
+		constraint:      it.HasUniqueValues().WhenGroups(testGroup),
 		stringsValue:    []string{"one", "two", "one"},
 		assert:          assertNoError,
 	},

@@ -7,6 +7,8 @@ import (
 	"github.com/muonsoft/language"
 )
 
+const DefaultGroup = "default"
+
 // Scope holds the current state of validation. On the client-side of the package,
 // it can be used to build violations.
 type Scope struct {
@@ -15,6 +17,7 @@ type Scope struct {
 	language         language.Tag
 	translator       Translator
 	violationFactory ViolationFactory
+	groups           []string
 	constraints      map[string]Constraint
 }
 
@@ -59,6 +62,43 @@ func (s Scope) Validator() *Validator {
 	return newScopedValidator(s)
 }
 
+// IsIgnored is the reverse condition for applying validation groups to the IsApplied method.
+// It is recommended to use this method in every validation method of the constraint.
+func (s Scope) IsIgnored(groups ...string) bool {
+	return !s.IsApplied(groups...)
+}
+
+// IsApplied compares scope validation groups and constraint groups. If one of the scope groups intersects with
+// the constraint groups, the validation scope should be applied (returns true).
+// Empty groups are treated as DefaultGroup. To set validation groups use the validator.WithGroups() method.
+func (s Scope) IsApplied(groups ...string) bool {
+	if len(s.groups) == 0 {
+		if len(groups) == 0 {
+			return true
+		}
+		for _, g := range groups {
+			if g == DefaultGroup {
+				return true
+			}
+		}
+	}
+
+	for _, g1 := range s.groups {
+		if len(groups) == 0 {
+			if g1 == DefaultGroup {
+				return true
+			}
+		}
+		for _, g2 := range groups {
+			if g1 == g2 {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 func (s *Scope) applyOptions(options ...Option) error {
 	for _, option := range options {
 		var err error
@@ -99,6 +139,11 @@ func (s Scope) withContext(ctx context.Context) Scope {
 func (s Scope) withLanguage(tag language.Tag) Scope {
 	s.language = tag
 
+	return s
+}
+
+func (s Scope) withGroups(groups ...string) Scope {
+	s.groups = groups
 	return s
 }
 

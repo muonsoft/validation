@@ -31,6 +31,13 @@ var lengthConstraintTestCases = []ConstraintValidationTestCase{
 		assert:          assertNoError,
 	},
 	{
+		name:            "HasMinLength violation ignored when groups not match",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.HasMinLength(2).WhenGroups(testGroup),
+		stringValue:     stringValue("a"),
+		assert:          assertNoError,
+	},
+	{
 		name:            "HasMinLength violation when condition true",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.HasMinLength(2).When(true),
@@ -142,6 +149,13 @@ var regexConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "Matches violation ignored when condition false",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.Matches(regexp.MustCompile("^[a-z]+$")).When(false),
+		stringValue:     stringValue("1"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "Matches violation ignored when groups not match",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.Matches(regexp.MustCompile("^[a-z]+$")).WhenGroups(testGroup),
 		stringValue:     stringValue("1"),
 		assert:          assertNoError,
 	},

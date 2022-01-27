@@ -16,6 +16,7 @@ import (
 // Otherwise, numbers are always compared as floating point numbers.
 type NumberComparisonConstraint struct {
 	isIgnored         bool
+	groups            []string
 	code              string
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
@@ -312,8 +313,14 @@ func (c NumberComparisonConstraint) When(condition bool) NumberComparisonConstra
 	return c
 }
 
+// WhenGroups enables conditional validation of the constraint by using the validation groups.
+func (c NumberComparisonConstraint) WhenGroups(groups ...string) NumberComparisonConstraint {
+	c.groups = groups
+	return c
+}
+
 func (c NumberComparisonConstraint) ValidateNumber(value generic.Number, scope validation.Scope) error {
-	if c.isIgnored || value.IsNil() || c.isValid(value) {
+	if c.isIgnored || scope.IsIgnored(c.groups...) || value.IsNil() || c.isValid(value) {
 		return nil
 	}
 
@@ -332,6 +339,7 @@ func (c NumberComparisonConstraint) ValidateNumber(value generic.Number, scope v
 // Otherwise, numbers are always compared as floating point numbers.
 type RangeConstraint struct {
 	isIgnored         bool
+	groups            []string
 	code              string
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
@@ -402,8 +410,14 @@ func (c RangeConstraint) When(condition bool) RangeConstraint {
 	return c
 }
 
+// WhenGroups enables conditional validation of the constraint by using the validation groups.
+func (c RangeConstraint) WhenGroups(groups ...string) RangeConstraint {
+	c.groups = groups
+	return c
+}
+
 func (c RangeConstraint) ValidateNumber(value generic.Number, scope validation.Scope) error {
-	if c.isIgnored {
+	if c.isIgnored || scope.IsIgnored(c.groups...) {
 		return nil
 	}
 	if value.IsLessThan(c.min) || value.IsGreaterThan(c.max) {
@@ -428,6 +442,7 @@ func (c RangeConstraint) newViolation(value generic.Number, scope validation.Sco
 // StringComparisonConstraint is used to compare strings.
 type StringComparisonConstraint struct {
 	isIgnored         bool
+	groups            []string
 	code              string
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
@@ -498,8 +513,14 @@ func (c StringComparisonConstraint) When(condition bool) StringComparisonConstra
 	return c
 }
 
+// WhenGroups enables conditional validation of the constraint by using the validation groups.
+func (c StringComparisonConstraint) WhenGroups(groups ...string) StringComparisonConstraint {
+	c.groups = groups
+	return c
+}
+
 func (c StringComparisonConstraint) ValidateString(value *string, scope validation.Scope) error {
-	if c.isIgnored || value == nil || c.isValid(*value) {
+	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || c.isValid(*value) {
 		return nil
 	}
 
@@ -516,6 +537,7 @@ func (c StringComparisonConstraint) ValidateString(value *string, scope validati
 // TimeComparisonConstraint is used to compare time values.
 type TimeComparisonConstraint struct {
 	isIgnored         bool
+	groups            []string
 	code              string
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
@@ -622,8 +644,14 @@ func (c TimeComparisonConstraint) When(condition bool) TimeComparisonConstraint 
 	return c
 }
 
+// WhenGroups enables conditional validation of the constraint by using the validation groups.
+func (c TimeComparisonConstraint) WhenGroups(groups ...string) TimeComparisonConstraint {
+	c.groups = groups
+	return c
+}
+
 func (c TimeComparisonConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
-	if c.isIgnored || value == nil || c.isValid(*value) {
+	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || c.isValid(*value) {
 		return nil
 	}
 
@@ -640,6 +668,7 @@ func (c TimeComparisonConstraint) ValidateTime(value *time.Time, scope validatio
 // TimeRangeConstraint is used to check that a given time value is between some minimum and maximum.
 type TimeRangeConstraint struct {
 	isIgnored         bool
+	groups            []string
 	code              string
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
@@ -701,6 +730,12 @@ func (c TimeRangeConstraint) When(condition bool) TimeRangeConstraint {
 	return c
 }
 
+// WhenGroups enables conditional validation of the constraint by using the validation groups.
+func (c TimeRangeConstraint) WhenGroups(groups ...string) TimeRangeConstraint {
+	c.groups = groups
+	return c
+}
+
 // Layout can be used to set the layout that is used to format time values.
 func (c TimeRangeConstraint) Layout(layout string) TimeRangeConstraint {
 	c.layout = layout
@@ -708,7 +743,7 @@ func (c TimeRangeConstraint) Layout(layout string) TimeRangeConstraint {
 }
 
 func (c TimeRangeConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
-	if c.isIgnored || value == nil {
+	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil {
 		return nil
 	}
 	if value.Before(c.min) || value.After(c.max) {
@@ -733,6 +768,7 @@ func (c TimeRangeConstraint) newViolation(value *time.Time, scope validation.Sco
 // UniqueConstraint is used to check that all elements of the given collection are unique.
 type UniqueConstraint struct {
 	isIgnored         bool
+	groups            []string
 	code              string
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
@@ -778,8 +814,14 @@ func (c UniqueConstraint) When(condition bool) UniqueConstraint {
 	return c
 }
 
+// WhenGroups enables conditional validation of the constraint by using the validation groups.
+func (c UniqueConstraint) WhenGroups(groups ...string) UniqueConstraint {
+	c.groups = groups
+	return c
+}
+
 func (c UniqueConstraint) ValidateStrings(values []string, scope validation.Scope) error {
-	if c.isIgnored || is.UniqueStrings(values) {
+	if c.isIgnored || scope.IsIgnored(c.groups...) || is.UniqueStrings(values) {
 		return nil
 	}
 

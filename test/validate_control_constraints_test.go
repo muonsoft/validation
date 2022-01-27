@@ -107,6 +107,20 @@ func TestValidate_WhenSequentiallyConstraintIsDisabled_ExpectNoErrors(t *testing
 	assert.NoError(t, err)
 }
 
+func TestValidate_WhenSequentiallyGroupsNotMatch_ExpectNoErrors(t *testing.T) {
+	value := "foo"
+
+	err := validator.Validate(
+		context.Background(),
+		validation.String(
+			value,
+			validation.Sequentially(it.IsBlank()).WhenGroups(testGroup),
+		),
+	)
+
+	assert.NoError(t, err)
+}
+
 func TestValidate_WhenSequentiallyConstraintsNotSet_ExpectError(t *testing.T) {
 	value := "bar"
 
@@ -143,6 +157,20 @@ func TestValidate_WhenAtLeastOneOfConstraintIsDisabled_ExpectNoError(t *testing.
 		validation.String(
 			value,
 			validation.AtLeastOneOf(it.IsBlank()).When(false),
+		),
+	)
+
+	assert.NoError(t, err)
+}
+
+func TestValidate_WhenAtLeastOneOfConstraintGroupsNotMatch_ExpectNoError(t *testing.T) {
+	value := "foo"
+
+	err := validator.Validate(
+		context.Background(),
+		validation.String(
+			value,
+			validation.AtLeastOneOf(it.IsBlank()).WhenGroups(testGroup),
 		),
 	)
 
@@ -196,6 +224,18 @@ func TestValidate_WhenCompoundIsDisabled_ExpectNoError(t *testing.T) {
 	err := validator.Validate(
 		context.Background(),
 		validation.String(value, isEmployeeEmail.When(false)),
+	)
+
+	assert.NoError(t, err)
+}
+
+func TestValidate_WhenCompoundGroupsNotMatch_ExpectNoError(t *testing.T) {
+	value := "bar"
+	isEmployeeEmail := validation.Compound(it.HasMinLength(5), it.IsEmail())
+
+	err := validator.Validate(
+		context.Background(),
+		validation.String(value, isEmployeeEmail.WhenGroups(testGroup)),
 	)
 
 	assert.NoError(t, err)

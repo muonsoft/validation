@@ -19,6 +19,7 @@ type LengthConstraint struct {
 	checkMax               bool
 	min                    int
 	max                    int
+	groups                 []string
 	minCode                string
 	maxCode                string
 	exactCode              string
@@ -69,20 +70,26 @@ func HasExactLength(count int) LengthConstraint {
 	return newLengthConstraint(count, count, true, true)
 }
 
-// Name is the constraint name.
-func (c LengthConstraint) Name() string {
-	return "LengthConstraint"
-}
-
 // SetUp always returns no error.
 func (c LengthConstraint) SetUp() error {
 	return nil
+}
+
+// Name is the constraint name.
+func (c LengthConstraint) Name() string {
+	return "LengthConstraint"
 }
 
 // When enables conditional validation of this constraint. If the expression evaluates to false,
 // then the constraint will be ignored.
 func (c LengthConstraint) When(condition bool) LengthConstraint {
 	c.isIgnored = !condition
+	return c
+}
+
+// WhenGroups enables conditional validation of the constraint by using the validation groups.
+func (c LengthConstraint) WhenGroups(groups ...string) LengthConstraint {
+	c.groups = groups
 	return c
 }
 
@@ -147,7 +154,7 @@ func (c LengthConstraint) ExactMessage(template string, parameters ...validation
 }
 
 func (c LengthConstraint) ValidateString(value *string, scope validation.Scope) error {
-	if c.isIgnored || value == nil || *value == "" {
+	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == "" {
 		return nil
 	}
 
@@ -191,6 +198,7 @@ func (c LengthConstraint) newViolation(
 type RegexConstraint struct {
 	isIgnored         bool
 	match             bool
+	groups            []string
 	code              string
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
@@ -254,8 +262,14 @@ func (c RegexConstraint) When(condition bool) RegexConstraint {
 	return c
 }
 
+// WhenGroups enables conditional validation of the constraint by using the validation groups.
+func (c RegexConstraint) WhenGroups(groups ...string) RegexConstraint {
+	c.groups = groups
+	return c
+}
+
 func (c RegexConstraint) ValidateString(value *string, scope validation.Scope) error {
-	if c.isIgnored || value == nil || *value == "" {
+	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == "" {
 		return nil
 	}
 	if c.match == c.regex.MatchString(*value) {

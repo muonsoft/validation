@@ -79,6 +79,7 @@ type controlConstraint interface {
 type CustomStringConstraint struct {
 	isIgnored         bool
 	isValid           func(string) bool
+	groups            []string
 	name              string
 	code              string
 	messageTemplate   string
@@ -142,8 +143,14 @@ func (c CustomStringConstraint) When(condition bool) CustomStringConstraint {
 	return c
 }
 
+// WhenGroups enables conditional validation of the constraint by using the validation groups.
+func (c CustomStringConstraint) WhenGroups(groups ...string) CustomStringConstraint {
+	c.groups = groups
+	return c
+}
+
 func (c CustomStringConstraint) ValidateString(value *string, scope Scope) error {
-	if c.isIgnored || value == nil || *value == "" || c.isValid(*value) {
+	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == "" || c.isValid(*value) {
 		return nil
 	}
 
@@ -187,11 +194,6 @@ func (c ConditionalConstraint) Else(constraints ...Constraint) ConditionalConstr
 	return c
 }
 
-// Name is the constraint name.
-func (c ConditionalConstraint) Name() string {
-	return "ConditionalConstraint"
-}
-
 // SetUp will return an error if Then function did not set any constraints.
 func (c ConditionalConstraint) SetUp() error {
 	if len(c.thenConstraints) == 0 {
@@ -199,6 +201,11 @@ func (c ConditionalConstraint) SetUp() error {
 	}
 
 	return nil
+}
+
+// Name is the constraint name.
+func (c ConditionalConstraint) Name() string {
+	return "ConditionalConstraint"
 }
 
 func (c ConditionalConstraint) validate(
@@ -228,6 +235,7 @@ func (c ConditionalConstraint) validate(
 // the first violation is raised.
 type SequentialConstraint struct {
 	isIgnored   bool
+	groups      []string
 	constraints []Constraint
 }
 
@@ -235,11 +243,6 @@ type SequentialConstraint struct {
 // If the list is empty error will be returned.
 func Sequentially(constraints ...Constraint) SequentialConstraint {
 	return SequentialConstraint{constraints: constraints}
-}
-
-// Name is the constraint name.
-func (c SequentialConstraint) Name() string {
-	return "SequentialConstraint"
 }
 
 // SetUp will return an error if the list of constraints is empty.
@@ -250,6 +253,11 @@ func (c SequentialConstraint) SetUp() error {
 	return nil
 }
 
+// Name is the constraint name.
+func (c SequentialConstraint) Name() string {
+	return "SequentialConstraint"
+}
+
 // When enables conditional validation of this constraint. If the expression evaluates to false,
 // then the constraint will be ignored.
 func (c SequentialConstraint) When(condition bool) SequentialConstraint {
@@ -257,11 +265,17 @@ func (c SequentialConstraint) When(condition bool) SequentialConstraint {
 	return c
 }
 
+// WhenGroups enables conditional validation of the constraint by using the validation groups.
+func (c SequentialConstraint) WhenGroups(groups ...string) SequentialConstraint {
+	c.groups = groups
+	return c
+}
+
 func (c SequentialConstraint) validate(
 	scope Scope,
 	validate ValidateByConstraintFunc,
 ) (*ViolationList, error) {
-	if c.isIgnored {
+	if c.isIgnored || scope.IsIgnored(c.groups...) {
 		return nil, nil
 	}
 
@@ -284,6 +298,7 @@ func (c SequentialConstraint) validate(
 // The validation stops as soon as one constraint is satisfied.
 type AtLeastOneOfConstraint struct {
 	isIgnored   bool
+	groups      []string
 	constraints []Constraint
 }
 
@@ -291,11 +306,6 @@ type AtLeastOneOfConstraint struct {
 // If the list is empty error will be returned.
 func AtLeastOneOf(constraints ...Constraint) AtLeastOneOfConstraint {
 	return AtLeastOneOfConstraint{constraints: constraints}
-}
-
-// Name is the constraint name.
-func (c AtLeastOneOfConstraint) Name() string {
-	return "AtLeastOneOfConstraint"
 }
 
 // SetUp will return an error if the list of constraints is empty.
@@ -306,6 +316,11 @@ func (c AtLeastOneOfConstraint) SetUp() error {
 	return nil
 }
 
+// Name is the constraint name.
+func (c AtLeastOneOfConstraint) Name() string {
+	return "AtLeastOneOfConstraint"
+}
+
 // When enables conditional validation of this constraint. If the expression evaluates to false,
 // then the constraint will be ignored.
 func (c AtLeastOneOfConstraint) When(condition bool) AtLeastOneOfConstraint {
@@ -313,11 +328,17 @@ func (c AtLeastOneOfConstraint) When(condition bool) AtLeastOneOfConstraint {
 	return c
 }
 
+// WhenGroups enables conditional validation of the constraint by using the validation groups.
+func (c AtLeastOneOfConstraint) WhenGroups(groups ...string) AtLeastOneOfConstraint {
+	c.groups = groups
+	return c
+}
+
 func (c AtLeastOneOfConstraint) validate(
 	scope Scope,
 	validate ValidateByConstraintFunc,
 ) (*ViolationList, error) {
-	if c.isIgnored {
+	if c.isIgnored || scope.IsIgnored(c.groups...) {
 		return nil, nil
 	}
 
@@ -341,6 +362,7 @@ func (c AtLeastOneOfConstraint) validate(
 // CompoundConstraint is used to create your own set of reusable constraints, representing rules to use consistently.
 type CompoundConstraint struct {
 	isIgnored   bool
+	groups      []string
 	constraints []Constraint
 }
 
@@ -348,11 +370,6 @@ type CompoundConstraint struct {
 // If the list is empty error will be returned.
 func Compound(constraints ...Constraint) CompoundConstraint {
 	return CompoundConstraint{constraints: constraints}
-}
-
-// Name is the constraint name.
-func (c CompoundConstraint) Name() string {
-	return "CompoundConstraint"
 }
 
 // SetUp will return an error if the list of constraints is empty.
@@ -363,6 +380,11 @@ func (c CompoundConstraint) SetUp() error {
 	return nil
 }
 
+// Name is the constraint name.
+func (c CompoundConstraint) Name() string {
+	return "CompoundConstraint"
+}
+
 // When enables conditional validation of this constraint. If the expression evaluates to false,
 // then the constraint will be ignored.
 func (c CompoundConstraint) When(condition bool) CompoundConstraint {
@@ -370,11 +392,17 @@ func (c CompoundConstraint) When(condition bool) CompoundConstraint {
 	return c
 }
 
+// WhenGroups enables conditional validation of the constraint by using the validation groups.
+func (c CompoundConstraint) WhenGroups(groups ...string) CompoundConstraint {
+	c.groups = groups
+	return c
+}
+
 func (c CompoundConstraint) validate(
 	scope Scope,
 	validate ValidateByConstraintFunc,
 ) (*ViolationList, error) {
-	if c.isIgnored {
+	if c.isIgnored || scope.IsIgnored(c.groups...) {
 		return nil, nil
 	}
 

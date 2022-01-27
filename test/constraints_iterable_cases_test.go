@@ -23,6 +23,12 @@ var countConstraintTestCases = []ConstraintValidationTestCase{
 		assert:          assertNoError,
 	},
 	{
+		name:            "HasMinCount violation on nil ignored when groups not match",
+		isApplicableFor: specificValueTypes(iterableType, countableType),
+		constraint:      it.HasMinCount(1).WhenGroups(testGroup),
+		assert:          assertNoError,
+	},
+	{
 		name:            "HasMinCount violation on nil when condition true",
 		isApplicableFor: specificValueTypes(iterableType, countableType),
 		constraint:      it.HasMinCount(1).When(true),

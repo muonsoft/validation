@@ -70,6 +70,13 @@ var customStringConstraintTestCases = []ConstraintValidationTestCase{
 		assert:          assertNoError,
 	},
 	{
+		name:            "CustomStringConstraint passes when groups not match",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      validation.NewCustomStringConstraint(invalidString).WhenGroups(testGroup),
+		stringValue:     stringValue("foo"),
+		assert:          assertNoError,
+	},
+	{
 		name:            "CustomStringConstraint violation when condition is true",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      validation.NewCustomStringConstraint(invalidString).When(true),

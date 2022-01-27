@@ -79,6 +79,12 @@ var isNotBlankConstraintTestCases = []ConstraintValidationTestCase{
 		constraint:      it.IsNotBlank().When(false),
 		assert:          assertNoError,
 	},
+	{
+		name:            "IsNotBlank passes on nil when groups not match",
+		isApplicableFor: exceptValueTypes("countable"),
+		constraint:      it.IsNotBlank().WhenGroups(testGroup),
+		assert:          assertNoError,
+	},
 }
 
 var isBlankConstraintTestCases = []ConstraintValidationTestCase{
@@ -163,6 +169,20 @@ var isBlankConstraintTestCases = []ConstraintValidationTestCase{
 		constraint:      it.IsBlank().When(false),
 		assert:          assertNoError,
 	},
+	{
+		name:            "IsBlank passes on value when groups not match",
+		isApplicableFor: anyValueType,
+		boolValue:       boolValue(true),
+		intValue:        intValue(1),
+		floatValue:      floatValue(0.1),
+		stringValue:     stringValue("a"),
+		timeValue:       timeValue(time.Now()),
+		stringsValue:    []string{""},
+		sliceValue:      []string{"a"},
+		mapValue:        map[string]string{"a": "a"},
+		constraint:      it.IsBlank().WhenGroups(testGroup),
+		assert:          assertNoError,
+	},
 }
 
 var isNotNilConstraintTestCases = []ConstraintValidationTestCase{
@@ -229,6 +249,12 @@ var isNotNilConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "IsNotNil passes on nil when condition is false",
 		isApplicableFor: exceptValueTypes(countableType),
 		constraint:      it.IsNotNil().When(false),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNotNil passes on nil when groups not match",
+		isApplicableFor: exceptValueTypes(countableType),
+		constraint:      it.IsNotNil().WhenGroups(testGroup),
 		assert:          assertNoError,
 	},
 }
@@ -307,6 +333,20 @@ var isNilConstraintTestCases = []ConstraintValidationTestCase{
 		constraint:      it.IsNil().When(false),
 		assert:          assertNoError,
 	},
+	{
+		name:            "IsNil passes on empty value when groups not match",
+		isApplicableFor: exceptValueTypes(countableType),
+		boolValue:       boolValue(false),
+		intValue:        intValue(0),
+		floatValue:      floatValue(0),
+		stringValue:     stringValue(""),
+		stringsValue:    []string{},
+		timeValue:       &time.Time{},
+		sliceValue:      []string{},
+		mapValue:        map[string]string{},
+		constraint:      it.IsNil().WhenGroups(testGroup),
+		assert:          assertNoError,
+	},
 }
 
 var isTrueConstraintTestCases = []ConstraintValidationTestCase{
@@ -356,6 +396,13 @@ var isTrueConstraintTestCases = []ConstraintValidationTestCase{
 		constraint:      it.IsTrue().When(false),
 		assert:          assertNoError,
 	},
+	{
+		name:            "IsTrue passes on empty value when groups not match",
+		isApplicableFor: specificValueTypes(boolType),
+		boolValue:       boolValue(false),
+		constraint:      it.IsTrue().WhenGroups(testGroup),
+		assert:          assertNoError,
+	},
 }
 
 var isFalseConstraintTestCases = []ConstraintValidationTestCase{
@@ -398,6 +445,13 @@ var isFalseConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(boolType),
 		boolValue:       boolValue(true),
 		constraint:      it.IsFalse().When(false),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsFalse passes on error value when groups not match",
+		isApplicableFor: specificValueTypes(boolType),
+		boolValue:       boolValue(true),
+		constraint:      it.IsFalse().WhenGroups(testGroup),
 		assert:          assertNoError,
 	},
 }

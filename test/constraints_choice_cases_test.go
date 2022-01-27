@@ -64,6 +64,13 @@ var choiceConstraintTestCases = []ConstraintValidationTestCase{
 		assert:          assertNoError,
 	},
 	{
+		name:            "IsOneOfStrings passes when groups not match",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("not-expected"),
+		constraint:      it.IsOneOfStrings("expected").WhenGroups(testGroup),
+		assert:          assertNoError,
+	},
+	{
 		name:            "IsOneOfStrings violation on missing value when condition is true",
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("not-expected"),
