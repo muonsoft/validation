@@ -16,6 +16,11 @@ func assertHasOneViolation(code, message string) func(t *testing.T, err error) {
 	}
 }
 
+func assertListWithOneViolation(t *testing.T, err error) {
+	t.Helper()
+	validationtest.Assert(t, err).IsViolationList().WithOneViolation()
+}
+
 func assertHasOneViolationAtPath(code, message, path string) func(t *testing.T, err error) {
 	return func(t *testing.T, err error) {
 		t.Helper()

@@ -12,6 +12,7 @@ import (
 type ChoiceConstraint struct {
 	choices           map[string]bool
 	choicesValue      string
+	groups            []string
 	code              string
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
@@ -71,8 +72,14 @@ func (c ChoiceConstraint) When(condition bool) ChoiceConstraint {
 	return c
 }
 
+// WhenGroups enables conditional validation of the constraint by using the validation groups.
+func (c ChoiceConstraint) WhenGroups(groups ...string) ChoiceConstraint {
+	c.groups = groups
+	return c
+}
+
 func (c ChoiceConstraint) ValidateString(value *string, scope validation.Scope) error {
-	if c.isIgnored || value == nil || *value == "" {
+	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == "" {
 		return nil
 	}
 	if c.choices[*value] {

@@ -17,6 +17,7 @@ type CountConstraint struct {
 	checkMax               bool
 	min                    int
 	max                    int
+	groups                 []string
 	minCode                string
 	maxCode                string
 	exactCode              string
@@ -67,20 +68,26 @@ func HasExactCount(count int) CountConstraint {
 	return newCountConstraint(count, count, true, true)
 }
 
-// Name is the constraint name.
-func (c CountConstraint) Name() string {
-	return "CountConstraint"
-}
-
 // SetUp always returns no error.
 func (c CountConstraint) SetUp() error {
 	return nil
+}
+
+// Name is the constraint name.
+func (c CountConstraint) Name() string {
+	return "CountConstraint"
 }
 
 // When enables conditional validation of this constraint. If the expression evaluates to false,
 // then the constraint will be ignored.
 func (c CountConstraint) When(condition bool) CountConstraint {
 	c.isIgnored = !condition
+	return c
+}
+
+// WhenGroups enables conditional validation of the constraint by using the validation groups.
+func (c CountConstraint) WhenGroups(groups ...string) CountConstraint {
+	c.groups = groups
 	return c
 }
 
@@ -146,7 +153,7 @@ func (c CountConstraint) ValidateIterable(value generic.Iterable, scope validati
 }
 
 func (c CountConstraint) ValidateCountable(count int, scope validation.Scope) error {
-	if c.isIgnored {
+	if c.isIgnored || scope.IsIgnored(c.groups...) {
 		return nil
 	}
 	if c.checkMax && count > c.max {
