@@ -166,8 +166,7 @@ func (c NotBlankConstraint) ValidateTime(value *time.Time, scope validation.Scop
 		return nil
 	}
 
-	var empty time.Time
-	if value != nil && *value != empty {
+	if value != nil && !value.IsZero() {
 		return nil
 	}
 
@@ -288,8 +287,7 @@ func (c BlankConstraint) ValidateCountable(count int, scope validation.Scope) er
 }
 
 func (c BlankConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
-	var empty time.Time
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == empty {
+	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || value.IsZero() {
 		return nil
 	}
 
