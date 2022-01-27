@@ -122,6 +122,9 @@ func ValidateBy(constraintKey string) validation.Constraint {
 // to a constraint by WhenGroups() method. This method is implemented in all built-in constraints.
 // If you want to use validation groups for your own constraints do not forget to implement
 // this method in your constraint.
+//
+// Be careful, empty groups are considered as the default group.
+// Its value is equal to the validation.DefaultGroup ("default").
 func WithGroups(groups ...string) *validation.Validator {
 	return validator.WithGroups(groups...)
 }
