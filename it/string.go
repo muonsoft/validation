@@ -295,3 +295,23 @@ func IsJSON() validation.CustomStringConstraint {
 		message.Templates[code.InvalidJSON],
 	)
 }
+
+// IsInteger checks that string value is an integer.
+func IsInteger() validation.CustomStringConstraint {
+	return validation.NewCustomStringConstraint(
+		is.Integer,
+		"NumericConstraint",
+		code.NotInteger,
+		message.Templates[code.NotInteger],
+	)
+}
+
+// IsNumeric checks that string value is a valid numeric (integer or float).
+func IsNumeric() validation.CustomStringConstraint {
+	return validation.NewCustomStringConstraint(
+		is.Number,
+		"NumericConstraint",
+		code.NotNumeric,
+		message.Templates[code.NotNumeric],
+	)
+}
