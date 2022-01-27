@@ -217,3 +217,34 @@ var jsonConstraintTestCases = []ConstraintValidationTestCase{
 		assert:          assertHasOneViolation(code.InvalidJSON, message.Templates[code.InvalidJSON]),
 	},
 }
+
+var numericConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsInteger passes on valid integer",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsInteger(),
+		stringValue:     stringValue("123"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsInteger violation on invalid integer",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsInteger(),
+		stringValue:     stringValue("foo"),
+		assert:          assertHasOneViolation(code.NotInteger, message.Templates[code.NotInteger]),
+	},
+	{
+		name:            "IsNumeric passes on valid number",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsNumeric(),
+		stringValue:     stringValue("123.123"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNumeric violation on invalid number",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsNumeric(),
+		stringValue:     stringValue("foo.bar"),
+		assert:          assertHasOneViolation(code.NotNumeric, message.Templates[code.NotNumeric]),
+	},
+}

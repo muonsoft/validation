@@ -381,6 +381,38 @@ func ExampleIsJSON_invalidJSON() {
 	// violation: This value should be valid JSON.
 }
 
+func ExampleIsInteger_validInteger() {
+	v := "123"
+	err := validator.Validate(context.Background(), validation.String(v, it.IsInteger()))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsInteger_invalidInteger() {
+	v := "foo"
+	err := validator.Validate(context.Background(), validation.String(v, it.IsInteger()))
+	fmt.Println(err)
+	// Output:
+	// violation: This value is not an integer.
+}
+
+func ExampleIsNumeric_validNumeric() {
+	v := "123.123"
+	err := validator.Validate(context.Background(), validation.String(v, it.IsNumeric()))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsNumeric_invalidNumeric() {
+	v := "foo.bar"
+	err := validator.Validate(context.Background(), validation.String(v, it.IsNumeric()))
+	fmt.Println(err)
+	// Output:
+	// violation: This value is not a numeric.
+}
+
 func ExampleIsEmail_validEmail() {
 	v := "user@example.com"
 	err := validator.Validate(context.Background(), validation.String(v, it.IsEmail()))
