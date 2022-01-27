@@ -327,7 +327,7 @@ for _, violation := range violations {
 // violation at 'text': This value should not be blank.
 ```
 
-### Conditional validation based of groups
+### Conditional validation based on groups
 
 By default, when validating an object all constraints of it will be checked whether or not they pass. In some cases,
 however, you will need to validate an object against only some specific group of constraints. To do this, you can
