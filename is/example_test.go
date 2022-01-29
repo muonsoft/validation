@@ -7,6 +7,68 @@ import (
 	"github.com/muonsoft/validation/validate"
 )
 
+func ExampleEAN8() {
+	fmt.Println(is.EAN8("42345671"))
+	fmt.Println(is.EAN8("47195127"))
+	fmt.Println(is.EAN8("00000000")) // zeros only are prohibited
+	fmt.Println(is.EAN8("42345670")) // invalid checksum
+	fmt.Println(is.EAN8("A4234671")) // contains non-digit
+	// Output:
+	// true
+	// true
+	// false
+	// false
+	// false
+}
+
+func ExampleEAN13() {
+	fmt.Println(is.EAN13("4719512002889"))
+	fmt.Println(is.EAN13("9782868890061"))
+	fmt.Println(is.EAN13("0000000000000")) // zeros only are prohibited
+	fmt.Println(is.EAN13("4006381333932")) // invalid checksum
+	fmt.Println(is.EAN13("A782868890061")) // contains non-digit
+	// Output:
+	// true
+	// true
+	// false
+	// false
+	// false
+}
+
+func ExampleUPCA() {
+	fmt.Println(is.UPCA("614141000036"))
+	fmt.Println(is.UPCA("123456789999"))
+	fmt.Println(is.UPCA("000000000000")) // zeros only are prohibited
+	fmt.Println(is.UPCA("614141000037")) // invalid checksum
+	fmt.Println(is.UPCA("A14141000036")) // contains non-digit
+	// Output:
+	// true
+	// true
+	// false
+	// false
+	// false
+}
+
+func ExampleUPCE() {
+	fmt.Println(is.UPCE("123456"))   // 6-digit is always valid
+	fmt.Println(is.UPCE("1234505"))  // 7-digit with last check digit
+	fmt.Println(is.UPCE("01234505")) // 8-digit with first zero and last check digit
+	fmt.Println(is.UPCE("00000000")) // zeros only are prohibited
+	fmt.Println(is.UPCE("11234505")) // non-zero number system is prohibited
+	fmt.Println(is.UPCE("01234501")) // invalid checksum
+	fmt.Println(is.UPCE("A2345673")) // contains non-digit
+	fmt.Println(is.UPCE("12345"))    // invalid length
+	// Output:
+	// true
+	// true
+	// true
+	// false
+	// false
+	// false
+	// false
+	// false
+}
+
 func ExampleJSON() {
 	fmt.Println(is.JSON(`{"valid": true}`)) // valid
 	fmt.Println(is.JSON(`"invalid": true`)) // invalid
