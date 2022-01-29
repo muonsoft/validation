@@ -10,13 +10,13 @@ import (
 
 var ErrUnexpectedSchema = errors.New("unexpected schema")
 
-// URL is used to validate that value is a valid URL string. By default (if no schemas are passed),
-// the function checks only for the http:// and https:// schemas. Use the schemas argument
+// URL is used to validate that value is a valid URL string. By default, (if no schemas are passed),
+// the function checks only for the http:// and https:// schemas. Use the schemas' argument
 // to configure the list of expected schemas. If an empty string is passed as a schema, then
 // URL value may be treated as relative (without schema, e.g. "//example.com").
 //
 // If value is not a valid URL the function will return one of the errors:
-//	• parsing error from url.Parse method if value cannot be parsed as an URL;
+//	• parsing error from url.Parse method if value cannot be parsed as a URL;
 //	• ErrUnexpectedSchema if schema is not matching one of the listed schemas;
 //	• ErrInvalid if value is not matching the regular expression.
 func URL(value string, schemas ...string) error {

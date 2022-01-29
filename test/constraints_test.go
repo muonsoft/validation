@@ -45,6 +45,7 @@ type ConstraintValidationTestCase struct {
 }
 
 var validateTestCases = mergeTestCases(
+	barcodeConstraintsTestCases,
 	isNotBlankConstraintTestCases,
 	isBlankConstraintTestCases,
 	isNotNilConstraintTestCases,

@@ -12,6 +12,34 @@ import (
 	"github.com/muonsoft/validation/validator"
 )
 
+func ExampleIsEAN8() {
+	err := validator.Validate(context.Background(), validation.String("42345670", it.IsEAN8()))
+	fmt.Println(err)
+	// Output:
+	// violation: This value is not a valid EAN-8.
+}
+
+func ExampleIsEAN13() {
+	err := validator.Validate(context.Background(), validation.String("4006381333932", it.IsEAN13()))
+	fmt.Println(err)
+	// Output:
+	// violation: This value is not a valid EAN-13.
+}
+
+func ExampleIsUPCA() {
+	err := validator.Validate(context.Background(), validation.String("614141000037", it.IsUPCA()))
+	fmt.Println(err)
+	// Output:
+	// violation: This value is not a valid UPC-A.
+}
+
+func ExampleIsUPCE() {
+	err := validator.Validate(context.Background(), validation.String("01234501", it.IsUPCE()))
+	fmt.Println(err)
+	// Output:
+	// violation: This value is not a valid UPC-E.
+}
+
 func ExampleIsNotBlank() {
 	v := ""
 	err := validator.Validate(context.Background(), validation.String(v, it.IsNotBlank()))
