@@ -1,7 +1,6 @@
 package validation
 
 import (
-	"constraints"
 	"time"
 
 	"github.com/muonsoft/validation/code"
@@ -10,7 +9,9 @@ import (
 )
 
 type Numeric interface {
-	constraints.Integer | constraints.Float
+	~float32 | ~float64 |
+		~int | ~int8 | ~int16 | ~int32 | ~int64 |
+		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr
 }
 
 // Constraint is the base interface to build validation constraints.
