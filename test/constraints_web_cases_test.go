@@ -85,6 +85,13 @@ var urlConstraintTestCases = []ConstraintValidationTestCase{
 		assert:          assertNoError,
 	},
 	{
+		name:            "IsURL passes when groups not match",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsURL().WhenGroups(testGroup),
+		stringValue:     stringValue("example.com"),
+		assert:          assertNoError,
+	},
+	{
 		name:            "IsURL violation when condition is true",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsURL().When(true),
@@ -231,6 +238,13 @@ var ipConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "IsIP passes when condition is false",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsIP().When(false),
+		stringValue:     stringValue("123.123.123.321"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsIP passes when groups not match",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsIP().WhenGroups(testGroup),
 		stringValue:     stringValue("123.123.123.321"),
 		assert:          assertNoError,
 	},

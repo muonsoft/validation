@@ -228,6 +228,24 @@ func (validator *Validator) ValidateBy(constraintKey string) Constraint {
 	return notFoundConstraint{key: constraintKey}
 }
 
+// WithGroups is used to execute conditional validation based on validation groups. It creates
+// a new scoped validation with a given set of groups.
+//
+// By default, when validating an object all constraints of it will be checked whether or not
+// they pass. In some cases, however, you will need to validate an object against
+// only some specific group of constraints. To do this, you can organize each constraint
+// into one or more validation groups and then apply validation against one group of constraints.
+//
+// Validation groups are working together only with validation groups passed
+// to a constraint by WhenGroups() method. This method is implemented in all built-in constraints.
+// If you want to use validation groups for your own constraints do not forget to implement
+// this method in your constraint.
+//
+// Be careful, empty groups are considered as the default group. Its value is equal to the DefaultGroup ("default").
+func (validator *Validator) WithGroups(groups ...string) *Validator {
+	return newScopedValidator(validator.scope.withGroups(groups...))
+}
+
 // WithLanguage method creates a new scoped validator with a given language tag. All created violations
 // will be translated into this language.
 func (validator *Validator) WithLanguage(tag language.Tag) *Validator {

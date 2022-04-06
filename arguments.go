@@ -334,6 +334,7 @@ type Checker struct {
 	isIgnored         bool
 	isValid           bool
 	propertyName      string
+	groups            []string
 	code              string
 	messageTemplate   string
 	messageParameters TemplateParameterList
@@ -343,6 +344,12 @@ type Checker struct {
 // then the constraint will be ignored.
 func (c Checker) When(condition bool) Checker {
 	c.isIgnored = !condition
+	return c
+}
+
+// WhenGroups enables conditional validation of the constraint by using the validation groups.
+func (c Checker) WhenGroups(groups ...string) Checker {
+	c.groups = groups
 	return c
 }
 
@@ -366,7 +373,7 @@ func (c Checker) set(arguments *Arguments) error {
 }
 
 func (c Checker) validate(scope Scope) (*ViolationList, error) {
-	if c.isValid || c.isIgnored {
+	if c.isValid || c.isIgnored || scope.IsIgnored(c.groups...) {
 		return nil, nil
 	}
 	if c.propertyName != "" {

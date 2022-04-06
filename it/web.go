@@ -72,6 +72,7 @@ type URLConstraint struct {
 	isIgnored              bool
 	supportsRelativeSchema bool
 	schemas                []string
+	groups                 []string
 	code                   string
 	messageTemplate        string
 	messageParameters      validation.TemplateParameterList
@@ -141,8 +142,14 @@ func (c URLConstraint) When(condition bool) URLConstraint {
 	return c
 }
 
+// WhenGroups enables conditional validation of the constraint by using the validation groups.
+func (c URLConstraint) WhenGroups(groups ...string) URLConstraint {
+	c.groups = groups
+	return c
+}
+
 func (c URLConstraint) ValidateString(value *string, scope validation.Scope) error {
-	if c.isIgnored || value == nil || *value == "" {
+	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == "" {
 		return nil
 	}
 
@@ -169,6 +176,8 @@ type IPConstraint struct {
 	isIgnored    bool
 	validate     func(value string, restrictions ...validate.IPRestriction) error
 	restrictions []validate.IPRestriction
+
+	groups []string
 
 	invalidCode    string
 	prohibitedCode string
@@ -268,8 +277,14 @@ func (c IPConstraint) When(condition bool) IPConstraint {
 	return c
 }
 
+// WhenGroups enables conditional validation of the constraint by using the validation groups.
+func (c IPConstraint) WhenGroups(groups ...string) IPConstraint {
+	c.groups = groups
+	return c
+}
+
 func (c IPConstraint) ValidateString(value *string, scope validation.Scope) error {
-	if c.isIgnored || value == nil || *value == "" {
+	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == "" {
 		return nil
 	}
 

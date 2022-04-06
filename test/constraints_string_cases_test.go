@@ -31,6 +31,13 @@ var lengthConstraintTestCases = []ConstraintValidationTestCase{
 		assert:          assertNoError,
 	},
 	{
+		name:            "HasMinLength violation ignored when groups not match",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.HasMinLength(2).WhenGroups(testGroup),
+		stringValue:     stringValue("a"),
+		assert:          assertNoError,
+	},
+	{
 		name:            "HasMinLength violation when condition true",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.HasMinLength(2).When(true),
@@ -146,6 +153,13 @@ var regexConstraintTestCases = []ConstraintValidationTestCase{
 		assert:          assertNoError,
 	},
 	{
+		name:            "Matches violation ignored when groups not match",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.Matches(regexp.MustCompile("^[a-z]+$")).WhenGroups(testGroup),
+		stringValue:     stringValue("1"),
+		assert:          assertNoError,
+	},
+	{
 		name:            "Matches violation when condition true",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.Matches(regexp.MustCompile("^[a-z]+$")).When(true),
@@ -201,5 +215,36 @@ var jsonConstraintTestCases = []ConstraintValidationTestCase{
 		constraint:      it.IsJSON(),
 		stringValue:     stringValue(`"invalid": true`),
 		assert:          assertHasOneViolation(code.InvalidJSON, message.Templates[code.InvalidJSON]),
+	},
+}
+
+var numericConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsInteger passes on valid integer",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsInteger(),
+		stringValue:     stringValue("123"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsInteger violation on invalid integer",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsInteger(),
+		stringValue:     stringValue("foo"),
+		assert:          assertHasOneViolation(code.NotInteger, message.Templates[code.NotInteger]),
+	},
+	{
+		name:            "IsNumeric passes on valid number",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsNumeric(),
+		stringValue:     stringValue("123.123"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNumeric violation on invalid number",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsNumeric(),
+		stringValue:     stringValue("foo.bar"),
+		assert:          assertHasOneViolation(code.NotNumeric, message.Templates[code.NotNumeric]),
 	},
 }
