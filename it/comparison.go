@@ -158,16 +158,6 @@ func IsNegativeOrZero[T validation.Numeric]() NumberComparisonConstraint[T] {
 	}
 }
 
-// SetUp always returns no error.
-func (c NumberComparisonConstraint[T]) SetUp() error {
-	return nil
-}
-
-// Name is the constraint name.
-func (c NumberComparisonConstraint[T]) Name() string {
-	return fmt.Sprintf("NumberComparisonConstraint[%s]", reflect.TypeOf(c.value).String())
-}
-
 // Code overrides default code for produced violation.
 func (c NumberComparisonConstraint[T]) Code(code string) NumberComparisonConstraint[T] {
 	c.code = code
@@ -237,15 +227,6 @@ func IsBetween[T validation.Numeric](min, max T) RangeConstraint[T] {
 	}
 }
 
-// SetUp returns an error if min is greater than or equal to max.
-func (c RangeConstraint[T]) SetUp() error {
-	if c.min >= c.max {
-		return errInvalidRange
-	}
-
-	return nil
-}
-
 // Name is the constraint name.
 func (c RangeConstraint[T]) Name() string {
 	return fmt.Sprintf("RangeConstraint[%s]", reflect.TypeOf(c.min).String())
@@ -283,6 +264,9 @@ func (c RangeConstraint[T]) WhenGroups(groups ...string) RangeConstraint[T] {
 }
 
 func (c RangeConstraint[T]) ValidateNumber(value *T, scope validation.Scope) error {
+	if c.min >= c.max {
+		return scope.NewConstraintError(c.Name(), "invalid range")
+	}
 	if c.isIgnored || value == nil || scope.IsIgnored(c.groups...) {
 		return nil
 	}
@@ -338,16 +322,6 @@ func IsNotEqualToString(value string) StringComparisonConstraint {
 			return value != actualValue
 		},
 	}
-}
-
-// SetUp always returns no error.
-func (c StringComparisonConstraint) SetUp() error {
-	return nil
-}
-
-// Name is the constraint name.
-func (c StringComparisonConstraint) Name() string {
-	return "StringComparisonConstraint"
 }
 
 // Code overrides default code for produced violation.
@@ -464,16 +438,6 @@ func IsLaterThanOrEqual(value time.Time) TimeComparisonConstraint {
 	}
 }
 
-// SetUp always returns no error.
-func (c TimeComparisonConstraint) SetUp() error {
-	return nil
-}
-
-// Name is the constraint name.
-func (c TimeComparisonConstraint) Name() string {
-	return "TimeComparisonConstraint"
-}
-
 // Code overrides default code for produced violation.
 func (c TimeComparisonConstraint) Code(code string) TimeComparisonConstraint {
 	c.code = code
@@ -554,20 +518,6 @@ func IsBetweenTime(min, max time.Time) TimeRangeConstraint {
 	}
 }
 
-// SetUp returns an error if min is greater than or equal to max.
-func (c TimeRangeConstraint) SetUp() error {
-	if c.min.After(c.max) || c.min.Equal(c.max) {
-		return errInvalidRange
-	}
-
-	return nil
-}
-
-// Name is the constraint name.
-func (c TimeRangeConstraint) Name() string {
-	return "TimeRangeConstraint"
-}
-
 // Code overrides default code for produced violation.
 func (c TimeRangeConstraint) Code(code string) TimeRangeConstraint {
 	c.code = code
@@ -609,6 +559,9 @@ func (c TimeRangeConstraint) Layout(layout string) TimeRangeConstraint {
 }
 
 func (c TimeRangeConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
+	if c.min.After(c.max) || c.min.Equal(c.max) {
+		return scope.NewConstraintError("TimeRangeConstraint", "invalid range")
+	}
 	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil {
 		return nil
 	}
@@ -632,7 +585,7 @@ func (c TimeRangeConstraint) newViolation(value *time.Time, scope validation.Sco
 }
 
 // UniqueConstraint is used to check that all elements of the given collection are unique.
-type UniqueConstraint struct {
+type UniqueConstraint[T comparable] struct {
 	isIgnored         bool
 	groups            []string
 	code              string
@@ -642,32 +595,22 @@ type UniqueConstraint struct {
 
 // HasUniqueValues checks that all elements of the given collection are unique
 // (none of them is present more than once).
-func HasUniqueValues() UniqueConstraint {
-	return UniqueConstraint{
+func HasUniqueValues[T comparable]() UniqueConstraint[T] {
+	return UniqueConstraint[T]{
 		code:            code.NotUnique,
 		messageTemplate: message.Templates[code.NotUnique],
 	}
 }
 
-// SetUp always returns no error.
-func (c UniqueConstraint) SetUp() error {
-	return nil
-}
-
-// Name is the constraint name.
-func (c UniqueConstraint) Name() string {
-	return "UniqueConstraint"
-}
-
 // Code overrides default code for produced violation.
-func (c UniqueConstraint) Code(code string) UniqueConstraint {
+func (c UniqueConstraint[T]) Code(code string) UniqueConstraint[T] {
 	c.code = code
 	return c
 }
 
 // Message sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message.
-func (c UniqueConstraint) Message(template string, parameters ...validation.TemplateParameter) UniqueConstraint {
+func (c UniqueConstraint[T]) Message(template string, parameters ...validation.TemplateParameter) UniqueConstraint[T] {
 	c.messageTemplate = template
 	c.messageParameters = parameters
 	return c
@@ -675,19 +618,19 @@ func (c UniqueConstraint) Message(template string, parameters ...validation.Temp
 
 // When enables conditional validation of this constraint. If the expression evaluates to false,
 // then the constraint will be ignored.
-func (c UniqueConstraint) When(condition bool) UniqueConstraint {
+func (c UniqueConstraint[T]) When(condition bool) UniqueConstraint[T] {
 	c.isIgnored = !condition
 	return c
 }
 
 // WhenGroups enables conditional validation of the constraint by using the validation groups.
-func (c UniqueConstraint) WhenGroups(groups ...string) UniqueConstraint {
+func (c UniqueConstraint[T]) WhenGroups(groups ...string) UniqueConstraint[T] {
 	c.groups = groups
 	return c
 }
 
-func (c UniqueConstraint) ValidateStrings(values []string, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || is.UniqueStrings(values) {
+func (c UniqueConstraint[T]) ValidateComparables(values []T, scope validation.Scope) error {
+	if c.isIgnored || scope.IsIgnored(c.groups...) || is.Unique(values) {
 		return nil
 	}
 

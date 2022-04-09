@@ -73,26 +73,30 @@ func ExampleIsNil() {
 }
 
 func ExampleIsTrue() {
-	b := false
-	err := validator.Validate(context.Background(), validation.Bool(b, it.IsTrue()))
+	err := validator.Validate(context.Background(), validation.Bool(false, it.IsTrue()))
 	fmt.Println(err)
 	// Output:
 	// violation: This value should be true.
 }
 
 func ExampleIsFalse() {
-	b := true
-	err := validator.Validate(context.Background(), validation.Bool(b, it.IsFalse()))
+	err := validator.Validate(context.Background(), validation.Bool(true, it.IsFalse()))
 	fmt.Println(err)
 	// Output:
 	// violation: This value should be false.
 }
 
-func ExampleIsOneOfStrings() {
-	s := "foo"
-	err := validator.ValidateString(context.Background(), s, it.IsOneOfStrings("one", "two", "three"))
-	fmt.Println(err)
+func ExampleIsOneOf() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Comparable[string]("foo", it.IsOneOf("one", "two", "three"))),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Comparable[int](1, it.IsOneOf(2, 3, 4))),
+	)
 	// Output:
+	// violation: The value you selected is not a valid choice.
 	// violation: The value you selected is not a valid choice.
 }
 
@@ -304,19 +308,24 @@ func ExampleIsBetweenTime() {
 }
 
 func ExampleHasUniqueValues() {
-	v := []string{"foo", "bar", "baz", "foo"}
-	err := validator.Validate(
+	strings := []string{"foo", "bar", "baz", "foo"}
+	ints := []int{1, 2, 3, 1}
+	fmt.Println(validator.Validate(
 		context.Background(),
-		validation.Strings(v, it.HasUniqueValues()),
-	)
-	fmt.Println(err)
+		validation.Comparables[string](strings, it.HasUniqueValues[string]()),
+	))
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Comparables[int](ints, it.HasUniqueValues[int]()),
+	))
 	// Output:
+	// violation: This collection should contain only unique elements.
 	// violation: This collection should contain only unique elements.
 }
 
 func ExampleHasMinCount() {
 	v := []int{1, 2}
-	err := validator.ValidateIterable(context.Background(), v, it.HasMinCount(3))
+	err := validator.ValidateCountable(context.Background(), len(v), it.HasMinCount(3))
 	fmt.Println(err)
 	// Output:
 	// violation: This collection should contain 3 elements or more.
@@ -324,7 +333,7 @@ func ExampleHasMinCount() {
 
 func ExampleHasMaxCount() {
 	v := []int{1, 2}
-	err := validator.ValidateIterable(context.Background(), v, it.HasMaxCount(1))
+	err := validator.ValidateCountable(context.Background(), len(v), it.HasMaxCount(1))
 	fmt.Println(err)
 	// Output:
 	// violation: This collection should contain 1 element or less.
@@ -332,7 +341,7 @@ func ExampleHasMaxCount() {
 
 func ExampleHasCountBetween() {
 	v := []int{1, 2}
-	err := validator.ValidateIterable(context.Background(), v, it.HasCountBetween(3, 10))
+	err := validator.ValidateCountable(context.Background(), len(v), it.HasCountBetween(3, 10))
 	fmt.Println(err)
 	// Output:
 	// violation: This collection should contain 3 elements or more.
@@ -340,7 +349,7 @@ func ExampleHasCountBetween() {
 
 func ExampleHasExactCount() {
 	v := []int{1, 2}
-	err := validator.ValidateIterable(context.Background(), v, it.HasExactCount(3))
+	err := validator.ValidateCountable(context.Background(), len(v), it.HasExactCount(3))
 	fmt.Println(err)
 	// Output:
 	// violation: This collection should contain exactly 3 elements.

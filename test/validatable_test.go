@@ -20,20 +20,24 @@ type Product struct {
 func (p Product) Validate(ctx context.Context, validator *validation.Validator) error {
 	return validator.Validate(
 		ctx,
-		validation.String(
+		validation.StringProperty(
+			"name",
 			p.Name,
-			validation.PropertyName("name"),
 			it.IsNotBlank(),
 		),
-		validation.Iterable(
-			p.Tags,
-			validation.PropertyName("tags"),
+		validation.CountableProperty(
+			"tags",
+			len(p.Tags),
 			it.HasMinCount(1),
 		),
-		validation.Iterable(
-			p.Components,
-			validation.PropertyName("components"),
+		validation.CountableProperty(
+			"components",
+			len(p.Components),
 			it.HasMinCount(1),
+		),
+		validation.ValidSliceProperty(
+			"components",
+			p.Components,
 		),
 	)
 }
@@ -47,14 +51,14 @@ type Component struct {
 func (c Component) Validate(ctx context.Context, validator *validation.Validator) error {
 	return validator.Validate(
 		ctx,
-		validation.String(
+		validation.StringProperty(
+			"name",
 			c.Name,
-			validation.PropertyName("name"),
 			it.IsNotBlank(),
 		),
-		validation.Iterable(
-			c.Tags,
-			validation.PropertyName("tags"),
+		validation.CountableProperty(
+			"tags",
+			len(c.Tags),
 			it.HasMinCount(1),
 		),
 	)
@@ -80,39 +84,3 @@ func TestValidateValue_WhenStructWithComplexRules_ExpectViolations(t *testing.T)
 		validationtest.ViolationAttributes{Code: code.CountTooFew, PropertyPath: "components[0].tags"},
 	)
 }
-
-//
-// func TestValidateValidatable_WhenValidatableString_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
-// 	validatable := mockValidatableString{value: ""}
-//
-// 	err := validator.Validate(
-// 		context.Background(),
-// 		validation.Valid(
-// 			validatable,
-// 			validation.PropertyName("top"),
-// 			it.IsNotBlank().Message("ignored"),
-// 		),
-// 	)
-//
-// 	assertHasOneViolationAtPath(code.NotBlank, message.Templates[code.NotBlank], "top.value")(t, err)
-// }
-//
-// func TestValidateValue_WhenValidatableStruct_ExpectValidationExecutedWithPassedOptionsWithoutConstraints(t *testing.T) {
-// 	validatable := mockValidatableStruct{}
-//
-// 	err := validator.Validate(
-// 		context.Background(),
-// 		validation.Value(
-// 			validatable,
-// 			validation.PropertyName("top"),
-// 			it.IsNotBlank().Message("ignored"),
-// 		),
-// 	)
-//
-// 	validationtest.Assert(t, err).IsViolationList().WithAttributes(
-// 		validationtest.ViolationAttributes{PropertyPath: "top.intValue"},
-// 		validationtest.ViolationAttributes{PropertyPath: "top.floatValue"},
-// 		validationtest.ViolationAttributes{PropertyPath: "top.stringValue"},
-// 		validationtest.ViolationAttributes{PropertyPath: "top.structValue.value"},
-// 	)
-// }

@@ -1,10 +1,8 @@
 package test
 
 import (
-	"errors"
 	"testing"
 
-	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/validationtest"
 	"github.com/stretchr/testify/assert"
 )
@@ -37,16 +35,4 @@ func assertError(expectedError string) func(t *testing.T, err error) {
 		t.Helper()
 		assert.EqualError(t, err, expectedError)
 	}
-}
-
-func assertIsInapplicableConstraintError(t *testing.T, err error, valueType string) {
-	t.Helper()
-	var inapplicableConstraint validation.InapplicableConstraintError
-
-	if !errors.As(err, &inapplicableConstraint) {
-		t.Errorf("failed asserting that error is InapplicableConstraintError")
-		return
-	}
-
-	assert.Equal(t, valueType, inapplicableConstraint.ValueType)
 }

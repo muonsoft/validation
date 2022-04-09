@@ -16,7 +16,6 @@ import (
 func IsEmail() validation.CustomStringConstraint {
 	return validation.NewCustomStringConstraint(
 		is.Email,
-		"EmailConstraint",
 		code.InvalidEmail,
 		message.Templates[code.InvalidEmail],
 	)
@@ -27,7 +26,6 @@ func IsEmail() validation.CustomStringConstraint {
 func IsHTML5Email() validation.CustomStringConstraint {
 	return validation.NewCustomStringConstraint(
 		is.HTML5Email,
-		"HTML5EmailConstraint",
 		code.InvalidEmail,
 		message.Templates[code.InvalidEmail],
 	)
@@ -46,7 +44,6 @@ func IsHTML5Email() validation.CustomStringConstraint {
 func IsHostname() validation.CustomStringConstraint {
 	return validation.NewCustomStringConstraint(
 		is.StrictHostname,
-		"HostnameConstraint",
 		code.InvalidHostname,
 		message.Templates[code.InvalidHostname],
 	)
@@ -58,7 +55,6 @@ func IsHostname() validation.CustomStringConstraint {
 func IsLooseHostname() validation.CustomStringConstraint {
 	return validation.NewCustomStringConstraint(
 		is.Hostname,
-		"LooseHostnameConstraint",
 		code.InvalidHostname,
 		message.Templates[code.InvalidHostname],
 	)
@@ -90,20 +86,6 @@ func IsURL() URLConstraint {
 	}
 }
 
-// SetUp will return an error if the list of schemas is empty.
-func (c URLConstraint) SetUp() error {
-	if len(c.schemas) == 0 {
-		return errEmptySchemas
-	}
-
-	return nil
-}
-
-// Name is the constraint name.
-func (c URLConstraint) Name() string {
-	return "URLConstraint"
-}
-
 // WithRelativeSchema enables support of relative URL schema, which means that URL value
 // may be treated as relative (without schema, e.g. "//example.com").
 func (c URLConstraint) WithRelativeSchema() URLConstraint {
@@ -113,7 +95,7 @@ func (c URLConstraint) WithRelativeSchema() URLConstraint {
 
 // WithSchemas is used to set up a list of accepted schemas. For example, if you also consider the ftp:// type URLs
 // to be valid, redefine the schemas list, listing http, https, and also ftp.
-// If the list is empty, then an error will be returned by the SetUp method.
+// If the list is empty, then an error will be returned.
 func (c URLConstraint) WithSchemas(schemas ...string) URLConstraint {
 	c.schemas = schemas
 	return c
@@ -149,6 +131,9 @@ func (c URLConstraint) WhenGroups(groups ...string) URLConstraint {
 }
 
 func (c URLConstraint) ValidateString(value *string, scope validation.Scope) error {
+	if len(c.schemas) == 0 {
+		return scope.NewConstraintError("URLConstraint", "empty list of schemas")
+	}
 	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == "" {
 		return nil
 	}
@@ -211,16 +196,6 @@ func newIPConstraint(validate func(value string, restrictions ...validate.IPRest
 		invalidMessageTemplate:    message.Templates[code.InvalidIP],
 		prohibitedMessageTemplate: message.Templates[code.ProhibitedIP],
 	}
-}
-
-// SetUp always returns no error.
-func (c IPConstraint) SetUp() error {
-	return nil
-}
-
-// Name is the constraint name.
-func (c IPConstraint) Name() string {
-	return "IPConstraint"
 }
 
 // DenyPrivateIP denies using of private IPs according to RFC 1918 (IPv4 addresses)

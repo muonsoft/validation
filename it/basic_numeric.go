@@ -27,16 +27,6 @@ func IsNotBlankNumber[T validation.Numeric]() NotBlankNumberConstraint[T] {
 	}
 }
 
-// SetUp always returns no error.
-func (c NotBlankNumberConstraint[T]) SetUp() error {
-	return nil
-}
-
-// Name is the constraint name.
-func (c NotBlankNumberConstraint[T]) Name() string {
-	return "NotBlankConstraint"
-}
-
 // AllowNil makes nil values valid.
 func (c NotBlankNumberConstraint[T]) AllowNil() NotBlankNumberConstraint[T] {
 	c.allowNil = true

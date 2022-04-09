@@ -5,7 +5,6 @@ import (
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
-	"github.com/muonsoft/validation/generic"
 	"github.com/muonsoft/validation/message"
 )
 
@@ -66,16 +65,6 @@ func HasCountBetween(min int, max int) CountConstraint {
 // has exact value.
 func HasExactCount(count int) CountConstraint {
 	return newCountConstraint(count, count, true, true)
-}
-
-// SetUp always returns no error.
-func (c CountConstraint) SetUp() error {
-	return nil
-}
-
-// Name is the constraint name.
-func (c CountConstraint) Name() string {
-	return "CountConstraint"
 }
 
 // When enables conditional validation of this constraint. If the expression evaluates to false,
@@ -146,10 +135,6 @@ func (c CountConstraint) ExactMessage(template string, parameters ...validation.
 	c.exactMessageTemplate = template
 	c.exactMessageParameters = parameters
 	return c
-}
-
-func (c CountConstraint) ValidateIterable(value generic.Iterable, scope validation.Scope) error {
-	return c.ValidateCountable(value.Count(), scope)
 }
 
 func (c CountConstraint) ValidateCountable(count int, scope validation.Scope) error {

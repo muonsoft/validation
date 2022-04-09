@@ -674,13 +674,13 @@ var isBetweenIntegersTestCases = []ConstraintValidationTestCase{
 		name:            "IsBetween error on equal min and max",
 		isApplicableFor: specificValueTypes(intType),
 		constraint:      it.IsBetween(1, 1),
-		assert:          assertError(`failed to set up constraint "RangeConstraint[int]": invalid range`),
+		assert:          assertError(`failed to validate by RangeConstraint[int]: invalid range`),
 	},
 	{
 		name:            "IsBetween error on min greater than max",
 		isApplicableFor: specificValueTypes(intType),
 		constraint:      it.IsBetween(1, 0),
-		assert:          assertError(`failed to set up constraint "RangeConstraint[int]": invalid range`),
+		assert:          assertError(`failed to validate by RangeConstraint[int]: invalid range`),
 	},
 	{
 		name:            "IsBetween passes on nil",
@@ -1064,7 +1064,7 @@ var isBetweenTimeTestCases = []ConstraintValidationTestCase{
 			*timeValue(time.Date(2021, 0o4, 4, 12, 30, 0, 0, time.UTC)),
 			*timeValue(time.Date(2021, 0o4, 4, 12, 30, 0, 0, time.UTC)),
 		),
-		assert: assertError(`failed to set up constraint "TimeRangeConstraint": invalid range`),
+		assert: assertError(`failed to validate by TimeRangeConstraint: invalid range`),
 	},
 	{
 		name:            "IsBetweenTime error on equal min and max in different time zones",
@@ -1073,7 +1073,7 @@ var isBetweenTimeTestCases = []ConstraintValidationTestCase{
 			*timeValue(time.Date(2021, 0o4, 4, 12, 30, 0, 0, time.UTC)),
 			*timeValue(time.Date(2021, 0o4, 4, 8, 30, 0, 0, givenLocation("America/New_York"))),
 		),
-		assert: assertError(`failed to set up constraint "TimeRangeConstraint": invalid range`),
+		assert: assertError(`failed to validate by TimeRangeConstraint: invalid range`),
 	},
 	{
 		name:            "IsBetweenTime error on min greater than max",
@@ -1082,7 +1082,7 @@ var isBetweenTimeTestCases = []ConstraintValidationTestCase{
 			*timeValue(time.Date(2021, 0o4, 4, 12, 40, 0, 0, time.UTC)),
 			*timeValue(time.Date(2021, 0o4, 4, 12, 30, 0, 0, time.UTC)),
 		),
-		assert: assertError(`failed to set up constraint "TimeRangeConstraint": invalid range`),
+		assert: assertError(`failed to validate by TimeRangeConstraint: invalid range`),
 	},
 	{
 		name:            "IsBetweenTime passes on nil",
@@ -1210,34 +1210,34 @@ var hasUniqueValuesTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "HasUniqueValues passes on nil",
 		isApplicableFor: specificValueTypes(stringsType),
-		constraint:      it.HasUniqueValues(),
+		constraint:      it.HasUniqueValues[string](),
 		assert:          assertNoError,
 	},
 	{
 		name:            "HasUniqueValues passes on empty value",
 		isApplicableFor: specificValueTypes(stringsType),
-		constraint:      it.HasUniqueValues(),
+		constraint:      it.HasUniqueValues[string](),
 		stringsValue:    []string{},
 		assert:          assertNoError,
 	},
 	{
 		name:            "HasUniqueValues passes on unique values",
 		isApplicableFor: specificValueTypes(stringsType),
-		constraint:      it.HasUniqueValues(),
+		constraint:      it.HasUniqueValues[string](),
 		stringsValue:    []string{"one", "two", "three"},
 		assert:          assertNoError,
 	},
 	{
 		name:            "HasUniqueValues violation on duplicated values",
 		isApplicableFor: specificValueTypes(stringsType),
-		constraint:      it.HasUniqueValues(),
+		constraint:      it.HasUniqueValues[string](),
 		stringsValue:    []string{"one", "two", "one"},
 		assert:          assertHasOneViolation(code.NotUnique, message.Templates[code.NotUnique]),
 	},
 	{
 		name:            "HasUniqueValues violation with custom message",
 		isApplicableFor: specificValueTypes(stringsType),
-		constraint: it.HasUniqueValues().
+		constraint: it.HasUniqueValues[string]().
 			Code(customCode).
 			Message(
 				`Not unique values at {{ custom }}.`,
@@ -1249,21 +1249,21 @@ var hasUniqueValuesTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "HasUniqueValues passes when condition is false",
 		isApplicableFor: specificValueTypes(stringsType),
-		constraint:      it.HasUniqueValues().When(false),
+		constraint:      it.HasUniqueValues[string]().When(false),
 		stringsValue:    []string{"one", "two", "one"},
 		assert:          assertNoError,
 	},
 	{
 		name:            "HasUniqueValues passes when groups not match",
 		isApplicableFor: specificValueTypes(stringsType),
-		constraint:      it.HasUniqueValues().WhenGroups(testGroup),
+		constraint:      it.HasUniqueValues[string]().WhenGroups(testGroup),
 		stringsValue:    []string{"one", "two", "one"},
 		assert:          assertNoError,
 	},
 	{
 		name:            "HasUniqueValues violation when condition is true",
 		isApplicableFor: specificValueTypes(stringsType),
-		constraint:      it.HasUniqueValues().When(true),
+		constraint:      it.HasUniqueValues[string]().When(true),
 		stringsValue:    []string{"one", "two", "one"},
 		assert:          assertHasOneViolation(code.NotUnique, message.Templates[code.NotUnique]),
 	},

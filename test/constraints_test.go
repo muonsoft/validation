@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/muonsoft/validation"
-	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -16,14 +15,15 @@ const (
 	customPath            = "properties[0].value"
 
 	// Value types.
-	boolType      = "bool"
-	intType       = "int"
-	floatType     = "float"
-	stringType    = "string"
-	stringsType   = "strings"
-	iterableType  = "iterable"
-	countableType = "countable"
-	timeType      = "time"
+	boolType       = "bool"
+	intType        = "int"
+	floatType      = "float"
+	stringType     = "string"
+	stringsType    = "strings"
+	iterableType   = "iterable"
+	countableType  = "countable"
+	comparableType = "comparable"
+	timeType       = "time"
 )
 
 type ConstraintValidationTestCase struct {
@@ -55,10 +55,10 @@ var validateTestCases = mergeTestCases(
 	countConstraintTestCases,
 	choiceConstraintTestCases,
 	numberComparisonTestCases,
-	// stringComparisonTestCases,
-	// hasUniqueValuesTestCases,
-	// customStringConstraintTestCases,
-	// timeComparisonTestCases,
+	stringComparisonTestCases,
+	hasUniqueValuesTestCases,
+	customStringConstraintTestCases,
+	timeComparisonTestCases,
 	rangeComparisonTestCases,
 	isBetweenTimeTestCases,
 	urlConstraintTestCases,
@@ -137,20 +137,40 @@ func TestValidateNilString(t *testing.T) {
 	}
 }
 
-// func TestValidateStrings(t *testing.T) {
-// 	for _, test := range validateTestCases {
-// 		if !test.isApplicableFor(stringsType) {
-// 			continue
-// 		}
-//
-// 		t.Run(test.name, func(t *testing.T) {
-// 			err := newValidator(t).Validate(context.Background(), validation.Strings(test.stringsValue, test.constraint))
-//
-// 			test.assert(t, err)
-// 		})
-// 	}
-// }
-//
+func TestValidateNilComparable(t *testing.T) {
+	for _, test := range validateTestCases {
+		if !test.isApplicableFor(comparableType) {
+			continue
+		}
+
+		t.Run(test.name, func(t *testing.T) {
+			err := newValidator(t).Validate(
+				context.Background(),
+				validation.NilComparable[string](test.stringValue, test.constraint.(validation.ComparableConstraint[string])),
+			)
+
+			test.assert(t, err)
+		})
+	}
+}
+
+func TestValidateComparables(t *testing.T) {
+	for _, test := range validateTestCases {
+		if !test.isApplicableFor(stringsType) {
+			continue
+		}
+
+		t.Run(test.name, func(t *testing.T) {
+			err := newValidator(t).Validate(
+				context.Background(),
+				validation.Comparables(test.stringsValue, test.constraint.(validation.ComparablesConstraint[string])),
+			)
+
+			test.assert(t, err)
+		})
+	}
+}
+
 // func TestValidateIterable_AsSlice(t *testing.T) {
 // 	for _, test := range validateTestCases {
 // 		if !test.isApplicableFor(iterableType) {
@@ -178,34 +198,40 @@ func TestValidateNilString(t *testing.T) {
 // 		})
 // 	}
 // }
-//
-// func TestValidateCountable(t *testing.T) {
-// 	for _, test := range validateTestCases {
-// 		if !test.isApplicableFor(countableType) {
-// 			continue
-// 		}
-//
-// 		t.Run(test.name, func(t *testing.T) {
-// 			err := newValidator(t).Validate(context.Background(), validation.Countable(len(test.sliceValue), test.constraint))
-//
-// 			test.assert(t, err)
-// 		})
-// 	}
-// }
-//
-// func TestValidateTime(t *testing.T) {
-// 	for _, test := range validateTestCases {
-// 		if !test.isApplicableFor(timeType) {
-// 			continue
-// 		}
-//
-// 		t.Run(test.name, func(t *testing.T) {
-// 			err := newValidator(t).Validate(context.Background(), validation.NilTime(test.timeValue, test.constraint))
-//
-// 			test.assert(t, err)
-// 		})
-// 	}
-// }
+
+func TestValidateCountable(t *testing.T) {
+	for _, test := range validateTestCases {
+		if !test.isApplicableFor(countableType) {
+			continue
+		}
+
+		t.Run(test.name, func(t *testing.T) {
+			err := newValidator(t).Validate(
+				context.Background(),
+				validation.Countable(len(test.sliceValue), test.constraint.(validation.CountableConstraint)),
+			)
+
+			test.assert(t, err)
+		})
+	}
+}
+
+func TestValidateTime(t *testing.T) {
+	for _, test := range validateTestCases {
+		if !test.isApplicableFor(timeType) {
+			continue
+		}
+
+		t.Run(test.name, func(t *testing.T) {
+			err := newValidator(t).Validate(
+				context.Background(),
+				validation.NilTime(test.timeValue, test.constraint.(validation.TimeConstraint)),
+			)
+
+			test.assert(t, err)
+		})
+	}
+}
 
 //
 // func TestValidateNil(t *testing.T) {
@@ -232,22 +258,6 @@ func TestValidateNilString(t *testing.T) {
 // 		})
 // 	}
 // }
-
-func TestCustomStringConstraint_Name_WhenNoNameIsSet_ExpectDefaultName(t *testing.T) {
-	constraint := validation.NewCustomStringConstraint(validString)
-
-	name := constraint.Name()
-
-	assert.Equal(t, "CustomStringConstraint", name)
-}
-
-func TestCustomStringConstraint_Name_WhenNameIsSet_ExpectGivenName(t *testing.T) {
-	constraint := validation.NewCustomStringConstraint(validString, "CustomName")
-
-	name := constraint.Name()
-
-	assert.Equal(t, "CustomName", name)
-}
 
 func anyValueType(valueType string) bool {
 	return true

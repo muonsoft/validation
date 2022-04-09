@@ -1,11 +1,9 @@
 package validation
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/muonsoft/validation/code"
-	"github.com/muonsoft/validation/generic"
 	"github.com/muonsoft/validation/message"
 	"golang.org/x/text/language"
 )
@@ -22,254 +20,178 @@ func (f argumentFunc) setUp(ctx *executionContext) error {
 	return f(ctx)
 }
 
-type executionContext struct {
-	scope      Scope
-	validators []validateFunc
-}
-
-func (ctx *executionContext) addValidator(validator validateFunc) {
-	ctx.validators = append(ctx.validators, validator)
-}
-
-// Value argument is used to validate any supported value. It uses reflection to detect the type of the argument
-// and pass it to a specific validation method.
-//
-// If the validator cannot determine the value or it is not supported, then NotValidatableError will be returned
-// when calling the validator.Validate method.
-//
-// Deprecated
-func Value(value interface{}, options ...Option) Argument {
-	return argumentFunc(func(arguments *executionContext) error {
-		v, err := newValueValidator(value, options)
-		if err != nil {
-			return err
-		}
-
-		arguments.addValidator(v)
-
-		return nil
-	})
-}
-
-// PropertyValue argument is an alias for Value that automatically adds property name to the current scope.
-//
-// Deprecated
-func PropertyValue(name string, value interface{}, options ...Option) Argument {
-	return Value(value, append([]Option{PropertyName(name)}, options...)...)
-}
-
 // Bool argument is used to validate boolean values.
-func Bool(value bool, options ...Option) Argument {
-	return argumentFunc(func(arguments *executionContext) error {
-		arguments.addValidator(newBoolValidator(&value, options))
-
-		return nil
-	})
+func Bool(value bool, constraints ...BoolConstraint) BoolArgument {
+	return BoolArgument{value: &value, constraints: constraints}
 }
 
 // BoolProperty argument is an alias for Bool that automatically adds property name to the current scope.
-func BoolProperty(name string, value bool, options ...Option) Argument {
-	return Bool(value, append([]Option{PropertyName(name)}, options...)...)
+func BoolProperty(name string, value bool, constraints ...BoolConstraint) BoolArgument {
+	return BoolArgument{value: &value, constraints: constraints, options: []Option{PropertyName(name)}}
 }
 
 // NilBool argument is used to validate nillable boolean values.
-func NilBool(value *bool, options ...Option) Argument {
-	return argumentFunc(func(arguments *executionContext) error {
-		arguments.addValidator(newBoolValidator(value, options))
-
-		return nil
-	})
+func NilBool(value *bool, constraints ...BoolConstraint) BoolArgument {
+	return BoolArgument{value: value, constraints: constraints}
 }
 
 // NilBoolProperty argument is an alias for NilBool that automatically adds property name to the current scope.
-func NilBoolProperty(name string, value *bool, options ...Option) Argument {
-	return NilBool(value, append([]Option{PropertyName(name)}, options...)...)
+func NilBoolProperty(name string, value *bool, constraints ...BoolConstraint) BoolArgument {
+	return BoolArgument{value: value, constraints: constraints, options: []Option{PropertyName(name)}}
 }
 
-// Number argument is used to validate numbers (any types of integers or floats). At the moment it uses
-// reflection to detect numeric value. Given value is internally converted into int64 or float64 to make comparisons.
-//
-// Warning! This method will be changed after generics implementation in Go.
-func Number[T Numeric](value T, options ...Option) Argument {
-	return argumentFunc(func(arguments *executionContext) error {
-		arguments.addValidator(newNumberValidator(&value, options))
-
-		return nil
-	})
-}
-
-func NilNumber[T Numeric](value *T, options ...Option) Argument {
-	return argumentFunc(func(arguments *executionContext) error {
-		arguments.addValidator(newNumberValidator(value, options))
-
-		return nil
-	})
+// Number argument is used to validate numbers.
+func Number[T Numeric](value T, constraints ...NumberConstraint[T]) NumberArgument[T] {
+	return NumberArgument[T]{value: &value, constraints: constraints}
 }
 
 // NumberProperty argument is an alias for Number that automatically adds property name to the current scope.
-func NumberProperty[T Numeric](name string, value T, options ...Option) Argument {
-	return Number(value, append([]Option{PropertyName(name)}, options...)...)
+func NumberProperty[T Numeric](name string, value T, constraints ...NumberConstraint[T]) NumberArgument[T] {
+	return NumberArgument[T]{value: &value, constraints: constraints, options: []Option{PropertyName(name)}}
+}
+
+// NilNumber argument is used to validate nillable numbers.
+func NilNumber[T Numeric](value *T, constraints ...NumberConstraint[T]) NumberArgument[T] {
+	return NumberArgument[T]{value: value, constraints: constraints}
+}
+
+// NilNumberProperty argument is an alias for NilNumber that automatically adds property name to the current scope.
+func NilNumberProperty[T Numeric](name string, value *T, constraints ...NumberConstraint[T]) NumberArgument[T] {
+	return NumberArgument[T]{value: value, constraints: constraints, options: []Option{PropertyName(name)}}
 }
 
 // String argument is used to validate strings.
-func String(value string, options ...Option) Argument {
-	return argumentFunc(func(arguments *executionContext) error {
-		arguments.addValidator(newStringValidator(&value, options))
-
-		return nil
-	})
+func String(value string, constraints ...StringConstraint) StringArgument {
+	return StringArgument{value: &value, constraints: constraints}
 }
 
 // StringProperty argument is an alias for String that automatically adds property name to the current scope.
-func StringProperty(name string, value string, options ...Option) Argument {
-	return String(value, append([]Option{PropertyName(name)}, options...)...)
+func StringProperty(name string, value string, constraints ...StringConstraint) StringArgument {
+	return StringArgument{value: &value, constraints: constraints, options: []Option{PropertyName(name)}}
 }
 
 // NilString argument is used to validate nillable strings.
-func NilString(value *string, options ...Option) Argument {
-	return argumentFunc(func(arguments *executionContext) error {
-		arguments.addValidator(newStringValidator(value, options))
-
-		return nil
-	})
+func NilString(value *string, constraints ...StringConstraint) StringArgument {
+	return StringArgument{value: value, constraints: constraints}
 }
 
 // NilStringProperty argument is an alias for NilString that automatically adds property name to the current scope.
-func NilStringProperty(name string, value *string, options ...Option) Argument {
-	return NilString(value, append([]Option{PropertyName(name)}, options...)...)
-}
-
-// Strings argument is used to validate slice of strings.
-func Strings(values []string, options ...Option) Argument {
-	return argumentFunc(func(arguments *executionContext) error {
-		arguments.addValidator(newStringsValidator(values, options))
-
-		return nil
-	})
-}
-
-// StringsProperty argument is an alias for Strings that automatically adds property name to the current scope.
-func StringsProperty(name string, values []string, options ...Option) Argument {
-	return Strings(values, append([]Option{PropertyName(name)}, options...)...)
-}
-
-// Iterable argument is used to validate arrays, slices, or maps. At the moment it uses reflection
-// to iterate over values. So you can expect a performance hit using this method. For better performance
-// it is recommended to make a custom type that implements the Validatable interface.
-//
-// Warning! This argument is subject to change in the final versions of the library.
-func Iterable(value interface{}, options ...Option) Argument {
-	return argumentFunc(func(arguments *executionContext) error {
-		iterable, err := generic.NewIterable(value)
-		if err != nil {
-			return fmt.Errorf(`cannot convert value "%v" to iterable: %w`, value, err)
-		}
-
-		arguments.addValidator(newIterableValidator(iterable, options))
-
-		return nil
-	})
-}
-
-// IterableProperty argument is an alias for Iterable that automatically adds property name to the current scope.
-func IterableProperty(name string, value interface{}, options ...Option) Argument {
-	return Iterable(value, append([]Option{PropertyName(name)}, options...)...)
+func NilStringProperty(name string, value *string, constraints ...StringConstraint) StringArgument {
+	return StringArgument{value: value, constraints: constraints, options: []Option{PropertyName(name)}}
 }
 
 // Countable argument can be used to validate size of an array, slice, or map. You can pass result of len()
 // function as an argument.
-func Countable(count int, options ...Option) Argument {
-	return argumentFunc(func(arguments *executionContext) error {
-		arguments.addValidator(newCountableValidator(count, options))
-
-		return nil
-	})
+func Countable(count int, constraints ...CountableConstraint) CountableArgument {
+	return CountableArgument{count: count, constraints: constraints}
 }
 
 // CountableProperty argument is an alias for Countable that automatically adds property name to the current scope.
-func CountableProperty(name string, count int, options ...Option) Argument {
-	return Countable(count, append([]Option{PropertyName(name)}, options...)...)
+func CountableProperty(name string, count int, constraints ...CountableConstraint) CountableArgument {
+	return CountableArgument{count: count, constraints: constraints, options: []Option{PropertyName(name)}}
 }
 
 // Time argument is used to validate time.Time value.
-func Time(value time.Time, options ...Option) Argument {
-	return argumentFunc(func(arguments *executionContext) error {
-		arguments.addValidator(newTimeValidator(&value, options))
-
-		return nil
-	})
+func Time(value time.Time, constraints ...TimeConstraint) TimeArgument {
+	return TimeArgument{value: &value, constraints: constraints}
 }
 
 // TimeProperty argument is an alias for Time that automatically adds property name to the current scope.
-func TimeProperty(name string, value time.Time, options ...Option) Argument {
-	return Time(value, append([]Option{PropertyName(name)}, options...)...)
+func TimeProperty(name string, value time.Time, constraints ...TimeConstraint) TimeArgument {
+	return TimeArgument{value: &value, constraints: constraints, options: []Option{PropertyName(name)}}
 }
 
 // NilTime argument is used to validate nillable time.Time value.
-func NilTime(value *time.Time, options ...Option) Argument {
-	return argumentFunc(func(arguments *executionContext) error {
-		arguments.addValidator(newTimeValidator(value, options))
-
-		return nil
-	})
+func NilTime(value *time.Time, constraints ...TimeConstraint) TimeArgument {
+	return TimeArgument{value: value, constraints: constraints}
 }
 
 // NilTimeProperty argument is an alias for NilTime that automatically adds property name to the current scope.
-func NilTimeProperty(name string, value *time.Time, options ...Option) Argument {
-	return NilTime(value, append([]Option{PropertyName(name)}, options...)...)
+func NilTimeProperty(name string, value *time.Time, constraints ...TimeConstraint) TimeArgument {
+	return TimeArgument{value: value, constraints: constraints, options: []Option{PropertyName(name)}}
 }
 
-// Each is used to validate each value of iterable (array, slice, or map). At the moment it uses reflection
-// to iterate over values. So you can expect a performance hit using this method. For better performance
-// it is recommended to make a custom type that implements the Validatable interface. Also, you can use
-// EachString argument to validate slice of strings.
-//
-// Warning! This argument is subject to change in the final versions of the library.
-func Each(value interface{}, options ...Option) Argument {
-	return argumentFunc(func(arguments *executionContext) error {
-		iterable, err := generic.NewIterable(value)
-		if err != nil {
-			return fmt.Errorf(`cannot convert value "%v" to iterable: %w`, value, err)
-		}
-
-		arguments.addValidator(newEachValidator(iterable, options))
-
-		return nil
-	})
-}
-
-// EachProperty argument is an alias for Each that automatically adds property name to the current scope.
-func EachProperty(name string, value interface{}, options ...Option) Argument {
-	return Each(value, append([]Option{PropertyName(name)}, options...)...)
-}
-
-// EachString is used to validate a slice of strings. This is a more performant version of Each argument.
-func EachString(values []string, options ...Option) Argument {
-	return argumentFunc(func(arguments *executionContext) error {
-		arguments.addValidator(newEachStringValidator(values, options))
-
-		return nil
-	})
+// EachString is used to validate a slice of strings.
+func EachString(values []string, constraints ...StringConstraint) EachStringArgument {
+	return EachStringArgument{values: values, constraints: constraints}
 }
 
 // EachStringProperty argument is an alias for EachString that automatically adds property name to the current scope.
-func EachStringProperty(name string, values []string, options ...Option) Argument {
-	return EachString(values, append([]Option{PropertyName(name)}, options...)...)
+func EachStringProperty(name string, values []string, constraints ...StringConstraint) EachStringArgument {
+	return EachStringArgument{values: values, constraints: constraints, options: []Option{PropertyName(name)}}
+}
+
+// EachNumber is used to validate a slice of numbers.
+func EachNumber[T Numeric](values []T, constraints ...NumberConstraint[T]) EachNumberArgument[T] {
+	return EachNumberArgument[T]{values: values, constraints: constraints}
+}
+
+// EachNumberProperty argument is an alias for EachString that automatically adds property name to the current scope.
+func EachNumberProperty[T Numeric](name string, values []T, constraints ...NumberConstraint[T]) EachNumberArgument[T] {
+	return EachNumberArgument[T]{values: values, constraints: constraints, options: []Option{PropertyName(name)}}
 }
 
 // Valid is used to run validation on the Validatable type. This method is recommended
 // to build a complex validation process.
-func Valid(value Validatable, options ...Option) Argument {
-	return argumentFunc(func(arguments *executionContext) error {
-		arguments.addValidator(newValidValidator(value, options))
-
-		return nil
-	})
+func Valid(value Validatable) ValidArgument {
+	return ValidArgument{value: value}
 }
 
 // ValidProperty argument is an alias for Valid that automatically adds property name to the current scope.
-func ValidProperty(name string, value Validatable, options ...Option) Argument {
-	return Valid(value, append([]Option{PropertyName(name)}, options...)...)
+func ValidProperty(name string, value Validatable) ValidArgument {
+	return ValidArgument{value: value, options: []Option{PropertyName(name)}}
+}
+
+// ValidSlice is a generic argument used to run validation on the slice of Validatable types.
+// This method is recommended to build a complex validation process.
+func ValidSlice[T Validatable](values []T) ValidSliceArgument[T] {
+	return ValidSliceArgument[T]{values: values}
+}
+
+// ValidSliceProperty argument is an alias for ValidSlice that automatically adds property name to the current scope.
+func ValidSliceProperty[T Validatable](name string, values []T) ValidSliceArgument[T] {
+	return ValidSliceArgument[T]{values: values, options: []Option{PropertyName(name)}}
+}
+
+// ValidMap is a generic argument used to run validation on the map of Validatable types.
+// This method is recommended to build a complex validation process.
+func ValidMap[T Validatable](values map[string]T) ValidMapArgument[T] {
+	return ValidMapArgument[T]{values: values}
+}
+
+// ValidMapProperty argument is an alias for ValidSlice that automatically adds property name to the current scope.
+func ValidMapProperty[T Validatable](name string, values map[string]T) ValidMapArgument[T] {
+	return ValidMapArgument[T]{values: values, options: []Option{PropertyName(name)}}
+}
+
+// Comparable argument is used to validate generic comparable value.
+func Comparable[T comparable](value T, constraints ...ComparableConstraint[T]) ComparableArgument[T] {
+	return ComparableArgument[T]{value: &value, constraints: constraints}
+}
+
+// ComparableProperty argument is an alias for Comparable that automatically adds property name to the current scope.
+func ComparableProperty[T comparable](name string, value T, constraints ...ComparableConstraint[T]) ComparableArgument[T] {
+	return ComparableArgument[T]{value: &value, constraints: constraints, options: []Option{PropertyName(name)}}
+}
+
+// NilComparable argument is used to validate nillable generic comparable value.
+func NilComparable[T comparable](value *T, constraints ...ComparableConstraint[T]) ComparableArgument[T] {
+	return ComparableArgument[T]{value: value, constraints: constraints}
+}
+
+// NilComparableProperty argument is an alias for NilComparable that automatically adds property name to the current scope.
+func NilComparableProperty[T comparable](name string, value *T, constraints ...ComparableConstraint[T]) ComparableArgument[T] {
+	return ComparableArgument[T]{value: value, constraints: constraints, options: []Option{PropertyName(name)}}
+}
+
+// Comparables argument is used to validate generic comparable types.
+func Comparables[T comparable](values []T, constraints ...ComparablesConstraint[T]) ComparablesArgument[T] {
+	return ComparablesArgument[T]{values: values, constraints: constraints}
+}
+
+// ComparablesProperty argument is an alias for Comparables that automatically adds property name to the current scope.
+func ComparablesProperty[T comparable](name string, values []T, constraints ...ComparablesConstraint[T]) ComparablesArgument[T] {
+	return ComparablesArgument[T]{values: values, constraints: constraints, options: []Option{PropertyName(name)}}
 }
 
 // CheckNoViolations is a special argument that checks err for violations. If err contains Violation or ViolationList

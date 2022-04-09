@@ -4,10 +4,29 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 )
+
+type ConstraintError struct {
+	ConstraintName string
+	Path           *PropertyPath
+	Description    string
+}
+
+func (err ConstraintError) Error() string {
+	var s strings.Builder
+	s.WriteString("failed to validate by " + err.ConstraintName)
+	if err.Path != nil {
+		s.WriteString(` at path "` + err.Path.String() + `"`)
+	}
+	s.WriteString(": " + err.Description)
+
+	return s.String()
+}
 
 // InapplicableConstraintError occurs when trying to use constraint on not applicable values.
 // For example, if you are trying to compare slice with a number.
+// Deprecated.
 type InapplicableConstraintError struct {
 	Constraint Constraint
 	ValueType  string
@@ -18,6 +37,7 @@ func (err InapplicableConstraintError) Error() string {
 }
 
 // NewInapplicableConstraintError helps to create a error on trying to use constraint on not applicable values.
+// Deprecated.
 func NewInapplicableConstraintError(constraint Constraint, valueType string) InapplicableConstraintError {
 	return InapplicableConstraintError{
 		Constraint: constraint,
@@ -27,6 +47,7 @@ func NewInapplicableConstraintError(constraint Constraint, valueType string) Ina
 
 // NotValidatableError occurs when validator cannot determine type by reflection or it is not supported
 // by validator.
+// Deprecated.
 type NotValidatableError struct {
 	Value reflect.Value
 }

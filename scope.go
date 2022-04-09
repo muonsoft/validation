@@ -18,13 +18,23 @@ type Scope struct {
 	translator       Translator
 	violationFactory ViolationFactory
 	groups           []string
-	constraints      map[string]Constraint
+	constraints      map[string]Constraint // todo
 }
 
 // Context returns context value that was passed to the validator by Context argument or
 // by creating scoped validator with the validator.WithContext method.
 func (s Scope) Context() context.Context {
 	return s.context
+}
+
+// NewConstraintError creates a new ConstraintError, which can be used to stop validation process
+// if constraint is not properly configured.
+func (s Scope) NewConstraintError(constraintName, description string) ConstraintError {
+	return ConstraintError{
+		ConstraintName: constraintName,
+		Path:           s.propertyPath,
+		Description:    description,
+	}
 }
 
 // BuildViolation is used to create violations in validation methods of constraints.
@@ -101,33 +111,13 @@ func (s Scope) IsApplied(groups ...string) bool {
 
 func (s *Scope) applyOptions(options ...Option) error {
 	for _, option := range options {
-		var err error
-		if o, ok := option.(internalOption); ok {
-			err = o.setUpOnScope(s)
-		} else {
-			err = option.SetUp()
-		}
+		err := option.SetUp(s)
 		if err != nil {
-			return s.describeOptionError(option, err)
+			return fmt.Errorf(`failed to set up option: %w`, err)
 		}
 	}
 
 	return nil
-}
-
-func (s *Scope) describeOptionError(option Option, err error) error {
-	c, ok := option.(Constraint)
-	if !ok {
-		return fmt.Errorf(`failed to set up option: %w`, err)
-	}
-
-	if s.propertyPath == nil {
-		err = fmt.Errorf(`failed to set up constraint "%s": %w`, c.Name(), err)
-	} else {
-		err = fmt.Errorf(`failed to set up constraint "%s" at path "%s": %w`, c.Name(), s.propertyPath.String(), err)
-	}
-
-	return err
 }
 
 func (s Scope) withContext(ctx context.Context) Scope {

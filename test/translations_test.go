@@ -139,7 +139,7 @@ func TestValidator_Validate_WhenRecursiveValidation_ExpectViolationTranslated(t 
 	)
 	values := []mockValidatableString{{value: ""}}
 
-	err := v.Validate(context.Background(), validation.Iterable(values, it.IsNotBlank()))
+	err := v.Validate(context.Background(), validation.ValidSlice(values))
 
 	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithMessage("Значение не должно быть пустым.")
 }

@@ -25,7 +25,7 @@ func TestValidate_ArgumentAliases_WhenAliasMethodForGivenType_ExpectValidationEx
 		{"ValidateTime", validator.ValidateTime(context.Background(), time.Time{}, it.IsNotBlank())},
 		// {"ValidateEach", validator.ValidateEach(context.Background(), []string{""}, it.IsNotBlank())},
 		// {"ValidateEachString", validator.ValidateEachString(context.Background(), []string{""}, it.IsNotBlank())},
-		// {"ValidateValidatable", validator.ValidateValidatable(context.Background(), mockValidatableString{""}, it.IsNotBlank())},
+		// {"ValidateIt", validator.ValidateIt(context.Background(), mockValidatableString{""}, it.IsNotBlank())},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

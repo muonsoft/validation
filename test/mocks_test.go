@@ -112,9 +112,9 @@ type mockValidatableString struct {
 func (mock mockValidatableString) Validate(ctx context.Context, validator *validation.Validator) error {
 	return validator.Validate(
 		ctx,
-		validation.String(
+		validation.StringProperty(
+			"value",
 			mock.value,
-			validation.PropertyName("value"),
 			it.IsNotBlank(),
 		),
 	)
@@ -130,24 +130,24 @@ type mockValidatableStruct struct {
 func (mock mockValidatableStruct) Validate(ctx context.Context, validator *validation.Validator) error {
 	return validator.Validate(
 		ctx,
-		validation.Number(
+		validation.NumberProperty[int64](
+			"intValue",
 			mock.intValue,
-			validation.PropertyName("intValue"),
-			it.IsNotBlank(),
+			it.IsNotBlankNumber[int64](),
 		),
-		validation.Number(
+		validation.NumberProperty[float64](
+			"floatValue",
 			mock.floatValue,
-			validation.PropertyName("floatValue"),
-			it.IsNotBlank(),
+			it.IsNotBlankNumber[float64](),
 		),
-		validation.String(
+		validation.StringProperty(
+			"stringValue",
 			mock.stringValue,
-			validation.PropertyName("stringValue"),
 			it.IsNotBlank(),
 		),
-		validation.Value(
+		validation.ValidProperty(
+			"structValue",
 			&mock.structValue,
-			validation.PropertyName("structValue"),
 		),
 	)
 }
