@@ -13,6 +13,39 @@ func (ctx *executionContext) addValidator(validator validateFunc) {
 	ctx.validators = append(ctx.validators, validator)
 }
 
+type NilArgument struct {
+	isNil       bool
+	constraints []NilConstraint
+	options     []Option
+}
+
+func (arg NilArgument) With(options ...Option) NilArgument {
+	arg.options = append(arg.options, options...)
+	return arg
+}
+
+func (arg NilArgument) setUp(ctx *executionContext) error {
+	ctx.addValidator(func(scope Scope) (*ViolationList, error) {
+		violations := NewViolationList()
+
+		err := scope.applyOptions(arg.options...)
+		if err != nil {
+			return nil, err
+		}
+
+		for i := range arg.constraints {
+			err := violations.AppendFromError(arg.constraints[i].ValidateNil(arg.isNil, scope))
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return violations, nil
+	})
+
+	return nil
+}
+
 type BoolArgument struct {
 	value       *bool
 	constraints []BoolConstraint

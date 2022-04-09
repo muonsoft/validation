@@ -20,6 +20,7 @@ func TestValidate_WhenArgumentForGivenType_ExpectValidationExecuted(t *testing.T
 		name     string
 		argument validation.Argument
 	}{
+		{"Nil", validation.Nil(true, it.IsNotNil())},
 		{"Bool", validation.Bool(false, it.IsNotBlank())},
 		{"NilBool", validation.NilBool(boolValue(false), it.IsNotBlank())},
 		{"Number", validation.Number[int](0, it.IsNotBlankNumber[int]())},
@@ -53,6 +54,12 @@ func TestValidate_WhenPropertyArgument_ExpectValidPathInViolation(t *testing.T) 
 		argument     validation.Argument
 		expectedPath string
 	}{
+		{
+			name: "NilProperty",
+			argument: validation.NilProperty("property", true, it.IsNotNil()).
+				With(validation.PropertyName("internal")),
+			expectedPath: "property.internal",
+		},
 		{
 			name: "BoolProperty",
 			argument: validation.BoolProperty("property", false, it.IsNotBlank()).

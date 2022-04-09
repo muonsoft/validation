@@ -188,13 +188,13 @@ var isBlankConstraintTestCases = []ConstraintValidationTestCase{
 var isNotNilConstraintTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsNotNil violation on nil",
-		isApplicableFor: specificValueTypes(boolType, stringType, timeType),
+		isApplicableFor: specificValueTypes(nilType, boolType, stringType, timeType),
 		constraint:      it.IsNotNil(),
 		assert:          assertHasOneViolation(code.NotNil, message.Templates[code.NotNil]),
 	},
 	{
 		name:            "IsNotNil passes on empty value",
-		isApplicableFor: specificValueTypes(boolType, stringType, timeType),
+		isApplicableFor: specificValueTypes(nilType, boolType, stringType, timeType),
 		boolValue:       boolValue(false),
 		intValue:        intValue(0),
 		floatValue:      floatValue(0),
@@ -208,7 +208,7 @@ var isNotNilConstraintTestCases = []ConstraintValidationTestCase{
 	},
 	{
 		name:            "IsNotNil passes on empty value when condition is true",
-		isApplicableFor: specificValueTypes(boolType, stringType, timeType),
+		isApplicableFor: specificValueTypes(nilType, boolType, stringType, timeType),
 		boolValue:       boolValue(false),
 		intValue:        intValue(0),
 		floatValue:      floatValue(0),
@@ -222,7 +222,7 @@ var isNotNilConstraintTestCases = []ConstraintValidationTestCase{
 	},
 	{
 		name:            "IsNotNil violation on nil with custom message",
-		isApplicableFor: specificValueTypes(boolType, stringType, timeType),
+		isApplicableFor: specificValueTypes(nilType, boolType, stringType, timeType),
 		constraint: it.IsNotNil().
 			Code(customCode).
 			Message(
@@ -233,7 +233,7 @@ var isNotNilConstraintTestCases = []ConstraintValidationTestCase{
 	},
 	{
 		name:            "IsNotNil passes on value",
-		isApplicableFor: specificValueTypes(boolType, stringType, timeType),
+		isApplicableFor: specificValueTypes(nilType, boolType, stringType, timeType),
 		boolValue:       boolValue(true),
 		intValue:        intValue(1),
 		floatValue:      floatValue(0.1),
@@ -247,13 +247,13 @@ var isNotNilConstraintTestCases = []ConstraintValidationTestCase{
 	},
 	{
 		name:            "IsNotNil passes on nil when condition is false",
-		isApplicableFor: specificValueTypes(boolType, stringType, timeType),
+		isApplicableFor: specificValueTypes(nilType, boolType, stringType, timeType),
 		constraint:      it.IsNotNil().When(false),
 		assert:          assertNoError,
 	},
 	{
 		name:            "IsNotNil passes on nil when groups not match",
-		isApplicableFor: specificValueTypes(boolType, stringType, timeType),
+		isApplicableFor: specificValueTypes(nilType, boolType, stringType, timeType),
 		constraint:      it.IsNotNil().WhenGroups(testGroup),
 		assert:          assertNoError,
 	},
@@ -262,13 +262,13 @@ var isNotNilConstraintTestCases = []ConstraintValidationTestCase{
 var isNilConstraintTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsNil passes on nil",
-		isApplicableFor: specificValueTypes(boolType, stringType, timeType),
+		isApplicableFor: specificValueTypes(nilType, boolType, stringType, timeType),
 		constraint:      it.IsNil(),
 		assert:          assertNoError,
 	},
 	{
 		name:            "IsNil violation on empty value",
-		isApplicableFor: specificValueTypes(boolType, stringType, timeType),
+		isApplicableFor: specificValueTypes(nilType, boolType, stringType, timeType),
 		boolValue:       boolValue(false),
 		intValue:        intValue(0),
 		floatValue:      floatValue(0),
@@ -282,13 +282,13 @@ var isNilConstraintTestCases = []ConstraintValidationTestCase{
 	},
 	{
 		name:            "IsNil passes on nil when condition is true",
-		isApplicableFor: specificValueTypes(boolType, stringType, timeType),
+		isApplicableFor: specificValueTypes(nilType, boolType, stringType, timeType),
 		constraint:      it.IsNil().When(true),
 		assert:          assertNoError,
 	},
 	{
 		name:            "IsNil violation on empty value with custom message",
-		isApplicableFor: specificValueTypes(boolType, stringType, timeType),
+		isApplicableFor: specificValueTypes(nilType, boolType, stringType, timeType),
 		boolValue:       boolValue(false),
 		intValue:        intValue(0),
 		floatValue:      floatValue(0),
@@ -307,7 +307,7 @@ var isNilConstraintTestCases = []ConstraintValidationTestCase{
 	},
 	{
 		name:            "IsNil violation on value",
-		isApplicableFor: specificValueTypes(boolType, stringType, timeType),
+		isApplicableFor: specificValueTypes(nilType, boolType, stringType, timeType),
 		boolValue:       boolValue(true),
 		intValue:        intValue(1),
 		floatValue:      floatValue(0.1),
@@ -321,7 +321,7 @@ var isNilConstraintTestCases = []ConstraintValidationTestCase{
 	},
 	{
 		name:            "IsNil passes on empty value when condition is false",
-		isApplicableFor: specificValueTypes(boolType, stringType, timeType),
+		isApplicableFor: specificValueTypes(nilType, boolType, stringType, timeType),
 		boolValue:       boolValue(false),
 		intValue:        intValue(0),
 		floatValue:      floatValue(0),
@@ -335,7 +335,7 @@ var isNilConstraintTestCases = []ConstraintValidationTestCase{
 	},
 	{
 		name:            "IsNil passes on empty value when groups not match",
-		isApplicableFor: specificValueTypes(boolType, stringType, timeType),
+		isApplicableFor: specificValueTypes(nilType, boolType, stringType, timeType),
 		boolValue:       boolValue(false),
 		intValue:        intValue(0),
 		floatValue:      floatValue(0),

@@ -20,6 +20,11 @@ type Constraint interface {
 	Name() string
 }
 
+// NilConstraint is used for a special cases to check a value for nil.
+type NilConstraint interface {
+	ValidateNil(isNil bool, scope Scope) error
+}
+
 // BoolConstraint is used to build constraints for boolean values validation.
 type BoolConstraint interface {
 	ValidateBool(value *bool, scope Scope) error
@@ -43,16 +48,6 @@ type ComparableConstraint[T comparable] interface {
 // ComparablesConstraint is used to build constraints for generic comparable values validation.
 type ComparablesConstraint[T comparable] interface {
 	ValidateComparables(values []T, scope Scope) error
-}
-
-// todo ? or NillableConstraint?
-type SliceConstraint[T any] interface {
-	ValidateSlice(value []T, scope Scope) error
-}
-
-// todo ?
-type MapConstraint[K comparable, V any] interface {
-	ValidateMap(value map[K]V, scope Scope) error
 }
 
 // CountableConstraint is used to build constraints for simpler validation of iterable elements count.

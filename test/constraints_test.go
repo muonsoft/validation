@@ -15,6 +15,7 @@ const (
 	customPath            = "properties[0].value"
 
 	// Value types.
+	nilType        = "nil"
 	boolType       = "bool"
 	intType        = "int"
 	floatType      = "float"
@@ -46,6 +47,7 @@ var validateTestCases = mergeTestCases(
 	isNotBlankConstraintTestCases,
 	isNotBlankNumberConstraintTestCases,
 	isBlankConstraintTestCases,
+	isBlankNumberConstraintTestCases,
 	isNotNilConstraintTestCases,
 	isNilConstraintTestCases,
 	isTrueConstraintTestCases,
@@ -68,6 +70,23 @@ var validateTestCases = mergeTestCases(
 	jsonConstraintTestCases,
 	numericConstraintTestCases,
 )
+
+func TestValidateNil(t *testing.T) {
+	for _, test := range validateTestCases {
+		if !test.isApplicableFor(nilType) {
+			continue
+		}
+
+		t.Run(test.name, func(t *testing.T) {
+			err := newValidator(t).Validate(
+				context.Background(),
+				validation.Nil(test.stringValue == nil, test.constraint.(validation.NilConstraint)),
+			)
+
+			test.assert(t, err)
+		})
+	}
+}
 
 func TestValidateNilBool(t *testing.T) {
 	for _, test := range validateTestCases {
@@ -154,23 +173,6 @@ func TestValidateNilComparable(t *testing.T) {
 	}
 }
 
-func TestValidateComparables(t *testing.T) {
-	for _, test := range validateTestCases {
-		if !test.isApplicableFor(stringsType) {
-			continue
-		}
-
-		t.Run(test.name, func(t *testing.T) {
-			err := newValidator(t).Validate(
-				context.Background(),
-				validation.Comparables(test.stringsValue, test.constraint.(validation.ComparablesConstraint[string])),
-			)
-
-			test.assert(t, err)
-		})
-	}
-}
-
 // func TestValidateIterable_AsSlice(t *testing.T) {
 // 	for _, test := range validateTestCases {
 // 		if !test.isApplicableFor(iterableType) {
@@ -198,6 +200,23 @@ func TestValidateComparables(t *testing.T) {
 // 		})
 // 	}
 // }
+
+func TestValidateComparables(t *testing.T) {
+	for _, test := range validateTestCases {
+		if !test.isApplicableFor(stringsType) {
+			continue
+		}
+
+		t.Run(test.name, func(t *testing.T) {
+			err := newValidator(t).Validate(
+				context.Background(),
+				validation.Comparables(test.stringsValue, test.constraint.(validation.ComparablesConstraint[string])),
+			)
+
+			test.assert(t, err)
+		})
+	}
+}
 
 func TestValidateCountable(t *testing.T) {
 	for _, test := range validateTestCases {
@@ -232,32 +251,6 @@ func TestValidateTime(t *testing.T) {
 		})
 	}
 }
-
-//
-// func TestValidateNil(t *testing.T) {
-// 	tests := []struct {
-// 		name          string
-// 		nilConstraint validation.NilConstraint
-// 		assert        func(t *testing.T, err error)
-// 	}{
-// 		{"not blank", it.IsNotBlank(), assertHasOneViolation(code.NotBlank, message.Templates[code.NotBlank])},
-// 		{"not blank when true", it.IsNotBlank().When(true), assertHasOneViolation(code.NotBlank, message.Templates[code.NotBlank])},
-// 		{"not blank when false", it.IsNotBlank().When(false), assertNoError},
-// 		{"not blank when nil allowed", it.IsNotBlank().AllowNil(), assertNoError},
-// 		{"blank", it.IsBlank(), assertNoError},
-// 		{"blank when true", it.IsBlank().When(true), assertNoError},
-// 		{"blank when false", it.IsBlank().When(false), assertNoError},
-// 	}
-// 	for _, test := range tests {
-// 		t.Run(test.name, func(t *testing.T) {
-// 			var v *bool
-//
-// 			err := newValidator(t).Validate(context.Background(), validation.Value(v, test.nilConstraint))
-//
-// 			test.assert(t, err)
-// 		})
-// 	}
-// }
 
 func anyValueType(valueType string) bool {
 	return true

@@ -20,6 +20,16 @@ func (f argumentFunc) setUp(ctx *executionContext) error {
 	return f(ctx)
 }
 
+// Nil argument is used to validate nil values of any nillable types.
+func Nil(isNil bool, constraints ...NilConstraint) NilArgument {
+	return NilArgument{isNil: isNil, constraints: constraints}
+}
+
+// NilProperty argument is an alias for Nil that automatically adds property name to the current scope.
+func NilProperty(name string, isNil bool, constraints ...NilConstraint) NilArgument {
+	return NilArgument{isNil: isNil, constraints: constraints, options: []Option{PropertyName(name)}}
+}
+
 // Bool argument is used to validate boolean values.
 func Bool(value bool, constraints ...BoolConstraint) BoolArgument {
 	return BoolArgument{value: &value, constraints: constraints}

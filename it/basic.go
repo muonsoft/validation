@@ -5,7 +5,6 @@ import (
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
-	"github.com/muonsoft/validation/generic"
 	"github.com/muonsoft/validation/message"
 )
 
@@ -165,20 +164,8 @@ func (c BlankConstraint) Message(template string, parameters ...validation.Templ
 	return c
 }
 
-func (c BlankConstraint) ValidateNil(scope validation.Scope) error {
-	return nil
-}
-
 func (c BlankConstraint) ValidateBool(value *bool, scope validation.Scope) error {
 	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || !*value {
-		return nil
-	}
-
-	return c.newViolation(scope)
-}
-
-func (c BlankConstraint) ValidateNumber(value generic.Number, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value.IsNil() || value.IsZero() {
 		return nil
 	}
 
@@ -260,8 +247,8 @@ func (c NotNilConstraint) Message(template string, parameters ...validation.Temp
 	return c
 }
 
-func (c NotNilConstraint) ValidateNil(scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) {
+func (c NotNilConstraint) ValidateNil(isNil bool, scope validation.Scope) error {
+	if c.isIgnored || scope.IsIgnored(c.groups...) || !isNil {
 		return nil
 	}
 
@@ -270,14 +257,6 @@ func (c NotNilConstraint) ValidateNil(scope validation.Scope) error {
 
 func (c NotNilConstraint) ValidateBool(value *bool, scope validation.Scope) error {
 	if c.isIgnored || scope.IsIgnored(c.groups...) || value != nil {
-		return nil
-	}
-
-	return c.newViolation(scope)
-}
-
-func (c NotNilConstraint) ValidateNumber(value generic.Number, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || !value.IsNil() {
 		return nil
 	}
 
@@ -351,20 +330,16 @@ func (c NilConstraint) Message(template string, parameters ...validation.Templat
 	return c
 }
 
-func (c NilConstraint) ValidateNil(scope validation.Scope) error {
-	return nil
-}
-
-func (c NilConstraint) ValidateBool(value *bool, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil {
+func (c NilConstraint) ValidateNil(isNil bool, scope validation.Scope) error {
+	if c.isIgnored || scope.IsIgnored(c.groups...) || isNil {
 		return nil
 	}
 
 	return c.newViolation(scope)
 }
 
-func (c NilConstraint) ValidateNumber(value generic.Number, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value.IsNil() {
+func (c NilConstraint) ValidateBool(value *bool, scope validation.Scope) error {
+	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil {
 		return nil
 	}
 
