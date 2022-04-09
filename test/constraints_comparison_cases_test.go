@@ -91,7 +91,7 @@ var isEqualToNumberTestCases = []ConstraintValidationTestCase{
 	},
 	{
 		name:            "IsEqualToNumber passes when groups not match",
-		isApplicableFor: specificValueTypes(intType, floatType),
+		isApplicableFor: specificValueTypes(intType),
 		intValue:        intValue(0),
 		floatValue:      floatValue(0),
 		constraint:      it.IsEqualToNumber(1).WhenGroups(testGroup),
@@ -99,7 +99,7 @@ var isEqualToNumberTestCases = []ConstraintValidationTestCase{
 	},
 	{
 		name:            "IsEqualToNumber violation when condition is true",
-		isApplicableFor: specificValueTypes(intType, floatType),
+		isApplicableFor: specificValueTypes(intType),
 		intValue:        intValue(0),
 		constraint:      it.IsEqualToNumber(1).When(true),
 		assert:          assertHasOneViolation(code.Equal, "This value should be equal to 1."),
@@ -674,13 +674,13 @@ var isBetweenIntegersTestCases = []ConstraintValidationTestCase{
 		name:            "IsBetween error on equal min and max",
 		isApplicableFor: specificValueTypes(intType),
 		constraint:      it.IsBetween(1, 1),
-		assert:          assertError(`failed to set up constraint "RangeConstraint": invalid range`),
+		assert:          assertError(`failed to set up constraint "RangeConstraint[int]": invalid range`),
 	},
 	{
 		name:            "IsBetween error on min greater than max",
 		isApplicableFor: specificValueTypes(intType),
 		constraint:      it.IsBetween(1, 0),
-		assert:          assertError(`failed to set up constraint "RangeConstraint": invalid range`),
+		assert:          assertError(`failed to set up constraint "RangeConstraint[int]": invalid range`),
 	},
 	{
 		name:            "IsBetween passes on nil",
@@ -739,11 +739,11 @@ var isBetweenIntegersTestCases = []ConstraintValidationTestCase{
 		assert:          assertNoError,
 	},
 	{
-		name:            "IsBetweenIntegers passes when groups not match",
-		isApplicableFor: specificValueTypes(intType, floatType),
+		name:            "IsBetween passes when groups not match",
+		isApplicableFor: specificValueTypes(intType),
 		intValue:        intValue(0),
 		floatValue:      floatValue(0),
-		constraint:      it.IsBetweenIntegers(1, 2).WhenGroups(testGroup),
+		constraint:      it.IsBetween(1, 2).WhenGroups(testGroup),
 		assert:          assertNoError,
 	},
 	{

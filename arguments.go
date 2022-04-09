@@ -13,22 +13,22 @@ import (
 // Argument used to set up the validation process. It is used to set up the current validation scope and to pass
 // arguments for validation values.
 type Argument interface {
-	set(arguments *Arguments) error
+	setUp(ctx *executionContext) error
 }
 
-type argumentFunc func(arguments *Arguments) error
+type argumentFunc func(ctx *executionContext) error
 
-func (f argumentFunc) set(arguments *Arguments) error {
-	return f(arguments)
+func (f argumentFunc) setUp(ctx *executionContext) error {
+	return f(ctx)
 }
 
-type Arguments struct {
+type executionContext struct {
 	scope      Scope
 	validators []validateFunc
 }
 
-func (args *Arguments) addValidator(validator validateFunc) {
-	args.validators = append(args.validators, validator)
+func (ctx *executionContext) addValidator(validator validateFunc) {
+	ctx.validators = append(ctx.validators, validator)
 }
 
 // Value argument is used to validate any supported value. It uses reflection to detect the type of the argument
@@ -36,8 +36,10 @@ func (args *Arguments) addValidator(validator validateFunc) {
 //
 // If the validator cannot determine the value or it is not supported, then NotValidatableError will be returned
 // when calling the validator.Validate method.
+//
+// Deprecated
 func Value(value interface{}, options ...Option) Argument {
-	return argumentFunc(func(arguments *Arguments) error {
+	return argumentFunc(func(arguments *executionContext) error {
 		v, err := newValueValidator(value, options)
 		if err != nil {
 			return err
@@ -50,13 +52,15 @@ func Value(value interface{}, options ...Option) Argument {
 }
 
 // PropertyValue argument is an alias for Value that automatically adds property name to the current scope.
+//
+// Deprecated
 func PropertyValue(name string, value interface{}, options ...Option) Argument {
 	return Value(value, append([]Option{PropertyName(name)}, options...)...)
 }
 
 // Bool argument is used to validate boolean values.
 func Bool(value bool, options ...Option) Argument {
-	return argumentFunc(func(arguments *Arguments) error {
+	return argumentFunc(func(arguments *executionContext) error {
 		arguments.addValidator(newBoolValidator(&value, options))
 
 		return nil
@@ -70,7 +74,7 @@ func BoolProperty(name string, value bool, options ...Option) Argument {
 
 // NilBool argument is used to validate nillable boolean values.
 func NilBool(value *bool, options ...Option) Argument {
-	return argumentFunc(func(arguments *Arguments) error {
+	return argumentFunc(func(arguments *executionContext) error {
 		arguments.addValidator(newBoolValidator(value, options))
 
 		return nil
@@ -87,7 +91,7 @@ func NilBoolProperty(name string, value *bool, options ...Option) Argument {
 //
 // Warning! This method will be changed after generics implementation in Go.
 func Number[T Numeric](value T, options ...Option) Argument {
-	return argumentFunc(func(arguments *Arguments) error {
+	return argumentFunc(func(arguments *executionContext) error {
 		arguments.addValidator(newNumberValidator(&value, options))
 
 		return nil
@@ -95,7 +99,7 @@ func Number[T Numeric](value T, options ...Option) Argument {
 }
 
 func NilNumber[T Numeric](value *T, options ...Option) Argument {
-	return argumentFunc(func(arguments *Arguments) error {
+	return argumentFunc(func(arguments *executionContext) error {
 		arguments.addValidator(newNumberValidator(value, options))
 
 		return nil
@@ -109,7 +113,7 @@ func NumberProperty[T Numeric](name string, value T, options ...Option) Argument
 
 // String argument is used to validate strings.
 func String(value string, options ...Option) Argument {
-	return argumentFunc(func(arguments *Arguments) error {
+	return argumentFunc(func(arguments *executionContext) error {
 		arguments.addValidator(newStringValidator(&value, options))
 
 		return nil
@@ -123,7 +127,7 @@ func StringProperty(name string, value string, options ...Option) Argument {
 
 // NilString argument is used to validate nillable strings.
 func NilString(value *string, options ...Option) Argument {
-	return argumentFunc(func(arguments *Arguments) error {
+	return argumentFunc(func(arguments *executionContext) error {
 		arguments.addValidator(newStringValidator(value, options))
 
 		return nil
@@ -137,7 +141,7 @@ func NilStringProperty(name string, value *string, options ...Option) Argument {
 
 // Strings argument is used to validate slice of strings.
 func Strings(values []string, options ...Option) Argument {
-	return argumentFunc(func(arguments *Arguments) error {
+	return argumentFunc(func(arguments *executionContext) error {
 		arguments.addValidator(newStringsValidator(values, options))
 
 		return nil
@@ -155,7 +159,7 @@ func StringsProperty(name string, values []string, options ...Option) Argument {
 //
 // Warning! This argument is subject to change in the final versions of the library.
 func Iterable(value interface{}, options ...Option) Argument {
-	return argumentFunc(func(arguments *Arguments) error {
+	return argumentFunc(func(arguments *executionContext) error {
 		iterable, err := generic.NewIterable(value)
 		if err != nil {
 			return fmt.Errorf(`cannot convert value "%v" to iterable: %w`, value, err)
@@ -175,7 +179,7 @@ func IterableProperty(name string, value interface{}, options ...Option) Argumen
 // Countable argument can be used to validate size of an array, slice, or map. You can pass result of len()
 // function as an argument.
 func Countable(count int, options ...Option) Argument {
-	return argumentFunc(func(arguments *Arguments) error {
+	return argumentFunc(func(arguments *executionContext) error {
 		arguments.addValidator(newCountableValidator(count, options))
 
 		return nil
@@ -189,7 +193,7 @@ func CountableProperty(name string, count int, options ...Option) Argument {
 
 // Time argument is used to validate time.Time value.
 func Time(value time.Time, options ...Option) Argument {
-	return argumentFunc(func(arguments *Arguments) error {
+	return argumentFunc(func(arguments *executionContext) error {
 		arguments.addValidator(newTimeValidator(&value, options))
 
 		return nil
@@ -203,7 +207,7 @@ func TimeProperty(name string, value time.Time, options ...Option) Argument {
 
 // NilTime argument is used to validate nillable time.Time value.
 func NilTime(value *time.Time, options ...Option) Argument {
-	return argumentFunc(func(arguments *Arguments) error {
+	return argumentFunc(func(arguments *executionContext) error {
 		arguments.addValidator(newTimeValidator(value, options))
 
 		return nil
@@ -222,7 +226,7 @@ func NilTimeProperty(name string, value *time.Time, options ...Option) Argument 
 //
 // Warning! This argument is subject to change in the final versions of the library.
 func Each(value interface{}, options ...Option) Argument {
-	return argumentFunc(func(arguments *Arguments) error {
+	return argumentFunc(func(arguments *executionContext) error {
 		iterable, err := generic.NewIterable(value)
 		if err != nil {
 			return fmt.Errorf(`cannot convert value "%v" to iterable: %w`, value, err)
@@ -241,7 +245,7 @@ func EachProperty(name string, value interface{}, options ...Option) Argument {
 
 // EachString is used to validate a slice of strings. This is a more performant version of Each argument.
 func EachString(values []string, options ...Option) Argument {
-	return argumentFunc(func(arguments *Arguments) error {
+	return argumentFunc(func(arguments *executionContext) error {
 		arguments.addValidator(newEachStringValidator(values, options))
 
 		return nil
@@ -256,7 +260,7 @@ func EachStringProperty(name string, values []string, options ...Option) Argumen
 // Valid is used to run validation on the Validatable type. This method is recommended
 // to build a complex validation process.
 func Valid(value Validatable, options ...Option) Argument {
-	return argumentFunc(func(arguments *Arguments) error {
+	return argumentFunc(func(arguments *executionContext) error {
 		arguments.addValidator(newValidValidator(value, options))
 
 		return nil
@@ -273,7 +277,7 @@ func ValidProperty(name string, value Validatable, options ...Option) Argument {
 // that does not implement an error interface, then the validation process will be terminated and
 // this error will be returned.
 func CheckNoViolations(err error) Argument {
-	return argumentFunc(func(arguments *Arguments) error {
+	return argumentFunc(func(arguments *executionContext) error {
 		arguments.addValidator(func(scope Scope) (*ViolationList, error) {
 			violations := NewViolationList()
 			fatal := violations.AppendFromError(err)
@@ -311,7 +315,7 @@ func CheckProperty(name string, isValid bool) Checker {
 
 // Language argument sets the current language for translation of a violation message.
 func Language(tag language.Tag) Argument {
-	return argumentFunc(func(arguments *Arguments) error {
+	return argumentFunc(func(arguments *executionContext) error {
 		arguments.scope.language = tag
 
 		return nil
@@ -321,7 +325,7 @@ func Language(tag language.Tag) Argument {
 // NewArgument can be used to implement your own validation arguments for the specific types.
 // See example for more details.
 func NewArgument(options []Option, validate ValidateByConstraintFunc) Argument {
-	return argumentFunc(func(arguments *Arguments) error {
+	return argumentFunc(func(arguments *executionContext) error {
 		arguments.addValidator(newValidator(options, validate))
 
 		return nil
@@ -367,7 +371,7 @@ func (c Checker) Message(template string, parameters ...TemplateParameter) Check
 	return c
 }
 
-func (c Checker) set(arguments *Arguments) error {
+func (c Checker) setUp(arguments *executionContext) error {
 	arguments.addValidator(c.validate)
 	return nil
 }

@@ -17,16 +17,15 @@ func TestValidate_ArgumentAliases_WhenAliasMethodForGivenType_ExpectValidationEx
 		name string
 		err  error
 	}{
-		{"ValidateValue", validator.ValidateValue(context.Background(), "", it.IsNotBlank())},
 		{"ValidateBool", validator.ValidateBool(context.Background(), false, it.IsNotBlank())},
 		// {"ValidateNumber", validator.ValidateNumber(context.Background(), 0, it.IsNotBlank())},
 		{"ValidateString", validator.ValidateString(context.Background(), "", it.IsNotBlank())},
-		{"ValidateIterable", validator.ValidateIterable(context.Background(), []string{}, it.IsNotBlank())},
-		{"ValidateCountable", validator.ValidateCountable(context.Background(), 0, it.IsNotBlank())},
+		// {"ValidateIterable", validator.ValidateIterable(context.Background(), []string{}, it.IsNotBlank())},
+		// {"ValidateCountable", validator.ValidateCountable(context.Background(), 0, it.IsNotBlank())},
 		{"ValidateTime", validator.ValidateTime(context.Background(), time.Time{}, it.IsNotBlank())},
-		{"ValidateEach", validator.ValidateEach(context.Background(), []string{""}, it.IsNotBlank())},
-		{"ValidateEachString", validator.ValidateEachString(context.Background(), []string{""}, it.IsNotBlank())},
-		{"ValidateValidatable", validator.ValidateValidatable(context.Background(), mockValidatableString{""}, it.IsNotBlank())},
+		// {"ValidateEach", validator.ValidateEach(context.Background(), []string{""}, it.IsNotBlank())},
+		// {"ValidateEachString", validator.ValidateEachString(context.Background(), []string{""}, it.IsNotBlank())},
+		// {"ValidateValidatable", validator.ValidateValidatable(context.Background(), mockValidatableString{""}, it.IsNotBlank())},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

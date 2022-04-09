@@ -137,20 +137,20 @@ func StoredConstraint(key string, constraint Constraint) ValidatorOption {
 	}
 }
 
-// Validate is the main validation method. It accepts validation arguments. Arguments can be
+// Validate is the main validation method. It accepts validation arguments. executionContext can be
 // used to tune up the validation process or to pass values of a specific type.
 func (validator *Validator) Validate(ctx context.Context, arguments ...Argument) error {
-	args := &Arguments{scope: validator.scope.withContext(ctx)}
+	execContext := &executionContext{scope: validator.scope.withContext(ctx)}
 	for _, argument := range arguments {
-		err := argument.set(args)
+		err := argument.setUp(execContext)
 		if err != nil {
 			return err
 		}
 	}
 
 	violations := &ViolationList{}
-	for _, validate := range args.validators {
-		vs, err := validate(args.scope)
+	for _, validate := range execContext.validators {
+		vs, err := validate(execContext.scope)
 		if err != nil {
 			return err
 		}
@@ -161,6 +161,7 @@ func (validator *Validator) Validate(ctx context.Context, arguments ...Argument)
 }
 
 // ValidateValue is an alias for validating a single value of any supported type.
+// Deprecated.
 func (validator *Validator) ValidateValue(ctx context.Context, value interface{}, options ...Option) error {
 	return validator.Validate(ctx, Value(value, options...))
 }

@@ -68,6 +68,22 @@ type IterableConstraint interface {
 	ValidateIterable(value generic.Iterable, scope Scope) error
 }
 
+type ComparableConstraint[T comparable] interface {
+	ValidateComparable(value *T, scope Scope) error
+}
+
+type ComparablesContraint[T comparable] interface {
+	ValidateComparables(value []T, scope Scope) error
+}
+
+type SliceConstraint[T any] interface {
+	ValidateSlice(value []T, scope Scope) error
+}
+
+type MapConstraint[K comparable, V any] interface {
+	ValidateMap(value map[K]V, scope Scope) error
+}
+
 // CountableConstraint is used to build constraints for simpler validation of iterable elements count.
 type CountableConstraint interface {
 	Constraint

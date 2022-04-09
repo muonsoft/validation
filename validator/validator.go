@@ -41,7 +41,7 @@ func Reset() {
 	_ = SetUp()
 }
 
-// Validate is the main validation method. It accepts validation arguments. Arguments can be
+// Validate is the main validation method. It accepts validation arguments. executionContext can be
 // used to tune up the validation process or to pass values of a specific type.
 func Validate(ctx context.Context, arguments ...validation.Argument) error {
 	return validator.Validate(ctx, arguments...)

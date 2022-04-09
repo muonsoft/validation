@@ -196,7 +196,7 @@ func (c NumberComparisonConstraint[T]) When(condition bool) NumberComparisonCons
 }
 
 // WhenGroups enables conditional validation of the constraint by using the validation groups.
-func (c NumberComparisonConstraint) WhenGroups(groups ...string) NumberComparisonConstraint {
+func (c NumberComparisonConstraint[T]) WhenGroups(groups ...string) NumberComparisonConstraint[T] {
 	c.groups = groups
 	return c
 }
@@ -227,7 +227,7 @@ type RangeConstraint[T validation.Numeric] struct {
 	max               T
 }
 
-// IsBetween checks that the number is between specified minimum and maximum integer values.
+// IsBetween checks that the number is between specified minimum and maximum numeric values.
 func IsBetween[T validation.Numeric](min, max T) RangeConstraint[T] {
 	return RangeConstraint[T]{
 		min:             min,
@@ -277,7 +277,7 @@ func (c RangeConstraint[T]) When(condition bool) RangeConstraint[T] {
 }
 
 // WhenGroups enables conditional validation of the constraint by using the validation groups.
-func (c RangeConstraint[T]) WhenGroups(groups ...string) RangeConstraint {
+func (c RangeConstraint[T]) WhenGroups(groups ...string) RangeConstraint[T] {
 	c.groups = groups
 	return c
 }
