@@ -523,3 +523,13 @@ func (b *ViolationBuilder) CreateViolation() Violation {
 		b.language,
 	)
 }
+
+func unwrapViolationList(err error) (*ViolationList, error) {
+	violations := NewViolationList()
+	fatal := violations.AppendFromError(err)
+	if fatal != nil {
+		return nil, fatal
+	}
+
+	return violations, nil
+}

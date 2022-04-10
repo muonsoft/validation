@@ -34,10 +34,6 @@ func (c errConstraint) Name() string {
 	return "errConstraint"
 }
 
-func (c errConstraint) ValidateNil(scope validation.Scope) error {
-	return nil
-}
-
 func (c errConstraint) ValidateString(value *string, scope validation.Scope) error {
 	return scope.NewConstraintError("errConstraint", "description")
 }

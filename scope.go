@@ -109,6 +109,10 @@ func (s Scope) IsApplied(groups ...string) bool {
 	return false
 }
 
+func (s Scope) validate(arguments ...Argument) error {
+	return s.Validator().Validate(s.context, arguments...)
+}
+
 func (s *Scope) applyOptions(options ...Option) error {
 	for _, option := range options {
 		err := option.SetUp(s)

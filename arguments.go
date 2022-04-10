@@ -204,13 +204,7 @@ func ComparablesProperty[T comparable](name string, values []T, constraints ...C
 // this error will be returned.
 func CheckNoViolations(err error) ValidatorArgument {
 	return NewArgument(func(scope Scope) (*ViolationList, error) {
-		violations := NewViolationList()
-		fatal := violations.AppendFromError(err)
-		if fatal != nil {
-			return nil, fatal
-		}
-
-		return violations, nil
+		return unwrapViolationList(err)
 	})
 }
 
@@ -252,8 +246,9 @@ func NewArgument(validate ValidateOnScopeFunc) ValidatorArgument {
 // ValidatorArgument is common implementation of Argument that is used to run validation
 // process on given argument.
 type ValidatorArgument struct {
-	validate ValidateOnScopeFunc
-	options  []Option
+	isIgnored bool
+	validate  ValidateOnScopeFunc
+	options   []Option
 }
 
 // With returns a copy of ValidatorArgument with appended options.
@@ -262,8 +257,17 @@ func (arg ValidatorArgument) With(options ...Option) ValidatorArgument {
 	return arg
 }
 
+// When enables conditional validation of this argument. If the expression evaluates to false,
+// then the argument will be ignored.
+func (arg ValidatorArgument) When(condition bool) ValidatorArgument {
+	arg.isIgnored = !condition
+	return arg
+}
+
 func (arg ValidatorArgument) setUp(ctx *executionContext) {
-	ctx.addValidator(arg.options, arg.validate)
+	if !arg.isIgnored {
+		ctx.addValidator(arg.options, arg.validate)
+	}
 }
 
 type argumentFunc func(ctx *executionContext)

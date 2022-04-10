@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/muonsoft/language"
@@ -299,8 +300,8 @@ func ExampleNewCustomStringConstraint() {
 }
 
 func ExampleWhen() {
-	// visaRegex := regexp.MustCompile("^4[0-9]{12}(?:[0-9]{3})?$")
-	// masterCardRegex := regexp.MustCompile("^(5[1-5][0-9]{14}|2(22[1-9][0-9]{12}|2[3-9][0-9]{13}|[3-6][0-9]{14}|7[0-1][0-9]{13}|720[0-9]{12}))$")
+	visaRegex := regexp.MustCompile("^4[0-9]{12}(?:[0-9]{3})?$")
+	masterCardRegex := regexp.MustCompile("^(5[1-5][0-9]{14}|2(22[1-9][0-9]{12}|2[3-9][0-9]{13}|[3-6][0-9]{14}|7[0-1][0-9]{13}|720[0-9]{12}))$")
 
 	payment := struct {
 		CardType   string
@@ -319,15 +320,10 @@ func ExampleWhen() {
 			payment.CardType,
 			it.IsOneOf("Visa", "MasterCard"),
 		),
-		// todo
-		// validation.StringProperty(
-		// 	"cardNumber",
-		// 	payment.CardNumber,
-		// 	validation.
-		// 		When(payment.CardType == "Visa").
-		// 		Then(it.Matches(visaRegex)).
-		// 		Else(it.Matches(masterCardRegex)),
-		// ),
+		validation.When(payment.CardType == "Visa").
+			With(validation.PropertyName("cardNumber")).
+			Then(validation.String(payment.CardNumber, it.Matches(visaRegex))).
+			Else(validation.String(payment.CardNumber, it.Matches(masterCardRegex))),
 	)
 
 	fmt.Println(err)
