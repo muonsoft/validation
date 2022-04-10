@@ -10,20 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type nilConstraint struct{}
-
-func (c nilConstraint) SetUp() error {
-	return nil
-}
-
-func (c nilConstraint) Name() string {
-	return "nilConstraint"
-}
-
-func (c nilConstraint) ValidateNil(scope validation.Scope) error {
-	return nil
-}
-
 type errConstraint struct{}
 
 func (c errConstraint) SetUp() error {

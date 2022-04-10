@@ -44,6 +44,4 @@ func (err ConstraintNotFoundError) Error() string {
 	return fmt.Sprintf(`constraint by key "%s" of type "%s" is not found`, err.Key, err.Type)
 }
 
-var (
-	errTranslatorOptionsDenied = errors.New("translation options denied when using custom translator")
-)
+var errTranslatorOptionsDenied = errors.New("translation options denied when using custom translator")

@@ -224,10 +224,6 @@ func TestValidateTime(t *testing.T) {
 	}
 }
 
-func anyValueType(valueType string) bool {
-	return true
-}
-
 func specificValueTypes(types ...string) func(valueType string) bool {
 	return func(valueType string) bool {
 		for _, t := range types {
@@ -237,18 +233,6 @@ func specificValueTypes(types ...string) func(valueType string) bool {
 		}
 
 		return false
-	}
-}
-
-func exceptValueTypes(types ...string) func(valueType string) bool {
-	return func(valueType string) bool {
-		for _, t := range types {
-			if valueType == t {
-				return false
-			}
-		}
-
-		return true
 	}
 }
 

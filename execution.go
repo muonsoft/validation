@@ -143,6 +143,7 @@ func validateEachNumber[T Numeric](values []T, constraints []NumberConstraint[T]
 		return violations, nil
 	}
 }
+
 func validateIt(value Validatable) ValidateOnScopeFunc {
 	return func(scope Scope) (*ViolationList, error) {
 		err := value.Validate(scope.context, scope.Validator())

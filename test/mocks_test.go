@@ -9,18 +9,7 @@ import (
 	"golang.org/x/text/language"
 )
 
-var (
-	nilBool    *bool
-	nilInt     *int64
-	nilUint    *uint64
-	nilFloat   *float64
-	nilString  *string
-	nilTime    *time.Time
-	emptyArray [0]string
-	emptySlice []string
-	emptyMap   map[string]string
-	emptyTime  time.Time
-)
+var nilTime *time.Time
 
 func boolValue(b bool) *bool {
 	return &b
@@ -28,10 +17,6 @@ func boolValue(b bool) *bool {
 
 func intValue(i int) *int {
 	return &i
-}
-
-func uintValue(u uint64) *uint64 {
-	return &u
 }
 
 func floatValue(f float64) *float64 {
