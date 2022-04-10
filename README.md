@@ -18,7 +18,7 @@ This project is inspired by [Symfony Validator component](https://symfony.com/in
 
 ## Key features
 
-* Flexible and customizable API built in mind to use benefits of static typing
+* Flexible and customizable API built in mind to use benefits of static typing and generics
 * Nice and readable way to describe validation process in code
 * Validation of different types: booleans, numbers, strings, slices, maps, and time
 * Validation of custom data types that implements `Validatable` interface
@@ -30,13 +30,11 @@ This project is inspired by [Symfony Validator component](https://symfony.com/in
 This package is under active development and API may be changed until the first major version will be released. Minor
 versions `n` 0.n.m may contain breaking changes. Patch versions `m` 0.n.m may contain only bug fixes.
 
-First stable version aimed to be released
-after [generics implementation](https://go.googlesource.com/proposal/+/refs/heads/master/design/go2draft-contracts.md)
-in Golang.
+Goals before making stable release:
 
-### TODO for migration to generics
-
-* [ ] write warning about numeric types (when using non-default types such as uint, int64)
+* [x] implementation of static type arguments by generics;
+* [ ] mechanism for asynchronous validation (lazy violations by async/await pattern);
+* [ ] stable production usage for at least 6 months.
 
 ## Installation
 
@@ -557,7 +555,7 @@ Everything you need to create a custom constraint is to implement one of the int
 Also, you can combine several types of constraints. See examples for more details:
 
 * [custom static constraint](https://pkg.go.dev/github.com/muonsoft/validation#example-Validator.Validate-CustomConstraint);
-* [custom constraint as a service](https://pkg.go.dev/github.com/muonsoft/validation#example-Validator.ValidateBy-CustomServiceConstraint).
+* [custom constraint as a service](https://pkg.go.dev/github.com/muonsoft/validation#example-Validator.GetConstraint-CustomServiceConstraint).
 * [custom constraint with custom argument for domain type](https://pkg.go.dev/github.com/muonsoft/validation#example-NewArgument-CustomArgumentConstraintValidator).
 
 ### Recommendations for storing violations in a database

@@ -85,12 +85,13 @@ func ValidateIt(ctx context.Context, validatable validation.Validatable) error {
 	return validator.ValidateIt(ctx, validatable)
 }
 
-// ValidateBy is used to get the constraint from the internal validator store.
-// If the constraint does not exist, then the validator will
-// return a ConstraintNotFoundError during the validation process.
-// For storing a constraint you should use the validation.StoredConstraint option.
-func ValidateBy(constraintKey string) validation.Constraint {
-	return validator.ValidateBy(constraintKey)
+// GetConstraint is used to get the constraint from the internal validator store.
+// If the constraint does not exist, then the validator will return nil.
+// For storing a constraint you should use the StoredConstraint option.
+//
+// Experimental. This feature is experimental and may be changed in future versions.
+func GetConstraint(key string) interface{} {
+	return validator.GetConstraint(key)
 }
 
 // WithGroups is used to execute conditional validation based on validation groups. It creates

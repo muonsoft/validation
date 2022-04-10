@@ -10,14 +10,7 @@ import (
 type Numeric interface {
 	~float32 | ~float64 |
 		~int | ~int8 | ~int16 | ~int32 | ~int64 |
-		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr
-}
-
-// Constraint is the base interface to build validation constraints.
-// Deprecated
-type Constraint interface {
-	// Name is a constraint name that can be used in internal errors.
-	Name() string
+		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64
 }
 
 // NilConstraint is used for a special cases to check a value for nil.
@@ -133,16 +126,4 @@ func (c CustomStringConstraint) ValidateString(value *string, scope Scope) error
 		).
 		AddParameter("{{ value }}", *value).
 		CreateViolation()
-}
-
-type notFoundConstraint struct {
-	key string
-}
-
-func (c notFoundConstraint) SetUp() error {
-	return ConstraintNotFoundError{Key: c.key}
-}
-
-func (c notFoundConstraint) Name() string {
-	return "notFoundConstraint"
 }

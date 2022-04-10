@@ -36,11 +36,12 @@ func (err ConstraintAlreadyStoredError) Error() string {
 // ConstraintNotFoundError is returned when trying to get a constraint
 // from the validator store using a non-existent key.
 type ConstraintNotFoundError struct {
-	Key string
+	Key  string
+	Type string
 }
 
 func (err ConstraintNotFoundError) Error() string {
-	return fmt.Sprintf(`constraint with key "%s" is not stored in the validator`, err.Key)
+	return fmt.Sprintf(`constraint by key "%s" of type "%s" is not found`, err.Key, err.Type)
 }
 
 var (

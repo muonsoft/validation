@@ -83,20 +83,24 @@ type StockItem struct {
 }
 
 func (s StockItem) Validate(ctx context.Context, validator *validation.Validator) error {
+	isTagExists, ok := validator.GetConstraint("isTagExists").(validation.StringConstraint)
+	if !ok {
+		return validation.ConstraintNotFoundError{Key: "isTagExists", Type: "validation.StringConstraint"}
+	}
+
 	return validator.Validate(
 		ctx,
 		validation.StringProperty("name", s.Name, it.IsNotBlank(), it.HasMaxLength(20)),
-		// todo
-		// validation.EachStringProperty("tags", s.Tags, validator.ValidateBy("isTagExists")),
+		validation.EachStringProperty("tags", s.Tags, isTagExists),
 	)
 }
 
-func ExampleValidator_ValidateBy_customServiceConstraint() {
+func ExampleValidator_GetConstraint_customServiceConstraint() {
 	storage := &TagStorage{tags: []string{"movie", "book"}}
 	isTagExists := &ExistingTagConstraint{storage: storage}
 
 	// custom constraint can be stored in the validator's internal store
-	// and can be used later by calling the validator.ValidateBy method
+	// and can be used later by calling the validator.GetConstraint method
 	validator, err := validation.NewValidator(
 		validation.StoredConstraint("isTagExists", isTagExists),
 	)

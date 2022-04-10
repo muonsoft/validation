@@ -28,13 +28,11 @@ type ValidatorOptions struct {
 	translatorOptions []translations.TranslatorOption
 	translator        Translator
 	violationFactory  ViolationFactory
-	constraints       map[string]Constraint
+	constraints       map[string]interface{}
 }
 
 func newValidatorOptions() *ValidatorOptions {
-	return &ValidatorOptions{
-		constraints: map[string]Constraint{},
-	}
+	return &ValidatorOptions{constraints: map[string]interface{}{}}
 }
 
 // ValidatorOption is a base type for configuration options used to create a new instance of Validator.
@@ -125,7 +123,7 @@ func SetViolationFactory(factory ViolationFactory) ValidatorOption {
 // custom or prepared constraints to Validatable.
 //
 // If the constraint already exists, a ConstraintAlreadyStoredError will be returned.
-func StoredConstraint(key string, constraint Constraint) ValidatorOption {
+func StoredConstraint(key string, constraint interface{}) ValidatorOption {
 	return func(options *ValidatorOptions) error {
 		if _, exists := options.constraints[key]; exists {
 			return ConstraintAlreadyStoredError{Key: key}
@@ -202,16 +200,13 @@ func (validator *Validator) ValidateIt(ctx context.Context, validatable Validata
 	return validator.Validate(ctx, Valid(validatable))
 }
 
-// ValidateBy is used to get the constraint from the internal validator store.
-// If the constraint does not exist, then the validator will
-// return a ConstraintNotFoundError during the validation process.
+// GetConstraint is used to get the constraint from the internal validator store.
+// If the constraint does not exist, then the validator will return nil.
 // For storing a constraint you should use the StoredConstraint option.
-func (validator *Validator) ValidateBy(constraintKey string) Constraint {
-	if constraint, exists := validator.scope.constraints[constraintKey]; exists {
-		return constraint
-	}
-
-	return notFoundConstraint{key: constraintKey}
+//
+// Experimental. This feature is experimental and may be changed in future versions.
+func (validator *Validator) GetConstraint(key string) interface{} {
+	return validator.scope.constraints[key]
 }
 
 // WithGroups is used to execute conditional validation based on validation groups. It creates

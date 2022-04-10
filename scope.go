@@ -18,7 +18,7 @@ type Scope struct {
 	translator       Translator
 	violationFactory ViolationFactory
 	groups           []string
-	constraints      map[string]Constraint // todo
+	constraints      map[string]interface{}
 }
 
 // Context returns context value that was passed to the validator by Context argument or
@@ -144,7 +144,7 @@ func (s Scope) withGroups(groups ...string) Scope {
 func newScope(
 	translator Translator,
 	violationFactory ViolationFactory,
-	constraints map[string]Constraint,
+	constraints map[string]interface{},
 ) Scope {
 	return Scope{
 		context:          context.Background(),

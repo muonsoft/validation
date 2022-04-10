@@ -1035,17 +1035,20 @@ func ExampleViolationList_AppendFromError_addingError() {
 	// violations length: 0
 }
 
-// todo
-// func ExampleStoredConstraint() {
-// 	validator, err := validation.NewValidator(
-// 		validation.StoredConstraint("notEmpty", it.IsNotBlank().Message("value should not be empty")),
-// 	)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-//
-// 	err = validator.ValidateString(context.Background(), "", validator.ValidateBy("notEmpty"))
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation: value should not be empty
-// }
+func ExampleStoredConstraint() {
+	validator, err := validation.NewValidator(
+		validation.StoredConstraint("notEmpty", it.IsNotBlank().Message("value should not be empty")),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = validator.ValidateString(
+		context.Background(),
+		"",
+		validator.GetConstraint("notEmpty").(validation.StringConstraint),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation: value should not be empty
+}
