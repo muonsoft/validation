@@ -60,10 +60,6 @@ type TimeConstraint interface {
 	ValidateTime(value *time.Time, scope Scope) error
 }
 
-type controlConstraint interface {
-	validate(scope Scope, validate ValidateByConstraintFunc) (*ViolationList, error)
-}
-
 // CustomStringConstraint can be used to create custom constraints for validating string values
 // based on function with signature func(string) bool.
 type CustomStringConstraint struct {

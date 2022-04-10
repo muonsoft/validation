@@ -142,10 +142,7 @@ func StoredConstraint(key string, constraint Constraint) ValidatorOption {
 func (validator *Validator) Validate(ctx context.Context, arguments ...Argument) error {
 	execContext := &executionContext{scope: validator.scope.withContext(ctx)}
 	for _, argument := range arguments {
-		err := argument.setUp(execContext)
-		if err != nil {
-			return err
-		}
+		argument.setUp(execContext)
 	}
 
 	violations := &ViolationList{}

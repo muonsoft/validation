@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/muonsoft/language"
@@ -32,25 +31,6 @@ func ExampleNewValidator() {
 	fmt.Println(err)
 	// Output:
 	// violation: This value should not be blank.
-}
-
-func ExampleValue() {
-	v := ""
-	err := validator.Validate(context.Background(), validation.Value(v, it.IsNotBlank()))
-	fmt.Println(err)
-	// Output:
-	// violation: This value should not be blank.
-}
-
-func ExamplePropertyValue() {
-	v := Book{Title: ""}
-	err := validator.Validate(
-		context.Background(),
-		validation.PropertyValue("title", v.Title, it.IsNotBlank()),
-	)
-	fmt.Println(err)
-	// Output:
-	// violation at 'title': This value should not be blank.
 }
 
 func ExampleBool() {
@@ -170,48 +150,26 @@ func ExampleNilStringProperty() {
 	// violation at 'title': This value should not be blank.
 }
 
-func ExampleStrings() {
+func ExampleComparables() {
 	v := []string{"foo", "bar", "baz", "foo"}
 	err := validator.Validate(
 		context.Background(),
-		validation.Strings(v, it.HasUniqueValues()),
+		validation.Comparables[string](v, it.HasUniqueValues[string]()),
 	)
 	fmt.Println(err)
 	// Output:
 	// violation: This collection should contain only unique elements.
 }
 
-func ExampleStringsProperty() {
+func ExampleComparablesProperty() {
 	v := Book{Keywords: []string{"foo", "bar", "baz", "foo"}}
 	err := validator.Validate(
 		context.Background(),
-		validation.StringsProperty("keywords", v.Keywords, it.HasUniqueValues()),
+		validation.ComparablesProperty[string]("keywords", v.Keywords, it.HasUniqueValues[string]()),
 	)
 	fmt.Println(err)
 	// Output:
 	// violation at 'keywords': This collection should contain only unique elements.
-}
-
-func ExampleIterable() {
-	v := make([]string, 0)
-	err := validator.Validate(
-		context.Background(),
-		validation.Iterable(v, it.IsNotBlank()),
-	)
-	fmt.Println(err)
-	// Output:
-	// violation: This value should not be blank.
-}
-
-func ExampleIterableProperty() {
-	v := Product{Tags: []string{}}
-	err := validator.Validate(
-		context.Background(),
-		validation.IterableProperty("tags", v.Tags, it.IsNotBlank()),
-	)
-	fmt.Println(err)
-	// Output:
-	// violation at 'tags': This value should not be blank.
 }
 
 func ExampleCountable() {
@@ -292,28 +250,6 @@ func ExampleNilTimeProperty() {
 	// violation at 'createdAt': This value should be earlier than 2006-01-02T15:00:00Z.
 }
 
-func ExampleEach() {
-	v := []string{""}
-	err := validator.Validate(
-		context.Background(),
-		validation.Each(v, it.IsNotBlank()),
-	)
-	fmt.Println(err)
-	// Output:
-	// violation at '[0]': This value should not be blank.
-}
-
-func ExampleEachProperty() {
-	v := Product{Tags: []string{""}}
-	err := validator.Validate(
-		context.Background(),
-		validation.EachProperty("tags", v.Tags, it.IsNotBlank()),
-	)
-	fmt.Println(err)
-	// Output:
-	// violation at 'tags[0]': This value should not be blank.
-}
-
 func ExampleEachString() {
 	v := []string{""}
 	err := validator.Validate(
@@ -350,7 +286,6 @@ func ExampleNewCustomStringConstraint() {
 	}
 	constraint := validation.NewCustomStringConstraint(
 		validate,
-		"ExampleConstraint", // constraint name
 		"exampleCode",       // violation code
 		"Unexpected value.", // violation message template
 	)
@@ -364,8 +299,8 @@ func ExampleNewCustomStringConstraint() {
 }
 
 func ExampleWhen() {
-	visaRegex := regexp.MustCompile("^4[0-9]{12}(?:[0-9]{3})?$")
-	masterCardRegex := regexp.MustCompile("^(5[1-5][0-9]{14}|2(22[1-9][0-9]{12}|2[3-9][0-9]{13}|[3-6][0-9]{14}|7[0-1][0-9]{13}|720[0-9]{12}))$")
+	// visaRegex := regexp.MustCompile("^4[0-9]{12}(?:[0-9]{3})?$")
+	// masterCardRegex := regexp.MustCompile("^(5[1-5][0-9]{14}|2(22[1-9][0-9]{12}|2[3-9][0-9]{13}|[3-6][0-9]{14}|7[0-1][0-9]{13}|720[0-9]{12}))$")
 
 	payment := struct {
 		CardType   string
@@ -379,19 +314,20 @@ func ExampleWhen() {
 
 	err := validator.Validate(
 		context.Background(),
-		validation.StringProperty(
+		validation.ComparableProperty[string](
 			"cardType",
 			payment.CardType,
-			it.IsOneOfStrings("Visa", "MasterCard"),
+			it.IsOneOf("Visa", "MasterCard"),
 		),
-		validation.StringProperty(
-			"cardNumber",
-			payment.CardNumber,
-			validation.
-				When(payment.CardType == "Visa").
-				Then(it.Matches(visaRegex)).
-				Else(it.Matches(masterCardRegex)),
-		),
+		// todo
+		// validation.StringProperty(
+		// 	"cardNumber",
+		// 	payment.CardNumber,
+		// 	validation.
+		// 		When(payment.CardType == "Visa").
+		// 		Then(it.Matches(visaRegex)).
+		// 		Else(it.Matches(masterCardRegex)),
+		// ),
 	)
 
 	fmt.Println(err)
@@ -399,97 +335,98 @@ func ExampleWhen() {
 	// violation at 'cardNumber': This value is not valid.
 }
 
-func ExampleConditionalConstraint_Then() {
-	v := "foo"
-	err := validator.Validate(
-		context.Background(),
-		validation.String(
-			v,
-			validation.When(true).Then(it.Matches(regexp.MustCompile(`^\w+$`))),
-		),
-	)
-	fmt.Println(err)
-	// Output:
-	// <nil>
-}
-
-func ExampleConditionalConstraint_Else() {
-	v := "123"
-	err := validator.Validate(
-		context.Background(),
-		validation.String(
-			v,
-			validation.When(false).
-				Then(it.Matches(regexp.MustCompile(`^\w+$`))).
-				Else(it.Matches(regexp.MustCompile(`^\d+$`))),
-		),
-	)
-	fmt.Println(err)
-	// Output:
-	// <nil>
-}
-
-func ExampleSequentially() {
-	title := "bar"
-
-	err := validator.Validate(
-		context.Background(),
-		validation.String(
-			title,
-			validation.Sequentially(
-				it.IsBlank(),       // validation will fail on first constraint
-				it.HasMinLength(5), // this constraint will be ignored
-			),
-		),
-	)
-
-	fmt.Println(err)
-	// Output:
-	// violation: This value should be blank.
-}
-
-func ExampleAtLeastOneOf() {
-	title := "bar"
-
-	err := validator.Validate(
-		context.Background(),
-		validation.String(
-			title,
-			validation.AtLeastOneOf(
-				it.IsBlank(),
-				it.HasMinLength(5),
-			),
-		),
-	)
-
-	if violations, ok := validation.UnwrapViolationList(err); ok {
-		for violation := violations.First(); violation != nil; violation = violation.Next() {
-			fmt.Println(violation)
-		}
-	}
-	// Output:
-	// violation: This value should be blank.
-	// violation: This value is too short. It should have 5 characters or more.
-}
-
-func ExampleCompound() {
-	title := "bar"
-	isEmail := validation.Compound(it.IsEmail(), it.HasLengthBetween(5, 200))
-
-	err := validator.Validate(
-		context.Background(),
-		validation.String(title, isEmail),
-	)
-
-	if violations, ok := validation.UnwrapViolationList(err); ok {
-		for violation := violations.First(); violation != nil; violation = violation.Next() {
-			fmt.Println(violation)
-		}
-	}
-	// Output:
-	// violation: This value is not a valid email address.
-	// violation: This value is too short. It should have 5 characters or more.
-}
+//
+// func ExampleConditionalConstraint_Then() {
+// 	v := "foo"
+// 	err := validator.Validate(
+// 		context.Background(),
+// 		validation.String(
+// 			v,
+// 			validation.When(true).Then(it.Matches(regexp.MustCompile(`^\w+$`))),
+// 		),
+// 	)
+// 	fmt.Println(err)
+// 	// Output:
+// 	// <nil>
+// }
+//
+// func ExampleConditionalConstraint_Else() {
+// 	v := "123"
+// 	err := validator.Validate(
+// 		context.Background(),
+// 		validation.String(
+// 			v,
+// 			validation.When(false).
+// 				Then(it.Matches(regexp.MustCompile(`^\w+$`))).
+// 				Else(it.Matches(regexp.MustCompile(`^\d+$`))),
+// 		),
+// 	)
+// 	fmt.Println(err)
+// 	// Output:
+// 	// <nil>
+// }
+//
+// func ExampleSequentially() {
+// 	title := "bar"
+//
+// 	err := validator.Validate(
+// 		context.Background(),
+// 		validation.String(
+// 			title,
+// 			validation.Sequentially(
+// 				it.IsBlank(),       // validation will fail on first constraint
+// 				it.HasMinLength(5), // this constraint will be ignored
+// 			),
+// 		),
+// 	)
+//
+// 	fmt.Println(err)
+// 	// Output:
+// 	// violation: This value should be blank.
+// }
+//
+// func ExampleAtLeastOneOf() {
+// 	title := "bar"
+//
+// 	err := validator.Validate(
+// 		context.Background(),
+// 		validation.String(
+// 			title,
+// 			validation.AtLeastOneOf(
+// 				it.IsBlank(),
+// 				it.HasMinLength(5),
+// 			),
+// 		),
+// 	)
+//
+// 	if violations, ok := validation.UnwrapViolationList(err); ok {
+// 		for violation := violations.First(); violation != nil; violation = violation.Next() {
+// 			fmt.Println(violation)
+// 		}
+// 	}
+// 	// Output:
+// 	// violation: This value should be blank.
+// 	// violation: This value is too short. It should have 5 characters or more.
+// }
+//
+// func ExampleCompound() {
+// 	title := "bar"
+// 	isEmail := validation.Compound(it.IsEmail(), it.HasLengthBetween(5, 200))
+//
+// 	err := validator.Validate(
+// 		context.Background(),
+// 		validation.String(title, isEmail),
+// 	)
+//
+// 	if violations, ok := validation.UnwrapViolationList(err); ok {
+// 		for violation := violations.First(); violation != nil; violation = violation.Next() {
+// 			fmt.Println(violation)
+// 		}
+// 	}
+// 	// Output:
+// 	// violation: This value is not a valid email address.
+// 	// violation: This value is too short. It should have 5 characters or more.
+// }
 
 func ExampleValidator_Validate_basicValidation() {
 	s := ""
@@ -536,7 +473,7 @@ func ExampleValidator_Validate_basicStructValidation() {
 		context.Background(),
 		validation.StringProperty("title", document.Title, it.IsNotBlank()),
 		validation.CountableProperty("keywords", len(document.Keywords), it.HasCountBetween(5, 10)),
-		validation.StringsProperty("keywords", document.Keywords, it.HasUniqueValues()),
+		validation.ComparablesProperty[string]("keywords", document.Keywords, it.HasUniqueValues[string]()),
 		validation.EachStringProperty("keywords", document.Keywords, it.IsNotBlank()),
 	)
 
@@ -584,12 +521,10 @@ func ExampleValidator_Validate_passingPropertyPathViaOptions() {
 
 	err := validator.Validate(
 		context.Background(),
-		validation.String(
-			s,
+		validation.String(s, it.IsNotBlank()).With(
 			validation.PropertyName("properties"),
 			validation.ArrayIndex(1),
 			validation.PropertyName("tag"),
-			it.IsNotBlank(),
 		),
 	)
 
@@ -803,7 +738,7 @@ func ExampleValidator_Validate_translationForCustomMessage() {
 	err = validator.Validate(
 		context.Background(),
 		validation.Language(language.Russian),
-		validation.Iterable(tags, it.HasMinCount(1).MinMessage(customMessage)),
+		validation.Countable(len(tags), it.HasMinCount(1).MinMessage(customMessage)),
 	)
 
 	fmt.Println(err)
@@ -909,16 +844,17 @@ func ExampleViolationList_AppendFromError_addingError() {
 	// violations length: 0
 }
 
-func ExampleStoredConstraint() {
-	validator, err := validation.NewValidator(
-		validation.StoredConstraint("notEmpty", it.IsNotBlank().Message("value should not be empty")),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = validator.ValidateString(context.Background(), "", validator.ValidateBy("notEmpty"))
-	fmt.Println(err)
-	// Output:
-	// violation: value should not be empty
-}
+// todo
+// func ExampleStoredConstraint() {
+// 	validator, err := validation.NewValidator(
+// 		validation.StoredConstraint("notEmpty", it.IsNotBlank().Message("value should not be empty")),
+// 	)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+//
+// 	err = validator.ValidateString(context.Background(), "", validator.ValidateBy("notEmpty"))
+// 	fmt.Println(err)
+// 	// Output:
+// 	// violation: value should not be empty
+// }

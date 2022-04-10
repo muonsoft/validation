@@ -182,6 +182,23 @@ func TestCheck_WhenFalse_ExpectViolation(t *testing.T) {
 		WithPropertyPath("")
 }
 
+func TestCheck_WhenFalseWithPath_ExpectViolationWithPath(t *testing.T) {
+	err := validator.Validate(
+		context.Background(),
+		validation.Check(false).With(
+			validation.PropertyName("properties"),
+			validation.ArrayIndex(0),
+			validation.PropertyName("property"),
+		),
+	)
+
+	validationtest.Assert(t, err).IsViolationList().
+		WithOneViolation().
+		WithCode(code.NotValid).
+		WithMessage(message.Templates[code.NotValid]).
+		WithPropertyPath("properties[0].property")
+}
+
 func TestCheck_WhenCustomCodeAndTemplate_ExpectCodeAndTemplateInViolation(t *testing.T) {
 	err := validator.Validate(
 		context.Background(),

@@ -86,7 +86,8 @@ func (s StockItem) Validate(ctx context.Context, validator *validation.Validator
 	return validator.Validate(
 		ctx,
 		validation.StringProperty("name", s.Name, it.IsNotBlank(), it.HasMaxLength(20)),
-		validation.EachStringProperty("tags", s.Tags, validator.ValidateBy("isTagExists")),
+		// todo
+		// validation.EachStringProperty("tags", s.Tags, validator.ValidateBy("isTagExists")),
 	)
 }
 

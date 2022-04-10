@@ -115,16 +115,6 @@ func ExampleInList() {
 	// true
 }
 
-func ExampleStringInList() {
-	fmt.Println(is.StringInList("foo", nil))
-	fmt.Println(is.StringInList("foo", []string{"bar", "baz"}))
-	fmt.Println(is.StringInList("foo", []string{"bar", "baz", "foo"}))
-	// Output:
-	// false
-	// false
-	// true
-}
-
 func ExampleUnique() {
 	fmt.Println(is.Unique([]string{}))
 	fmt.Println(is.Unique([]string{"one", "two", "three"}))
@@ -134,16 +124,6 @@ func ExampleUnique() {
 	// true
 	// true
 	// false
-	// false
-}
-
-func ExampleUniqueStrings() {
-	fmt.Println(is.UniqueStrings([]string{}))
-	fmt.Println(is.UniqueStrings([]string{"one", "two", "three"}))
-	fmt.Println(is.UniqueStrings([]string{"one", "two", "one"}))
-	// Output:
-	// true
-	// true
 	// false
 }
 
