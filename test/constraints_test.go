@@ -173,34 +173,6 @@ func TestValidateNilComparable(t *testing.T) {
 	}
 }
 
-// func TestValidateIterable_AsSlice(t *testing.T) {
-// 	for _, test := range validateTestCases {
-// 		if !test.isApplicableFor(iterableType) {
-// 			continue
-// 		}
-//
-// 		t.Run(test.name, func(t *testing.T) {
-// 			err := newValidator(t).Validate(context.Background(), validation.Iterable(test.sliceValue, test.constraint))
-//
-// 			test.assert(t, err)
-// 		})
-// 	}
-// }
-//
-// func TestValidateIterable_AsMap(t *testing.T) {
-// 	for _, test := range validateTestCases {
-// 		if !test.isApplicableFor(iterableType) {
-// 			continue
-// 		}
-//
-// 		t.Run(test.name, func(t *testing.T) {
-// 			err := newValidator(t).Validate(context.Background(), validation.Iterable(test.mapValue, test.constraint))
-//
-// 			test.assert(t, err)
-// 		})
-// 	}
-// }
-
 func TestValidateComparables(t *testing.T) {
 	for _, test := range validateTestCases {
 		if !test.isApplicableFor(stringsType) {

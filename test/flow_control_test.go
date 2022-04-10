@@ -69,6 +69,55 @@ func TestWhenArgument_WhenPathIsSet_ExpectViolationWithPath(t *testing.T) {
 		WithPropertyPath("properties[0].property")
 }
 
+func TestWhenGroupsArgument_WhenGroupMatches_ExpectViolation(t *testing.T) {
+	err := newValidator(t).WithGroups(testGroup).Validate(
+		context.Background(),
+		validation.WhenGroups(testGroup).
+			Then(validation.String("", it.IsNotBlank().WhenGroups(testGroup).Code("then"))).
+			Else(validation.String("", it.IsNotBlank().WhenGroups(testGroup).Code("else"))),
+	)
+
+	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithCode("then")
+}
+
+func TestWhenGroupsArgument_WhenGroupNotMatches_ExpectNoError(t *testing.T) {
+	err := newValidator(t).Validate(
+		context.Background(),
+		validation.WhenGroups(testGroup).
+			Then(validation.String("", it.IsNotBlank().Code("then"))).
+			Else(validation.String("", it.IsNotBlank().Code("else"))),
+	)
+
+	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithCode("else")
+}
+
+func TestWhenGroupsArgument_WhenGroupNotMatchesNoElseBranch_ExpectNoViolations(t *testing.T) {
+	err := newValidator(t).Validate(
+		context.Background(),
+		validation.WhenGroups(testGroup).
+			Then(validation.String("", it.IsNotBlank().Code("then"))),
+	)
+
+	assertNoError(t, err)
+}
+
+func TestWhenGroupsArgument_WhenPathIsSet_ExpectViolationWithPath(t *testing.T) {
+	err := newValidator(t).WithGroups(testGroup).Validate(
+		context.Background(),
+		validation.WhenGroups(testGroup).
+			Then(validation.String("", it.IsNotBlank().WhenGroups(testGroup).Code("then"))).
+			With(
+				validation.PropertyName("properties"),
+				validation.ArrayIndex(0),
+				validation.PropertyName("property"),
+			),
+	)
+
+	validationtest.Assert(t, err).IsViolationList().WithOneViolation().
+		WithCode("then").
+		WithPropertyPath("properties[0].property")
+}
+
 func TestSequentialArgument_WhenInvalidValueAtFirstConstraint_ExpectOneViolation(t *testing.T) {
 	err := newValidator(t).Validate(
 		context.Background(),
@@ -106,18 +155,6 @@ func TestSequentialArgument_WhenValidationIsDisabled_ExpectNoErrors(t *testing.T
 			validation.String("", it.IsNotBlank().Code("first")),
 			validation.String("", it.IsNotBlank().Code("second")),
 		).When(false),
-	)
-
-	assert.NoError(t, err)
-}
-
-func TestSequentialArgument_WhenGroupsNotMatch_ExpectNoErrors(t *testing.T) {
-	err := newValidator(t).Validate(
-		context.Background(),
-		validation.Sequentially(
-			validation.String("", it.IsNotBlank().Code("first")),
-			validation.String("", it.IsNotBlank().Code("second")),
-		).WhenGroups(testGroup),
 	)
 
 	assert.NoError(t, err)
@@ -171,18 +208,6 @@ func TestAtLeastOneOfArgument_WhenValidationIsDisabled_ExpectNoError(t *testing.
 			validation.String("", it.IsNotBlank().Code("first")),
 			validation.String("", it.IsNotBlank().Code("second")),
 		).When(false),
-	)
-
-	assert.NoError(t, err)
-}
-
-func TestAtLeastOneOfArgument_WhenGroupsNotMatch_ExpectNoError(t *testing.T) {
-	err := newValidator(t).Validate(
-		context.Background(),
-		validation.AtLeastOneOf(
-			validation.String("", it.IsNotBlank().Code("first")),
-			validation.String("", it.IsNotBlank().Code("second")),
-		).WhenGroups(testGroup),
 	)
 
 	assert.NoError(t, err)

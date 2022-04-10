@@ -48,10 +48,58 @@ func (arg WhenArgument) setUp(ctx *executionContext) {
 	})
 }
 
+// WhenGroupsArgument is used to build conditional validation based on groups. Use the WhenGroups function
+// to initiate a conditional check. If validation group matches to the validator one,
+// then the arguments passed through the Then function will be processed.
+// Otherwise, the arguments passed through the Else function will be processed.
+type WhenGroupsArgument struct {
+	groups        []string
+	options       []Option
+	thenArguments []Argument
+	elseArguments []Argument
+}
+
+// WhenGroups is used to build conditional validation based on groups. If validation group matches to
+// the validator one, then the arguments passed through the Then function will be processed.
+// Otherwise, the arguments passed through the Else function will be processed.
+func WhenGroups(groups ...string) WhenGroupsArgument {
+	return WhenGroupsArgument{groups: groups}
+}
+
+// Then function is used to set a sequence of arguments to be processed if the validation group is active.
+func (arg WhenGroupsArgument) Then(arguments ...Argument) WhenGroupsArgument {
+	arg.thenArguments = arguments
+	return arg
+}
+
+// Else function is used to set a sequence of arguments to be processed if the validation group is active.
+func (arg WhenGroupsArgument) Else(arguments ...Argument) WhenGroupsArgument {
+	arg.elseArguments = arguments
+	return arg
+}
+
+// With returns a copy of WhenArgument with appended options.
+func (arg WhenGroupsArgument) With(options ...Option) WhenGroupsArgument {
+	arg.options = append(arg.options, options...)
+	return arg
+}
+
+func (arg WhenGroupsArgument) setUp(ctx *executionContext) {
+	ctx.addValidator(arg.options, func(scope Scope) (*ViolationList, error) {
+		var err error
+		if scope.IsIgnored(arg.groups...) {
+			err = scope.validate(arg.elseArguments...)
+		} else {
+			err = scope.validate(arg.thenArguments...)
+		}
+
+		return unwrapViolationList(err)
+	})
+}
+
 // SequentialArgument can be used to interrupt validation process when the first violation is raised.
 type SequentialArgument struct {
 	isIgnored bool
-	groups    []string
 	options   []Option
 	arguments []Argument
 }
@@ -74,15 +122,9 @@ func (arg SequentialArgument) When(condition bool) SequentialArgument {
 	return arg
 }
 
-// WhenGroups enables conditional validation of the argument by using the validation groups.
-func (arg SequentialArgument) WhenGroups(groups ...string) SequentialArgument {
-	arg.groups = groups
-	return arg
-}
-
 func (arg SequentialArgument) setUp(ctx *executionContext) {
 	ctx.addValidator(arg.options, func(scope Scope) (*ViolationList, error) {
-		if arg.isIgnored || scope.IsIgnored(arg.groups...) {
+		if arg.isIgnored {
 			return nil, nil
 		}
 
@@ -106,7 +148,6 @@ func (arg SequentialArgument) setUp(ctx *executionContext) {
 // at least one of the given constraints. The validation stops as soon as one constraint is satisfied.
 type AtLeastOneOfArgument struct {
 	isIgnored bool
-	groups    []string
 	options   []Option
 	arguments []Argument
 }
@@ -130,15 +171,9 @@ func (arg AtLeastOneOfArgument) When(condition bool) AtLeastOneOfArgument {
 	return arg
 }
 
-// WhenGroups enables conditional validation of the argument by using the validation groups.
-func (arg AtLeastOneOfArgument) WhenGroups(groups ...string) AtLeastOneOfArgument {
-	arg.groups = groups
-	return arg
-}
-
 func (arg AtLeastOneOfArgument) setUp(ctx *executionContext) {
 	ctx.addValidator(arg.options, func(scope Scope) (*ViolationList, error) {
-		if arg.isIgnored || scope.IsIgnored(arg.groups...) {
+		if arg.isIgnored {
 			return nil, nil
 		}
 
