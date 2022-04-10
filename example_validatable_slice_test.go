@@ -38,7 +38,7 @@ func (companies Companies) Validate(ctx context.Context, validator *validation.V
 	return violations.AsError()
 }
 
-func ExampleValidator_ValidateValidatable_validatableSlice() {
+func ExampleValid_validatableSlice() {
 	companies := Companies{
 		{"MuonSoft", "London"},
 		{"", "x"},

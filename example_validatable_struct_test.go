@@ -42,7 +42,7 @@ func (c Component) Validate(ctx context.Context, validator *validation.Validator
 	)
 }
 
-func ExampleValidator_ValidateValidatable_validatableStruct() {
+func ExampleValid_validatableStruct() {
 	p := Product{
 		Name: "",
 		Tags: []string{"device", "", "phone", "device"},

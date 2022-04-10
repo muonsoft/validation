@@ -34,6 +34,24 @@ func ExampleNewValidator() {
 	// violation: This value should not be blank.
 }
 
+func ExampleNil() {
+	var v []string
+	err := validator.Validate(context.Background(), validation.Nil(v == nil, it.IsNotNil()))
+	fmt.Println(err)
+	// Output:
+	// violation: This value should not be nil.
+}
+
+func ExampleNilProperty() {
+	v := struct {
+		Tags []string
+	}{}
+	err := validator.Validate(context.Background(), validation.NilProperty("tags", v.Tags == nil, it.IsNotNil()))
+	fmt.Println(err)
+	// Output:
+	// violation at 'tags': This value should not be nil.
+}
+
 func ExampleBool() {
 	v := false
 	err := validator.Validate(context.Background(), validation.Bool(v, it.IsTrue()))
@@ -80,32 +98,109 @@ func ExampleNilBoolProperty() {
 	// violation at 'isPublished': This value should be true.
 }
 
-//
-// func ExampleNumber() {
-// 	v := 5
-// 	err := validator.Validate(
-// 		context.Background(),
-// 		validation.Number(&v, it.IsGreaterThan(5)),
-// 	)
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation: This value should be greater than 5.
-// }
-//
-// func ExampleNumberProperty() {
-// 	v := struct {
-// 		Count int
-// 	}{
-// 		Count: 5,
-// 	}
-// 	err := validator.Validate(
-// 		context.Background(),
-// 		validation.NumberProperty("count", &v.Count, it.IsGreaterThan(5)),
-// 	)
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation at 'count': This value should be greater than 5.
-// }
+func ExampleNumber_int() {
+	v := 5
+	err := validator.Validate(
+		context.Background(),
+		validation.Number[int](v, it.IsGreaterThan(5)),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation: This value should be greater than 5.
+}
+
+func ExampleNumber_float() {
+	v := 5.5
+	err := validator.Validate(
+		context.Background(),
+		validation.Number[float64](v, it.IsGreaterThan(6.5)),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation: This value should be greater than 6.5.
+}
+
+func ExampleNumberProperty_int() {
+	v := struct {
+		Count int
+	}{
+		Count: 5,
+	}
+	err := validator.Validate(
+		context.Background(),
+		validation.NumberProperty[int]("count", v.Count, it.IsGreaterThan(5)),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation at 'count': This value should be greater than 5.
+}
+
+func ExampleNumberProperty_float() {
+	v := struct {
+		Amount float64
+	}{
+		Amount: 5.5,
+	}
+	err := validator.Validate(
+		context.Background(),
+		validation.NumberProperty[float64]("amount", v.Amount, it.IsGreaterThan(6.5)),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation at 'amount': This value should be greater than 6.5.
+}
+
+func ExampleNilNumber_int() {
+	v := 5
+	err := validator.Validate(
+		context.Background(),
+		validation.NilNumber[int](&v, it.IsGreaterThan(5)),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation: This value should be greater than 5.
+}
+
+func ExampleNilNumber_float() {
+	v := 5.5
+	err := validator.Validate(
+		context.Background(),
+		validation.NilNumber[float64](&v, it.IsGreaterThan(6.5)),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation: This value should be greater than 6.5.
+}
+
+func ExampleNilNumberProperty_int() {
+	v := struct {
+		Count int
+	}{
+		Count: 5,
+	}
+	err := validator.Validate(
+		context.Background(),
+		validation.NilNumberProperty[int]("count", &v.Count, it.IsGreaterThan(5)),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation at 'count': This value should be greater than 5.
+}
+
+func ExampleNilNumberProperty_float() {
+	v := struct {
+		Amount float64
+	}{
+		Amount: 5.5,
+	}
+	err := validator.Validate(
+		context.Background(),
+		validation.NilNumberProperty[float64]("amount", &v.Amount, it.IsGreaterThan(6.5)),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation at 'amount': This value should be greater than 6.5.
+}
 
 func ExampleString() {
 	v := ""
@@ -149,28 +244,6 @@ func ExampleNilStringProperty() {
 	fmt.Println(err)
 	// Output:
 	// violation at 'title': This value should not be blank.
-}
-
-func ExampleComparables() {
-	v := []string{"foo", "bar", "baz", "foo"}
-	err := validator.Validate(
-		context.Background(),
-		validation.Comparables[string](v, it.HasUniqueValues[string]()),
-	)
-	fmt.Println(err)
-	// Output:
-	// violation: This collection should contain only unique elements.
-}
-
-func ExampleComparablesProperty() {
-	v := Book{Keywords: []string{"foo", "bar", "baz", "foo"}}
-	err := validator.Validate(
-		context.Background(),
-		validation.ComparablesProperty[string]("keywords", v.Keywords, it.HasUniqueValues[string]()),
-	)
-	fmt.Println(err)
-	// Output:
-	// violation at 'keywords': This collection should contain only unique elements.
 }
 
 func ExampleCountable() {
@@ -273,6 +346,158 @@ func ExampleEachStringProperty() {
 	// violation at 'tags[0]': This value should not be blank.
 }
 
+func ExampleEachNumber() {
+	v := []int{-1, 0, 1}
+	err := validator.Validate(
+		context.Background(),
+		validation.EachNumber[int](v, it.IsPositiveOrZero[int]()),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation at '[0]': This value should be either positive or zero.
+}
+
+func ExampleEachNumberProperty() {
+	v := struct {
+		Metrics []int
+	}{
+		Metrics: []int{-1, 0, 1},
+	}
+	err := validator.Validate(
+		context.Background(),
+		validation.EachNumberProperty[int]("metrics", v.Metrics, it.IsPositiveOrZero[int]()),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation at 'metrics[0]': This value should be either positive or zero.
+}
+
+func ExampleComparable_string() {
+	v := "unknown"
+	err := validator.Validate(
+		context.Background(),
+		validation.Comparable[string](v, it.IsOneOf("foo", "bar", "baz")),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation: The value you selected is not a valid choice.
+}
+
+func ExampleComparable_int() {
+	v := 4
+	err := validator.Validate(
+		context.Background(),
+		validation.Comparable[int](v, it.IsOneOf(1, 2, 3, 5)),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation: The value you selected is not a valid choice.
+}
+
+func ExampleComparableProperty_string() {
+	s := struct {
+		Enum string
+	}{
+		Enum: "unknown",
+	}
+	err := validator.Validate(
+		context.Background(),
+		validation.ComparableProperty[string]("enum", s.Enum, it.IsOneOf("foo", "bar", "baz")),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation at 'enum': The value you selected is not a valid choice.
+}
+
+func ExampleComparableProperty_int() {
+	s := struct {
+		Metric int
+	}{
+		Metric: 4,
+	}
+	err := validator.Validate(
+		context.Background(),
+		validation.ComparableProperty[int]("metric", s.Metric, it.IsOneOf(1, 2, 3, 5)),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation at 'metric': The value you selected is not a valid choice.
+}
+
+func ExampleNilComparable_string() {
+	v := "unknown"
+	err := validator.Validate(
+		context.Background(),
+		validation.NilComparable[string](&v, it.IsOneOf("foo", "bar", "baz")),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation: The value you selected is not a valid choice.
+}
+
+func ExampleNilComparable_int() {
+	v := 4
+	err := validator.Validate(
+		context.Background(),
+		validation.NilComparable[int](&v, it.IsOneOf(1, 2, 3, 5)),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation: The value you selected is not a valid choice.
+}
+
+func ExampleNilComparableProperty_string() {
+	s := struct {
+		Enum string
+	}{
+		Enum: "unknown",
+	}
+	err := validator.Validate(
+		context.Background(),
+		validation.NilComparableProperty[string]("enum", &s.Enum, it.IsOneOf("foo", "bar", "baz")),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation at 'enum': The value you selected is not a valid choice.
+}
+
+func ExampleNilComparableProperty_int() {
+	s := struct {
+		Metric int
+	}{
+		Metric: 4,
+	}
+	err := validator.Validate(
+		context.Background(),
+		validation.NilComparableProperty[int]("metric", &s.Metric, it.IsOneOf(1, 2, 3, 5)),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation at 'metric': The value you selected is not a valid choice.
+}
+
+func ExampleComparables() {
+	v := []string{"foo", "bar", "baz", "foo"}
+	err := validator.Validate(
+		context.Background(),
+		validation.Comparables[string](v, it.HasUniqueValues[string]()),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation: This collection should contain only unique elements.
+}
+
+func ExampleComparablesProperty() {
+	v := Book{Keywords: []string{"foo", "bar", "baz", "foo"}}
+	err := validator.Validate(
+		context.Background(),
+		validation.ComparablesProperty[string]("keywords", v.Keywords, it.HasUniqueValues[string]()),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation at 'keywords': This collection should contain only unique elements.
+}
+
 func ExampleCheck() {
 	v := 123
 	err := validator.Validate(context.Background(), validation.Check(v > 321))
@@ -331,98 +556,68 @@ func ExampleWhen() {
 	// violation at 'cardNumber': This value is not valid.
 }
 
-//
-// func ExampleConditionalConstraint_Then() {
-// 	v := "foo"
-// 	err := validator.Validate(
-// 		context.Background(),
-// 		validation.String(
-// 			v,
-// 			validation.When(true).Then(it.Matches(regexp.MustCompile(`^\w+$`))),
-// 		),
-// 	)
-// 	fmt.Println(err)
-// 	// Output:
-// 	// <nil>
-// }
-//
-// func ExampleConditionalConstraint_Else() {
-// 	v := "123"
-// 	err := validator.Validate(
-// 		context.Background(),
-// 		validation.String(
-// 			v,
-// 			validation.When(false).
-// 				Then(it.Matches(regexp.MustCompile(`^\w+$`))).
-// 				Else(it.Matches(regexp.MustCompile(`^\d+$`))),
-// 		),
-// 	)
-// 	fmt.Println(err)
-// 	// Output:
-// 	// <nil>
-// }
-//
-// func ExampleSequentially() {
-// 	title := "bar"
-//
-// 	err := validator.Validate(
-// 		context.Background(),
-// 		validation.String(
-// 			title,
-// 			validation.Sequentially(
-// 				it.IsBlank(),       // validation will fail on first constraint
-// 				it.HasMinLength(5), // this constraint will be ignored
-// 			),
-// 		),
-// 	)
-//
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation: This value should be blank.
-// }
-//
-// func ExampleAtLeastOneOf() {
-// 	title := "bar"
-//
-// 	err := validator.Validate(
-// 		context.Background(),
-// 		validation.String(
-// 			title,
-// 			validation.AtLeastOneOf(
-// 				it.IsBlank(),
-// 				it.HasMinLength(5),
-// 			),
-// 		),
-// 	)
-//
-// 	if violations, ok := validation.UnwrapViolationList(err); ok {
-// 		for violation := violations.First(); violation != nil; violation = violation.Next() {
-// 			fmt.Println(violation)
-// 		}
-// 	}
-// 	// Output:
-// 	// violation: This value should be blank.
-// 	// violation: This value is too short. It should have 5 characters or more.
-// }
-//
-// func ExampleCompound() {
-// 	title := "bar"
-// 	isEmail := validation.Compound(it.IsEmail(), it.HasLengthBetween(5, 200))
-//
-// 	err := validator.Validate(
-// 		context.Background(),
-// 		validation.String(title, isEmail),
-// 	)
-//
-// 	if violations, ok := validation.UnwrapViolationList(err); ok {
-// 		for violation := violations.First(); violation != nil; violation = violation.Next() {
-// 			fmt.Println(violation)
-// 		}
-// 	}
-// 	// Output:
-// 	// violation: This value is not a valid email address.
-// 	// violation: This value is too short. It should have 5 characters or more.
-// }
+func ExampleWhenArgument_Then() {
+	v := "foo"
+	err := validator.Validate(
+		context.Background(),
+		validation.When(true).Then(
+			validation.String(v, it.Matches(regexp.MustCompile(`^\w+$`))),
+		),
+	)
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleWhenArgument_Else() {
+	v := "123"
+	err := validator.Validate(
+		context.Background(),
+		validation.When(true).
+			Then(validation.String(v, it.Matches(regexp.MustCompile(`^\w+$`)))).
+			Else(validation.String(v, it.Matches(regexp.MustCompile(`^\d+$`)))),
+	)
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleSequentially() {
+	title := "bar"
+
+	err := validator.Validate(
+		context.Background(),
+		validation.Sequentially(
+			validation.String(title, it.IsBlank()),       // validation will fail on first argument
+			validation.String(title, it.HasMinLength(5)), // this argument will be ignored
+		),
+	)
+
+	fmt.Println(err)
+	// Output:
+	// violation: This value should be blank.
+}
+
+func ExampleAtLeastOneOf() {
+	title := "bar"
+
+	err := validator.Validate(
+		context.Background(),
+		validation.AtLeastOneOf(
+			validation.String(title, it.IsBlank()),
+			validation.String(title, it.HasMinLength(5)),
+		),
+	)
+
+	if violations, ok := validation.UnwrapViolationList(err); ok {
+		for violation := violations.First(); violation != nil; violation = violation.Next() {
+			fmt.Println(violation)
+		}
+	}
+	// Output:
+	// violation: This value should be blank.
+	// violation: This value is too short. It should have 5 characters or more.
+}
 
 func ExampleValidator_Validate_basicValidation() {
 	s := ""
