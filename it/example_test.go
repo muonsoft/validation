@@ -100,150 +100,159 @@ func ExampleIsOneOf() {
 	// violation: The value you selected is not a valid choice.
 }
 
-//
-// func ExampleIsEqualToInteger() {
-// 	v := 1
-// 	err := validator.ValidateNumber(context.Background(), v, it.IsEqualToInteger(2))
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation: This value should be equal to 2.
-// }
-//
-// func ExampleIsEqualToFloat() {
-// 	v := 1.1
-// 	err := validator.ValidateNumber(context.Background(), v, it.IsEqualToFloat(1.2))
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation: This value should be equal to 1.2.
-// }
-//
-// func ExampleIsNotEqualToInteger() {
-// 	v := 1
-// 	err := validator.ValidateNumber(context.Background(), v, it.IsNotEqualToInteger(1))
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation: This value should not be equal to 1.
-// }
-//
-// func ExampleIsNotEqualToFloat() {
-// 	v := 1.1
-// 	err := validator.ValidateNumber(context.Background(), v, it.IsNotEqualToFloat(1.1))
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation: This value should not be equal to 1.1.
-// }
-//
-// func ExampleIsLessThanInteger() {
-// 	v := 1
-// 	err := validator.ValidateNumber(context.Background(), v, it.IsLessThanInteger(1))
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation: This value should be less than 1.
-// }
-//
-// func ExampleIsLessThanFloat() {
-// 	v := 1.1
-// 	err := validator.ValidateNumber(context.Background(), v, it.IsLessThanFloat(1.1))
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation: This value should be less than 1.1.
-// }
-//
-// func ExampleIsLessThanOrEqualInteger() {
-// 	v := 1
-// 	err := validator.ValidateNumber(context.Background(), v, it.IsLessThanOrEqualInteger(0))
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation: This value should be less than or equal to 0.
-// }
-//
-// func ExampleIsLessThanOrEqualFloat() {
-// 	v := 1.1
-// 	err := validator.ValidateNumber(context.Background(), v, it.IsLessThanOrEqualFloat(0.1))
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation: This value should be less than or equal to 0.1.
-// }
-//
-// func ExampleIsGreaterThanInteger() {
-// 	v := 1
-// 	err := validator.ValidateNumber(context.Background(), v, it.IsGreaterThanInteger(1))
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation: This value should be greater than 1.
-// }
-//
-// func ExampleIsGreaterThanFloat() {
-// 	v := 1.1
-// 	err := validator.ValidateNumber(context.Background(), v, it.IsGreaterThanFloat(1.1))
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation: This value should be greater than 1.1.
-// }
-//
-// func ExampleIsGreaterThanOrEqualInteger() {
-// 	v := 1
-// 	err := validator.ValidateNumber(context.Background(), v, it.IsGreaterThanOrEqualInteger(2))
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation: This value should be greater than or equal to 2.
-// }
-//
-// func ExampleIsGreaterThanOrEqualFloat() {
-// 	v := 1.1
-// 	err := validator.ValidateNumber(context.Background(), v, it.IsGreaterThanOrEqualFloat(1.2))
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation: This value should be greater than or equal to 1.2.
-// }
-//
-// func ExampleIsPositive() {
-// 	v := -1
-// 	err := validator.ValidateNumber(context.Background(), v, it.IsPositive())
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation: This value should be positive.
-// }
-//
-// func ExampleIsPositiveOrZero() {
-// 	v := -1
-// 	err := validator.ValidateNumber(context.Background(), v, it.IsPositiveOrZero())
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation: This value should be either positive or zero.
-// }
-//
-// func ExampleIsNegative() {
-// 	v := 1
-// 	err := validator.ValidateNumber(context.Background(), v, it.IsNegative())
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation: This value should be negative.
-// }
-//
-// func ExampleIsNegativeOrZero() {
-// 	v := 1
-// 	err := validator.ValidateNumber(context.Background(), v, it.IsNegativeOrZero())
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation: This value should be either negative or zero.
-// }
-//
-// func ExampleIsBetweenIntegers() {
-// 	v := 1
-// 	err := validator.ValidateNumber(context.Background(), v, it.IsBetweenIntegers(10, 20))
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation: This value should be between 10 and 20.
-// }
-//
-// func ExampleIsBetweenFloats() {
-// 	v := 1.1
-// 	err := validator.ValidateNumber(context.Background(), v, it.IsBetweenFloats(10.111, 20.222))
-// 	fmt.Println(err)
-// 	// Output:
-// 	// violation: This value should be between 10.111 and 20.222.
-// }
+func ExampleIsEqualToNumber() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](1, it.IsEqualToNumber(2))),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](1.1, it.IsEqualToNumber(1.2))),
+	)
+	// Output:
+	// violation: This value should be equal to 2.
+	// violation: This value should be equal to 1.2.
+}
+
+func ExampleIsNotEqualToNumber() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](1, it.IsNotEqualToNumber(1))),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](1.1, it.IsNotEqualToNumber(1.1))),
+	)
+	// Output:
+	// violation: This value should not be equal to 1.
+	// violation: This value should not be equal to 1.1.
+}
+
+func ExampleIsLessThan() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](1, it.IsLessThan(1))),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](1.1, it.IsLessThan(1.1))),
+	)
+	// Output:
+	// violation: This value should be less than 1.
+	// violation: This value should be less than 1.1.
+}
+
+func ExampleIsLessThanOrEqual() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](1, it.IsLessThanOrEqual(0))),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](1.1, it.IsLessThanOrEqual(0.1))),
+	)
+	// Output:
+	// violation: This value should be less than or equal to 0.
+	// violation: This value should be less than or equal to 0.1.
+}
+
+func ExampleIsGreaterThan() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](1, it.IsGreaterThan(1))),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](1.1, it.IsGreaterThan(1.1))),
+	)
+	// Output:
+	// violation: This value should be greater than 1.
+	// violation: This value should be greater than 1.1.
+}
+
+func ExampleIsGreaterThanOrEqual() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](1, it.IsGreaterThanOrEqual(2))),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](1.1, it.IsGreaterThanOrEqual(1.2))),
+	)
+	// Output:
+	// violation: This value should be greater than or equal to 2.
+	// violation: This value should be greater than or equal to 1.2.
+}
+
+func ExampleIsPositive() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](-1, it.IsPositive[int]())),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](-1.1, it.IsPositive[float64]())),
+	)
+	// Output:
+	// violation: This value should be positive.
+	// violation: This value should be positive.
+}
+
+func ExampleIsPositiveOrZero() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](-1, it.IsPositiveOrZero[int]())),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](-1.1, it.IsPositiveOrZero[float64]())),
+	)
+	// Output:
+	// violation: This value should be either positive or zero.
+	// violation: This value should be either positive or zero.
+}
+
+func ExampleIsNegative() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](1, it.IsNegative[int]())),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](1.1, it.IsNegative[float64]())),
+	)
+	// Output:
+	// violation: This value should be negative.
+	// violation: This value should be negative.
+}
+
+func ExampleIsNegativeOrZero() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](1, it.IsNegativeOrZero[int]())),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](1.1, it.IsNegativeOrZero[float64]())),
+	)
+	// Output:
+	// violation: This value should be either negative or zero.
+	// violation: This value should be either negative or zero.
+}
+
+func ExampleIsBetween() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](1, it.IsBetween(10, 20))),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](1.1, it.IsBetween(10.111, 20.222))),
+	)
+	// Output:
+	// violation: This value should be between 10 and 20.
+	// violation: This value should be between 10.111 and 20.222.
+}
 
 func ExampleIsEqualToString() {
 	v := "foo"
