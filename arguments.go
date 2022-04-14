@@ -115,26 +115,6 @@ func NilTimeProperty(name string, value *time.Time, constraints ...TimeConstrain
 	return NewArgument(validateTime(value, constraints)).With(PropertyName(name))
 }
 
-// EachString is used to validate a slice of strings.
-func EachString(values []string, constraints ...StringConstraint) ValidatorArgument {
-	return NewArgument(validateEachString(values, constraints))
-}
-
-// EachStringProperty argument is an alias for EachString that automatically adds property name to the current scope.
-func EachStringProperty(name string, values []string, constraints ...StringConstraint) ValidatorArgument {
-	return NewArgument(validateEachString(values, constraints)).With(PropertyName(name))
-}
-
-// EachNumber is used to validate a slice of numbers.
-func EachNumber[T Numeric](values []T, constraints ...NumberConstraint[T]) ValidatorArgument {
-	return NewArgument(validateEachNumber(values, constraints))
-}
-
-// EachNumberProperty argument is an alias for EachString that automatically adds property name to the current scope.
-func EachNumberProperty[T Numeric](name string, values []T, constraints ...NumberConstraint[T]) ValidatorArgument {
-	return NewArgument(validateEachNumber(values, constraints)).With(PropertyName(name))
-}
-
 // Valid is used to run validation on the Validatable type. This method is recommended
 // to build a complex validation process.
 func Valid(value Validatable) ValidatorArgument {
@@ -196,6 +176,36 @@ func Comparables[T comparable](values []T, constraints ...ComparablesConstraint[
 // ComparablesProperty argument is an alias for Comparables that automatically adds property name to the current scope.
 func ComparablesProperty[T comparable](name string, values []T, constraints ...ComparablesConstraint[T]) ValidatorArgument {
 	return NewArgument(validateComparables(values, constraints)).With(PropertyName(name))
+}
+
+// EachString is used to validate a slice of strings.
+func EachString(values []string, constraints ...StringConstraint) ValidatorArgument {
+	return NewArgument(validateEachString(values, constraints))
+}
+
+// EachStringProperty argument is an alias for EachString that automatically adds property name to the current scope.
+func EachStringProperty(name string, values []string, constraints ...StringConstraint) ValidatorArgument {
+	return NewArgument(validateEachString(values, constraints)).With(PropertyName(name))
+}
+
+// EachNumber is used to validate a slice of numbers.
+func EachNumber[T Numeric](values []T, constraints ...NumberConstraint[T]) ValidatorArgument {
+	return NewArgument(validateEachNumber(values, constraints))
+}
+
+// EachNumberProperty argument is an alias for EachString that automatically adds property name to the current scope.
+func EachNumberProperty[T Numeric](name string, values []T, constraints ...NumberConstraint[T]) ValidatorArgument {
+	return NewArgument(validateEachNumber(values, constraints)).With(PropertyName(name))
+}
+
+// EachComparable is used to validate a slice of generic comparables.
+func EachComparable[T comparable](values []T, constraints ...ComparableConstraint[T]) ValidatorArgument {
+	return NewArgument(validateEachComparable(values, constraints))
+}
+
+// EachComparableProperty argument is an alias for EachComparable that automatically adds property name to the current scope.
+func EachComparableProperty[T comparable](name string, values []T, constraints ...ComparableConstraint[T]) ValidatorArgument {
+	return NewArgument(validateEachComparable(values, constraints)).With(PropertyName(name))
 }
 
 // CheckNoViolations is a special argument that checks err for violations. If err contains Violation or ViolationList

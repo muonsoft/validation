@@ -35,6 +35,7 @@ func TestValidate_WhenArgumentForGivenType_ExpectValidationExecuted(t *testing.T
 		{"Comparables", validation.Comparables[string]([]string{"foo", "foo"}, it.HasUniqueValues[string]())},
 		{"EachString", validation.EachString([]string{""}, it.IsNotBlank())},
 		{"EachNumber", validation.EachNumber[int]([]int{0}, it.IsNotBlankNumber[int]())},
+		{"EachComparable", validation.EachComparable[int]([]int{1}, it.IsOneOf(2))},
 		{"Valid", validation.Valid(mockValidatableString{""})},
 		{"ValidSlice", validation.ValidSlice([]mockValidatableString{{""}})},
 		{"ValidMap", validation.ValidMap(map[string]mockValidatableString{"key": {""}})},
@@ -141,6 +142,12 @@ func TestValidate_WhenPropertyArgument_ExpectValidPathInViolation(t *testing.T) 
 		{
 			name: "EachNumberProperty",
 			argument: validation.EachNumberProperty[int]("property", []int{0}, it.IsNotBlankNumber[int]()).
+				With(validation.PropertyName("internal")),
+			expectedPath: "property.internal[0]",
+		},
+		{
+			name: "EachComparableProperty",
+			argument: validation.EachComparableProperty[string]("property", []string{"foo"}, it.IsOneOf("bar")).
 				With(validation.PropertyName("internal")),
 			expectedPath: "property.internal[0]",
 		},

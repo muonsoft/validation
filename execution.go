@@ -115,8 +115,8 @@ func validateEachString(values []string, constraints []StringConstraint) Validat
 		violations := NewViolationList()
 
 		for i := range values {
-			for j := range constraints {
-				err := violations.AppendFromError(constraints[j].ValidateString(&values[i], scope.AtIndex(i)))
+			for _, constraint := range constraints {
+				err := violations.AppendFromError(constraint.ValidateString(&values[i], scope.AtIndex(i)))
 				if err != nil {
 					return nil, err
 				}
@@ -132,8 +132,25 @@ func validateEachNumber[T Numeric](values []T, constraints []NumberConstraint[T]
 		violations := NewViolationList()
 
 		for i := range values {
-			for j := range constraints {
-				err := violations.AppendFromError(constraints[j].ValidateNumber(&values[i], scope.AtIndex(i)))
+			for _, constraint := range constraints {
+				err := violations.AppendFromError(constraint.ValidateNumber(&values[i], scope.AtIndex(i)))
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+
+		return violations, nil
+	}
+}
+
+func validateEachComparable[T comparable](values []T, constraints []ComparableConstraint[T]) ValidateOnScopeFunc {
+	return func(scope Scope) (*ViolationList, error) {
+		violations := NewViolationList()
+
+		for i := range values {
+			for _, constraint := range constraints {
+				err := violations.AppendFromError(constraint.ValidateComparable(&values[i], scope.AtIndex(i)))
 				if err != nil {
 					return nil, err
 				}

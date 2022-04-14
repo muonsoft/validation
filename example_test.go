@@ -372,6 +372,32 @@ func ExampleEachNumberProperty() {
 	// violation at 'metrics[0]': This value should be either positive or zero.
 }
 
+func ExampleEachComparable() {
+	v := []string{"foo", "bar", "baz"}
+	err := validator.Validate(
+		context.Background(),
+		validation.EachComparable[string](v, it.IsOneOf("foo", "bar", "buz")),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation at '[2]': The value you selected is not a valid choice.
+}
+
+func ExampleEachComparableProperty() {
+	v := struct {
+		Labels []string
+	}{
+		Labels: []string{"foo", "bar", "baz"},
+	}
+	err := validator.Validate(
+		context.Background(),
+		validation.EachComparableProperty[string]("labels", v.Labels, it.IsOneOf("foo", "bar", "buz")),
+	)
+	fmt.Println(err)
+	// Output:
+	// violation at 'labels[2]': The value you selected is not a valid choice.
+}
+
 func ExampleComparable_string() {
 	v := "unknown"
 	err := validator.Validate(
