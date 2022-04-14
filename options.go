@@ -2,24 +2,14 @@ package validation
 
 // Option is used to set up validation process of a value.
 type Option interface {
-	// SetUp is called when the validation process is initialized
-	// and can be used to gracefully handle errors when initializing constraints.
-	SetUp() error
-}
-
-// internalOption is used to tune the validation scope before starting the validation process.
-type internalOption interface {
-	setUpOnScope(scope *Scope) error
+	// SetUp is called when the validation process is initialized and can be used to modify scope values.
+	SetUp(scope *Scope) error
 }
 
 // optionFunc is an adapter that allows to use ordinary functions as validation options.
 type optionFunc func(scope *Scope) error
 
-func (f optionFunc) SetUp() error {
-	return nil
-}
-
-func (f optionFunc) setUpOnScope(scope *Scope) error {
+func (f optionFunc) SetUp(scope *Scope) error {
 	return f(scope)
 }
 

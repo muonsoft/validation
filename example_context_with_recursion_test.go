@@ -51,27 +51,23 @@ type Property struct {
 
 // You can declare you own constraint interface to create custom constraints.
 type PropertyConstraint interface {
-	validation.Constraint
 	ValidateProperty(property *Property, scope validation.Scope) error
 }
 
 // To create your own functional argument for validation simply create a function with
 // a typed value and use the validation.NewArgument constructor.
-func PropertyArgument(property *Property, options ...validation.Option) validation.Argument {
-	return validation.NewArgument(options, func(constraint validation.Constraint, scope validation.Scope) error {
-		if c, ok := constraint.(PropertyConstraint); ok {
-			return c.ValidateProperty(property, scope)
-		}
-		// If you want to use built-in constraints for checking for nil or empty values
-		// such as it.IsNil() or it.IsBlank().
-		if c, ok := constraint.(validation.NilConstraint); ok {
-			if property == nil {
-				return c.ValidateNil(scope)
+func ValidProperty(property *Property, constraints ...PropertyConstraint) validation.ValidatorArgument {
+	return validation.NewArgument(func(scope validation.Scope) (*validation.ViolationList, error) {
+		violations := validation.NewViolationList()
+
+		for i := range constraints {
+			err := violations.AppendFromError(constraints[i].ValidateProperty(property, scope))
+			if err != nil {
+				return nil, err
 			}
-			return nil
 		}
 
-		return validation.NewInapplicableConstraintError(constraint, "Property")
+		return violations, nil
 	})
 }
 
@@ -84,10 +80,10 @@ func (p Property) Validate(ctx context.Context, validator *validation.Validator)
 		// Incrementing nesting level in context with special function.
 		contextWithNextNestingLevel(ctx),
 		// Executing validation for maximum nesting level of properties.
-		PropertyArgument(&p, ItIsNotDeeperThan(3)),
+		ValidProperty(&p, ItIsNotDeeperThan(3)),
 		validation.StringProperty("name", p.Name, it.IsNotBlank()),
 		// This should run recursive validation for properties.
-		validation.IterableProperty("properties", p.Properties),
+		validation.ValidSliceProperty("properties", p.Properties),
 	)
 }
 
@@ -122,7 +118,7 @@ func ExampleValidator_Validate_usingContextWithRecursion() {
 		},
 	}
 
-	err := validator.Validate(context.Background(), validation.Iterable(properties))
+	err := validator.Validate(context.Background(), validation.ValidSlice(properties))
 
 	fmt.Println(err)
 	// Output:

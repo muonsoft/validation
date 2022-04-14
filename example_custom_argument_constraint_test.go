@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/muonsoft/validation"
-	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/validator"
 )
 
@@ -31,27 +30,23 @@ func (repository *BrandRepository) FindByName(ctx context.Context, name string) 
 
 // You can declare you own constraint interface to create custom constraints.
 type BrandConstraint interface {
-	validation.Constraint
 	ValidateBrand(brand *Brand, scope validation.Scope) error
 }
 
 // To create your own functional argument for validation simply create a function with
 // a typed value and use the validation.NewArgument constructor.
-func BrandArgument(brand *Brand, options ...validation.Option) validation.Argument {
-	return validation.NewArgument(options, func(constraint validation.Constraint, scope validation.Scope) error {
-		if c, ok := constraint.(BrandConstraint); ok {
-			return c.ValidateBrand(brand, scope)
-		}
-		// If you want to use built-in constraints for checking for nil or empty values
-		// such as it.IsNil() or it.IsBlank().
-		if c, ok := constraint.(validation.NilConstraint); ok {
-			if brand == nil {
-				return c.ValidateNil(scope)
+func ValidBrand(brand *Brand, constraints ...BrandConstraint) validation.ValidatorArgument {
+	return validation.NewArgument(func(scope validation.Scope) (*validation.ViolationList, error) {
+		violations := validation.NewViolationList()
+
+		for i := range constraints {
+			err := violations.AppendFromError(constraints[i].ValidateBrand(brand, scope))
+			if err != nil {
+				return nil, err
 			}
-			return nil
 		}
 
-		return validation.NewInapplicableConstraintError(constraint, "Brand")
+		return violations, nil
 	})
 }
 
@@ -103,7 +98,7 @@ func ExampleNewArgument_customArgumentConstraintValidator() {
 	err := validator.Validate(
 		// you can pass here the context value to the validation scope
 		context.WithValue(context.Background(), exampleKey, "value"),
-		BrandArgument(&brand, it.IsNotBlank(), isEntityUnique),
+		ValidBrand(&brand, isEntityUnique),
 	)
 
 	fmt.Println(err)

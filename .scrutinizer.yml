@@ -9,13 +9,13 @@ build:
     tests:
       environment:
         go:
-          version: 'go1.14'
+          version: 'go1.18'
       project_setup:
         override:
           - go mod download
       tests:
         override:
-          - command: go test -v $(go list ./...) -coverpkg .,./it,./generic,./validator -coverprofile=cover.out
+          - command: go test -v $(go list ./...) -coverpkg .,./it,./validator -coverprofile=cover.out
             coverage:
               file: 'cover.out'
               format: 'go-cc'

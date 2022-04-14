@@ -18,7 +18,7 @@ This project is inspired by [Symfony Validator component](https://symfony.com/in
 
 ## Key features
 
-* Flexible and customizable API built in mind to use benefits of static typing
+* Flexible and customizable API built in mind to use benefits of static typing and generics
 * Nice and readable way to describe validation process in code
 * Validation of different types: booleans, numbers, strings, slices, maps, and time
 * Validation of custom data types that implements `Validatable` interface
@@ -30,9 +30,11 @@ This project is inspired by [Symfony Validator component](https://symfony.com/in
 This package is under active development and API may be changed until the first major version will be released. Minor
 versions `n` 0.n.m may contain breaking changes. Patch versions `m` 0.n.m may contain only bug fixes.
 
-First stable version aimed to be released
-after [generics implementation](https://go.googlesource.com/proposal/+/refs/heads/master/design/go2draft-contracts.md)
-in Golang.
+Goals before making stable release:
+
+* [x] implementation of static type arguments by generics;
+* [ ] mechanism for asynchronous validation (lazy violations by async/await pattern);
+* [ ] stable production usage for at least 6 months.
 
 ## Installation
 
@@ -61,39 +63,40 @@ for _, violation := range violations {
 // violation: This value should not be blank.
 ```
 
-List of common [validation arguments](https://pkg.go.dev/github.com/muonsoft/validation#Argument)
+List of common [validation arguments](https://pkg.go.dev/github.com/muonsoft/validation#Argument):
 
-* `validation.Value()` - passes any value. It uses reflection to detect the type of the argument and pass it to a
-  specific validation method.
-* `validation.Bool()` - passes boolean value.
-* `validation.NilBool()` - passes nillable boolean value.
-* `validation.Number()` - passes any numeric value. At the moment it uses reflection for executing validation process.
-* `validation.String()` - passes string value.
-* `validation.NilString()` - passes nillable string value.
-* `validation.Strings()` - passes slice of strings value.
-* `validation.Iterable()` - passes array, slice or a map. At the moment it uses reflection for executing validation
-  process.
-* `validation.Countable()` - you can pass result of `len()` to use easy way of iterable validation based only on count
-  of the elements.
-* `validation.Time()` - passes `time.Time` value.
-* `validation.NilTime()` - passes nillable `time.Time` value.
-* `validation.Each()` - passes array, slice or a map. Used to validate each value of iterable. It uses reflection.
-* `validation.EachString()` - passes slice of strings. This is more performant version than `Each`.
-* `validation.Valid()` - passes `Validatable` value to run embedded validation.
+* `validation.Nil()` - passes result of comparison to nil to test against nil constraints;
+* `validation.Bool()` - passes boolean value;
+* `validation.NilBool()` - passes boolean pointer value;
+* `validation.Number[T]()` - passes generic numeric value;
+* `validation.NilNumber[T]()` - passes generic numeric pointer value;
+* `validation.String()` - passes string value;
+* `validation.NilString()` - passes string pointer value;
+* `validation.Countable()` - passes result of `len()` to test against constraints based on count of the elements;
+* `validation.Time()` - passes `time.Time` value;
+* `validation.NilTime()` - passes `time.Time` pointer value;
+* `validation.EachNumber[T]()` - passes slice of generic numbers to test each of the element against numeric constraints;
+* `validation.EachString()` - passes slice of strings to test each of the element against string constraints;
+* `validation.Valid()` - passes `Validatable` value to run embedded validation;
+* `validation.ValidSlice[T]()` - passes slice of `[]Validatable` value to run embedded validation on each of the elements;
+* `validation.ValidMap[T]()` - passes `map[string]Validatable` value to run embedded validation on each of the elements;
+* `validation.Comparable[T]()` - passes generic comparable value to test against comparable constraints;
+* `validation.NilComparable[T]()` - passes generic comparable pointer value to test against comparable constraints;
+* `validation.Comparables[T]()` - passes generic slice of comparable values (can be used to check for uniqueness of the elements);
+* `validation.Check()` - passes result of any boolean expression;
+* `validation.CheckNoViolations()` - passes `error` to check err for violations, can be used for embedded validation.
 
-For single value validation, you can use shorthand versions of the validation method.
+For single value validation, you can use shorthand versions of the validation method:
 
-* `validator.ValidateValue()`
-* `validator.ValidateBool()`
-* `validator.ValidateNumber()`
-* `validator.ValidateString()`
-* `validator.ValidateStrings()`
-* `validator.ValidateIterable()`
-* `validator.ValidateCountable()`
-* `validator.ValidateTime()`
-* `validator.ValidateEach()`
-* `validator.ValidateEachString()`
-* `validator.ValidateValidatable()`
+* `validator.ValidateBool()` - shorthand for `validator.Bool()`;
+* `validator.ValidateInt()` - shorthand for `validation.Number[int]()`;
+* `validator.ValidateFloat()` - shorthand for `validation.Number[float64]()`;
+* `validator.ValidateString()` - shorthand for `validation.String()`;
+* `validator.ValidateStrings()` - shorthand for `validation.Comparables[[]string]()`;
+* `validator.ValidateCountable()` - shorthand for `validation.Countable()`;
+* `validator.ValidateTime()` - shorthand for `validation.Time()`;
+* `validator.ValidateEachString()` - shorthand for `validation.EachString()`;
+* `validator.ValidateIt()` - shorthand for `validation.Valid()`.
 
 See usage examples in the [documentation](https://pkg.go.dev/github.com/muonsoft/validation#Validator.Validate).
 
@@ -155,10 +158,11 @@ err := validator.Validate(
     context.Background(),
     validation.String(
         "",
+        it.IsNotBlank(),
+    ).With(
         validation.PropertyName("properties"),
         validation.ArrayIndex(1),
         validation.PropertyName("tag"),
-        it.IsNotBlank(),
     ),
 )
 
@@ -185,22 +189,26 @@ fmt.Println("property path:", violation.GetPropertyPath().Format())
 ```
 
 For a better experience with struct validation, you can use shorthand versions of validation arguments with passing
-property names.
+property names:
 
-* `validation.PropertyValue()`
-* `validation.BoolProperty()`
-* `validation.NilBoolProperty()`
-* `validation.NumberProperty()`
-* `validation.StringProperty()`
-* `validation.NilStringProperty()`
-* `validation.StringsProperty()`
-* `validation.IterableProperty()`
-* `validation.CountableProperty()`
-* `validation.TimeProperty()`
-* `validation.NilTimeProperty()`
-* `validation.EachProperty()`
-* `validation.EachStringProperty()`
-* `validation.ValidProperty()`
+* `validation.NilProperty()`;
+* `validation.BoolProperty()`;
+* `validation.NilBoolProperty()`;
+* `validation.NumberProperty()`;
+* `validation.NilNumberProperty()`;
+* `validation.StringProperty()`;
+* `validation.NilStringProperty()`;
+* `validation.CountableProperty()`;
+* `validation.TimeProperty()`;
+* `validation.NilTimeProperty()`;
+* `validation.EachNumberProperty()`;
+* `validation.EachStringProperty()`;
+* `validation.ValidProperty()`;
+* `validation.ValidSliceProperty()`;
+* `validation.ValidMapProperty()`;
+* `validation.ComparableProperty()`;
+* `validation.ComparablesProperty()`;
+* `validation.CheckProperty()`.
 
 ```golang
 err := validator.Validate(
@@ -229,7 +237,7 @@ err := validator.Validate(
     context.Background(),
     validation.StringProperty("title", document.Title, it.IsNotBlank()),
     validation.CountableProperty("keywords", len(document.Keywords), it.HasCountBetween(5, 10)),
-    validation.StringsProperty("keywords", document.Keywords, it.HasUniqueValues()),
+    validation.ComparablesProperty[string]("keywords", document.Keywords, it.HasUniqueValues[string]()),
     validation.EachStringProperty("keywords", document.Keywords, it.IsNotBlank()),
 )
 
@@ -260,10 +268,11 @@ func (p Product) Validate(ctx context.Context, validator *validation.Validator) 
         ctx,
         validation.StringProperty("name", p.Name, it.IsNotBlank()),
         validation.CountableProperty("tags", len(p.Tags), it.HasMinCount(5)),
-        validation.StringsProperty("tags", p.Tags, it.HasUniqueValues()),
+        validation.ComparablesProperty[string]("tags", p.Tags, it.HasUniqueValues[string]()),
         validation.EachStringProperty("tags", p.Tags, it.IsNotBlank()),
-        // this also runs validation on each of the components
-        validation.IterableProperty("components", p.Components, it.HasMinCount(1)),
+        validation.CountableProperty("components", len(p.Components), it.HasMinCount(1)),
+        // this runs validation on each of the components
+        validation.ValidSliceProperty("components", p.Components),
     )
 }
 
@@ -293,7 +302,7 @@ func main() {
         },
     }
     
-    err := validator.ValidateValidatable(context.Background(), p)
+    err := validator.ValidateIt(context.Background(), p)
     
     violations := err.(validation.ViolationList)
     for _, violation := range violations {
@@ -545,15 +554,15 @@ Everything you need to create a custom constraint is to implement one of the int
 * `BoolConstraint` - for validating boolean values;
 * `NumberConstraint` - for validating numeric values;
 * `StringConstraint` - for validating string values;
-* `StringsConstraint` - for validating slice of strings;
-* `IterableConstraint` - for validating iterable values: arrays, slices, or maps;
+* `ComparableConstraint` - for validating generic comparable values;
+* `ComparablesConstraint` - for validating slice of generic comparable values;
 * `CountableConstraint` - for validating iterable values based only on the count of elements;
-* `TimeConstraint` - for validating date\time values.
+* `TimeConstraint` - for validating date/time values.
 
 Also, you can combine several types of constraints. See examples for more details:
 
 * [custom static constraint](https://pkg.go.dev/github.com/muonsoft/validation#example-Validator.Validate-CustomConstraint);
-* [custom constraint as a service](https://pkg.go.dev/github.com/muonsoft/validation#example-Validator.ValidateBy-CustomServiceConstraint).
+* [custom constraint as a service](https://pkg.go.dev/github.com/muonsoft/validation#example-Validator.GetConstraint-CustomServiceConstraint).
 * [custom constraint with custom argument for domain type](https://pkg.go.dev/github.com/muonsoft/validation#example-NewArgument-CustomArgumentConstraintValidator).
 
 ### Recommendations for storing violations in a database

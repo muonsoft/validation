@@ -20,10 +20,11 @@ func (p Product) Validate(ctx context.Context, validator *validation.Validator) 
 		ctx,
 		validation.StringProperty("name", p.Name, it.IsNotBlank()),
 		validation.CountableProperty("tags", len(p.Tags), it.HasMinCount(5)),
-		validation.StringsProperty("tags", p.Tags, it.HasUniqueValues()),
+		validation.ComparablesProperty[string]("tags", p.Tags, it.HasUniqueValues[string]()),
 		validation.EachStringProperty("tags", p.Tags, it.IsNotBlank()),
-		// this also runs validation on each of the components
-		validation.IterableProperty("components", p.Components, it.HasMinCount(1)),
+		validation.CountableProperty("components", len(p.Components), it.HasMinCount(1)),
+		// this runs validation on each of the components
+		validation.ValidSliceProperty("components", p.Components),
 	)
 }
 
@@ -41,7 +42,7 @@ func (c Component) Validate(ctx context.Context, validator *validation.Validator
 	)
 }
 
-func ExampleValidator_ValidateValidatable_validatableStruct() {
+func ExampleValid_validatableStruct() {
 	p := Product{
 		Name: "",
 		Tags: []string{"device", "", "phone", "device"},

@@ -5,13 +5,13 @@ import (
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
-	"github.com/muonsoft/validation/generic"
 	"github.com/muonsoft/validation/message"
 )
 
-// NotBlankConstraint checks that a value is not blank: not equal to zero, an empty string, an empty
-// slice/array, an empty map, false or nil. Nil behavior is configurable via AllowNil() method.
+// NotBlankConstraint checks that a value is not blank: an empty string, an empty countable (slice/array/map),
+// false or nil. Nil behavior is configurable via AllowNil() method.
 // To check that a value is not nil only use NotNilConstraint.
+// To check not blank numeric value use NotBlankNumberConstraint.
 type NotBlankConstraint struct {
 	isIgnored         bool
 	allowNil          bool
@@ -27,16 +27,6 @@ func IsNotBlank() NotBlankConstraint {
 		code:            code.NotBlank,
 		messageTemplate: message.Templates[code.NotBlank],
 	}
-}
-
-// SetUp always returns no error.
-func (c NotBlankConstraint) SetUp() error {
-	return nil
-}
-
-// Name is the constraint name.
-func (c NotBlankConstraint) Name() string {
-	return "NotBlankConstraint"
 }
 
 // AllowNil makes nil values valid.
@@ -72,14 +62,6 @@ func (c NotBlankConstraint) Message(template string, parameters ...validation.Te
 	return c
 }
 
-func (c NotBlankConstraint) ValidateNil(scope validation.Scope) error {
-	if c.isIgnored || c.allowNil || scope.IsIgnored(c.groups...) {
-		return nil
-	}
-
-	return c.newViolation(scope)
-}
-
 func (c NotBlankConstraint) ValidateBool(value *bool, scope validation.Scope) error {
 	if c.isIgnored || scope.IsIgnored(c.groups...) {
 		return nil
@@ -94,20 +76,6 @@ func (c NotBlankConstraint) ValidateBool(value *bool, scope validation.Scope) er
 	return c.newViolation(scope)
 }
 
-func (c NotBlankConstraint) ValidateNumber(value generic.Number, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) {
-		return nil
-	}
-	if c.allowNil && value.IsNil() {
-		return nil
-	}
-	if !value.IsNil() && !value.IsZero() {
-		return nil
-	}
-
-	return c.newViolation(scope)
-}
-
 func (c NotBlankConstraint) ValidateString(value *string, scope validation.Scope) error {
 	if c.isIgnored || scope.IsIgnored(c.groups...) {
 		return nil
@@ -116,34 +84,6 @@ func (c NotBlankConstraint) ValidateString(value *string, scope validation.Scope
 		return nil
 	}
 	if value != nil && *value != "" {
-		return nil
-	}
-
-	return c.newViolation(scope)
-}
-
-func (c NotBlankConstraint) ValidateStrings(values []string, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) {
-		return nil
-	}
-	if c.allowNil && values == nil {
-		return nil
-	}
-	if len(values) > 0 {
-		return nil
-	}
-
-	return c.newViolation(scope)
-}
-
-func (c NotBlankConstraint) ValidateIterable(value generic.Iterable, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) {
-		return nil
-	}
-	if c.allowNil && value.IsNil() {
-		return nil
-	}
-	if value.Count() > 0 {
 		return nil
 	}
 
@@ -197,16 +137,6 @@ func IsBlank() BlankConstraint {
 	}
 }
 
-// SetUp always returns no error.
-func (c BlankConstraint) SetUp() error {
-	return nil
-}
-
-// Name is the constraint name.
-func (c BlankConstraint) Name() string {
-	return "BlankConstraint"
-}
-
 // When enables conditional validation of this constraint. If the expression evaluates to false,
 // then the constraint will be ignored.
 func (c BlankConstraint) When(condition bool) BlankConstraint {
@@ -234,10 +164,6 @@ func (c BlankConstraint) Message(template string, parameters ...validation.Templ
 	return c
 }
 
-func (c BlankConstraint) ValidateNil(scope validation.Scope) error {
-	return nil
-}
-
 func (c BlankConstraint) ValidateBool(value *bool, scope validation.Scope) error {
 	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || !*value {
 		return nil
@@ -246,32 +172,8 @@ func (c BlankConstraint) ValidateBool(value *bool, scope validation.Scope) error
 	return c.newViolation(scope)
 }
 
-func (c BlankConstraint) ValidateNumber(value generic.Number, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value.IsNil() || value.IsZero() {
-		return nil
-	}
-
-	return c.newViolation(scope)
-}
-
 func (c BlankConstraint) ValidateString(value *string, scope validation.Scope) error {
 	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == "" {
-		return nil
-	}
-
-	return c.newViolation(scope)
-}
-
-func (c BlankConstraint) ValidateStrings(values []string, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || len(values) == 0 {
-		return nil
-	}
-
-	return c.newViolation(scope)
-}
-
-func (c BlankConstraint) ValidateIterable(value generic.Iterable, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value.Count() == 0 {
 		return nil
 	}
 
@@ -318,16 +220,6 @@ func IsNotNil() NotNilConstraint {
 	}
 }
 
-// SetUp always returns no error.
-func (c NotNilConstraint) SetUp() error {
-	return nil
-}
-
-// Name is the constraint name.
-func (c NotNilConstraint) Name() string {
-	return "NotNilConstraint"
-}
-
 // When enables conditional validation of this constraint. If the expression evaluates to false,
 // then the constraint will be ignored.
 func (c NotNilConstraint) When(condition bool) NotNilConstraint {
@@ -355,8 +247,8 @@ func (c NotNilConstraint) Message(template string, parameters ...validation.Temp
 	return c
 }
 
-func (c NotNilConstraint) ValidateNil(scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) {
+func (c NotNilConstraint) ValidateNil(isNil bool, scope validation.Scope) error {
+	if c.isIgnored || scope.IsIgnored(c.groups...) || !isNil {
 		return nil
 	}
 
@@ -371,14 +263,6 @@ func (c NotNilConstraint) ValidateBool(value *bool, scope validation.Scope) erro
 	return c.newViolation(scope)
 }
 
-func (c NotNilConstraint) ValidateNumber(value generic.Number, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || !value.IsNil() {
-		return nil
-	}
-
-	return c.newViolation(scope)
-}
-
 func (c NotNilConstraint) ValidateString(value *string, scope validation.Scope) error {
 	if c.isIgnored || scope.IsIgnored(c.groups...) || value != nil {
 		return nil
@@ -387,24 +271,8 @@ func (c NotNilConstraint) ValidateString(value *string, scope validation.Scope) 
 	return c.newViolation(scope)
 }
 
-func (c NotNilConstraint) ValidateStrings(values []string, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || values != nil {
-		return nil
-	}
-
-	return c.newViolation(scope)
-}
-
 func (c NotNilConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
 	if c.isIgnored || scope.IsIgnored(c.groups...) || value != nil {
-		return nil
-	}
-
-	return c.newViolation(scope)
-}
-
-func (c NotNilConstraint) ValidateIterable(value generic.Iterable, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || !value.IsNil() {
 		return nil
 	}
 
@@ -435,16 +303,6 @@ func IsNil() NilConstraint {
 	}
 }
 
-// SetUp always returns no error.
-func (c NilConstraint) SetUp() error {
-	return nil
-}
-
-// Name is the constraint name.
-func (c NilConstraint) Name() string {
-	return "NilConstraint"
-}
-
 // When enables conditional validation of this constraint. If the expression evaluates to false,
 // then the constraint will be ignored.
 func (c NilConstraint) When(condition bool) NilConstraint {
@@ -472,20 +330,16 @@ func (c NilConstraint) Message(template string, parameters ...validation.Templat
 	return c
 }
 
-func (c NilConstraint) ValidateNil(scope validation.Scope) error {
-	return nil
-}
-
-func (c NilConstraint) ValidateBool(value *bool, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil {
+func (c NilConstraint) ValidateNil(isNil bool, scope validation.Scope) error {
+	if c.isIgnored || scope.IsIgnored(c.groups...) || isNil {
 		return nil
 	}
 
 	return c.newViolation(scope)
 }
 
-func (c NilConstraint) ValidateNumber(value generic.Number, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value.IsNil() {
+func (c NilConstraint) ValidateBool(value *bool, scope validation.Scope) error {
+	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil {
 		return nil
 	}
 
@@ -500,24 +354,8 @@ func (c NilConstraint) ValidateString(value *string, scope validation.Scope) err
 	return c.newViolation(scope)
 }
 
-func (c NilConstraint) ValidateStrings(values []string, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || values == nil {
-		return nil
-	}
-
-	return c.newViolation(scope)
-}
-
 func (c NilConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
 	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil {
-		return nil
-	}
-
-	return c.newViolation(scope)
-}
-
-func (c NilConstraint) ValidateIterable(value generic.Iterable, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value.IsNil() {
 		return nil
 	}
 
@@ -556,16 +394,6 @@ func IsFalse() BoolConstraint {
 		code:            code.False,
 		messageTemplate: message.Templates[code.False],
 	}
-}
-
-// SetUp always returns no error.
-func (c BoolConstraint) SetUp() error {
-	return nil
-}
-
-// Name is the constraint name.
-func (c BoolConstraint) Name() string {
-	return "BoolConstraint"
 }
 
 // When enables conditional validation of this constraint. If the expression evaluates to false,

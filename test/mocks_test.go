@@ -9,29 +9,14 @@ import (
 	"golang.org/x/text/language"
 )
 
-var (
-	nilBool    *bool
-	nilInt     *int64
-	nilUint    *uint64
-	nilFloat   *float64
-	nilString  *string
-	nilTime    *time.Time
-	emptyArray [0]string
-	emptySlice []string
-	emptyMap   map[string]string
-	emptyTime  time.Time
-)
+var nilTime *time.Time
 
 func boolValue(b bool) *bool {
 	return &b
 }
 
-func intValue(i int64) *int64 {
+func intValue(i int) *int {
 	return &i
-}
-
-func uintValue(u uint64) *uint64 {
-	return &u
 }
 
 func floatValue(f float64) *float64 {
@@ -112,9 +97,9 @@ type mockValidatableString struct {
 func (mock mockValidatableString) Validate(ctx context.Context, validator *validation.Validator) error {
 	return validator.Validate(
 		ctx,
-		validation.String(
+		validation.StringProperty(
+			"value",
 			mock.value,
-			validation.PropertyName("value"),
 			it.IsNotBlank(),
 		),
 	)
@@ -130,24 +115,24 @@ type mockValidatableStruct struct {
 func (mock mockValidatableStruct) Validate(ctx context.Context, validator *validation.Validator) error {
 	return validator.Validate(
 		ctx,
-		validation.Number(
+		validation.NumberProperty[int64](
+			"intValue",
 			mock.intValue,
-			validation.PropertyName("intValue"),
-			it.IsNotBlank(),
+			it.IsNotBlankNumber[int64](),
 		),
-		validation.Number(
+		validation.NumberProperty[float64](
+			"floatValue",
 			mock.floatValue,
-			validation.PropertyName("floatValue"),
-			it.IsNotBlank(),
+			it.IsNotBlankNumber[float64](),
 		),
-		validation.String(
+		validation.StringProperty(
+			"stringValue",
 			mock.stringValue,
-			validation.PropertyName("stringValue"),
 			it.IsNotBlank(),
 		),
-		validation.Value(
+		validation.ValidProperty(
+			"structValue",
 			&mock.structValue,
-			validation.PropertyName("structValue"),
 		),
 	)
 }

@@ -34,80 +34,64 @@ func SetOptions(options ...validation.ValidatorOption) (err error) {
 	return err
 }
 
-// Reset function recreates singleton validator. Generally, it can be used in tests.
-//
-// Deprecated: use SetUp function instead.
-func Reset() {
-	_ = SetUp()
-}
-
-// Validate is the main validation method. It accepts validation arguments. Arguments can be
+// Validate is the main validation method. It accepts validation arguments. executionContext can be
 // used to tune up the validation process or to pass values of a specific type.
 func Validate(ctx context.Context, arguments ...validation.Argument) error {
 	return validator.Validate(ctx, arguments...)
 }
 
-// ValidateValue is an alias for validating a single value of any supported type.
-func ValidateValue(ctx context.Context, value interface{}, options ...validation.Option) error {
-	return validator.ValidateValue(ctx, value, options...)
-}
-
 // ValidateBool is an alias for validating a single boolean value.
-func ValidateBool(ctx context.Context, value bool, options ...validation.Option) error {
-	return validator.ValidateBool(ctx, value, options...)
+func ValidateBool(ctx context.Context, value bool, constraints ...validation.BoolConstraint) error {
+	return validator.ValidateBool(ctx, value, constraints...)
 }
 
-// ValidateNumber is an alias for validating a single numeric value (integer or float).
-func ValidateNumber(ctx context.Context, value interface{}, options ...validation.Option) error {
-	return validator.ValidateNumber(ctx, value, options...)
+// ValidateInt is an alias for validating a single integer value.
+func ValidateInt(ctx context.Context, value int, constraints ...validation.NumberConstraint[int]) error {
+	return validator.Validate(ctx, validation.Number(value, constraints...))
+}
+
+// ValidateFloat is an alias for validating a single float value.
+func ValidateFloat(ctx context.Context, value float64, constraints ...validation.NumberConstraint[float64]) error {
+	return validator.Validate(ctx, validation.Number(value, constraints...))
 }
 
 // ValidateString is an alias for validating a single string value.
-func ValidateString(ctx context.Context, value string, options ...validation.Option) error {
-	return validator.ValidateString(ctx, value, options...)
+func ValidateString(ctx context.Context, value string, constraints ...validation.StringConstraint) error {
+	return validator.ValidateString(ctx, value, constraints...)
 }
 
 // ValidateStrings is an alias for validating slice of strings.
-func ValidateStrings(ctx context.Context, values []string, options ...validation.Option) error {
-	return validator.ValidateStrings(ctx, values, options...)
-}
-
-// ValidateIterable is an alias for validating a single iterable value (an array, slice, or map).
-func ValidateIterable(ctx context.Context, value interface{}, options ...validation.Option) error {
-	return validator.ValidateIterable(ctx, value, options...)
+func ValidateStrings(ctx context.Context, values []string, constraints ...validation.ComparablesConstraint[string]) error {
+	return validator.ValidateStrings(ctx, values, constraints...)
 }
 
 // ValidateCountable is an alias for validating a single countable value (an array, slice, or map).
-func ValidateCountable(ctx context.Context, count int, options ...validation.Option) error {
-	return validator.ValidateCountable(ctx, count, options...)
+func ValidateCountable(ctx context.Context, count int, constraints ...validation.CountableConstraint) error {
+	return validator.ValidateCountable(ctx, count, constraints...)
 }
 
 // ValidateTime is an alias for validating a single time value.
-func ValidateTime(ctx context.Context, value time.Time, options ...validation.Option) error {
-	return validator.ValidateTime(ctx, value, options...)
-}
-
-// ValidateEach is an alias for validating each value of an iterable (an array, slice, or map).
-func ValidateEach(ctx context.Context, value interface{}, options ...validation.Option) error {
-	return validator.ValidateEach(ctx, value, options...)
+func ValidateTime(ctx context.Context, value time.Time, constraints ...validation.TimeConstraint) error {
+	return validator.ValidateTime(ctx, value, constraints...)
 }
 
 // ValidateEachString is an alias for validating each value of a strings slice.
-func ValidateEachString(ctx context.Context, strings []string, options ...validation.Option) error {
-	return validator.ValidateEachString(ctx, strings, options...)
+func ValidateEachString(ctx context.Context, strings []string, constraints ...validation.StringConstraint) error {
+	return validator.ValidateEachString(ctx, strings, constraints...)
 }
 
-// ValidateValidatable is an alias for validating value that implements the Validatable interface.
-func ValidateValidatable(ctx context.Context, validatable validation.Validatable, options ...validation.Option) error {
-	return validator.ValidateValidatable(ctx, validatable, options...)
+// ValidateIt is an alias for validating value that implements the Validatable interface.
+func ValidateIt(ctx context.Context, validatable validation.Validatable) error {
+	return validator.ValidateIt(ctx, validatable)
 }
 
-// ValidateBy is used to get the constraint from the internal validator store.
-// If the constraint does not exist, then the validator will
-// return a ConstraintNotFoundError during the validation process.
-// For storing a constraint you should use the validation.StoredConstraint option.
-func ValidateBy(constraintKey string) validation.Constraint {
-	return validator.ValidateBy(constraintKey)
+// GetConstraint is used to get the constraint from the internal validator store.
+// If the constraint does not exist, then the validator will return nil.
+// For storing a constraint you should use the StoredConstraint option.
+//
+// Experimental. This feature is experimental and may be changed in future versions.
+func GetConstraint(key string) interface{} {
+	return validator.GetConstraint(key)
 }
 
 // WithGroups is used to execute conditional validation based on validation groups. It creates

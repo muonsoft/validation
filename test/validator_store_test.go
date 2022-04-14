@@ -11,26 +11,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestValidator_ValidateBy_WhenConstraintExists_ExpectValidationByStoredConstraint(t *testing.T) {
+func TestValidator_GetConstraint_WhenConstraintExists_ExpectValidationByStoredConstraint(t *testing.T) {
 	validator := newValidator(t, validation.StoredConstraint("notBlank", it.IsNotBlank()))
 
 	err := validator.Validate(
 		context.Background(),
-		validation.String("", validator.ValidateBy("notBlank")),
+		validation.String("", validator.GetConstraint("notBlank").(validation.StringConstraint)),
 	)
 
 	assertHasOneViolation(code.NotBlank, message.Templates[code.NotBlank])(t, err)
-}
-
-func TestValidator_ValidateBy_WhenConstraintDoesNotExist_ExpectError(t *testing.T) {
-	validator := newValidator(t)
-
-	err := validator.Validate(
-		context.Background(),
-		validation.String("", validator.ValidateBy("notBlank")),
-	)
-
-	assert.EqualError(t, err, `failed to set up constraint "notFoundConstraint": constraint with key "notBlank" is not stored in the validator`)
 }
 
 func TestValidator_StoreConstraint_WhenConstraintExists_ExpectError(t *testing.T) {

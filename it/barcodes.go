@@ -13,7 +13,6 @@ import (
 func IsEAN8() validation.CustomStringConstraint {
 	return validation.NewCustomStringConstraint(
 		is.EAN8,
-		"EAN8Constraint",
 		code.InvalidEAN8,
 		message.Templates[code.InvalidEAN8],
 	)
@@ -25,7 +24,6 @@ func IsEAN8() validation.CustomStringConstraint {
 func IsEAN13() validation.CustomStringConstraint {
 	return validation.NewCustomStringConstraint(
 		is.EAN13,
-		"EAN13Constraint",
 		code.InvalidEAN13,
 		message.Templates[code.InvalidEAN13],
 	)
@@ -37,7 +35,6 @@ func IsEAN13() validation.CustomStringConstraint {
 func IsUPCA() validation.CustomStringConstraint {
 	return validation.NewCustomStringConstraint(
 		is.UPCA,
-		"UPCAConstraint",
 		code.InvalidUPCA,
 		message.Templates[code.InvalidUPCA],
 	)
@@ -49,7 +46,6 @@ func IsUPCA() validation.CustomStringConstraint {
 func IsUPCE() validation.CustomStringConstraint {
 	return validation.NewCustomStringConstraint(
 		is.UPCE,
-		"UPCEConstraint",
 		code.InvalidUPCE,
 		message.Templates[code.InvalidUPCE],
 	)

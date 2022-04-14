@@ -3,36 +3,24 @@ package validation
 import (
 	"errors"
 	"fmt"
-	"reflect"
+	"strings"
 )
 
-// InapplicableConstraintError occurs when trying to use constraint on not applicable values.
-// For example, if you are trying to compare slice with a number.
-type InapplicableConstraintError struct {
-	Constraint Constraint
-	ValueType  string
+type ConstraintError struct {
+	ConstraintName string
+	Path           *PropertyPath
+	Description    string
 }
 
-func (err InapplicableConstraintError) Error() string {
-	return fmt.Sprintf("%s cannot be applied to %s", err.Constraint.Name(), err.ValueType)
-}
-
-// NewInapplicableConstraintError helps to create a error on trying to use constraint on not applicable values.
-func NewInapplicableConstraintError(constraint Constraint, valueType string) InapplicableConstraintError {
-	return InapplicableConstraintError{
-		Constraint: constraint,
-		ValueType:  valueType,
+func (err ConstraintError) Error() string {
+	var s strings.Builder
+	s.WriteString("failed to validate by " + err.ConstraintName)
+	if err.Path != nil {
+		s.WriteString(` at path "` + err.Path.String() + `"`)
 	}
-}
+	s.WriteString(": " + err.Description)
 
-// NotValidatableError occurs when validator cannot determine type by reflection or it is not supported
-// by validator.
-type NotValidatableError struct {
-	Value reflect.Value
-}
-
-func (err NotValidatableError) Error() string {
-	return fmt.Sprintf("value of type %v is not validatable", err.Value.Kind())
+	return s.String()
 }
 
 // ConstraintAlreadyStoredError is returned when trying to put a constraint
@@ -48,17 +36,12 @@ func (err ConstraintAlreadyStoredError) Error() string {
 // ConstraintNotFoundError is returned when trying to get a constraint
 // from the validator store using a non-existent key.
 type ConstraintNotFoundError struct {
-	Key string
+	Key  string
+	Type string
 }
 
 func (err ConstraintNotFoundError) Error() string {
-	return fmt.Sprintf(`constraint with key "%s" is not stored in the validator`, err.Key)
+	return fmt.Sprintf(`constraint by key "%s" of type "%s" is not found`, err.Key, err.Type)
 }
 
-var (
-	errTranslatorOptionsDenied       = errors.New("translation options denied when using custom translator")
-	errThenBranchNotSet              = errors.New("then branch of conditional constraint not set")
-	errSequentiallyConstraintsNotSet = errors.New("constraints for sequentially validation not set")
-	errAtLeastOneOfConstraintsNotSet = errors.New("constraints for at least one of validation not set")
-	errCompoundConstraintsNotSet     = errors.New("constraints for compound validation not set")
-)
+var errTranslatorOptionsDenied = errors.New("translation options denied when using custom translator")

@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/validationtest"
 )
@@ -17,20 +16,19 @@ func TestValidate_ArgumentAliases_WhenAliasMethodForGivenType_ExpectValidationEx
 		name string
 		err  error
 	}{
-		{"ValidateValue", validator.ValidateValue(context.Background(), "", it.IsNotBlank())},
 		{"ValidateBool", validator.ValidateBool(context.Background(), false, it.IsNotBlank())},
-		{"ValidateNumber", validator.ValidateNumber(context.Background(), 0, it.IsNotBlank())},
+		{"ValidateInt", validator.ValidateInt(context.Background(), 0, it.IsNotBlankNumber[int]())},
+		{"ValidateFloat", validator.ValidateFloat(context.Background(), 0, it.IsNotBlankNumber[float64]())},
 		{"ValidateString", validator.ValidateString(context.Background(), "", it.IsNotBlank())},
-		{"ValidateIterable", validator.ValidateIterable(context.Background(), []string{}, it.IsNotBlank())},
+		{"ValidateStrings", validator.ValidateStrings(context.Background(), []string{"foo", "foo"}, it.HasUniqueValues[string]())},
 		{"ValidateCountable", validator.ValidateCountable(context.Background(), 0, it.IsNotBlank())},
 		{"ValidateTime", validator.ValidateTime(context.Background(), time.Time{}, it.IsNotBlank())},
-		{"ValidateEach", validator.ValidateEach(context.Background(), []string{""}, it.IsNotBlank())},
 		{"ValidateEachString", validator.ValidateEachString(context.Background(), []string{""}, it.IsNotBlank())},
-		{"ValidateValidatable", validator.ValidateValidatable(context.Background(), mockValidatableString{""}, it.IsNotBlank())},
+		{"ValidateIt", validator.ValidateIt(context.Background(), mockValidatableString{""})},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			validationtest.Assert(t, test.err).IsViolationList().WithCodes(code.NotBlank)
+			validationtest.Assert(t, test.err).IsViolationList().WithOneViolation()
 		})
 	}
 }

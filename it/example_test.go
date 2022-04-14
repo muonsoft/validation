@@ -41,10 +41,10 @@ func ExampleIsUPCE() {
 }
 
 func ExampleIsNotBlank() {
-	v := ""
-	err := validator.Validate(context.Background(), validation.String(v, it.IsNotBlank()))
-	fmt.Println(err)
+	fmt.Println(validator.Validate(context.Background(), validation.String("", it.IsNotBlank())))
+	fmt.Println(validator.Validate(context.Background(), validation.Countable(len([]string{}), it.IsNotBlank())))
 	// Output:
+	// violation: This value should not be blank.
 	// violation: This value should not be blank.
 }
 
@@ -73,170 +73,184 @@ func ExampleIsNil() {
 }
 
 func ExampleIsTrue() {
-	b := false
-	err := validator.Validate(context.Background(), validation.Bool(b, it.IsTrue()))
+	err := validator.Validate(context.Background(), validation.Bool(false, it.IsTrue()))
 	fmt.Println(err)
 	// Output:
 	// violation: This value should be true.
 }
 
 func ExampleIsFalse() {
-	b := true
-	err := validator.Validate(context.Background(), validation.Bool(b, it.IsFalse()))
+	err := validator.Validate(context.Background(), validation.Bool(true, it.IsFalse()))
 	fmt.Println(err)
 	// Output:
 	// violation: This value should be false.
 }
 
-func ExampleIsOneOfStrings() {
-	s := "foo"
-	err := validator.ValidateString(context.Background(), s, it.IsOneOfStrings("one", "two", "three"))
-	fmt.Println(err)
+func ExampleIsOneOf() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Comparable[string]("foo", it.IsOneOf("one", "two", "three"))),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Comparable[int](1, it.IsOneOf(2, 3, 4))),
+	)
 	// Output:
+	// violation: The value you selected is not a valid choice.
 	// violation: The value you selected is not a valid choice.
 }
 
-func ExampleIsEqualToInteger() {
-	v := 1
-	err := validator.ValidateNumber(context.Background(), v, it.IsEqualToInteger(2))
-	fmt.Println(err)
+func ExampleIsEqualToNumber() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](1, it.IsEqualToNumber(2))),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](1.1, it.IsEqualToNumber(1.2))),
+	)
 	// Output:
 	// violation: This value should be equal to 2.
-}
-
-func ExampleIsEqualToFloat() {
-	v := 1.1
-	err := validator.ValidateNumber(context.Background(), v, it.IsEqualToFloat(1.2))
-	fmt.Println(err)
-	// Output:
 	// violation: This value should be equal to 1.2.
 }
 
-func ExampleIsNotEqualToInteger() {
-	v := 1
-	err := validator.ValidateNumber(context.Background(), v, it.IsNotEqualToInteger(1))
-	fmt.Println(err)
+func ExampleIsNotEqualToNumber() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](1, it.IsNotEqualToNumber(1))),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](1.1, it.IsNotEqualToNumber(1.1))),
+	)
 	// Output:
 	// violation: This value should not be equal to 1.
-}
-
-func ExampleIsNotEqualToFloat() {
-	v := 1.1
-	err := validator.ValidateNumber(context.Background(), v, it.IsNotEqualToFloat(1.1))
-	fmt.Println(err)
-	// Output:
 	// violation: This value should not be equal to 1.1.
 }
 
-func ExampleIsLessThanInteger() {
-	v := 1
-	err := validator.ValidateNumber(context.Background(), v, it.IsLessThanInteger(1))
-	fmt.Println(err)
+func ExampleIsLessThan() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](1, it.IsLessThan(1))),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](1.1, it.IsLessThan(1.1))),
+	)
 	// Output:
 	// violation: This value should be less than 1.
-}
-
-func ExampleIsLessThanFloat() {
-	v := 1.1
-	err := validator.ValidateNumber(context.Background(), v, it.IsLessThanFloat(1.1))
-	fmt.Println(err)
-	// Output:
 	// violation: This value should be less than 1.1.
 }
 
-func ExampleIsLessThanOrEqualInteger() {
-	v := 1
-	err := validator.ValidateNumber(context.Background(), v, it.IsLessThanOrEqualInteger(0))
-	fmt.Println(err)
+func ExampleIsLessThanOrEqual() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](1, it.IsLessThanOrEqual(0))),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](1.1, it.IsLessThanOrEqual(0.1))),
+	)
 	// Output:
 	// violation: This value should be less than or equal to 0.
-}
-
-func ExampleIsLessThanOrEqualFloat() {
-	v := 1.1
-	err := validator.ValidateNumber(context.Background(), v, it.IsLessThanOrEqualFloat(0.1))
-	fmt.Println(err)
-	// Output:
 	// violation: This value should be less than or equal to 0.1.
 }
 
-func ExampleIsGreaterThanInteger() {
-	v := 1
-	err := validator.ValidateNumber(context.Background(), v, it.IsGreaterThanInteger(1))
-	fmt.Println(err)
+func ExampleIsGreaterThan() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](1, it.IsGreaterThan(1))),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](1.1, it.IsGreaterThan(1.1))),
+	)
 	// Output:
 	// violation: This value should be greater than 1.
-}
-
-func ExampleIsGreaterThanFloat() {
-	v := 1.1
-	err := validator.ValidateNumber(context.Background(), v, it.IsGreaterThanFloat(1.1))
-	fmt.Println(err)
-	// Output:
 	// violation: This value should be greater than 1.1.
 }
 
-func ExampleIsGreaterThanOrEqualInteger() {
-	v := 1
-	err := validator.ValidateNumber(context.Background(), v, it.IsGreaterThanOrEqualInteger(2))
-	fmt.Println(err)
+func ExampleIsGreaterThanOrEqual() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](1, it.IsGreaterThanOrEqual(2))),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](1.1, it.IsGreaterThanOrEqual(1.2))),
+	)
 	// Output:
 	// violation: This value should be greater than or equal to 2.
-}
-
-func ExampleIsGreaterThanOrEqualFloat() {
-	v := 1.1
-	err := validator.ValidateNumber(context.Background(), v, it.IsGreaterThanOrEqualFloat(1.2))
-	fmt.Println(err)
-	// Output:
 	// violation: This value should be greater than or equal to 1.2.
 }
 
 func ExampleIsPositive() {
-	v := -1
-	err := validator.ValidateNumber(context.Background(), v, it.IsPositive())
-	fmt.Println(err)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](-1, it.IsPositive[int]())),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](-1.1, it.IsPositive[float64]())),
+	)
 	// Output:
+	// violation: This value should be positive.
 	// violation: This value should be positive.
 }
 
 func ExampleIsPositiveOrZero() {
-	v := -1
-	err := validator.ValidateNumber(context.Background(), v, it.IsPositiveOrZero())
-	fmt.Println(err)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](-1, it.IsPositiveOrZero[int]())),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](-1.1, it.IsPositiveOrZero[float64]())),
+	)
 	// Output:
+	// violation: This value should be either positive or zero.
 	// violation: This value should be either positive or zero.
 }
 
 func ExampleIsNegative() {
-	v := 1
-	err := validator.ValidateNumber(context.Background(), v, it.IsNegative())
-	fmt.Println(err)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](1, it.IsNegative[int]())),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](1.1, it.IsNegative[float64]())),
+	)
 	// Output:
+	// violation: This value should be negative.
 	// violation: This value should be negative.
 }
 
 func ExampleIsNegativeOrZero() {
-	v := 1
-	err := validator.ValidateNumber(context.Background(), v, it.IsNegativeOrZero())
-	fmt.Println(err)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](1, it.IsNegativeOrZero[int]())),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](1.1, it.IsNegativeOrZero[float64]())),
+	)
 	// Output:
+	// violation: This value should be either negative or zero.
 	// violation: This value should be either negative or zero.
 }
 
-func ExampleIsBetweenIntegers() {
-	v := 1
-	err := validator.ValidateNumber(context.Background(), v, it.IsBetweenIntegers(10, 20))
-	fmt.Println(err)
+func ExampleIsBetween() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](1, it.IsBetween(10, 20))),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[float64](1.1, it.IsBetween(10.111, 20.222))),
+	)
 	// Output:
 	// violation: This value should be between 10 and 20.
-}
-
-func ExampleIsBetweenFloats() {
-	v := 1.1
-	err := validator.ValidateNumber(context.Background(), v, it.IsBetweenFloats(10.111, 20.222))
-	fmt.Println(err)
-	// Output:
 	// violation: This value should be between 10.111 and 20.222.
 }
 
@@ -303,19 +317,24 @@ func ExampleIsBetweenTime() {
 }
 
 func ExampleHasUniqueValues() {
-	v := []string{"foo", "bar", "baz", "foo"}
-	err := validator.Validate(
+	strings := []string{"foo", "bar", "baz", "foo"}
+	ints := []int{1, 2, 3, 1}
+	fmt.Println(validator.Validate(
 		context.Background(),
-		validation.Strings(v, it.HasUniqueValues()),
-	)
-	fmt.Println(err)
+		validation.Comparables[string](strings, it.HasUniqueValues[string]()),
+	))
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Comparables[int](ints, it.HasUniqueValues[int]()),
+	))
 	// Output:
+	// violation: This collection should contain only unique elements.
 	// violation: This collection should contain only unique elements.
 }
 
 func ExampleHasMinCount() {
 	v := []int{1, 2}
-	err := validator.ValidateIterable(context.Background(), v, it.HasMinCount(3))
+	err := validator.ValidateCountable(context.Background(), len(v), it.HasMinCount(3))
 	fmt.Println(err)
 	// Output:
 	// violation: This collection should contain 3 elements or more.
@@ -323,7 +342,7 @@ func ExampleHasMinCount() {
 
 func ExampleHasMaxCount() {
 	v := []int{1, 2}
-	err := validator.ValidateIterable(context.Background(), v, it.HasMaxCount(1))
+	err := validator.ValidateCountable(context.Background(), len(v), it.HasMaxCount(1))
 	fmt.Println(err)
 	// Output:
 	// violation: This collection should contain 1 element or less.
@@ -331,7 +350,7 @@ func ExampleHasMaxCount() {
 
 func ExampleHasCountBetween() {
 	v := []int{1, 2}
-	err := validator.ValidateIterable(context.Background(), v, it.HasCountBetween(3, 10))
+	err := validator.ValidateCountable(context.Background(), len(v), it.HasCountBetween(3, 10))
 	fmt.Println(err)
 	// Output:
 	// violation: This collection should contain 3 elements or more.
@@ -339,7 +358,7 @@ func ExampleHasCountBetween() {
 
 func ExampleHasExactCount() {
 	v := []int{1, 2}
-	err := validator.ValidateIterable(context.Background(), v, it.HasExactCount(3))
+	err := validator.ValidateCountable(context.Background(), len(v), it.HasExactCount(3))
 	fmt.Println(err)
 	// Output:
 	// violation: This collection should contain exactly 3 elements.

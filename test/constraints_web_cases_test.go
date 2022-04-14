@@ -42,7 +42,7 @@ var urlConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsURL().WithSchemas(),
 		stringValue:     stringValue(""),
-		assert:          assertError(`failed to set up constraint "URLConstraint": empty list of schemas`),
+		assert:          assertError(`failed to validate by URLConstraint: empty list of schemas`),
 	},
 	{
 		name:            "IsURL passes on valid URL with custom schema",

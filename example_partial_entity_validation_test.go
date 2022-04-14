@@ -33,25 +33,21 @@ type FileUploadRequest struct {
 }
 
 type FileConstraint interface {
-	validation.Constraint
 	ValidateFile(file *File, scope validation.Scope) error
 }
 
-func FileArgument(file *File, options ...validation.Option) validation.Argument {
-	return validation.NewArgument(options, func(constraint validation.Constraint, scope validation.Scope) error {
-		if c, ok := constraint.(FileConstraint); ok {
-			return c.ValidateFile(file, scope)
-		}
-		// If you want to use built-in constraints for checking for nil or empty values
-		// such as it.IsNil() or it.IsBlank().
-		if c, ok := constraint.(validation.NilConstraint); ok {
-			if file == nil {
-				return c.ValidateNil(scope)
+func ValidFile(file *File, constraints ...FileConstraint) validation.ValidatorArgument {
+	return validation.NewArgument(func(scope validation.Scope) (*validation.ViolationList, error) {
+		violations := validation.NewViolationList()
+
+		for _, constraint := range constraints {
+			err := violations.AppendFromError(constraint.ValidateFile(file, scope))
+			if err != nil {
+				return nil, err
 			}
-			return nil
 		}
 
-		return validation.NewInapplicableConstraintError(constraint, "File")
+		return violations, nil
 	})
 }
 
@@ -65,14 +61,6 @@ func FileHasAllowedExtension(extensions ...string) AllowedFileExtensionConstrain
 	return AllowedFileExtensionConstraint{extensions: extensions}
 }
 
-func (c AllowedFileExtensionConstraint) SetUp() error {
-	return nil
-}
-
-func (c AllowedFileExtensionConstraint) Name() string {
-	return "AllowedFileExtensionConstraint"
-}
-
 func (c AllowedFileExtensionConstraint) ValidateFile(file *File, scope validation.Scope) error {
 	if file == nil {
 		return nil
@@ -82,9 +70,9 @@ func (c AllowedFileExtensionConstraint) ValidateFile(file *File, scope validatio
 
 	return scope.Validator().AtProperty("name").Validate(
 		scope.Context(),
-		validation.String(
+		validation.Comparable[string](
 			extension,
-			it.IsOneOfStrings(c.extensions...).Message("Not allowed extension. Must be one of: {{ choices }}."),
+			it.IsOneOf(c.extensions...).Message("Not allowed extension. Must be one of: {{ choices }}."),
 		),
 	)
 }
@@ -92,20 +80,12 @@ func (c AllowedFileExtensionConstraint) ValidateFile(file *File, scope validatio
 // AllowedFileSizeConstraint used to check that file has limited size.
 // This constraint can be used for partial validation.
 type AllowedFileSizeConstraint struct {
-	minSize int64
-	maxSize int64
+	minSize int
+	maxSize int
 }
 
-func FileHasAllowedSize(min, max int64) AllowedFileSizeConstraint {
+func FileHasAllowedSize(min, max int) AllowedFileSizeConstraint {
 	return AllowedFileSizeConstraint{minSize: min, maxSize: max}
-}
-
-func (c AllowedFileSizeConstraint) SetUp() error {
-	return nil
-}
-
-func (c AllowedFileSizeConstraint) Name() string {
-	return "AllowedFileSizeConstraint"
 }
 
 func (c AllowedFileSizeConstraint) ValidateFile(file *File, scope validation.Scope) error {
@@ -117,22 +97,22 @@ func (c AllowedFileSizeConstraint) ValidateFile(file *File, scope validation.Sco
 
 	return scope.Validator().Validate(
 		scope.Context(),
-		validation.Number(
+		validation.Number[int](
 			size,
-			it.IsGreaterThanInteger(c.minSize).Message("File size is too small."),
-			it.IsLessThanInteger(c.maxSize).Message("File size is too large."),
+			it.IsGreaterThan(c.minSize).Message("File size is too small."),
+			it.IsLessThan(c.maxSize).Message("File size is too large."),
 		),
 	)
 }
 
 func ExampleScope_Validator() {
 	// this constraints will be applied to all files uploaded as avatars
-	avatarConstraints := []validation.Option{
+	avatarConstraints := []FileConstraint{
 		FileHasAllowedExtension("jpeg", "jpg", "gif"),
 		FileHasAllowedSize(100, 1000),
 	}
 	// this constraints will be applied to all files uploaded as documents
-	documentConstraints := []validation.Option{
+	documentConstraints := []FileConstraint{
 		FileHasAllowedExtension("doc", "pdf", "txt"),
 		FileHasAllowedSize(1000, 100000),
 	}
@@ -156,7 +136,7 @@ func ExampleScope_Validator() {
 				// common validation of validatable
 				validation.Valid(request.File),
 				// specific validation for file storage section
-				FileArgument(request.File, avatarConstraints...),
+				ValidFile(request.File, avatarConstraints...),
 			)
 			fmt.Println(err)
 		case "documents":
@@ -165,7 +145,7 @@ func ExampleScope_Validator() {
 				// common validation of validatable
 				validation.Valid(request.File),
 				// specific validation for file storage section
-				FileArgument(request.File, documentConstraints...),
+				ValidFile(request.File, documentConstraints...),
 			)
 			fmt.Println(err)
 		}

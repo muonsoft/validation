@@ -70,16 +70,6 @@ func HasExactLength(count int) LengthConstraint {
 	return newLengthConstraint(count, count, true, true)
 }
 
-// SetUp always returns no error.
-func (c LengthConstraint) SetUp() error {
-	return nil
-}
-
-// Name is the constraint name.
-func (c LengthConstraint) Name() string {
-	return "LengthConstraint"
-}
-
 // When enables conditional validation of this constraint. If the expression evaluates to false,
 // then the constraint will be ignored.
 func (c LengthConstraint) When(condition bool) LengthConstraint {
@@ -225,20 +215,6 @@ func DoesNotMatch(regex *regexp.Regexp) RegexConstraint {
 	}
 }
 
-// SetUp will return an error if the pattern is empty.
-func (c RegexConstraint) SetUp() error {
-	if c.regex == nil {
-		return errEmptyRegex
-	}
-
-	return nil
-}
-
-// Name is the constraint name.
-func (c RegexConstraint) Name() string {
-	return "RegexConstraint"
-}
-
 // Code overrides default code for produced violation.
 func (c RegexConstraint) Code(code string) RegexConstraint {
 	c.code = code
@@ -269,6 +245,9 @@ func (c RegexConstraint) WhenGroups(groups ...string) RegexConstraint {
 }
 
 func (c RegexConstraint) ValidateString(value *string, scope validation.Scope) error {
+	if c.regex == nil {
+		return scope.NewConstraintError("RegexConstraint", "nil regex")
+	}
 	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == "" {
 		return nil
 	}
@@ -290,7 +269,6 @@ func (c RegexConstraint) ValidateString(value *string, scope validation.Scope) e
 func IsJSON() validation.CustomStringConstraint {
 	return validation.NewCustomStringConstraint(
 		is.JSON,
-		"JSONConstraint",
 		code.InvalidJSON,
 		message.Templates[code.InvalidJSON],
 	)
@@ -300,7 +278,6 @@ func IsJSON() validation.CustomStringConstraint {
 func IsInteger() validation.CustomStringConstraint {
 	return validation.NewCustomStringConstraint(
 		is.Integer,
-		"NumericConstraint",
 		code.NotInteger,
 		message.Templates[code.NotInteger],
 	)
@@ -310,7 +287,6 @@ func IsInteger() validation.CustomStringConstraint {
 func IsNumeric() validation.CustomStringConstraint {
 	return validation.NewCustomStringConstraint(
 		is.Number,
-		"NumericConstraint",
 		code.NotNumeric,
 		message.Templates[code.NotNumeric],
 	)

@@ -17,30 +17,12 @@ type property struct {
 }
 
 func (p property) Validate(ctx context.Context, validator *validation.Validator) error {
-	arguments := []validation.Argument{
-		validation.StringProperty(
-			"name",
-			p.Name,
-			it.IsNotBlank(),
-		),
-		validation.StringProperty(
-			"type",
-			p.Type,
-			it.IsNotBlank(),
-		),
-	}
-
-	if p.Value != nil {
-		arguments = append(arguments,
-			validation.IterableProperty(
-				"value",
-				p.Value,
-				it.HasMinCount(1),
-			),
-		)
-	}
-
-	return validator.Validate(ctx, arguments...)
+	return validator.Validate(ctx,
+		validation.StringProperty("name", p.Name, it.IsNotBlank()),
+		validation.StringProperty("type", p.Type, it.IsNotBlank()),
+		validation.CountableProperty("value", len(p.Value), it.HasMinCount(1).When(p.Value != nil)),
+		validation.ValidSliceProperty("value", p.Value),
+	)
 }
 
 func TestValidate_AtProperty_WhenGivenRecursiveProperties_ExpectViolationWithProperty(t *testing.T) {
@@ -65,7 +47,7 @@ func TestValidate_AtProperty_WhenGivenRecursiveProperties_ExpectViolationWithPro
 		},
 	}
 
-	err := validator.Validate(context.Background(), validation.Iterable(properties))
+	err := validator.Validate(context.Background(), validation.ValidSlice(properties))
 
 	assertHasOneViolationAtPath(code.NotBlank, message.Templates[code.NotBlank], "[0].value[0].value[0].name")(t, err)
 }
@@ -76,12 +58,10 @@ func TestValidate_WhenPathIsSetViaOptions_ExpectViolationAtPath(t *testing.T) {
 
 	err := validator.Validate(
 		context.Background(),
-		validation.String(
-			v,
+		validation.String(v, it.IsNotBlank()).With(
 			validation.PropertyName("properties"),
 			validation.ArrayIndex(0),
 			validation.PropertyName("value"),
-			it.IsNotBlank(),
 		),
 	)
 
