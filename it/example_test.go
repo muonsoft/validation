@@ -43,32 +43,115 @@ func ExampleIsUPCE() {
 func ExampleIsNotBlank() {
 	fmt.Println(validator.Validate(context.Background(), validation.String("", it.IsNotBlank())))
 	fmt.Println(validator.Validate(context.Background(), validation.Countable(len([]string{}), it.IsNotBlank())))
+	fmt.Println(validator.Validate(context.Background(), validation.Comparable[string]("", it.IsNotBlank())))
+	// Output:
+	// violation: This value should not be blank.
+	// violation: This value should not be blank.
+	// violation: This value should not be blank.
+}
+
+func ExampleIsNotBlankNumber() {
+	fmt.Println(validator.Validate(context.Background(), validation.Number[int](0, it.IsNotBlankNumber[int]())))
+	fmt.Println(validator.Validate(context.Background(), validation.Number[float64](0.0, it.IsNotBlankNumber[float64]())))
+	// Output:
+	// violation: This value should not be blank.
+	// violation: This value should not be blank.
+}
+
+func ExampleIsNotBlankComparable() {
+	fmt.Println(validator.Validate(context.Background(), validation.Comparable[int](0, it.IsNotBlankComparable[int]())))
+	fmt.Println(validator.Validate(context.Background(), validation.Comparable[string]("", it.IsNotBlankComparable[string]())))
 	// Output:
 	// violation: This value should not be blank.
 	// violation: This value should not be blank.
 }
 
 func ExampleIsBlank() {
-	v := "foo"
-	err := validator.Validate(context.Background(), validation.String(v, it.IsBlank()))
-	fmt.Println(err)
+	fmt.Println(validator.Validate(context.Background(), validation.String("foo", it.IsBlank())))
+	fmt.Println(validator.Validate(context.Background(), validation.Countable(len([]string{"foo"}), it.IsBlank())))
+	fmt.Println(validator.Validate(context.Background(), validation.Comparable[string]("foo", it.IsBlank())))
 	// Output:
+	// violation: This value should be blank.
+	// violation: This value should be blank.
+	// violation: This value should be blank.
+}
+
+func ExampleIsBlankNumber() {
+	fmt.Println(validator.Validate(context.Background(), validation.Number[int](1, it.IsBlankNumber[int]())))
+	fmt.Println(validator.Validate(context.Background(), validation.Number[float64](1.1, it.IsBlankNumber[float64]())))
+	// Output:
+	// violation: This value should be blank.
+	// violation: This value should be blank.
+}
+
+func ExampleIsBlankComparable() {
+	fmt.Println(validator.Validate(context.Background(), validation.Comparable[int](1, it.IsBlankComparable[int]())))
+	fmt.Println(validator.Validate(context.Background(), validation.Comparable[string]("foo", it.IsBlankComparable[string]())))
+	// Output:
+	// violation: This value should be blank.
 	// violation: This value should be blank.
 }
 
 func ExampleIsNotNil() {
 	var s *string
-	err := validator.Validate(context.Background(), validation.NilString(s, it.IsNotNil()))
-	fmt.Println(err)
+	fmt.Println(validator.Validate(context.Background(), validation.Nil(s == nil, it.IsNotNil())))
+	fmt.Println(validator.Validate(context.Background(), validation.NilString(s, it.IsNotNil())))
+	fmt.Println(validator.Validate(context.Background(), validation.NilComparable[string](s, it.IsNotNil())))
 	// Output:
+	// violation: This value should not be nil.
+	// violation: This value should not be nil.
+	// violation: This value should not be nil.
+}
+
+func ExampleIsNotNilNumber() {
+	var n *int
+	var f *float64
+	fmt.Println(validator.Validate(context.Background(), validation.NilNumber[int](n, it.IsNotNilNumber[int]())))
+	fmt.Println(validator.Validate(context.Background(), validation.NilNumber[float64](f, it.IsNotNilNumber[float64]())))
+	// Output:
+	// violation: This value should not be nil.
+	// violation: This value should not be nil.
+}
+
+func ExampleIsNotNilComparable() {
+	var n *int
+	var s *string
+	fmt.Println(validator.Validate(context.Background(), validation.NilComparable[int](n, it.IsNotNilComparable[int]())))
+	fmt.Println(validator.Validate(context.Background(), validation.NilComparable[string](s, it.IsNotNilComparable[string]())))
+	// Output:
+	// violation: This value should not be nil.
 	// violation: This value should not be nil.
 }
 
 func ExampleIsNil() {
 	s := ""
-	err := validator.Validate(context.Background(), validation.NilString(&s, it.IsNil()))
-	fmt.Println(err)
+	sp := &s
+	fmt.Println(validator.Validate(context.Background(), validation.Nil(sp == nil, it.IsNil())))
+	fmt.Println(validator.Validate(context.Background(), validation.NilString(&s, it.IsNil())))
+	fmt.Println(validator.Validate(context.Background(), validation.NilComparable[string](&s, it.IsNil())))
 	// Output:
+	// violation: This value should be nil.
+	// violation: This value should be nil.
+	// violation: This value should be nil.
+}
+
+func ExampleIsNilNumber() {
+	n := 0
+	f := 0.0
+	fmt.Println(validator.Validate(context.Background(), validation.NilNumber[int](&n, it.IsNilNumber[int]())))
+	fmt.Println(validator.Validate(context.Background(), validation.NilNumber[float64](&f, it.IsNilNumber[float64]())))
+	// Output:
+	// violation: This value should be nil.
+	// violation: This value should be nil.
+}
+
+func ExampleIsNilComparable() {
+	n := 0
+	s := ""
+	fmt.Println(validator.Validate(context.Background(), validation.NilComparable[int](&n, it.IsNilComparable[int]())))
+	fmt.Println(validator.Validate(context.Background(), validation.NilComparable[string](&s, it.IsNilComparable[string]())))
+	// Output:
+	// violation: This value should be nil.
 	// violation: This value should be nil.
 }
 

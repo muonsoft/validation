@@ -87,6 +87,109 @@ var isNotBlankConstraintTestCases = []ConstraintValidationTestCase{
 	},
 }
 
+var isNotBlankNumberConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsNotBlankNumber violation on nil",
+		isApplicableFor: specificValueTypes(intType),
+		constraint:      it.IsNotBlankNumber[int](),
+		assert:          assertHasOneViolation(code.NotBlank, message.Templates[code.NotBlank]),
+	},
+	{
+		name:            "IsNotBlankNumber violation on empty int value",
+		isApplicableFor: specificValueTypes(intType),
+		intValue:        intValue(0),
+		constraint:      it.IsNotBlankNumber[int](),
+		assert:          assertHasOneViolation(code.NotBlank, message.Templates[code.NotBlank]),
+	},
+	{
+		name:            "IsNotBlankNumber violation on empty float value",
+		isApplicableFor: specificValueTypes(floatType),
+		floatValue:      floatValue(0),
+		constraint:      it.IsNotBlankNumber[float64](),
+		assert:          assertHasOneViolation(code.NotBlank, message.Templates[code.NotBlank]),
+	},
+	{
+		name:            "IsNotBlankNumber violation on empty value when condition is true",
+		isApplicableFor: specificValueTypes(intType),
+		intValue:        intValue(0),
+		constraint:      it.IsNotBlankNumber[int]().When(true),
+		assert:          assertHasOneViolation(code.NotBlank, message.Templates[code.NotBlank]),
+	},
+	{
+		name:            "IsNotBlankNumber passes on value",
+		isApplicableFor: specificValueTypes(intType),
+		intValue:        intValue(1),
+		constraint:      it.IsNotBlankNumber[int](),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNotBlankNumber passes on nil when allowed",
+		isApplicableFor: specificValueTypes(intType),
+		constraint:      it.IsNotBlankNumber[int]().AllowNil(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNotBlankNumber passes on nil when condition is false",
+		isApplicableFor: specificValueTypes(intType),
+		constraint:      it.IsNotBlankNumber[int]().When(false),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNotBlankNumber passes on nil when groups not match",
+		isApplicableFor: specificValueTypes(intType),
+		constraint:      it.IsNotBlankNumber[int]().WhenGroups(testGroup),
+		assert:          assertNoError,
+	},
+}
+
+var isNotBlankComparableConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsNotBlankComparable violation on nil",
+		isApplicableFor: specificValueTypes(comparableType),
+		constraint:      it.IsNotBlankComparable[string](),
+		assert:          assertHasOneViolation(code.NotBlank, message.Templates[code.NotBlank]),
+	},
+	{
+		name:            "IsNotBlankComparable violation on empty value",
+		isApplicableFor: specificValueTypes(comparableType),
+		stringValue:     stringValue(""),
+		constraint:      it.IsNotBlankComparable[string](),
+		assert:          assertHasOneViolation(code.NotBlank, message.Templates[code.NotBlank]),
+	},
+	{
+		name:            "IsNotBlankComparable violation on empty value when condition is true",
+		isApplicableFor: specificValueTypes(comparableType),
+		stringValue:     stringValue(""),
+		constraint:      it.IsNotBlankComparable[string]().When(true),
+		assert:          assertHasOneViolation(code.NotBlank, message.Templates[code.NotBlank]),
+	},
+	{
+		name:            "IsNotBlankComparable passes on value",
+		isApplicableFor: specificValueTypes(comparableType),
+		stringValue:     stringValue("a"),
+		constraint:      it.IsNotBlankComparable[string](),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNotBlankComparable passes on nil when allowed",
+		isApplicableFor: specificValueTypes(comparableType),
+		constraint:      it.IsNotBlankComparable[string]().AllowNil(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNotBlankComparable passes on nil when condition is false",
+		isApplicableFor: specificValueTypes(comparableType),
+		constraint:      it.IsNotBlankComparable[string]().When(false),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNotBlankComparable passes on nil when groups not match",
+		isApplicableFor: specificValueTypes(comparableType),
+		constraint:      it.IsNotBlankComparable[string]().WhenGroups(testGroup),
+		assert:          assertNoError,
+	},
+}
+
 var isBlankConstraintTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsBlank violation on value",
@@ -185,6 +288,94 @@ var isBlankConstraintTestCases = []ConstraintValidationTestCase{
 	},
 }
 
+var isBlankNumberConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsBlankNumber violation on value",
+		isApplicableFor: specificValueTypes(intType),
+		intValue:        intValue(1),
+		constraint:      it.IsBlankNumber[int](),
+		assert:          assertHasOneViolation(code.Blank, message.Templates[code.Blank]),
+	},
+	{
+		name:            "IsBlankNumber violation on value when condition is true",
+		isApplicableFor: specificValueTypes(intType),
+		intValue:        intValue(1),
+		constraint:      it.IsBlankNumber[int]().When(true),
+		assert:          assertHasOneViolation(code.Blank, message.Templates[code.Blank]),
+	},
+	{
+		name:            "IsBlankNumber passes on nil",
+		isApplicableFor: specificValueTypes(intType),
+		constraint:      it.IsBlankNumber[int](),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsBlankNumber passes on empty value",
+		isApplicableFor: specificValueTypes(intType),
+		intValue:        intValue(0),
+		constraint:      it.IsBlankNumber[int](),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsBlankNumber passes on value when condition is false",
+		isApplicableFor: specificValueTypes(intType),
+		intValue:        intValue(1),
+		constraint:      it.IsBlankNumber[int]().When(false),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsBlankNumber passes on value when groups not match",
+		isApplicableFor: specificValueTypes(intType),
+		intValue:        intValue(1),
+		constraint:      it.IsBlankNumber[int]().WhenGroups(testGroup),
+		assert:          assertNoError,
+	},
+}
+
+var isBlankComparableConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsBlankComparable violation on value",
+		isApplicableFor: specificValueTypes(comparableType),
+		stringValue:     stringValue("a"),
+		constraint:      it.IsBlankComparable[string](),
+		assert:          assertHasOneViolation(code.Blank, message.Templates[code.Blank]),
+	},
+	{
+		name:            "IsBlankComparable violation on value when condition is true",
+		isApplicableFor: specificValueTypes(comparableType),
+		stringValue:     stringValue("a"),
+		constraint:      it.IsBlankComparable[string]().When(true),
+		assert:          assertHasOneViolation(code.Blank, message.Templates[code.Blank]),
+	},
+	{
+		name:            "IsBlankComparable passes on nil",
+		isApplicableFor: specificValueTypes(comparableType),
+		constraint:      it.IsBlankComparable[string](),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsBlankComparable passes on empty value",
+		isApplicableFor: specificValueTypes(comparableType),
+		stringValue:     stringValue(""),
+		constraint:      it.IsBlankComparable[string](),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsBlankComparable passes on value when condition is false",
+		isApplicableFor: specificValueTypes(comparableType),
+		stringValue:     stringValue("a"),
+		constraint:      it.IsBlankComparable[string]().When(false),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsBlankComparable passes on value when groups not match",
+		isApplicableFor: specificValueTypes(comparableType),
+		stringValue:     stringValue("a"),
+		constraint:      it.IsBlankComparable[string]().WhenGroups(testGroup),
+		assert:          assertNoError,
+	},
+}
+
 var isNotNilConstraintTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsNotNil violation on nil",
@@ -255,6 +446,90 @@ var isNotNilConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "IsNotNil passes on nil when groups not match",
 		isApplicableFor: specificValueTypes(nilType, boolType, stringType, timeType),
 		constraint:      it.IsNotNil().WhenGroups(testGroup),
+		assert:          assertNoError,
+	},
+}
+
+var isNotNilNumberConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsNotNilNumber violation on nil",
+		isApplicableFor: specificValueTypes(intType),
+		constraint:      it.IsNotNilNumber[int](),
+		assert:          assertHasOneViolation(code.NotNil, message.Templates[code.NotNil]),
+	},
+	{
+		name:            "IsNotNilNumber passes on empty value",
+		isApplicableFor: specificValueTypes(intType),
+		intValue:        intValue(0),
+		constraint:      it.IsNotNilNumber[int](),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNotNilNumber passes on empty value when condition is true",
+		isApplicableFor: specificValueTypes(intType),
+		intValue:        intValue(0),
+		constraint:      it.IsNotNilNumber[int]().When(true),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNotNilNumber passes on value",
+		isApplicableFor: specificValueTypes(intType),
+		intValue:        intValue(1),
+		constraint:      it.IsNotNilNumber[int](),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNotNilNumber passes on nil when condition is false",
+		isApplicableFor: specificValueTypes(intType),
+		constraint:      it.IsNotNilNumber[int]().When(false),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNotNilNumber passes on nil when groups not match",
+		isApplicableFor: specificValueTypes(intType),
+		constraint:      it.IsNotNilNumber[int]().WhenGroups(testGroup),
+		assert:          assertNoError,
+	},
+}
+
+var isNotNilComparableConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsNotNilComparable violation on nil",
+		isApplicableFor: specificValueTypes(comparableType),
+		constraint:      it.IsNotNilComparable[string](),
+		assert:          assertHasOneViolation(code.NotNil, message.Templates[code.NotNil]),
+	},
+	{
+		name:            "IsNotNilComparable passes on empty value",
+		isApplicableFor: specificValueTypes(comparableType),
+		stringValue:     stringValue(""),
+		constraint:      it.IsNotNilComparable[string](),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNotNilComparable passes on empty value when condition is true",
+		isApplicableFor: specificValueTypes(comparableType),
+		stringValue:     stringValue(""),
+		constraint:      it.IsNotNilComparable[string]().When(true),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNotNilComparable passes on value",
+		isApplicableFor: specificValueTypes(comparableType),
+		stringValue:     stringValue("a"),
+		constraint:      it.IsNotNilComparable[string](),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNotNilComparable passes on nil when condition is false",
+		isApplicableFor: specificValueTypes(comparableType),
+		constraint:      it.IsNotNilComparable[string]().When(false),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNotNilComparable passes on nil when groups not match",
+		isApplicableFor: specificValueTypes(comparableType),
+		constraint:      it.IsNotNilComparable[string]().WhenGroups(testGroup),
 		assert:          assertNoError,
 	},
 }
@@ -345,6 +620,92 @@ var isNilConstraintTestCases = []ConstraintValidationTestCase{
 		sliceValue:      []string{},
 		mapValue:        map[string]string{},
 		constraint:      it.IsNil().WhenGroups(testGroup),
+		assert:          assertNoError,
+	},
+}
+
+var isNilNumberConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsNilNumber passes on nil",
+		isApplicableFor: specificValueTypes(intType),
+		constraint:      it.IsNilNumber[int](),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNilNumber violation on empty value",
+		isApplicableFor: specificValueTypes(intType),
+		intValue:        intValue(0),
+		constraint:      it.IsNilNumber[int](),
+		assert:          assertHasOneViolation(code.Nil, message.Templates[code.Nil]),
+	},
+	{
+		name:            "IsNilNumber passes on nil when condition is true",
+		isApplicableFor: specificValueTypes(intType),
+		constraint:      it.IsNilNumber[int]().When(true),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNilNumber violation on value",
+		isApplicableFor: specificValueTypes(intType),
+		intValue:        intValue(1),
+		constraint:      it.IsNilNumber[int](),
+		assert:          assertHasOneViolation(code.Nil, message.Templates[code.Nil]),
+	},
+	{
+		name:            "IsNilNumber passes on empty value when condition is false",
+		isApplicableFor: specificValueTypes(intType),
+		intValue:        intValue(0),
+		constraint:      it.IsNilNumber[int]().When(false),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNilNumber passes on empty value when groups not match",
+		isApplicableFor: specificValueTypes(intType),
+		intValue:        intValue(0),
+		constraint:      it.IsNilNumber[int]().WhenGroups(testGroup),
+		assert:          assertNoError,
+	},
+}
+
+var isNilComparableConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsNilComparable passes on nil",
+		isApplicableFor: specificValueTypes(comparableType),
+		constraint:      it.IsNilComparable[string](),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNilComparable violation on empty value",
+		isApplicableFor: specificValueTypes(comparableType),
+		stringValue:     stringValue(""),
+		constraint:      it.IsNilComparable[string](),
+		assert:          assertHasOneViolation(code.Nil, message.Templates[code.Nil]),
+	},
+	{
+		name:            "IsNilComparable passes on nil when condition is true",
+		isApplicableFor: specificValueTypes(comparableType),
+		constraint:      it.IsNilComparable[string]().When(true),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNilComparable violation on value",
+		isApplicableFor: specificValueTypes(comparableType),
+		stringValue:     stringValue("a"),
+		constraint:      it.IsNilComparable[string](),
+		assert:          assertHasOneViolation(code.Nil, message.Templates[code.Nil]),
+	},
+	{
+		name:            "IsNilComparable passes on empty value when condition is false",
+		isApplicableFor: specificValueTypes(comparableType),
+		stringValue:     stringValue(""),
+		constraint:      it.IsNilComparable[string]().When(false),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNilComparable passes on empty value when groups not match",
+		isApplicableFor: specificValueTypes(comparableType),
+		stringValue:     stringValue(""),
+		constraint:      it.IsNilComparable[string]().WhenGroups(testGroup),
 		assert:          assertNoError,
 	},
 }
