@@ -3,7 +3,6 @@ package it
 import (
 	"fmt"
 	"reflect"
-	"strconv"
 	"time"
 
 	"github.com/muonsoft/validation"
@@ -11,6 +10,108 @@ import (
 	"github.com/muonsoft/validation/is"
 	"github.com/muonsoft/validation/message"
 )
+
+// ComparisonConstraint is used for comparisons between comparable generic types.
+type ComparisonConstraint[T comparable] struct {
+	isIgnored         bool
+	value             T
+	groups            []string
+	code              string
+	messageTemplate   string
+	messageParameters validation.TemplateParameterList
+	comparedValue     string
+	isValid           func(value T) bool
+}
+
+// IsEqualTo checks that the value is equal to the specified value.
+func IsEqualTo[T comparable](value T) ComparisonConstraint[T] {
+	return ComparisonConstraint[T]{
+		code:            code.Equal,
+		value:           value,
+		messageTemplate: message.Templates[code.Equal],
+		comparedValue:   formatComparable(value),
+		isValid:         func(v T) bool { return v == value },
+	}
+}
+
+// IsNotEqualTo checks that the value is not equal to the specified value.
+func IsNotEqualTo[T comparable](value T) ComparisonConstraint[T] {
+	return ComparisonConstraint[T]{
+		code:            code.NotEqual,
+		value:           value,
+		messageTemplate: message.Templates[code.NotEqual],
+		comparedValue:   formatComparable(value),
+		isValid:         func(v T) bool { return v != value },
+	}
+}
+
+// IsEqualToString checks that the string value is equal to the specified string value.
+// Deprecated: use IsEqualTo instead.
+func IsEqualToString(value string) ComparisonConstraint[string] {
+	return IsEqualTo(value)
+}
+
+// IsNotEqualToString checks that the string value is not equal to the specified string value.
+// Deprecated: use IsNotEqualTo instead.
+func IsNotEqualToString(value string) ComparisonConstraint[string] {
+	return IsNotEqualTo(value)
+}
+
+// Code overrides default code for produced violation.
+func (c ComparisonConstraint[T]) Code(code string) ComparisonConstraint[T] {
+	c.code = code
+	return c
+}
+
+// Message sets the violation message template. You can set custom template parameters
+// for injecting its values into the final message. Also, you can use default parameters:
+//
+//  {{ comparedValue }} - the expected value;
+//  {{ value }} - the current (invalid) value.
+func (c ComparisonConstraint[T]) Message(
+	template string,
+	parameters ...validation.TemplateParameter,
+) ComparisonConstraint[T] {
+	c.messageTemplate = template
+	c.messageParameters = parameters
+	return c
+}
+
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
+func (c ComparisonConstraint[T]) When(condition bool) ComparisonConstraint[T] {
+	c.isIgnored = !condition
+	return c
+}
+
+// WhenGroups enables conditional validation of the constraint by using the validation groups.
+func (c ComparisonConstraint[T]) WhenGroups(groups ...string) ComparisonConstraint[T] {
+	c.groups = groups
+	return c
+}
+
+func (c ComparisonConstraint[T]) ValidateNumber(value *T, scope validation.Scope) error {
+	return c.ValidateComparable(value, scope)
+}
+
+func (c ComparisonConstraint[T]) ValidateString(value *T, scope validation.Scope) error {
+	return c.ValidateComparable(value, scope)
+}
+
+func (c ComparisonConstraint[T]) ValidateComparable(value *T, scope validation.Scope) error {
+	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || c.isValid(*value) {
+		return nil
+	}
+
+	return scope.BuildViolation(c.code, c.messageTemplate).
+		SetParameters(
+			c.messageParameters.Prepend(
+				validation.TemplateParameter{Key: "{{ comparedValue }}", Value: c.comparedValue},
+				validation.TemplateParameter{Key: "{{ value }}", Value: formatComparable(*value)},
+			)...,
+		).
+		CreateViolation()
+}
 
 // NumberComparisonConstraint is used for various numeric comparisons between integer and float values.
 type NumberComparisonConstraint[T validation.Numeric] struct {
@@ -31,9 +132,7 @@ func IsEqualToNumber[T validation.Numeric](value T) NumberComparisonConstraint[T
 		value:           value,
 		messageTemplate: message.Templates[code.Equal],
 		comparedValue:   fmt.Sprint(value),
-		isValid: func(n T) bool {
-			return n == value
-		},
+		isValid:         func(n T) bool { return n == value },
 	}
 }
 
@@ -44,9 +143,7 @@ func IsNotEqualToNumber[T validation.Numeric](value T) NumberComparisonConstrain
 		value:           value,
 		messageTemplate: message.Templates[code.NotEqual],
 		comparedValue:   fmt.Sprint(value),
-		isValid: func(n T) bool {
-			return n != value
-		},
+		isValid:         func(n T) bool { return n != value },
 	}
 }
 
@@ -57,9 +154,7 @@ func IsLessThan[T validation.Numeric](value T) NumberComparisonConstraint[T] {
 		value:           value,
 		messageTemplate: message.Templates[code.TooHigh],
 		comparedValue:   fmt.Sprint(value),
-		isValid: func(n T) bool {
-			return n < value
-		},
+		isValid:         func(n T) bool { return n < value },
 	}
 }
 
@@ -70,9 +165,7 @@ func IsLessThanOrEqual[T validation.Numeric](value T) NumberComparisonConstraint
 		value:           value,
 		messageTemplate: message.Templates[code.TooHighOrEqual],
 		comparedValue:   fmt.Sprint(value),
-		isValid: func(n T) bool {
-			return n <= value
-		},
+		isValid:         func(n T) bool { return n <= value },
 	}
 }
 
@@ -83,9 +176,7 @@ func IsGreaterThan[T validation.Numeric](value T) NumberComparisonConstraint[T] 
 		value:           value,
 		messageTemplate: message.Templates[code.TooLow],
 		comparedValue:   fmt.Sprint(value),
-		isValid: func(n T) bool {
-			return n > value
-		},
+		isValid:         func(n T) bool { return n > value },
 	}
 }
 
@@ -96,9 +187,7 @@ func IsGreaterThanOrEqual[T validation.Numeric](value T) NumberComparisonConstra
 		value:           value,
 		messageTemplate: message.Templates[code.TooLowOrEqual],
 		comparedValue:   fmt.Sprint(value),
-		isValid: func(n T) bool {
-			return n >= value
-		},
+		isValid:         func(n T) bool { return n >= value },
 	}
 }
 
@@ -110,9 +199,7 @@ func IsPositive[T validation.Numeric]() NumberComparisonConstraint[T] {
 		value:           0,
 		messageTemplate: message.Templates[code.NotPositive],
 		comparedValue:   "0",
-		isValid: func(n T) bool {
-			return n > 0
-		},
+		isValid:         func(n T) bool { return n > 0 },
 	}
 }
 
@@ -124,9 +211,7 @@ func IsPositiveOrZero[T validation.Numeric]() NumberComparisonConstraint[T] {
 		value:           0,
 		messageTemplate: message.Templates[code.NotPositiveOrZero],
 		comparedValue:   "0",
-		isValid: func(n T) bool {
-			return n >= 0
-		},
+		isValid:         func(n T) bool { return n >= 0 },
 	}
 }
 
@@ -138,9 +223,7 @@ func IsNegative[T validation.Numeric]() NumberComparisonConstraint[T] {
 		value:           0,
 		messageTemplate: message.Templates[code.NotNegative],
 		comparedValue:   "0",
-		isValid: func(n T) bool {
-			return n < 0
-		},
+		isValid:         func(n T) bool { return n < 0 },
 	}
 }
 
@@ -152,9 +235,7 @@ func IsNegativeOrZero[T validation.Numeric]() NumberComparisonConstraint[T] {
 		value:           0,
 		messageTemplate: message.Templates[code.NotNegativeOrZero],
 		comparedValue:   "0",
-		isValid: func(n T) bool {
-			return n <= 0
-		},
+		isValid:         func(n T) bool { return n <= 0 },
 	}
 }
 
@@ -284,91 +365,6 @@ func (c RangeConstraint[T]) newViolation(value T, scope validation.Scope) error 
 				validation.TemplateParameter{Key: "{{ min }}", Value: fmt.Sprint(c.min)},
 				validation.TemplateParameter{Key: "{{ max }}", Value: fmt.Sprint(c.max)},
 				validation.TemplateParameter{Key: "{{ value }}", Value: fmt.Sprint(value)},
-			)...,
-		).
-		CreateViolation()
-}
-
-// StringComparisonConstraint is used to compare strings.
-type StringComparisonConstraint struct {
-	isIgnored         bool
-	groups            []string
-	code              string
-	messageTemplate   string
-	messageParameters validation.TemplateParameterList
-	comparedValue     string
-	isValid           func(value string) bool
-}
-
-// IsEqualToString checks that the string value is equal to the specified string value.
-func IsEqualToString(value string) StringComparisonConstraint {
-	return StringComparisonConstraint{
-		code:            code.Equal,
-		messageTemplate: message.Templates[code.Equal],
-		comparedValue:   value,
-		isValid: func(actualValue string) bool {
-			return value == actualValue
-		},
-	}
-}
-
-// IsNotEqualToString checks that the string value is not equal to the specified string value.
-func IsNotEqualToString(value string) StringComparisonConstraint {
-	return StringComparisonConstraint{
-		code:            code.NotEqual,
-		messageTemplate: message.Templates[code.NotEqual],
-		comparedValue:   value,
-		isValid: func(actualValue string) bool {
-			return value != actualValue
-		},
-	}
-}
-
-// Code overrides default code for produced violation.
-func (c StringComparisonConstraint) Code(code string) StringComparisonConstraint {
-	c.code = code
-	return c
-}
-
-// Message sets the violation message template. You can set custom template parameters
-// for injecting its values into the final message. Also, you can use default parameters:
-//
-//  {{ comparedValue }} - the expected value;
-//  {{ value }} - the current (invalid) value.
-//
-// All string values are quoted strings.
-func (c StringComparisonConstraint) Message(
-	template string,
-	parameters ...validation.TemplateParameter,
-) StringComparisonConstraint {
-	c.messageTemplate = template
-	c.messageParameters = parameters
-	return c
-}
-
-// When enables conditional validation of this constraint. If the expression evaluates to false,
-// then the constraint will be ignored.
-func (c StringComparisonConstraint) When(condition bool) StringComparisonConstraint {
-	c.isIgnored = !condition
-	return c
-}
-
-// WhenGroups enables conditional validation of the constraint by using the validation groups.
-func (c StringComparisonConstraint) WhenGroups(groups ...string) StringComparisonConstraint {
-	c.groups = groups
-	return c
-}
-
-func (c StringComparisonConstraint) ValidateString(value *string, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || c.isValid(*value) {
-		return nil
-	}
-
-	return scope.BuildViolation(c.code, c.messageTemplate).
-		SetParameters(
-			c.messageParameters.Prepend(
-				validation.TemplateParameter{Key: "{{ comparedValue }}", Value: strconv.Quote(c.comparedValue)},
-				validation.TemplateParameter{Key: "{{ value }}", Value: strconv.Quote(*value)},
 			)...,
 		).
 		CreateViolation()
@@ -637,4 +633,12 @@ func (c UniqueConstraint[T]) ValidateComparables(values []T, scope validation.Sc
 	return scope.BuildViolation(c.code, c.messageTemplate).
 		SetParameters(c.messageParameters...).
 		CreateViolation()
+}
+
+func formatComparable[T comparable](value T) string {
+	if s, ok := any(value).(string); ok {
+		return `"` + s + `"`
+	}
+
+	return fmt.Sprint(value)
 }

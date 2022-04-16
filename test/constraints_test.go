@@ -64,6 +64,7 @@ var validateTestCases = mergeTestCases(
 	choiceConstraintTestCases,
 	numberComparisonTestCases,
 	stringComparisonTestCases,
+	comparableComparisonTestCases,
 	hasUniqueValuesTestCases,
 	customStringConstraintTestCases,
 	timeComparisonTestCases,

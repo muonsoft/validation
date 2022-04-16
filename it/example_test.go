@@ -176,11 +176,59 @@ func ExampleIsOneOf() {
 	)
 	fmt.Println(validator.Validate(
 		context.Background(),
+		validation.String("foo", it.IsOneOf("one", "two", "three"))),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
 		validation.Comparable[int](1, it.IsOneOf(2, 3, 4))),
+	)
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](1, it.IsOneOf(2, 3, 4))),
 	)
 	// Output:
 	// violation: The value you selected is not a valid choice.
 	// violation: The value you selected is not a valid choice.
+	// violation: The value you selected is not a valid choice.
+	// violation: The value you selected is not a valid choice.
+}
+
+func ExampleIsEqualTo() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](1, it.IsEqualTo(2)),
+	))
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.String("foo", it.IsEqualTo("bar")),
+	))
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Comparable[string]("foo", it.IsEqualTo("bar")),
+	))
+	// Output:
+	// violation: This value should be equal to 2.
+	// violation: This value should be equal to "bar".
+	// violation: This value should be equal to "bar".
+}
+
+func ExampleIsNotEqualTo() {
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Number[int](1, it.IsNotEqualTo(1)),
+	))
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.String("foo", it.IsNotEqualTo("foo")),
+	))
+	fmt.Println(validator.Validate(
+		context.Background(),
+		validation.Comparable[string]("foo", it.IsNotEqualTo("foo")),
+	))
+	// Output:
+	// violation: This value should not be equal to 1.
+	// violation: This value should not be equal to "foo".
+	// violation: This value should not be equal to "foo".
 }
 
 func ExampleIsEqualToNumber() {
