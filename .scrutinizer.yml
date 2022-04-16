@@ -15,7 +15,7 @@ build:
           - go mod download
       tests:
         override:
-          - command: go test -v $(go list ./...) -coverpkg .,./it,./validator -coverprofile=cover.out
+          - command: go test -v $(go list ./...) -coverpkg .,./it,./is,./validate,./validator -coverprofile=cover.out
             coverage:
               file: 'cover.out'
               format: 'go-cc'
