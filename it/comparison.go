@@ -126,6 +126,7 @@ type NumberComparisonConstraint[T validation.Numeric] struct {
 }
 
 // IsEqualToNumber checks that the number is equal to the specified value.
+// Deprecated: use IsEqualTo instead.
 func IsEqualToNumber[T validation.Numeric](value T) NumberComparisonConstraint[T] {
 	return NumberComparisonConstraint[T]{
 		code:            code.Equal,
@@ -137,6 +138,7 @@ func IsEqualToNumber[T validation.Numeric](value T) NumberComparisonConstraint[T
 }
 
 // IsNotEqualToNumber checks that the number is not equal to the specified value.
+// Deprecated: use IsNotEqualTo instead.
 func IsNotEqualToNumber[T validation.Numeric](value T) NumberComparisonConstraint[T] {
 	return NumberComparisonConstraint[T]{
 		code:            code.NotEqual,
