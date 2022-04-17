@@ -625,24 +625,38 @@ func ExampleSequentially() {
 }
 
 func ExampleAtLeastOneOf() {
-	title := "bar"
+	banners := []struct {
+		Name      string
+		Keywords  []string
+		Companies []string
+		Brands    []string
+	}{
+		{Name: "Acme banner", Companies: []string{"Acme"}},
+		{Name: "Empty banner"},
+	}
 
-	err := validator.Validate(
-		context.Background(),
-		validation.AtLeastOneOf(
-			validation.String(title, it.IsBlank()),
-			validation.String(title, it.HasMinLength(5)),
-		),
-	)
-
-	if violations, ok := validation.UnwrapViolationList(err); ok {
-		for violation := violations.First(); violation != nil; violation = violation.Next() {
-			fmt.Println(violation)
+	for _, banner := range banners {
+		err := validator.Validate(
+			context.Background(),
+			validation.AtLeastOneOf(
+				validation.CountableProperty("keywords", len(banner.Keywords), it.IsNotBlank()),
+				validation.CountableProperty("companies", len(banner.Companies), it.IsNotBlank()),
+				validation.CountableProperty("brands", len(banner.Brands), it.IsNotBlank()),
+			),
+		)
+		if violations, ok := validation.UnwrapViolationList(err); ok {
+			fmt.Println("banner", banner.Name, "is not valid:")
+			for violation := violations.First(); violation != nil; violation = violation.Next() {
+				fmt.Println(violation)
+			}
 		}
 	}
+
 	// Output:
-	// violation: This value should be blank.
-	// violation: This value is too short. It should have 5 characters or more.
+	// banner Empty banner is not valid:
+	// violation at 'keywords': This value should not be blank.
+	// violation at 'companies': This value should not be blank.
+	// violation at 'brands': This value should not be blank.
 }
 
 func ExampleValidator_Validate_basicValidation() {
@@ -669,12 +683,69 @@ func ExampleValidator_Validate_singletonValidator() {
 	// violation: This value should not be blank.
 }
 
-func ExampleValidator_ValidateString_shorthandAlias() {
+func ExampleValidator_ValidateBool() {
+	v := false
+	err := validator.ValidateBool(context.Background(), v, it.IsTrue())
+	fmt.Println(err)
+	// Output:
+	// violation: This value should be true.
+}
+
+func ExampleValidator_ValidateInt() {
+	v := 5
+	err := validator.ValidateInt(context.Background(), v, it.IsGreaterThan(5))
+	fmt.Println(err)
+	// Output:
+	// violation: This value should be greater than 5.
+}
+
+func ExampleValidator_ValidateFloat() {
+	v := 5.5
+	err := validator.ValidateFloat(context.Background(), v, it.IsGreaterThan(6.5))
+	fmt.Println(err)
+	// Output:
+	// violation: This value should be greater than 6.5.
+}
+
+func ExampleValidator_ValidateString() {
 	err := validator.ValidateString(context.Background(), "", it.IsNotBlank())
 
 	fmt.Println(err)
 	// Output:
 	// violation: This value should not be blank.
+}
+
+func ExampleValidator_ValidateStrings() {
+	v := []string{"foo", "bar", "baz", "foo"}
+	err := validator.ValidateStrings(context.Background(), v, it.HasUniqueValues[string]())
+	fmt.Println(err)
+	// Output:
+	// violation: This collection should contain only unique elements.
+}
+
+func ExampleValidator_ValidateCountable() {
+	s := []string{"a", "b"}
+	err := validator.ValidateCountable(context.Background(), len(s), it.HasMinCount(3))
+	fmt.Println(err)
+	// Output:
+	// violation: This collection should contain 3 elements or more.
+}
+
+func ExampleValidator_ValidateTime() {
+	t := time.Now()
+	compared, _ := time.Parse(time.RFC3339, "2006-01-02T15:00:00Z")
+	err := validator.ValidateTime(context.Background(), t, it.IsEarlierThan(compared))
+	fmt.Println(err)
+	// Output:
+	// violation: This value should be earlier than 2006-01-02T15:00:00Z.
+}
+
+func ExampleValidator_ValidateEachString() {
+	v := []string{""}
+	err := validator.ValidateEachString(context.Background(), v, it.IsNotBlank())
+	fmt.Println(err)
+	// Output:
+	// violation at '[0]': This value should not be blank.
 }
 
 func ExampleValidator_Validate_basicStructValidation() {

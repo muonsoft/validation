@@ -74,6 +74,14 @@ func (c ChoiceConstraint[T]) WhenGroups(groups ...string) ChoiceConstraint[T] {
 	return c
 }
 
+func (c ChoiceConstraint[T]) ValidateNumber(value *T, scope validation.Scope) error {
+	return c.ValidateComparable(value, scope)
+}
+
+func (c ChoiceConstraint[T]) ValidateString(value *T, scope validation.Scope) error {
+	return c.ValidateComparable(value, scope)
+}
+
 func (c ChoiceConstraint[T]) ValidateComparable(value *T, scope validation.Scope) error {
 	if len(c.choices) == 0 {
 		return scope.NewConstraintError("ChoiceConstraint", "empty list of choices")

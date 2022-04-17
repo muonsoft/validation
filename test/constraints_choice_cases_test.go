@@ -10,40 +10,40 @@ import (
 var choiceConstraintTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsOneOf error on empty list",
-		isApplicableFor: specificValueTypes(comparableType),
+		isApplicableFor: specificValueTypes(stringType, comparableType),
 		constraint:      it.IsOneOf[string](),
 		assert:          assertError(`failed to validate by ChoiceConstraint: empty list of choices`),
 	},
 	{
 		name:            "IsOneOf passes on nil",
-		isApplicableFor: specificValueTypes(comparableType),
+		isApplicableFor: specificValueTypes(stringType, comparableType),
 		constraint:      it.IsOneOf("expected"),
 		assert:          assertNoError,
 	},
 	{
 		name:            "IsOneOf passes on empty string",
-		isApplicableFor: specificValueTypes(comparableType),
+		isApplicableFor: specificValueTypes(stringType, comparableType),
 		stringValue:     stringValue(""),
 		constraint:      it.IsOneOf("expected"),
 		assert:          assertNoError,
 	},
 	{
 		name:            "IsOneOf passes on expected string",
-		isApplicableFor: specificValueTypes(comparableType),
+		isApplicableFor: specificValueTypes(stringType, comparableType),
 		stringValue:     stringValue("expected"),
 		constraint:      it.IsOneOf("expected"),
 		assert:          assertNoError,
 	},
 	{
 		name:            "IsOneOf violation on missing value",
-		isApplicableFor: specificValueTypes(comparableType),
+		isApplicableFor: specificValueTypes(stringType, comparableType),
 		stringValue:     stringValue("not-expected"),
 		constraint:      it.IsOneOf("expected"),
 		assert:          assertHasOneViolation(code.NoSuchChoice, message.Templates[code.NoSuchChoice]),
 	},
 	{
 		name:            "IsOneOf violation on missing value with custom message",
-		isApplicableFor: specificValueTypes(comparableType),
+		isApplicableFor: specificValueTypes(stringType, comparableType),
 		stringValue:     stringValue("unexpected"),
 		constraint: it.IsOneOf("alpha", "beta", "gamma").
 			Code(customCode).
@@ -58,23 +58,30 @@ var choiceConstraintTestCases = []ConstraintValidationTestCase{
 	},
 	{
 		name:            "IsOneOf passes when condition is false",
-		isApplicableFor: specificValueTypes(comparableType),
+		isApplicableFor: specificValueTypes(stringType, comparableType),
 		stringValue:     stringValue("not-expected"),
 		constraint:      it.IsOneOf("expected").When(false),
 		assert:          assertNoError,
 	},
 	{
 		name:            "IsOneOf passes when groups not match",
-		isApplicableFor: specificValueTypes(comparableType),
+		isApplicableFor: specificValueTypes(stringType, comparableType),
 		stringValue:     stringValue("not-expected"),
 		constraint:      it.IsOneOf("expected").WhenGroups(testGroup),
 		assert:          assertNoError,
 	},
 	{
 		name:            "IsOneOf violation on missing value when condition is true",
-		isApplicableFor: specificValueTypes(comparableType),
+		isApplicableFor: specificValueTypes(stringType, comparableType),
 		stringValue:     stringValue("not-expected"),
 		constraint:      it.IsOneOf("expected").When(true),
+		assert:          assertHasOneViolation(code.NoSuchChoice, message.Templates[code.NoSuchChoice]),
+	},
+	{
+		name:            "IsOneOf violation on missing integer value",
+		isApplicableFor: specificValueTypes(intType),
+		intValue:        intValue(4),
+		constraint:      it.IsOneOf(1, 2, 3, 5),
 		assert:          assertHasOneViolation(code.NoSuchChoice, message.Templates[code.NoSuchChoice]),
 	},
 }

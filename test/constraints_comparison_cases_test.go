@@ -42,6 +42,11 @@ var stringComparisonTestCases = mergeTestCases(
 	isNotEqualToStringTestCases,
 )
 
+var comparableComparisonTestCases = mergeTestCases(
+	isEqualToTestCases,
+	isNotEqualToTestCases,
+)
+
 var timeComparisonTestCases = mergeTestCases(
 	isEarlierThanTestCases,
 	isEarlierThanOrEqualTestCases,
@@ -870,6 +875,95 @@ var isNotEqualToStringTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("expected"),
 		constraint:      it.IsNotEqualToString("expected"),
+		assert:          assertHasOneViolation(code.NotEqual, `This value should not be equal to "expected".`),
+	},
+}
+
+var isEqualToTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsEqualTo passes on nil",
+		isApplicableFor: specificValueTypes(stringType, comparableType),
+		constraint:      it.IsEqualTo("expected"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsEqualTo violation on not equal value",
+		isApplicableFor: specificValueTypes(stringType, comparableType),
+		stringValue:     stringValue("actual"),
+		constraint:      it.IsEqualTo("expected"),
+		assert:          assertHasOneViolation(code.Equal, `This value should be equal to "expected".`),
+	},
+	{
+		name:            "IsEqualTo violation on not equal integer value",
+		isApplicableFor: specificValueTypes(intType),
+		intValue:        intValue(1),
+		constraint:      it.IsEqualTo(2),
+		assert:          assertHasOneViolation(code.Equal, `This value should be equal to 2.`),
+	},
+	{
+		name:            "IsEqualTo passes on equal value",
+		isApplicableFor: specificValueTypes(stringType, comparableType),
+		stringValue:     stringValue("expected"),
+		constraint:      it.IsEqualTo("expected"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsEqualTo violation with custom message",
+		isApplicableFor: specificValueTypes(stringType, comparableType),
+		stringValue:     stringValue("actual"),
+		constraint: it.IsEqualTo("expected").
+			Code(customCode).
+			Message(
+				`Unexpected value {{ value }} at {{ custom }}, expected value is {{ comparedValue }}.`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		assert: assertHasOneViolation(
+			customCode,
+			`Unexpected value "actual" at parameter, expected value is "expected".`,
+		),
+	},
+	{
+		name:            "IsEqualTo passes when condition is false",
+		isApplicableFor: specificValueTypes(stringType, comparableType),
+		stringValue:     stringValue("actual"),
+		constraint:      it.IsEqualTo("expected").When(false),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsEqualTo passes when groups not match",
+		isApplicableFor: specificValueTypes(stringType, comparableType),
+		stringValue:     stringValue("actual"),
+		constraint:      it.IsEqualTo("expected").WhenGroups(testGroup),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsEqualTo violation when condition is tue",
+		isApplicableFor: specificValueTypes(stringType, comparableType),
+		stringValue:     stringValue("actual"),
+		constraint:      it.IsEqualTo("expected").When(true),
+		assert:          assertHasOneViolation(code.Equal, `This value should be equal to "expected".`),
+	},
+}
+
+var isNotEqualToTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsNotEqualTo passes on nil",
+		isApplicableFor: specificValueTypes(stringType, comparableType),
+		constraint:      it.IsNotEqualTo("expected"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNotEqualTo passes on not equal value",
+		isApplicableFor: specificValueTypes(stringType, comparableType),
+		stringValue:     stringValue("actual"),
+		constraint:      it.IsNotEqualTo("expected"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsNotEqualTo violation on equal value",
+		isApplicableFor: specificValueTypes(stringType, comparableType),
+		stringValue:     stringValue("expected"),
+		constraint:      it.IsNotEqualTo("expected"),
 		assert:          assertHasOneViolation(code.NotEqual, `This value should not be equal to "expected".`),
 	},
 }

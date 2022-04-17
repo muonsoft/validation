@@ -7,6 +7,7 @@ import (
 	"github.com/muonsoft/validation/message"
 )
 
+// Numeric is used as a type parameter for numeric values.
 type Numeric interface {
 	~float32 | ~float64 |
 		~int | ~int8 | ~int16 | ~int32 | ~int64 |

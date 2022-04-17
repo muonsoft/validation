@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+// ConstraintError is used to return critical error from constraint that immediately
+// stops the validation process. It is recommended to use Scope.NewConstraintError() method
+// to initiate an error from current scope.
 type ConstraintError struct {
 	ConstraintName string
 	Path           *PropertyPath
