@@ -31,9 +31,7 @@ func (c NestingLimitConstraint) ValidateProperty(property *Property, scope valid
 	}
 
 	if level >= c.limit {
-		return scope.
-			BuildViolation("nestingLimitReached", "Maximum nesting level reached.").
-			CreateViolation()
+		return scope.CreateViolation("nestingLimitReached", "Maximum nesting level reached.")
 	}
 
 	return nil

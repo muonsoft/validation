@@ -477,6 +477,7 @@ func (b *ViolationBuilder) BuildViolation(code, message string) *ViolationBuilde
 }
 
 // SetParameters sets template parameters that can be injected into the violation message.
+// Deprecated: use WithParameters instead.
 func (b *ViolationBuilder) SetParameters(parameters ...TemplateParameter) *ViolationBuilder {
 	b.parameters = parameters
 
@@ -484,6 +485,7 @@ func (b *ViolationBuilder) SetParameters(parameters ...TemplateParameter) *Viola
 }
 
 // AddParameter adds one parameter into a slice of parameters.
+// Deprecated: use WithParameter instead.
 func (b *ViolationBuilder) AddParameter(name, value string) *ViolationBuilder {
 	b.parameters = append(b.parameters, TemplateParameter{Key: name, Value: value})
 
@@ -491,6 +493,7 @@ func (b *ViolationBuilder) AddParameter(name, value string) *ViolationBuilder {
 }
 
 // SetPropertyPath sets a property path of violated attribute.
+// Deprecated: use WithPropertyPath instead.
 func (b *ViolationBuilder) SetPropertyPath(path *PropertyPath) *ViolationBuilder {
 	b.propertyPath = path
 
@@ -498,6 +501,7 @@ func (b *ViolationBuilder) SetPropertyPath(path *PropertyPath) *ViolationBuilder
 }
 
 // SetPluralCount sets a plural number that will be used for message pluralization during translations.
+// Deprecated: use WithPluralCount instead.
 func (b *ViolationBuilder) SetPluralCount(pluralCount int) *ViolationBuilder {
 	b.pluralCount = pluralCount
 
@@ -505,7 +509,57 @@ func (b *ViolationBuilder) SetPluralCount(pluralCount int) *ViolationBuilder {
 }
 
 // SetLanguage sets language that will be used to translate the violation message.
+// Deprecated: use WithLanguage instead.
 func (b *ViolationBuilder) SetLanguage(tag language.Tag) *ViolationBuilder {
+	b.language = tag
+
+	return b
+}
+
+// WithParameters sets template parameters that can be injected into the violation message.
+func (b *ViolationBuilder) WithParameters(parameters ...TemplateParameter) *ViolationBuilder {
+	b.parameters = parameters
+
+	return b
+}
+
+// WithParameter adds one parameter into a slice of parameters.
+func (b *ViolationBuilder) WithParameter(name, value string) *ViolationBuilder {
+	b.parameters = append(b.parameters, TemplateParameter{Key: name, Value: value})
+
+	return b
+}
+
+// WithPropertyPath sets a property path of violated attribute.
+func (b *ViolationBuilder) WithPropertyPath(path *PropertyPath) *ViolationBuilder {
+	b.propertyPath = path
+
+	return b
+}
+
+// AtProperty adds a property name to property path of violated attribute.
+func (b *ViolationBuilder) AtProperty(propertyName string) *ViolationBuilder {
+	b.propertyPath = b.propertyPath.WithProperty(propertyName)
+
+	return b
+}
+
+// AtIndex adds an array index to property path of violated attribute.
+func (b *ViolationBuilder) AtIndex(index int) *ViolationBuilder {
+	b.propertyPath = b.propertyPath.WithIndex(index)
+
+	return b
+}
+
+// WithPluralCount sets a plural number that will be used for message pluralization during translations.
+func (b *ViolationBuilder) WithPluralCount(pluralCount int) *ViolationBuilder {
+	b.pluralCount = pluralCount
+
+	return b
+}
+
+// WithLanguage sets language that will be used to translate the violation message.
+func (b *ViolationBuilder) WithLanguage(tag language.Tag) *ViolationBuilder {
 	b.language = tag
 
 	return b
@@ -513,7 +567,14 @@ func (b *ViolationBuilder) SetLanguage(tag language.Tag) *ViolationBuilder {
 
 // CreateViolation creates a new violation with given parameters and returns it.
 // Violation is created by calling the CreateViolation method of the ViolationFactory.
+// Deprecated: use Create instead.
 func (b *ViolationBuilder) CreateViolation() Violation {
+	return b.Create()
+}
+
+// Create creates a new violation with given parameters and returns it.
+// Violation is created by calling the CreateViolation method of the ViolationFactory.
+func (b *ViolationBuilder) Create() Violation {
 	return b.violationFactory.CreateViolation(
 		b.code,
 		b.messageTemplate,
@@ -522,6 +583,141 @@ func (b *ViolationBuilder) CreateViolation() Violation {
 		b.propertyPath,
 		b.language,
 	)
+}
+
+// ViolationListBuilder is used to build a ViolationList by fluent interface.
+type ViolationListBuilder struct {
+	violations       *ViolationList
+	violationFactory ViolationFactory
+
+	propertyPath *PropertyPath
+	language     language.Tag
+}
+
+// ViolationListElementBuilder is used to build Violation that will be added into ViolationList
+// of the ViolationListBuilder.
+type ViolationListElementBuilder struct {
+	listBuilder *ViolationListBuilder
+
+	code            string
+	messageTemplate string
+	pluralCount     int
+	parameters      []TemplateParameter
+	propertyPath    *PropertyPath
+}
+
+// NewViolationListBuilder creates a new ViolationListBuilder.
+func NewViolationListBuilder(factory ViolationFactory) *ViolationListBuilder {
+	return &ViolationListBuilder{violationFactory: factory, violations: NewViolationList()}
+}
+
+// BuildViolation initiates a builder for violation that will be added into ViolationList.
+func (b *ViolationListBuilder) BuildViolation(code, message string) *ViolationListElementBuilder {
+	return &ViolationListElementBuilder{
+		listBuilder:     b,
+		code:            code,
+		messageTemplate: message,
+		propertyPath:    b.propertyPath,
+	}
+}
+
+// WithPropertyPath sets a base property path of violated attributes.
+func (b *ViolationListBuilder) WithPropertyPath(path *PropertyPath) *ViolationListBuilder {
+	b.propertyPath = path
+
+	return b
+}
+
+// AtProperty adds a property name to the base property path of violated attributes.
+func (b *ViolationListBuilder) AtProperty(propertyName string) *ViolationListBuilder {
+	b.propertyPath = b.propertyPath.WithProperty(propertyName)
+
+	return b
+}
+
+// AtIndex adds an array index to the base property path of violated attributes.
+func (b *ViolationListBuilder) AtIndex(index int) *ViolationListBuilder {
+	b.propertyPath = b.propertyPath.WithIndex(index)
+
+	return b
+}
+
+// Create returns a ViolationList with built violations.
+func (b *ViolationListBuilder) Create() *ViolationList {
+	return b.violations
+}
+
+func (b *ViolationListBuilder) add(
+	code, template string,
+	count int,
+	parameters []TemplateParameter,
+	path *PropertyPath,
+) *ViolationListBuilder {
+	b.violations.Append(b.violationFactory.CreateViolation(
+		code,
+		template,
+		count,
+		parameters,
+		path,
+		b.language,
+	))
+
+	return b
+}
+
+// WithLanguage sets language that will be used to translate the violation message.
+func (b *ViolationListBuilder) WithLanguage(tag language.Tag) *ViolationListBuilder {
+	b.language = tag
+
+	return b
+}
+
+// WithParameters sets template parameters that can be injected into the violation message.
+func (b *ViolationListElementBuilder) WithParameters(parameters ...TemplateParameter) *ViolationListElementBuilder {
+	b.parameters = parameters
+
+	return b
+}
+
+// WithParameter adds one parameter into a slice of parameters.
+func (b *ViolationListElementBuilder) WithParameter(name, value string) *ViolationListElementBuilder {
+	b.parameters = append(b.parameters, TemplateParameter{Key: name, Value: value})
+
+	return b
+}
+
+// WithPropertyPath sets a property path of violated attribute.
+func (b *ViolationListElementBuilder) WithPropertyPath(path *PropertyPath) *ViolationListElementBuilder {
+	b.propertyPath = path
+
+	return b
+}
+
+// AtProperty adds a property name to property path of violated attribute.
+func (b *ViolationListElementBuilder) AtProperty(propertyName string) *ViolationListElementBuilder {
+	b.propertyPath = b.propertyPath.WithProperty(propertyName)
+
+	return b
+}
+
+// AtIndex adds an array index to property path of violated attribute.
+func (b *ViolationListElementBuilder) AtIndex(index int) *ViolationListElementBuilder {
+	b.propertyPath = b.propertyPath.WithIndex(index)
+
+	return b
+}
+
+// WithPluralCount sets a plural number that will be used for message pluralization during translations.
+func (b *ViolationListElementBuilder) WithPluralCount(pluralCount int) *ViolationListElementBuilder {
+	b.pluralCount = pluralCount
+
+	return b
+}
+
+// Add creates a Violation and appends it into the end of the ViolationList.
+// It returns a ViolationListBuilder to continue process of creating a ViolationList.
+func (b *ViolationListElementBuilder) Add() *ViolationListBuilder {
+	return b.listBuilder.add(b.code, b.messageTemplate, b.pluralCount, b.parameters, b.propertyPath)
 }
 
 func unwrapViolationList(err error) (*ViolationList, error) {

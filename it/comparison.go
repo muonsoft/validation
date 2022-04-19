@@ -104,13 +104,13 @@ func (c ComparisonConstraint[T]) ValidateComparable(value *T, scope validation.S
 	}
 
 	return scope.BuildViolation(c.code, c.messageTemplate).
-		SetParameters(
+		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ comparedValue }}", Value: c.comparedValue},
 				validation.TemplateParameter{Key: "{{ value }}", Value: formatComparable(*value)},
 			)...,
 		).
-		CreateViolation()
+		Create()
 }
 
 // NumberComparisonConstraint is used for various numeric comparisons between integer and float values.
@@ -280,13 +280,13 @@ func (c NumberComparisonConstraint[T]) ValidateNumber(value *T, scope validation
 	}
 
 	return scope.BuildViolation(c.code, c.messageTemplate).
-		SetParameters(
+		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ comparedValue }}", Value: c.comparedValue},
 				validation.TemplateParameter{Key: "{{ value }}", Value: fmt.Sprint(*value)},
 			)...,
 		).
-		CreateViolation()
+		Create()
 }
 
 // RangeConstraint is used to check that a given number value is between some minimum and maximum.
@@ -362,14 +362,14 @@ func (c RangeConstraint[T]) ValidateNumber(value *T, scope validation.Scope) err
 
 func (c RangeConstraint[T]) newViolation(value T, scope validation.Scope) error {
 	return scope.BuildViolation(c.code, c.messageTemplate).
-		SetParameters(
+		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ min }}", Value: fmt.Sprint(c.min)},
 				validation.TemplateParameter{Key: "{{ max }}", Value: fmt.Sprint(c.max)},
 				validation.TemplateParameter{Key: "{{ value }}", Value: fmt.Sprint(value)},
 			)...,
 		).
-		CreateViolation()
+		Create()
 }
 
 // TimeComparisonConstraint is used to compare time values.
@@ -484,13 +484,13 @@ func (c TimeComparisonConstraint) ValidateTime(value *time.Time, scope validatio
 	}
 
 	return scope.BuildViolation(c.code, c.messageTemplate).
-		SetParameters(
+		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ comparedValue }}", Value: c.comparedValue.Format(c.layout)},
 				validation.TemplateParameter{Key: "{{ value }}", Value: value.Format(c.layout)},
 			)...,
 		).
-		CreateViolation()
+		Create()
 }
 
 // TimeRangeConstraint is used to check that a given time value is between some minimum and maximum.
@@ -572,14 +572,14 @@ func (c TimeRangeConstraint) ValidateTime(value *time.Time, scope validation.Sco
 
 func (c TimeRangeConstraint) newViolation(value *time.Time, scope validation.Scope) validation.Violation {
 	return scope.BuildViolation(c.code, c.messageTemplate).
-		SetParameters(
+		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ min }}", Value: c.min.Format(c.layout)},
 				validation.TemplateParameter{Key: "{{ max }}", Value: c.max.Format(c.layout)},
 				validation.TemplateParameter{Key: "{{ value }}", Value: value.Format(c.layout)},
 			)...,
 		).
-		CreateViolation()
+		Create()
 }
 
 // UniqueConstraint is used to check that all elements of the given collection are unique.
@@ -633,8 +633,8 @@ func (c UniqueConstraint[T]) ValidateComparables(values []T, scope validation.Sc
 	}
 
 	return scope.BuildViolation(c.code, c.messageTemplate).
-		SetParameters(c.messageParameters...).
-		CreateViolation()
+		WithParameters(c.messageParameters...).
+		Create()
 }
 
 func formatComparable[T comparable](value T) string {

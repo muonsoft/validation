@@ -1041,8 +1041,8 @@ func ExampleValidator_BuildViolation_buildingViolation() {
 	}
 
 	violation := validator.BuildViolation(context.Background(), "clientCode", "Client message with {{ parameter }}.").
-		AddParameter("{{ parameter }}", "value").
-		CreateViolation()
+		WithParameter("{{ parameter }}", "value").
+		Create()
 
 	fmt.Println(violation.Message())
 	// Output:
@@ -1064,16 +1064,42 @@ func ExampleValidator_BuildViolation_translatableParameter() {
 
 	violation := validator.WithLanguage(language.Russian).
 		BuildViolation(context.Background(), "clientCode", "The operation is only possible for the {{ role }}.").
-		SetParameters(validation.TemplateParameter{
+		WithParameters(validation.TemplateParameter{
 			Key:              "{{ role }}",
 			Value:            "administrator role",
 			NeedsTranslation: true,
 		}).
-		CreateViolation()
+		Create()
 
 	fmt.Println(violation.Message())
 	// Output:
 	// Операция возможна только для роли администратора.
+}
+
+func ExampleValidator_BuildViolationList() {
+	validator, err := validation.NewValidator()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	builder := validator.BuildViolationList(context.Background())
+	builder.BuildViolation("code1", "Client message with {{ parameter 1 }}.").
+		WithParameter("{{ parameter 1 }}", "value 1").
+		AtProperty("properties").AtIndex(0).
+		Add()
+	builder.BuildViolation("code2", "Client message with {{ parameter 2 }}.").
+		WithParameter("{{ parameter 2 }}", "value 2").
+		AtProperty("properties").AtIndex(1).
+		Add()
+	violations := builder.Create()
+
+	violations.Each(func(i int, violation validation.Violation) error {
+		fmt.Println(violation.Error())
+		return nil
+	})
+	// Output:
+	// violation at 'properties[0]': Client message with value 1.
+	// violation at 'properties[1]': Client message with value 2.
 }
 
 func ExampleViolationList_First() {

@@ -345,8 +345,8 @@ func (c Checker) validate(scope Scope) (*ViolationList, error) {
 	}
 
 	violation := scope.BuildViolation(c.code, c.messageTemplate).
-		SetParameters(c.messageParameters...).
-		CreateViolation()
+		WithParameters(c.messageParameters...).
+		Create()
 
 	return NewViolationList(violation), nil
 }

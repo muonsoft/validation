@@ -120,11 +120,11 @@ func (c CustomStringConstraint) ValidateString(value *string, scope Scope) error
 	}
 
 	return scope.BuildViolation(c.code, c.messageTemplate).
-		SetParameters(
+		WithParameters(
 			c.messageParameters.Prepend(
 				TemplateParameter{Key: "{{ value }}", Value: *value},
 			)...,
 		).
-		AddParameter("{{ value }}", *value).
-		CreateViolation()
+		WithParameter("{{ value }}", *value).
+		Create()
 }

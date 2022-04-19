@@ -133,3 +133,8 @@ func AtIndex(index int) *validation.Validator {
 func BuildViolation(ctx context.Context, code, message string) *validation.ViolationBuilder {
 	return validator.BuildViolation(ctx, code, message)
 }
+
+// BuildViolationList can be used to build a custom violation list on the client-side.
+func BuildViolationList(ctx context.Context) *validation.ViolationListBuilder {
+	return validator.BuildViolationList(ctx)
+}
