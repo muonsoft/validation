@@ -15,3 +15,15 @@ func TestPropertyPath_String(t *testing.T) {
 
 	assert.Equal(t, "array[1].property", formatted)
 }
+
+func TestPropertyPath_With(t *testing.T) {
+	path := validation.NewPropertyPath(validation.PropertyNameElement("top"), validation.ArrayIndexElement(0))
+
+	path = path.With(
+		validation.PropertyNameElement("low"),
+		validation.ArrayIndexElement(1),
+		validation.PropertyNameElement("property"),
+	)
+
+	assert.Equal(t, "top[0].low[1].property", path.String())
+}

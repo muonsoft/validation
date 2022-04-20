@@ -492,8 +492,7 @@ func (b *ViolationBuilder) AddParameter(name, value string) *ViolationBuilder {
 	return b
 }
 
-// SetPropertyPath sets a property path of violated attribute.
-// Deprecated: use WithPropertyPath instead.
+// SetPropertyPath resets a base property path of violated attributes.
 func (b *ViolationBuilder) SetPropertyPath(path *PropertyPath) *ViolationBuilder {
 	b.propertyPath = path
 
@@ -531,8 +530,8 @@ func (b *ViolationBuilder) WithParameter(name, value string) *ViolationBuilder {
 }
 
 // WithPropertyPath sets a property path of violated attribute.
-func (b *ViolationBuilder) WithPropertyPath(path *PropertyPath) *ViolationBuilder {
-	b.propertyPath = path
+func (b *ViolationBuilder) WithPropertyPath(path ...PropertyPathElement) *ViolationBuilder {
+	b.propertyPath = b.propertyPath.With(path...)
 
 	return b
 }
@@ -621,9 +620,22 @@ func (b *ViolationListBuilder) BuildViolation(code, message string) *ViolationLi
 	}
 }
 
-// WithPropertyPath sets a base property path of violated attributes.
-func (b *ViolationListBuilder) WithPropertyPath(path *PropertyPath) *ViolationListBuilder {
+// AddViolation can be used to quickly add a new violation using only code, message
+// and optional property path elements.
+func (b *ViolationListBuilder) AddViolation(code, message string, path ...PropertyPathElement) *ViolationListBuilder {
+	return b.add(code, message, 0, nil, b.propertyPath.With(path...))
+}
+
+// SetPropertyPath resets a base property path of violated attributes.
+func (b *ViolationListBuilder) SetPropertyPath(path *PropertyPath) *ViolationListBuilder {
 	b.propertyPath = path
+
+	return b
+}
+
+// WithPropertyPath adds a property path of violated attributes.
+func (b *ViolationListBuilder) WithPropertyPath(path ...PropertyPathElement) *ViolationListBuilder {
+	b.propertyPath = b.propertyPath.With(path...)
 
 	return b
 }
@@ -687,8 +699,8 @@ func (b *ViolationListElementBuilder) WithParameter(name, value string) *Violati
 }
 
 // WithPropertyPath sets a property path of violated attribute.
-func (b *ViolationListElementBuilder) WithPropertyPath(path *PropertyPath) *ViolationListElementBuilder {
-	b.propertyPath = path
+func (b *ViolationListElementBuilder) WithPropertyPath(path ...PropertyPathElement) *ViolationListElementBuilder {
+	b.propertyPath = b.propertyPath.With(path...)
 
 	return b
 }

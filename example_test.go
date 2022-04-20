@@ -1104,8 +1104,8 @@ func ExampleValidator_BuildViolationList() {
 
 func ExampleViolationList_First() {
 	violations := validation.NewViolationList(
-		validator.BuildViolation(context.Background(), "", "foo").CreateViolation(),
-		validator.BuildViolation(context.Background(), "", "bar").CreateViolation(),
+		validator.BuildViolation(context.Background(), "", "foo").Create(),
+		validator.BuildViolation(context.Background(), "", "bar").Create(),
 	)
 
 	for violation := violations.First(); violation != nil; violation = violation.Next() {
@@ -1118,7 +1118,7 @@ func ExampleViolationList_First() {
 
 func ExampleViolationList_AppendFromError_addingViolation() {
 	violations := validation.NewViolationList()
-	err := validator.BuildViolation(context.Background(), "", "foo").CreateViolation()
+	err := validator.BuildViolation(context.Background(), "", "foo").Create()
 
 	appendErr := violations.AppendFromError(err)
 
@@ -1132,8 +1132,8 @@ func ExampleViolationList_AppendFromError_addingViolation() {
 func ExampleViolationList_AppendFromError_addingViolationList() {
 	violations := validation.NewViolationList()
 	err := validation.NewViolationList(
-		validator.BuildViolation(context.Background(), "", "foo").CreateViolation(),
-		validator.BuildViolation(context.Background(), "", "bar").CreateViolation(),
+		validator.BuildViolation(context.Background(), "", "foo").Create(),
+		validator.BuildViolation(context.Background(), "", "bar").Create(),
 	)
 
 	appendErr := violations.AppendFromError(err)

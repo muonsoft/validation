@@ -66,7 +66,7 @@ func TestViolationListAssertion_WithCodes_WhenEmptyList_ExpectError(t *testing.T
 func TestViolationListAssertion_WithCodes_WhenInvalidCode_ExpectError(t *testing.T) {
 	tester := &Tester{}
 	violations := validation.NewViolationList(
-		validator.BuildViolation(context.Background(), "code", "message").CreateViolation(),
+		validator.BuildViolation(context.Background(), "code", "message").Create(),
 	)
 
 	validationtest.Assert(tester, violations).IsViolationList().WithCodes("expected")
@@ -77,7 +77,7 @@ func TestViolationListAssertion_WithCodes_WhenInvalidCode_ExpectError(t *testing
 func TestViolationListAssertion_WithAttributes(t *testing.T) {
 	violation := validator.BuildViolation(context.Background(), "code", "message").
 		SetPropertyPath(validation.NewPropertyPath(validation.PropertyNameElement("path"))).
-		CreateViolation()
+		Create()
 
 	tests := []struct {
 		name            string
@@ -123,7 +123,7 @@ func TestViolationAssertion_WithCode(t *testing.T) {
 	tester := &Tester{}
 	violation := validator.BuildViolation(context.Background(), "code", "message").
 		SetPropertyPath(validation.NewPropertyPath(validation.PropertyNameElement("path"))).
-		CreateViolation()
+		Create()
 
 	validationtest.Assert(tester, violation).IsViolation().WithCode("expected")
 
@@ -134,7 +134,7 @@ func TestViolationAssertion_WithCode_AtIndex(t *testing.T) {
 	tester := &Tester{}
 	violation := validator.BuildViolation(context.Background(), "code", "message").
 		SetPropertyPath(validation.NewPropertyPath(validation.PropertyNameElement("path"))).
-		CreateViolation()
+		Create()
 	violations := validation.NewViolationList(violation)
 
 	validationtest.Assert(tester, violations).IsViolationList().WithOneViolation().WithCode("expected")
@@ -146,7 +146,7 @@ func TestViolationAssertion_WithMessage(t *testing.T) {
 	tester := &Tester{}
 	violation := validator.BuildViolation(context.Background(), "code", "message").
 		SetPropertyPath(validation.NewPropertyPath(validation.PropertyNameElement("path"))).
-		CreateViolation()
+		Create()
 
 	validationtest.Assert(tester, violation).IsViolation().WithMessage("expected")
 
@@ -157,7 +157,7 @@ func TestViolationAssertion_WithPropertyPath(t *testing.T) {
 	tester := &Tester{}
 	violation := validator.BuildViolation(context.Background(), "code", "message").
 		SetPropertyPath(validation.NewPropertyPath(validation.PropertyNameElement("path"))).
-		CreateViolation()
+		Create()
 
 	validationtest.Assert(tester, violation).IsViolation().WithPropertyPath("expected")
 
@@ -168,8 +168,8 @@ func TestViolationAssertion_EqualTo(t *testing.T) {
 	tester := &Tester{}
 	violation := validator.BuildViolation(context.Background(), "code", "message").
 		SetPropertyPath(validation.NewPropertyPath(validation.PropertyNameElement("path"))).
-		CreateViolation()
-	differentViolation := validator.BuildViolation(context.Background(), "code", "message").CreateViolation()
+		Create()
+	differentViolation := validator.BuildViolation(context.Background(), "code", "message").Create()
 
 	validationtest.Assert(tester, violation).IsViolation().EqualTo(differentViolation)
 
@@ -180,7 +180,7 @@ func TestViolationAssertion_EqualError(t *testing.T) {
 	tester := &Tester{}
 	violation := validator.BuildViolation(context.Background(), "code", "message").
 		SetPropertyPath(validation.NewPropertyPath(validation.PropertyNameElement("path"))).
-		CreateViolation()
+		Create()
 
 	validationtest.Assert(tester, violation).IsViolation().EqualToError("expected")
 
