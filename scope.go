@@ -93,6 +93,11 @@ func (s Scope) Validator() *Validator {
 	return newScopedValidator(s)
 }
 
+// Validate can be used to run complex validation inside a constraint.
+func (s Scope) Validate(arguments ...Argument) error {
+	return s.Validator().Validate(s.context, arguments...)
+}
+
 // IsIgnored is the reverse condition for applying validation groups to the IsApplied method.
 // It is recommended to use this method in every validation method of the constraint.
 func (s Scope) IsIgnored(groups ...string) bool {
@@ -128,10 +133,6 @@ func (s Scope) IsApplied(groups ...string) bool {
 	}
 
 	return false
-}
-
-func (s Scope) validate(arguments ...Argument) error {
-	return s.Validator().Validate(s.context, arguments...)
 }
 
 func (s *Scope) applyOptions(options ...Option) error {

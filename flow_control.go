@@ -39,9 +39,9 @@ func (arg WhenArgument) setUp(ctx *executionContext) {
 	ctx.addValidator(arg.options, func(scope Scope) (*ViolationList, error) {
 		var err error
 		if arg.isTrue {
-			err = scope.validate(arg.thenArguments...)
+			err = scope.Validate(arg.thenArguments...)
 		} else {
-			err = scope.validate(arg.elseArguments...)
+			err = scope.Validate(arg.elseArguments...)
 		}
 
 		return unwrapViolationList(err)
@@ -88,9 +88,9 @@ func (arg WhenGroupsArgument) setUp(ctx *executionContext) {
 	ctx.addValidator(arg.options, func(scope Scope) (*ViolationList, error) {
 		var err error
 		if scope.IsIgnored(arg.groups...) {
-			err = scope.validate(arg.elseArguments...)
+			err = scope.Validate(arg.elseArguments...)
 		} else {
-			err = scope.validate(arg.thenArguments...)
+			err = scope.Validate(arg.thenArguments...)
 		}
 
 		return unwrapViolationList(err)
@@ -131,7 +131,7 @@ func (arg SequentialArgument) setUp(ctx *executionContext) {
 		violations := &ViolationList{}
 
 		for _, argument := range arg.arguments {
-			err := violations.AppendFromError(scope.validate(argument))
+			err := violations.AppendFromError(scope.Validate(argument))
 			if err != nil {
 				return nil, err
 			}
@@ -180,7 +180,7 @@ func (arg AtLeastOneOfArgument) setUp(ctx *executionContext) {
 		violations := &ViolationList{}
 
 		for _, argument := range arg.arguments {
-			violation := scope.validate(argument)
+			violation := scope.Validate(argument)
 			if violation == nil {
 				return nil, nil
 			}
