@@ -228,7 +228,7 @@ func TestViolationList_Filter_ViolationsWithCodes_FilteredList(t *testing.T) {
 func TestViolation_Error_MessageAndPropertyPath_ErrorWithPropertyPathAndMessage(t *testing.T) {
 	validator := newValidator(t)
 	violation := validator.BuildViolation(context.Background(), "", "message").
-		WithPropertyPath(validation.PropertyNameElement("propertyPath")).
+		At(validation.PropertyNameElement("propertyPath")).
 		Create()
 
 	err := violation.Error()
@@ -240,13 +240,13 @@ func TestViolationList_Error_CoupleOfViolations_JoinedMessage(t *testing.T) {
 	validator := newValidator(t)
 	violations := validation.NewViolationList(
 		validator.BuildViolation(context.Background(), "", "first message").
-			WithPropertyPath(
+			At(
 				validation.PropertyNameElement("path"),
 				validation.ArrayIndexElement(0),
 			).
 			Create(),
 		validator.BuildViolation(context.Background(), "", "second message").
-			WithPropertyPath(
+			At(
 				validation.PropertyNameElement("path"),
 				validation.ArrayIndexElement(1),
 			).
@@ -337,7 +337,7 @@ func TestMarshalViolationToJSON(t *testing.T) {
 			name: "full data",
 			violation: validator.BuildViolation(context.Background(), "code", "message").
 				WithParameters(validation.TemplateParameter{Key: "key", Value: "value"}).
-				WithPropertyPath(
+				At(
 					validation.PropertyNameElement("properties"),
 					validation.ArrayIndexElement(1),
 					validation.PropertyNameElement("name"),
@@ -390,7 +390,7 @@ func TestMarshalViolationListToJSON(t *testing.T) {
 			list: validation.NewViolationList(
 				validator.BuildViolation(context.Background(), "code", "message").
 					WithParameters(validation.TemplateParameter{Key: "key", Value: "value"}).
-					WithPropertyPath(
+					At(
 						validation.PropertyNameElement("properties"),
 						validation.ArrayIndexElement(1),
 						validation.PropertyNameElement("name"),
@@ -409,14 +409,14 @@ func TestMarshalViolationListToJSON(t *testing.T) {
 			list: validation.NewViolationList(
 				validator.BuildViolation(context.Background(), "code", "message").
 					WithParameters(validation.TemplateParameter{Key: "key", Value: "value"}).
-					WithPropertyPath(
+					At(
 						validation.PropertyNameElement("properties"),
 						validation.ArrayIndexElement(1),
 						validation.PropertyNameElement("name"),
 					).Create(),
 				validator.BuildViolation(context.Background(), "code", "message").
 					WithParameters(validation.TemplateParameter{Key: "key", Value: "value"}).
-					WithPropertyPath(
+					At(
 						validation.PropertyNameElement("properties"),
 						validation.ArrayIndexElement(1),
 						validation.PropertyNameElement("name"),
@@ -453,16 +453,16 @@ func TestValidator_BuildViolationList_WhenBasePath_ExpectViolationListBuiltWithP
 	err := validator.
 		AtProperty("base").AtIndex(1).
 		BuildViolationList(context.Background()).
-		WithPropertyPath(validation.PropertyNameElement("listPath")).
+		At(validation.PropertyNameElement("listPath")).
 		AtProperty("list").AtIndex(0).
 		BuildViolation("code1", "message with {{ parameter 1 }}").
 		WithParameter("{{ parameter 1 }}", "value 1").
-		WithPropertyPath(validation.PropertyNameElement("propertyPath")).
+		At(validation.PropertyNameElement("propertyPath")).
 		AtProperty("properties").AtIndex(0).
 		Add().
 		BuildViolation("code2", "message with {{ parameter 2 }}").
 		WithParameter("{{ parameter 2 }}", "value 2").
-		WithPropertyPath(validation.PropertyNameElement("propertyPath")).
+		At(validation.PropertyNameElement("propertyPath")).
 		AtProperty("properties").AtIndex(1).
 		Add().
 		AddViolation("code3", "message 3", validation.PropertyNameElement("singleProperty")).

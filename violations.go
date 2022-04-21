@@ -529,8 +529,8 @@ func (b *ViolationBuilder) WithParameter(name, value string) *ViolationBuilder {
 	return b
 }
 
-// WithPropertyPath sets a property path of violated attribute.
-func (b *ViolationBuilder) WithPropertyPath(path ...PropertyPathElement) *ViolationBuilder {
+// At appends a property path of violated attribute.
+func (b *ViolationBuilder) At(path ...PropertyPathElement) *ViolationBuilder {
 	b.propertyPath = b.propertyPath.With(path...)
 
 	return b
@@ -633,8 +633,8 @@ func (b *ViolationListBuilder) SetPropertyPath(path *PropertyPath) *ViolationLis
 	return b
 }
 
-// WithPropertyPath adds a property path of violated attributes.
-func (b *ViolationListBuilder) WithPropertyPath(path ...PropertyPathElement) *ViolationListBuilder {
+// At appends a property path of violated attribute.
+func (b *ViolationListBuilder) At(path ...PropertyPathElement) *ViolationListBuilder {
 	b.propertyPath = b.propertyPath.With(path...)
 
 	return b
@@ -698,8 +698,8 @@ func (b *ViolationListElementBuilder) WithParameter(name, value string) *Violati
 	return b
 }
 
-// WithPropertyPath sets a property path of violated attribute.
-func (b *ViolationListElementBuilder) WithPropertyPath(path ...PropertyPathElement) *ViolationListElementBuilder {
+// At appends a property path of violated attribute.
+func (b *ViolationListElementBuilder) At(path ...PropertyPathElement) *ViolationListElementBuilder {
 	b.propertyPath = b.propertyPath.With(path...)
 
 	return b

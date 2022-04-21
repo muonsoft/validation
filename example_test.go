@@ -1034,6 +1034,25 @@ func ExampleValidator_Validate_translationForCustomMessage() {
 	// violation: теги должны содержать 1 элемент и более
 }
 
+func ExampleValidator_CreateViolation() {
+	validator, err := validation.NewValidator()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	violation := validator.CreateViolation(
+		context.Background(),
+		"clientCode",
+		"Client message.",
+		validation.PropertyNameElement("properties"),
+		validation.ArrayIndexElement(1),
+	)
+
+	fmt.Println(violation.Error())
+	// Output:
+	// violation at 'properties[1]': Client message.
+}
+
 func ExampleValidator_BuildViolation_buildingViolation() {
 	validator, err := validation.NewValidator()
 	if err != nil {
