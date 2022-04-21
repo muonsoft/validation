@@ -37,16 +37,37 @@ func (s Scope) NewConstraintError(constraintName, description string) Constraint
 	}
 }
 
+// CreateViolation is used to quickly create a violation with only code and message attributes.
+// This method automatically injects the property path and language of the current validation scope.
+func (s Scope) CreateViolation(code, message string, path ...PropertyPathElement) Violation {
+	return s.BuildViolation(code, message).At(path...).Create()
+}
+
 // BuildViolation is used to create violations in validation methods of constraints.
 // This method automatically injects the property path and language of the current validation scope.
 func (s Scope) BuildViolation(code, message string) *ViolationBuilder {
 	b := NewViolationBuilder(s.violationFactory).BuildViolation(code, message)
-	b.SetPropertyPath(s.propertyPath)
+	b = b.SetPropertyPath(s.propertyPath)
 
 	if s.language != language.Und {
-		b.SetLanguage(s.language)
+		b = b.WithLanguage(s.language)
 	} else if s.context != nil {
-		b.SetLanguage(language.FromContext(s.context))
+		b = b.WithLanguage(language.FromContext(s.context))
+	}
+
+	return b
+}
+
+// BuildViolationList is used to create a violation list in validation methods of constraints.
+// This method automatically injects the property path and language of the current validation scope.
+func (s Scope) BuildViolationList() *ViolationListBuilder {
+	b := NewViolationListBuilder(s.violationFactory)
+	b = b.SetPropertyPath(s.propertyPath)
+
+	if s.language != language.Und {
+		b = b.WithLanguage(s.language)
+	} else if s.context != nil {
+		b = b.WithLanguage(language.FromContext(s.context))
 	}
 
 	return b
@@ -70,6 +91,11 @@ func (s Scope) AtIndex(index int) Scope {
 // complex validation on a custom constraint using existing constraints.
 func (s Scope) Validator() *Validator {
 	return newScopedValidator(s)
+}
+
+// Validate can be used to run complex validation inside a constraint.
+func (s Scope) Validate(arguments ...Argument) error {
+	return s.Validator().Validate(s.context, arguments...)
 }
 
 // IsIgnored is the reverse condition for applying validation groups to the IsApplied method.
@@ -107,10 +133,6 @@ func (s Scope) IsApplied(groups ...string) bool {
 	}
 
 	return false
-}
-
-func (s Scope) validate(arguments ...Argument) error {
-	return s.Validator().Validate(s.context, arguments...)
 }
 
 func (s *Scope) applyOptions(options ...Option) error {

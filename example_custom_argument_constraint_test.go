@@ -85,8 +85,8 @@ func (c *UniqueBrandConstraint) ValidateBrand(brand *Brand, scope validation.Sco
 	return scope.
 		BuildViolation("notUniqueBrand", `Brand with name "{{ name }}" already exists.`).
 		// you can inject parameter value to the message here
-		AddParameter("{{ name }}", brand.Name).
-		CreateViolation()
+		WithParameter("{{ name }}", brand.Name).
+		Create()
 }
 
 func ExampleNewArgument_customArgumentConstraintValidator() {

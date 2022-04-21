@@ -73,8 +73,8 @@ func (c *ExistingTagConstraint) ValidateString(value *string, scope validation.S
 	return scope.
 		BuildViolation("unknownTag", `Tag "{{ value }}" does not exist.`).
 		// you can inject parameter value to the message here
-		AddParameter("{{ value }}", *value).
-		CreateViolation()
+		WithParameter("{{ value }}", *value).
+		Create()
 }
 
 type StockItem struct {

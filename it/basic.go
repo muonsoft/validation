@@ -143,8 +143,8 @@ func (c NotBlankConstraint[T]) ValidateTime(value *time.Time, scope validation.S
 
 func (c NotBlankConstraint[T]) newViolation(scope validation.Scope) validation.Violation {
 	return scope.BuildViolation(c.code, c.messageTemplate).
-		SetParameters(c.messageParameters...).
-		CreateViolation()
+		WithParameters(c.messageParameters...).
+		Create()
 }
 
 // BlankConstraint checks that a value is blank: equal to false, nil, zero, an empty string, an empty
@@ -249,8 +249,8 @@ func (c BlankConstraint[T]) ValidateTime(value *time.Time, scope validation.Scop
 
 func (c BlankConstraint[T]) newViolation(scope validation.Scope) validation.Violation {
 	return scope.BuildViolation(c.code, c.messageTemplate).
-		SetParameters(c.messageParameters...).
-		CreateViolation()
+		WithParameters(c.messageParameters...).
+		Create()
 }
 
 // NotNilConstraint checks that a value in not strictly equal to nil. To check that values in not blank use
@@ -338,8 +338,8 @@ func (c NotNilConstraint[T]) ValidateTime(value *time.Time, scope validation.Sco
 
 func (c NotNilConstraint[T]) newViolation(scope validation.Scope) validation.Violation {
 	return scope.BuildViolation(c.code, c.messageTemplate).
-		SetParameters(c.messageParameters...).
-		CreateViolation()
+		WithParameters(c.messageParameters...).
+		Create()
 }
 
 // NilConstraint checks that a value in strictly equal to nil. To check that values in blank use
@@ -427,8 +427,8 @@ func (c NilConstraint[T]) ValidateTime(value *time.Time, scope validation.Scope)
 
 func (c NilConstraint[T]) newViolation(scope validation.Scope) validation.Violation {
 	return scope.BuildViolation(c.code, c.messageTemplate).
-		SetParameters(c.messageParameters...).
-		CreateViolation()
+		WithParameters(c.messageParameters...).
+		Create()
 }
 
 // BoolConstraint checks that a bool value in strictly equal to expected bool value.
@@ -492,6 +492,6 @@ func (c BoolConstraint) ValidateBool(value *bool, scope validation.Scope) error 
 	}
 
 	return scope.BuildViolation(c.code, c.messageTemplate).
-		SetParameters(c.messageParameters...).
-		CreateViolation()
+		WithParameters(c.messageParameters...).
+		Create()
 }

@@ -95,11 +95,11 @@ func (c ChoiceConstraint[T]) ValidateComparable(value *T, scope validation.Scope
 
 	return scope.
 		BuildViolation(c.code, c.messageTemplate).
-		SetParameters(
+		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ value }}", Value: fmt.Sprint(*value)},
 				validation.TemplateParameter{Key: "{{ choices }}", Value: c.choicesValue},
 			)...,
 		).
-		CreateViolation()
+		Create()
 }

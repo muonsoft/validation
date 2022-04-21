@@ -129,7 +129,17 @@ func AtIndex(index int) *validation.Validator {
 	return validator.AtIndex(index)
 }
 
+// CreateViolation can be used to quickly create a custom violation on the client-side.
+func CreateViolation(ctx context.Context, code, message string, path ...validation.PropertyPathElement) validation.Violation {
+	return validator.CreateViolation(ctx, code, message, path...)
+}
+
 // BuildViolation can be used to build a custom violation on the client-side.
 func BuildViolation(ctx context.Context, code, message string) *validation.ViolationBuilder {
 	return validator.BuildViolation(ctx, code, message)
+}
+
+// BuildViolationList can be used to build a custom violation list on the client-side.
+func BuildViolationList(ctx context.Context) *validation.ViolationListBuilder {
+	return validator.BuildViolationList(ctx)
 }

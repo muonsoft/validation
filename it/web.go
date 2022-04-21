@@ -147,12 +147,12 @@ func (c URLConstraint) ValidateString(value *string, scope validation.Scope) err
 	}
 
 	return scope.BuildViolation(c.code, c.messageTemplate).
-		SetParameters(
+		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ value }}", Value: *value},
 			)...,
 		).
-		CreateViolation()
+		Create()
 }
 
 // IPConstraint is used to validate IP address. You can check for different versions
@@ -284,10 +284,10 @@ func (c IPConstraint) validateIP(value string, scope validation.Scope) error {
 	}
 
 	return builder.
-		SetParameters(
+		WithParameters(
 			parameters.Prepend(
 				validation.TemplateParameter{Key: "{{ value }}", Value: value},
 			)...,
 		).
-		CreateViolation()
+		Create()
 }

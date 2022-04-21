@@ -57,10 +57,18 @@ type PropertyPath struct {
 // Nil value is a valid value that means that the property path is empty.
 func NewPropertyPath(elements ...PropertyPathElement) *PropertyPath {
 	var path *PropertyPath
+
+	return path.With(elements...)
+}
+
+// With returns new PropertyPath with appended elements to the end of the list.
+func (path *PropertyPath) With(elements ...PropertyPathElement) *PropertyPath {
+	current := path
 	for _, element := range elements {
-		path = &PropertyPath{parent: path, value: element}
+		current = &PropertyPath{parent: current, value: element}
 	}
-	return path
+
+	return current
 }
 
 // WithProperty returns new PropertyPath with appended PropertyNameElement to the end of the list.

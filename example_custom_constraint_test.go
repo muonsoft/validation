@@ -40,7 +40,7 @@ func (c NumericConstraint) ValidateString(value *string, scope validation.Scope)
 	}
 
 	// use the scope to build violation with translations
-	return scope.BuildViolation("notNumeric", "This value should be numeric.").CreateViolation()
+	return scope.CreateViolation("notNumeric", "This value should be numeric.")
 }
 
 func ExampleValidator_Validate_customConstraint() {

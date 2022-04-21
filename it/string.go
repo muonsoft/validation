@@ -173,15 +173,15 @@ func (c LengthConstraint) newViolation(
 	}
 
 	return scope.BuildViolation(violationCode, template).
-		SetPluralCount(limit).
-		SetParameters(
+		WithPluralCount(limit).
+		WithParameters(
 			parameters.Prepend(
 				validation.TemplateParameter{Key: "{{ value }}", Value: strconv.Quote(value)},
 				validation.TemplateParameter{Key: "{{ length }}", Value: strconv.Itoa(count)},
 				validation.TemplateParameter{Key: "{{ limit }}", Value: strconv.Itoa(limit)},
 			)...,
 		).
-		CreateViolation()
+		Create()
 }
 
 // RegexConstraint is used to ensure that the given value corresponds to regex pattern.
@@ -257,12 +257,12 @@ func (c RegexConstraint) ValidateString(value *string, scope validation.Scope) e
 
 	return scope.
 		BuildViolation(c.code, c.messageTemplate).
-		SetParameters(
+		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ value }}", Value: *value},
 			)...,
 		).
-		CreateViolation()
+		Create()
 }
 
 // IsJSON validates that a value is a valid JSON.
