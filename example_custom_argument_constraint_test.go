@@ -28,26 +28,10 @@ func (repository *BrandRepository) FindByName(ctx context.Context, name string) 
 	return found, nil
 }
 
-// You can declare you own constraint interface to create custom constraints.
-type BrandConstraint interface {
-	ValidateBrand(brand *Brand, scope validation.Scope) error
-}
-
 // To create your own functional argument for validation simply create a function with
-// a typed value and use the validation.NewArgument constructor.
-func ValidBrand(brand *Brand, constraints ...BrandConstraint) validation.ValidatorArgument {
-	return validation.NewArgument(func(scope validation.Scope) (*validation.ViolationList, error) {
-		violations := validation.NewViolationList()
-
-		for i := range constraints {
-			err := violations.AppendFromError(constraints[i].ValidateBrand(brand, scope))
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		return violations, nil
-	})
+// a typed value and use the validation.NewTypedArgument constructor.
+func ValidBrand(brand *Brand, constraints ...validation.Constraint[*Brand]) validation.ValidatorArgument {
+	return validation.NewTypedArgument[*Brand](brand, constraints...)
 }
 
 // UniqueBrandConstraint implements BrandConstraint.
@@ -55,7 +39,7 @@ type UniqueBrandConstraint struct {
 	brands *BrandRepository
 }
 
-func (c *UniqueBrandConstraint) ValidateBrand(brand *Brand, scope validation.Scope) error {
+func (c *UniqueBrandConstraint) Validate(brand *Brand, scope validation.Scope) error {
 	// usually, you should ignore empty values
 	// to check for an empty value you should use it.NotBlankConstraint
 	if brand == nil {
@@ -81,7 +65,7 @@ func (c *UniqueBrandConstraint) ValidateBrand(brand *Brand, scope validation.Sco
 		Create()
 }
 
-func ExampleNewArgument_customArgumentConstraintValidator() {
+func ExampleNewTypedArgument_customArgumentConstraintValidator() {
 	repository := &BrandRepository{brands: []Brand{{"Apple"}, {"Orange"}}}
 	isEntityUnique := &UniqueBrandConstraint{brands: repository}
 

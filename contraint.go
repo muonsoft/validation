@@ -14,6 +14,11 @@ type Numeric interface {
 		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64
 }
 
+// Constraint is a generic interface for client-side typed constraints.
+type Constraint[T any] interface {
+	Validate(v T, scope Scope) error
+}
+
 // NilConstraint is used for a special cases to check a value for nil.
 type NilConstraint interface {
 	ValidateNil(isNil bool, scope Scope) error

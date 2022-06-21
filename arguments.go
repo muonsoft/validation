@@ -253,6 +253,23 @@ func NewArgument(validate ValidateOnScopeFunc) ValidatorArgument {
 	return ValidatorArgument{validate: validate}
 }
 
+// NewTypedArgument creates a generic validation argument that can help implement the validation
+// argument for client-side types.
+func NewTypedArgument[T any](v T, constraints ...Constraint[T]) ValidatorArgument {
+	return NewArgument(func(scope Scope) (*ViolationList, error) {
+		violations := NewViolationList()
+
+		for _, constraint := range constraints {
+			err := violations.AppendFromError(constraint.Validate(v, scope))
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return violations, nil
+	})
+}
+
 // ValidatorArgument is common implementation of Argument that is used to run validation
 // process on given argument.
 type ValidatorArgument struct {
