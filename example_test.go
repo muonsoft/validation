@@ -659,6 +659,41 @@ func ExampleAtLeastOneOf() {
 	// violation at 'brands': This value should not be blank.
 }
 
+func ExampleAll() {
+	book := struct {
+		Name string
+		Tags []string
+	}{
+		Name: "Very long book name",
+		Tags: []string{"Fiction", "Thriller", "Science", "Fantasy"},
+	}
+
+	err := validator.Validate(
+		context.Background(),
+		validation.Sequentially(
+			// this block passes
+			validation.All(
+				validation.StringProperty("name", book.Name, it.IsNotBlank()),
+				validation.CountableProperty("tags", len(book.Tags), it.IsNotBlank()),
+			),
+			// this block fails
+			validation.All(
+				validation.StringProperty("name", book.Name, it.HasMaxLength(10)),
+				validation.CountableProperty("tags", len(book.Tags), it.HasMaxCount(3)),
+			),
+		),
+	)
+
+	if violations, ok := validation.UnwrapViolationList(err); ok {
+		for violation := violations.First(); violation != nil; violation = violation.Next() {
+			fmt.Println(violation)
+		}
+	}
+	// Output:
+	// violation at 'name': This value is too long. It should have 10 characters or less.
+	// violation at 'tags': This collection should contain 3 elements or less.
+}
+
 func ExampleValidator_Validate_basicValidation() {
 	s := ""
 

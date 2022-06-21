@@ -212,3 +212,45 @@ func TestAtLeastOneOfArgument_WhenValidationIsDisabled_ExpectNoError(t *testing.
 
 	assert.NoError(t, err)
 }
+
+func TestAllArgument_WhenInvalidValueAtFirstConstraint_ExpectAllViolations(t *testing.T) {
+	err := newValidator(t).Validate(
+		context.Background(),
+		validation.All(
+			validation.String("", it.IsNotBlank().Code("first")),
+			validation.String("", it.IsNotBlank().Code("second")),
+		),
+	)
+
+	validationtest.Assert(t, err).IsViolationList().WithCodes("first", "second")
+}
+
+func TestAllArgument_WhenPathIsSet_ExpectOneViolationWithPath(t *testing.T) {
+	err := newValidator(t).Validate(
+		context.Background(),
+		validation.All(
+			validation.String("", it.IsNotBlank().Code("first")),
+			validation.String("", it.IsNotBlank().Code("second")),
+		).With(
+			validation.PropertyName("properties"),
+			validation.ArrayIndex(0),
+			validation.PropertyName("property"),
+		),
+	)
+
+	violations := validationtest.Assert(t, err).IsViolationList()
+	violations.HasViolationAt(0).WithCode("first").WithPropertyPath("properties[0].property")
+	violations.HasViolationAt(1).WithCode("second").WithPropertyPath("properties[0].property")
+}
+
+func TestAllArgument_WhenValidationIsDisabled_ExpectNoErrors(t *testing.T) {
+	err := newValidator(t).Validate(
+		context.Background(),
+		validation.All(
+			validation.String("", it.IsNotBlank().Code("first")),
+			validation.String("", it.IsNotBlank().Code("second")),
+		).When(false),
+	)
+
+	assert.NoError(t, err)
+}

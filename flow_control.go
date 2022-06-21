@@ -194,3 +194,48 @@ func (arg AtLeastOneOfArgument) setUp(ctx *executionContext) {
 		return violations, nil
 	})
 }
+
+// AllArgument can be used to interrupt validation process when the first violation is raised.
+type AllArgument struct {
+	isIgnored bool
+	options   []Option
+	arguments []Argument
+}
+
+// All runs validation for each argument. It works exactly as validator.Validate method.
+// It can be helpful to build complex validation process.
+func All(arguments ...Argument) AllArgument {
+	return AllArgument{arguments: arguments}
+}
+
+// With returns a copy of AllArgument with appended options.
+func (arg AllArgument) With(options ...Option) AllArgument {
+	arg.options = append(arg.options, options...)
+	return arg
+}
+
+// When enables conditional validation of this argument. If the expression evaluates to false,
+// then the argument will be ignored.
+func (arg AllArgument) When(condition bool) AllArgument {
+	arg.isIgnored = !condition
+	return arg
+}
+
+func (arg AllArgument) setUp(ctx *executionContext) {
+	ctx.addValidator(arg.options, func(scope Scope) (*ViolationList, error) {
+		if arg.isIgnored {
+			return nil, nil
+		}
+
+		violations := &ViolationList{}
+
+		for _, argument := range arg.arguments {
+			err := violations.AppendFromError(scope.Validate(argument))
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return violations, nil
+	})
+}
