@@ -29,8 +29,8 @@ func (s Scope) Context() context.Context {
 
 // NewConstraintError creates a new ConstraintError, which can be used to stop validation process
 // if constraint is not properly configured.
-func (s Scope) NewConstraintError(constraintName, description string) ConstraintError {
-	return ConstraintError{
+func (s Scope) NewConstraintError(constraintName, description string) *ConstraintError {
+	return &ConstraintError{
 		ConstraintName: constraintName,
 		Path:           s.propertyPath,
 		Description:    description,

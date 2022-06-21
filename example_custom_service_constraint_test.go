@@ -77,7 +77,7 @@ type StockItem struct {
 func (s StockItem) Validate(ctx context.Context, validator *validation.Validator) error {
 	isTagExists, ok := validator.GetConstraint("isTagExists").(validation.StringConstraint)
 	if !ok {
-		return validation.ConstraintNotFoundError{Key: "isTagExists", Type: "validation.StringConstraint"}
+		return &validation.ConstraintNotFoundError{Key: "isTagExists", Type: "validation.StringConstraint"}
 	}
 
 	return validator.Validate(

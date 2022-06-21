@@ -126,7 +126,7 @@ func SetViolationFactory(factory ViolationFactory) ValidatorOption {
 func StoredConstraint(key string, constraint interface{}) ValidatorOption {
 	return func(options *ValidatorOptions) error {
 		if _, exists := options.constraints[key]; exists {
-			return ConstraintAlreadyStoredError{Key: key}
+			return &ConstraintAlreadyStoredError{Key: key}
 		}
 
 		options.constraints[key] = constraint

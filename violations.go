@@ -359,7 +359,7 @@ type internalViolation struct {
 	propertyPath    *PropertyPath
 }
 
-func (v internalViolation) Is(codes ...string) bool {
+func (v *internalViolation) Is(codes ...string) bool {
 	for _, code := range codes {
 		if v.code == code {
 			return true
@@ -369,7 +369,7 @@ func (v internalViolation) Is(codes ...string) bool {
 	return false
 }
 
-func (v internalViolation) Error() string {
+func (v *internalViolation) Error() string {
 	var s strings.Builder
 	s.Grow(32)
 	v.writeToBuilder(&s)
@@ -377,7 +377,7 @@ func (v internalViolation) Error() string {
 	return s.String()
 }
 
-func (v internalViolation) writeToBuilder(s *strings.Builder) {
+func (v *internalViolation) writeToBuilder(s *strings.Builder) {
 	s.WriteString("violation")
 	if v.propertyPath != nil {
 		s.WriteString(" at '" + v.propertyPath.String() + "'")
@@ -385,27 +385,13 @@ func (v internalViolation) writeToBuilder(s *strings.Builder) {
 	s.WriteString(": " + v.message)
 }
 
-func (v internalViolation) Code() string {
-	return v.code
-}
+func (v *internalViolation) Code() string                    { return v.code }
+func (v *internalViolation) Message() string                 { return v.message }
+func (v *internalViolation) MessageTemplate() string         { return v.messageTemplate }
+func (v *internalViolation) Parameters() []TemplateParameter { return v.parameters }
+func (v *internalViolation) PropertyPath() *PropertyPath     { return v.propertyPath }
 
-func (v internalViolation) Message() string {
-	return v.message
-}
-
-func (v internalViolation) MessageTemplate() string {
-	return v.messageTemplate
-}
-
-func (v internalViolation) Parameters() []TemplateParameter {
-	return v.parameters
-}
-
-func (v internalViolation) PropertyPath() *PropertyPath {
-	return v.propertyPath
-}
-
-func (v internalViolation) MarshalJSON() ([]byte, error) {
+func (v *internalViolation) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		Code         string        `json:"code"`
 		Message      string        `json:"message"`

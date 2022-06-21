@@ -15,7 +15,7 @@ type ConstraintError struct {
 	Description    string
 }
 
-func (err ConstraintError) Error() string {
+func (err *ConstraintError) Error() string {
 	var s strings.Builder
 	s.WriteString("failed to validate by " + err.ConstraintName)
 	if err.Path != nil {
@@ -32,7 +32,7 @@ type ConstraintAlreadyStoredError struct {
 	Key string
 }
 
-func (err ConstraintAlreadyStoredError) Error() string {
+func (err *ConstraintAlreadyStoredError) Error() string {
 	return fmt.Sprintf(`constraint with key "%s" already stored`, err.Key)
 }
 
@@ -43,7 +43,7 @@ type ConstraintNotFoundError struct {
 	Type string
 }
 
-func (err ConstraintNotFoundError) Error() string {
+func (err *ConstraintNotFoundError) Error() string {
 	return fmt.Sprintf(`constraint by key "%s" of type "%s" is not found`, err.Key, err.Type)
 }
 
