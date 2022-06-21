@@ -105,38 +105,6 @@ func (mock mockValidatableString) Validate(ctx context.Context, validator *valid
 	)
 }
 
-type mockValidatableStruct struct {
-	intValue    int64
-	floatValue  float64
-	stringValue string
-	structValue mockValidatableString
-}
-
-func (mock mockValidatableStruct) Validate(ctx context.Context, validator *validation.Validator) error {
-	return validator.Validate(
-		ctx,
-		validation.NumberProperty[int64](
-			"intValue",
-			mock.intValue,
-			it.IsNotBlankNumber[int64](),
-		),
-		validation.NumberProperty[float64](
-			"floatValue",
-			mock.floatValue,
-			it.IsNotBlankNumber[float64](),
-		),
-		validation.StringProperty(
-			"stringValue",
-			mock.stringValue,
-			it.IsNotBlank(),
-		),
-		validation.ValidProperty(
-			"structValue",
-			&mock.structValue,
-		),
-	)
-}
-
 type mockTranslator struct {
 	translate func(tag language.Tag, message string, pluralCount int) string
 }

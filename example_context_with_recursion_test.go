@@ -14,14 +14,6 @@ type NestingLimitConstraint struct {
 	limit int
 }
 
-func (c NestingLimitConstraint) SetUp() error {
-	return nil
-}
-
-func (c NestingLimitConstraint) Name() string {
-	return "NestingLimitConstraint"
-}
-
 func (c NestingLimitConstraint) ValidateProperty(property *Property, scope validation.Scope) error {
 	// You can read any passed context value from scope.
 	level, ok := scope.Context().Value(nestingLevelKey).(int)

@@ -55,14 +55,6 @@ type UniqueBrandConstraint struct {
 	brands *BrandRepository
 }
 
-func (c *UniqueBrandConstraint) SetUp() error {
-	return nil
-}
-
-func (c *UniqueBrandConstraint) Name() string {
-	return "UniqueBrandConstraint"
-}
-
 func (c *UniqueBrandConstraint) ValidateBrand(brand *Brand, scope validation.Scope) error {
 	// usually, you should ignore empty values
 	// to check for an empty value you should use it.NotBlankConstraint

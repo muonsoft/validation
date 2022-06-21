@@ -19,15 +19,6 @@ func IsNumeric() NumericConstraint {
 	return NumericConstraint{matcher: regexp.MustCompile("^[0-9]+$")}
 }
 
-func (c NumericConstraint) SetUp() error {
-	// you may return errors here on the constraint initialization process
-	return nil
-}
-
-func (c NumericConstraint) Name() string {
-	return "NumericConstraint"
-}
-
 func (c NumericConstraint) ValidateString(value *string, scope validation.Scope) error {
 	// usually, you should ignore empty values
 	// to check for an empty value you should use it.NotBlankConstraint

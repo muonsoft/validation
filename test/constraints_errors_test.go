@@ -2,7 +2,6 @@ package test
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"github.com/muonsoft/validation"
@@ -11,14 +10,6 @@ import (
 )
 
 type errConstraint struct{}
-
-func (c errConstraint) SetUp() error {
-	return errors.New("error")
-}
-
-func (c errConstraint) Name() string {
-	return "errConstraint"
-}
 
 func (c errConstraint) ValidateString(value *string, scope validation.Scope) error {
 	return scope.NewConstraintError("errConstraint", "description")

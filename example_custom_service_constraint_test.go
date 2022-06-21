@@ -43,14 +43,6 @@ type ExistingTagConstraint struct {
 	storage *TagStorage
 }
 
-func (c *ExistingTagConstraint) SetUp() error {
-	return nil
-}
-
-func (c *ExistingTagConstraint) Name() string {
-	return "ExistingTagConstraint"
-}
-
 func (c *ExistingTagConstraint) ValidateString(value *string, scope validation.Scope) error {
 	// usually, you should ignore empty values
 	// to check for an empty value you should use it.NotBlankConstraint
