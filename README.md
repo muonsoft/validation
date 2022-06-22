@@ -33,7 +33,8 @@ versions `n` 0.n.m may contain breaking changes. Patch versions `m` 0.n.m may co
 Goals before making stable release:
 
 * [x] implementation of static type arguments by generics;
-* [ ] mechanism for asynchronous validation (lazy violations by async/await pattern);
+* [x] mechanism for asynchronous validation (lazy violations by async/await pattern);
+* [ ] implement all common constraints;
 * [ ] stable production usage for at least 6 months.
 
 ## Installation

@@ -1,5 +1,10 @@
 package validation
 
+import (
+	"context"
+	"sync"
+)
+
 // WhenArgument is used to build conditional validation. Use the When function to initiate a conditional check.
 // If the condition is true, then the arguments passed through the Then function will be processed.
 // Otherwise, the arguments passed through the Else function will be processed.
@@ -231,6 +236,69 @@ func (arg AllArgument) setUp(ctx *executionContext) {
 
 		for _, argument := range arg.arguments {
 			err := violations.AppendFromError(scope.Validate(argument))
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return violations, nil
+	})
+}
+
+// AsyncArgument can be used to interrupt validation process when the first violation is raised.
+type AsyncArgument struct {
+	isIgnored bool
+	options   []Option
+	arguments []Argument
+}
+
+// Async implements async/await pattern and runs validation for each argument in a separate goroutine.
+func Async(arguments ...Argument) AsyncArgument {
+	return AsyncArgument{arguments: arguments}
+}
+
+// With returns a copy of AsyncArgument with appended options.
+func (arg AsyncArgument) With(options ...Option) AsyncArgument {
+	arg.options = append(arg.options, options...)
+	return arg
+}
+
+// When enables conditional validation of this argument. If the expression evaluates to false,
+// then the argument will be ignored.
+func (arg AsyncArgument) When(condition bool) AsyncArgument {
+	arg.isIgnored = !condition
+	return arg
+}
+
+func (arg AsyncArgument) setUp(executionCtx *executionContext) {
+	executionCtx.addValidator(arg.options, func(scope Scope) (*ViolationList, error) {
+		if arg.isIgnored {
+			return nil, nil
+		}
+
+		ctx, cancel := context.WithCancel(scope.context)
+		defer cancel()
+		scope = scope.withContext(ctx)
+
+		waiter := &sync.WaitGroup{}
+		waiter.Add(len(arg.arguments))
+		errs := make(chan error)
+		for _, argument := range arg.arguments {
+			go func(argument Argument) {
+				defer waiter.Done()
+				errs <- scope.Validate(argument)
+			}(argument)
+		}
+
+		go func() {
+			waiter.Wait()
+			close(errs)
+		}()
+
+		violations := &ViolationList{}
+
+		for violation := range errs {
+			err := violations.AppendFromError(violation)
 			if err != nil {
 				return nil, err
 			}

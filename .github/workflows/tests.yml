@@ -28,4 +28,4 @@ jobs:
           version: v1.46
 
       - name: Run tests
-        run: go test -v $(go list ./... | grep -v vendor)
+        run: go test -race -v $(go list ./... | grep -v vendor)

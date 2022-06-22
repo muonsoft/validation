@@ -2,7 +2,9 @@ package test
 
 import (
 	"context"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/code"
@@ -253,4 +255,71 @@ func TestAllArgument_WhenValidationIsDisabled_ExpectNoErrors(t *testing.T) {
 	)
 
 	assert.NoError(t, err)
+}
+
+func TestAsyncArgument_WhenInvalidValueAtFirstConstraint_ExpectAllViolations(t *testing.T) {
+	err := newValidator(t).Validate(
+		context.Background(),
+		validation.Async(
+			validation.String("", it.IsNotBlank().Code("first")),
+		),
+	)
+
+	validationtest.Assert(t, err).IsViolationList().WithCodes("first")
+}
+
+func TestAsyncArgument_WhenPathIsSet_ExpectOneViolationWithPath(t *testing.T) {
+	err := newValidator(t).Validate(
+		context.Background(),
+		validation.Async(
+			validation.String("", it.IsNotBlank().Code("first")),
+		).With(
+			validation.PropertyName("properties"),
+			validation.ArrayIndex(0),
+			validation.PropertyName("property"),
+		),
+	)
+
+	violations := validationtest.Assert(t, err).IsViolationList()
+	violations.HasViolationAt(0).WithCode("first").WithPropertyPath("properties[0].property")
+}
+
+func TestAsyncArgument_WhenValidationIsDisabled_ExpectNoErrors(t *testing.T) {
+	err := newValidator(t).Validate(
+		context.Background(),
+		validation.Async(
+			validation.String("", it.IsNotBlank().Code("first")),
+			validation.String("", it.IsNotBlank().Code("second")),
+		).When(false),
+	)
+
+	assert.NoError(t, err)
+}
+
+func TestAsyncArgument_WhenFatalError_ExpectContextCanceled(t *testing.T) {
+	cancellation := make(chan bool, 1)
+	fatal := fmt.Errorf("fatal")
+
+	err := newValidator(t).Validate(
+		context.Background(),
+		validation.Async(
+			validation.String("", asyncConstraint(func(value *string, scope validation.Scope) error {
+				return fatal
+			})),
+			validation.String("", asyncConstraint(func(value *string, scope validation.Scope) error {
+				select {
+				case <-time.After(10 * time.Millisecond):
+					cancellation <- false
+				case <-scope.Context().Done():
+					cancellation <- true
+				}
+				return nil
+			})),
+		),
+	)
+
+	assert.ErrorIs(t, err, fatal)
+	if isCanceled, ok := <-cancellation; !isCanceled || !ok {
+		assert.Fail(t, "context is expected to be canceled")
+	}
 }

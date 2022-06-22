@@ -112,3 +112,9 @@ type mockTranslator struct {
 func (m mockTranslator) Translate(tag language.Tag, message string, pluralCount int) string {
 	return m.translate(tag, message, pluralCount)
 }
+
+type asyncConstraint func(value *string, scope validation.Scope) error
+
+func (f asyncConstraint) ValidateString(value *string, scope validation.Scope) error {
+	return f(value, scope)
+}
