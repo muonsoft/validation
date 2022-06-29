@@ -2,12 +2,15 @@ package validation_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/validator"
 )
+
+var ErrNestingLimitReached = errors.New("nesting limit reached")
 
 // It is recommended to make a custom constraint to check for nesting limit.
 type NestingLimitConstraint struct {
@@ -23,7 +26,7 @@ func (c NestingLimitConstraint) ValidateProperty(property *Property, scope valid
 	}
 
 	if level >= c.limit {
-		return scope.CreateViolation("nestingLimitReached", "Maximum nesting level reached.")
+		return scope.CreateViolation(ErrNestingLimitReached, "Maximum nesting level reached.")
 	}
 
 	return nil
@@ -111,6 +114,8 @@ func ExampleValidator_Validate_usingContextWithRecursion() {
 	err := validator.Validate(context.Background(), validation.ValidSlice(properties))
 
 	fmt.Println(err)
+	fmt.Println("errors.Is(err, ErrNestingLimitReached) =", errors.Is(err, ErrNestingLimitReached))
 	// Output:
 	// violation at '[0].properties[0].properties[0].properties[0]': Maximum nesting level reached.
+	// errors.Is(err, ErrNestingLimitReached) = true
 }

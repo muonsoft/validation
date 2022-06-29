@@ -5,8 +5,6 @@ import (
 	"strings"
 
 	"github.com/muonsoft/validation"
-	"github.com/muonsoft/validation/code"
-	"github.com/muonsoft/validation/message"
 )
 
 // ChoiceConstraint is used to ensure that the given value corresponds to one of the expected choices.
@@ -15,7 +13,7 @@ type ChoiceConstraint[T comparable] struct {
 	choices           map[T]bool
 	choicesValue      string
 	groups            []string
-	code              string
+	err               error
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
 	isIgnored         bool
@@ -39,23 +37,23 @@ func IsOneOf[T comparable](values ...T) ChoiceConstraint[T] {
 	return ChoiceConstraint[T]{
 		choices:         choices,
 		choicesValue:    s.String(),
-		code:            code.NoSuchChoice,
-		messageTemplate: message.Templates[code.NoSuchChoice],
+		err:             validation.ErrNoSuchChoice,
+		messageTemplate: validation.ErrNoSuchChoice.Template(),
 	}
 }
 
-// Code overrides default code for produced violation.
-func (c ChoiceConstraint[T]) Code(code string) ChoiceConstraint[T] {
-	c.code = code
+// WithError overrides default error for produced violation.
+func (c ChoiceConstraint[T]) WithError(err error) ChoiceConstraint[T] {
+	c.err = err
 	return c
 }
 
-// Message sets the violation message template. You can set custom template parameters
+// WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message. Also, you can use default parameters:
 //
 //	{{ choices }} - a comma-separated list of available choices;
 //	{{ value }} - the current (invalid) value.
-func (c ChoiceConstraint[T]) Message(template string, parameters ...validation.TemplateParameter) ChoiceConstraint[T] {
+func (c ChoiceConstraint[T]) WithMessage(template string, parameters ...validation.TemplateParameter) ChoiceConstraint[T] {
 	c.messageTemplate = template
 	c.messageParameters = parameters
 	return c
@@ -94,7 +92,7 @@ func (c ChoiceConstraint[T]) ValidateComparable(value *T, scope validation.Scope
 	}
 
 	return scope.
-		BuildViolation(c.code, c.messageTemplate).
+		BuildViolation(c.err, c.messageTemplate).
 		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ value }}", Value: fmt.Sprint(*value)},

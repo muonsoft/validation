@@ -244,13 +244,13 @@ func (validator *Validator) AtIndex(index int) *Validator {
 }
 
 // CreateViolation can be used to quickly create a custom violation on the client-side.
-func (validator *Validator) CreateViolation(ctx context.Context, code, message string, path ...PropertyPathElement) Violation {
-	return validator.scope.withContext(ctx).CreateViolation(code, message, path...)
+func (validator *Validator) CreateViolation(ctx context.Context, err error, message string, path ...PropertyPathElement) Violation {
+	return validator.scope.withContext(ctx).CreateViolation(err, message, path...)
 }
 
 // BuildViolation can be used to build a custom violation on the client-side.
-func (validator *Validator) BuildViolation(ctx context.Context, code, message string) *ViolationBuilder {
-	return validator.scope.withContext(ctx).BuildViolation(code, message)
+func (validator *Validator) BuildViolation(ctx context.Context, err error, message string) *ViolationBuilder {
+	return validator.scope.withContext(ctx).BuildViolation(err, message)
 }
 
 // BuildViolationList can be used to build a custom violation list on the client-side.

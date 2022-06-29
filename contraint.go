@@ -2,9 +2,6 @@ package validation
 
 import (
 	"time"
-
-	"github.com/muonsoft/validation/code"
-	"github.com/muonsoft/validation/message"
 )
 
 // Numeric is used as a type parameter for numeric values.
@@ -65,42 +62,31 @@ type CustomStringConstraint struct {
 	isIgnored         bool
 	isValid           func(string) bool
 	groups            []string
-	code              string
+	err               error
 	messageTemplate   string
 	messageParameters TemplateParameterList
 }
 
 // NewCustomStringConstraint creates a new string constraint from a function with signature func(string) bool.
-// Optional parameters can be used to set up violation code (first), message template (second).
-// All other parameters are ignored.
-func NewCustomStringConstraint(isValid func(string) bool, parameters ...string) CustomStringConstraint {
-	constraint := CustomStringConstraint{
+func NewCustomStringConstraint(isValid func(string) bool) CustomStringConstraint {
+	return CustomStringConstraint{
 		isValid:         isValid,
-		code:            code.NotValid,
-		messageTemplate: message.Templates[code.NotValid],
+		err:             ErrNotValid,
+		messageTemplate: ErrNotValid.Template(),
 	}
-
-	if len(parameters) > 0 {
-		constraint.code = parameters[0]
-	}
-	if len(parameters) > 1 {
-		constraint.messageTemplate = parameters[1]
-	}
-
-	return constraint
 }
 
-// Code overrides default code for produced violation.
-func (c CustomStringConstraint) Code(code string) CustomStringConstraint {
-	c.code = code
+// WithError overrides default error for produced violation.
+func (c CustomStringConstraint) WithError(err error) CustomStringConstraint {
+	c.err = err
 	return c
 }
 
-// Message sets the violation message template. You can set custom template parameters
+// WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message. Also, you can use default parameters:
 //
 //	{{ value }} - the current (invalid) value.
-func (c CustomStringConstraint) Message(template string, parameters ...TemplateParameter) CustomStringConstraint {
+func (c CustomStringConstraint) WithMessage(template string, parameters ...TemplateParameter) CustomStringConstraint {
 	c.messageTemplate = template
 	c.messageParameters = parameters
 	return c
@@ -124,7 +110,7 @@ func (c CustomStringConstraint) ValidateString(value *string, scope Scope) error
 		return nil
 	}
 
-	return scope.BuildViolation(c.code, c.messageTemplate).
+	return scope.BuildViolation(c.err, c.messageTemplate).
 		WithParameters(
 			c.messageParameters.Prepend(
 				TemplateParameter{Key: "{{ value }}", Value: *value},

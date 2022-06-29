@@ -536,11 +536,11 @@ func ExampleNewCustomStringConstraint() {
 	validate := func(s string) bool {
 		return s == "valid"
 	}
-	constraint := validation.NewCustomStringConstraint(
-		validate,
-		"exampleCode",       // violation code
-		"Unexpected value.", // violation message template
-	)
+	errExample := errors.New("exampleCode")
+
+	constraint := validation.NewCustomStringConstraint(validate).
+		WithError(errExample).           // underlying static error
+		WithMessage("Unexpected value.") // violation message template
 
 	s := "foo"
 	err := validator.Validate(context.Background(), validation.String(s, constraint))
@@ -1033,7 +1033,7 @@ func ExampleValidator_Validate_customizingErrorMessage() {
 
 	err := validator.Validate(
 		context.Background(),
-		validation.String(s, it.IsNotBlank().Message("this value is required")),
+		validation.String(s, it.IsNotBlank().WithMessage("this value is required")),
 	)
 
 	fmt.Println(err)
@@ -1061,7 +1061,7 @@ func ExampleValidator_Validate_translationForCustomMessage() {
 	err = validator.Validate(
 		context.Background(),
 		validation.Language(language.Russian),
-		validation.Countable(len(tags), it.HasMinCount(1).MinMessage(customMessage)),
+		validation.Countable(len(tags), it.HasMinCount(1).WithMinMessage(customMessage)),
 	)
 
 	fmt.Println(err)
@@ -1074,10 +1074,11 @@ func ExampleValidator_CreateViolation() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	errClient := errors.New("client error")
 
 	violation := validator.CreateViolation(
 		context.Background(),
-		"clientCode",
+		errClient,
 		"Client message.",
 		validation.PropertyNameElement("properties"),
 		validation.ArrayIndexElement(1),
@@ -1093,8 +1094,9 @@ func ExampleValidator_BuildViolation_buildingViolation() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	errClient := errors.New("client error")
 
-	violation := validator.BuildViolation(context.Background(), "clientCode", "Client message with {{ parameter }}.").
+	violation := validator.BuildViolation(context.Background(), errClient, "Client message with {{ parameter }}.").
 		WithParameter("{{ parameter }}", "value").
 		Create()
 
@@ -1115,9 +1117,10 @@ func ExampleValidator_BuildViolation_translatableParameter() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	errClient := errors.New("client error")
 
 	violation := validator.WithLanguage(language.Russian).
-		BuildViolation(context.Background(), "clientCode", "The operation is only possible for the {{ role }}.").
+		BuildViolation(context.Background(), errClient, "The operation is only possible for the {{ role }}.").
 		WithParameters(validation.TemplateParameter{
 			Key:              "{{ role }}",
 			Value:            "administrator role",
@@ -1135,31 +1138,37 @@ func ExampleValidator_BuildViolationList() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	errFirst := errors.New("error 1")
+	errSecond := errors.New("error 2")
 
 	builder := validator.BuildViolationList(context.Background())
-	builder.BuildViolation("code1", "Client message with {{ parameter 1 }}.").
+	builder.BuildViolation(errFirst, "Client message with {{ parameter 1 }}.").
 		WithParameter("{{ parameter 1 }}", "value 1").
 		AtProperty("properties").AtIndex(0).
 		Add()
-	builder.BuildViolation("code2", "Client message with {{ parameter 2 }}.").
+	builder.BuildViolation(errSecond, "Client message with {{ parameter 2 }}.").
 		WithParameter("{{ parameter 2 }}", "value 2").
 		AtProperty("properties").AtIndex(1).
 		Add()
 	violations := builder.Create()
 
-	violations.Each(func(i int, violation validation.Violation) error {
+	violations.ForEach(func(i int, violation validation.Violation) error {
 		fmt.Println(violation.Error())
 		return nil
 	})
+	fmt.Println("errors.Is(violations, errFirst) =", errors.Is(violations, errFirst))
+	fmt.Println("errors.Is(violations, errSecond) =", errors.Is(violations, errSecond))
 	// Output:
 	// violation at 'properties[0]': Client message with value 1.
 	// violation at 'properties[1]': Client message with value 2.
+	// errors.Is(violations, errFirst) = true
+	// errors.Is(violations, errSecond) = true
 }
 
 func ExampleViolationList_First() {
 	violations := validation.NewViolationList(
-		validator.BuildViolation(context.Background(), "", "foo").Create(),
-		validator.BuildViolation(context.Background(), "", "bar").Create(),
+		validator.BuildViolation(context.Background(), validation.ErrNotValid, "foo").Create(),
+		validator.BuildViolation(context.Background(), validation.ErrNotValid, "bar").Create(),
 	)
 
 	for violation := violations.First(); violation != nil; violation = violation.Next() {
@@ -1172,7 +1181,7 @@ func ExampleViolationList_First() {
 
 func ExampleViolationList_AppendFromError_addingViolation() {
 	violations := validation.NewViolationList()
-	err := validator.BuildViolation(context.Background(), "", "foo").Create()
+	err := validator.BuildViolation(context.Background(), validation.ErrNotValid, "foo").Create()
 
 	appendErr := violations.AppendFromError(err)
 
@@ -1186,8 +1195,8 @@ func ExampleViolationList_AppendFromError_addingViolation() {
 func ExampleViolationList_AppendFromError_addingViolationList() {
 	violations := validation.NewViolationList()
 	err := validation.NewViolationList(
-		validator.BuildViolation(context.Background(), "", "foo").Create(),
-		validator.BuildViolation(context.Background(), "", "bar").Create(),
+		validator.BuildViolation(context.Background(), validation.ErrNotValid, "foo").Create(),
+		validator.BuildViolation(context.Background(), validation.ErrNotValid, "bar").Create(),
 	)
 
 	appendErr := violations.AppendFromError(err)
@@ -1214,7 +1223,7 @@ func ExampleViolationList_AppendFromError_addingError() {
 
 func ExampleStoredConstraint() {
 	validator, err := validation.NewValidator(
-		validation.StoredConstraint("notEmpty", it.IsNotBlank().Message("value should not be empty")),
+		validation.StoredConstraint("notEmpty", it.IsNotBlank().WithMessage("value should not be empty")),
 	)
 	if err != nil {
 		log.Fatal(err)

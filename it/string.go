@@ -6,9 +6,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/muonsoft/validation"
-	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/is"
-	"github.com/muonsoft/validation/message"
 )
 
 // LengthConstraint checks that a given string length is between some minimum and maximum value.
@@ -20,9 +18,9 @@ type LengthConstraint struct {
 	min                    int
 	max                    int
 	groups                 []string
-	minCode                string
-	maxCode                string
-	exactCode              string
+	minErr                 error
+	maxErr                 error
+	exactErr               error
 	minMessageTemplate     string
 	minMessageParameters   validation.TemplateParameterList
 	maxMessageTemplate     string
@@ -37,12 +35,12 @@ func newLengthConstraint(min int, max int, checkMin bool, checkMax bool) LengthC
 		max:                  max,
 		checkMin:             checkMin,
 		checkMax:             checkMax,
-		minCode:              code.LengthTooFew,
-		maxCode:              code.LengthTooMany,
-		exactCode:            code.LengthExact,
-		minMessageTemplate:   message.Templates[code.LengthTooFew],
-		maxMessageTemplate:   message.Templates[code.LengthTooMany],
-		exactMessageTemplate: message.Templates[code.LengthExact],
+		minErr:               validation.ErrTooShort,
+		maxErr:               validation.ErrTooLong,
+		exactErr:             validation.ErrNotExactLength,
+		minMessageTemplate:   validation.ErrTooShort.Template(),
+		maxMessageTemplate:   validation.ErrTooLong.Template(),
+		exactMessageTemplate: validation.ErrNotExactLength.Template(),
 	}
 }
 
@@ -83,61 +81,61 @@ func (c LengthConstraint) WhenGroups(groups ...string) LengthConstraint {
 	return c
 }
 
-// MinCode overrides default code for violation that will be shown if the string length
+// WithMinError overrides default underlying error for violation that will be shown if the string length
 // is less than the minimum value.
-func (c LengthConstraint) MinCode(code string) LengthConstraint {
-	c.minCode = code
+func (c LengthConstraint) WithMinError(err error) LengthConstraint {
+	c.minErr = err
 	return c
 }
 
-// MaxCode overrides default code for violation that will be shown if the string length
+// WithMaxError overrides default underlying error for violation that will be shown if the string length
 // is greater than the maximum value.
-func (c LengthConstraint) MaxCode(code string) LengthConstraint {
-	c.maxCode = code
+func (c LengthConstraint) WithMaxError(err error) LengthConstraint {
+	c.maxErr = err
 	return c
 }
 
-// ExactCode overrides default code for violation that will be shown if minimum and maximum values
+// WithExactError overrides default underlying error for violation that will be shown if minimum and maximum values
 // are equal and the length of the string is not exactly this value.
-func (c LengthConstraint) ExactCode(code string) LengthConstraint {
-	c.exactCode = code
+func (c LengthConstraint) WithExactError(err error) LengthConstraint {
+	c.exactErr = err
 	return c
 }
 
-// MinMessage sets the violation message that will be shown if the string length is less than
+// WithMinMessage sets the violation message that will be shown if the string length is less than
 // the minimum value. You can set custom template parameters for injecting its values
 // into the final message. Also, you can use default parameters:
 //
 //	{{ length }} - the current string length;
 //	{{ limit }} - the lower limit;
 //	{{ value }} - the current (invalid) value.
-func (c LengthConstraint) MinMessage(template string, parameters ...validation.TemplateParameter) LengthConstraint {
+func (c LengthConstraint) WithMinMessage(template string, parameters ...validation.TemplateParameter) LengthConstraint {
 	c.minMessageTemplate = template
 	c.minMessageParameters = parameters
 	return c
 }
 
-// MaxMessage sets the violation message that will be shown if the string length is greater than
+// WithMaxMessage sets the violation message that will be shown if the string length is greater than
 // the maximum value. You can set custom template parameters for injecting its values
 // into the final message. Also, you can use default parameters:
 //
 //	{{ length }} - the current string length;
 //	{{ limit }} - the lower limit;
 //	{{ value }} - the current (invalid) value.
-func (c LengthConstraint) MaxMessage(template string, parameters ...validation.TemplateParameter) LengthConstraint {
+func (c LengthConstraint) WithMaxMessage(template string, parameters ...validation.TemplateParameter) LengthConstraint {
 	c.maxMessageTemplate = template
 	c.maxMessageParameters = parameters
 	return c
 }
 
-// ExactMessage sets the violation message that will be shown if minimum and maximum values are equal and
+// WithExactMessage sets the violation message that will be shown if minimum and maximum values are equal and
 // the length of the string is not exactly this value. You can set custom template parameters
 // for injecting its values into the final message. Also, you can use default parameters:
 //
 //	{{ length }} - the current string length;
 //	{{ limit }} - the lower limit;
 //	{{ value }} - the current (invalid) value.
-func (c LengthConstraint) ExactMessage(template string, parameters ...validation.TemplateParameter) LengthConstraint {
+func (c LengthConstraint) WithExactMessage(template string, parameters ...validation.TemplateParameter) LengthConstraint {
 	c.exactMessageTemplate = template
 	c.exactMessageParameters = parameters
 	return c
@@ -151,10 +149,10 @@ func (c LengthConstraint) ValidateString(value *string, scope validation.Scope) 
 	count := utf8.RuneCountInString(*value)
 
 	if c.checkMax && count > c.max {
-		return c.newViolation(count, c.max, *value, c.maxCode, c.maxMessageTemplate, c.maxMessageParameters, scope)
+		return c.newViolation(count, c.max, *value, c.maxErr, c.maxMessageTemplate, c.maxMessageParameters, scope)
 	}
 	if c.checkMin && count < c.min {
-		return c.newViolation(count, c.min, *value, c.minCode, c.minMessageTemplate, c.minMessageParameters, scope)
+		return c.newViolation(count, c.min, *value, c.minErr, c.minMessageTemplate, c.minMessageParameters, scope)
 	}
 
 	return nil
@@ -162,17 +160,19 @@ func (c LengthConstraint) ValidateString(value *string, scope validation.Scope) 
 
 func (c LengthConstraint) newViolation(
 	count, limit int,
-	value, violationCode, template string,
+	value string,
+	err error,
+	template string,
 	parameters validation.TemplateParameterList,
 	scope validation.Scope,
 ) validation.Violation {
 	if c.checkMin && c.checkMax && c.min == c.max {
 		template = c.exactMessageTemplate
 		parameters = c.exactMessageParameters
-		violationCode = c.exactCode
+		err = c.exactErr
 	}
 
-	return scope.BuildViolation(violationCode, template).
+	return scope.BuildViolation(err, template).
 		WithPluralCount(limit).
 		WithParameters(
 			parameters.Prepend(
@@ -184,48 +184,48 @@ func (c LengthConstraint) newViolation(
 		Create()
 }
 
-// RegexConstraint is used to ensure that the given value corresponds to regex pattern.
-type RegexConstraint struct {
+// RegexpConstraint is used to ensure that the given value corresponds to regex pattern.
+type RegexpConstraint struct {
 	isIgnored         bool
 	match             bool
 	groups            []string
-	code              string
+	err               error
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
 	regex             *regexp.Regexp
 }
 
-// Matches creates a RegexConstraint for checking whether a value matches a regular expression.
-func Matches(regex *regexp.Regexp) RegexConstraint {
-	return RegexConstraint{
+// Matches creates a RegexpConstraint for checking whether a value matches a regular expression.
+func Matches(regex *regexp.Regexp) RegexpConstraint {
+	return RegexpConstraint{
 		regex:           regex,
 		match:           true,
-		code:            code.MatchingFailed,
-		messageTemplate: message.Templates[code.NotValid],
+		err:             validation.ErrNotValid,
+		messageTemplate: validation.ErrNotValid.Template(),
 	}
 }
 
-// DoesNotMatch creates a RegexConstraint for checking whether a value does not match a regular expression.
-func DoesNotMatch(regex *regexp.Regexp) RegexConstraint {
-	return RegexConstraint{
+// DoesNotMatch creates a RegexpConstraint for checking whether a value does not match a regular expression.
+func DoesNotMatch(regex *regexp.Regexp) RegexpConstraint {
+	return RegexpConstraint{
 		regex:           regex,
 		match:           false,
-		code:            code.MatchingFailed,
-		messageTemplate: message.Templates[code.NotValid],
+		err:             validation.ErrNotValid,
+		messageTemplate: validation.ErrNotValid.Template(),
 	}
 }
 
-// Code overrides default code for produced violation.
-func (c RegexConstraint) Code(code string) RegexConstraint {
-	c.code = code
+// WithError overrides default error for produced violation.
+func (c RegexpConstraint) WithError(err error) RegexpConstraint {
+	c.err = err
 	return c
 }
 
-// Message sets the violation message template. You can set custom template parameters
+// WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message. Also, you can use default parameters:
 //
 //	{{ value }} - the current (invalid) value.
-func (c RegexConstraint) Message(template string, parameters ...validation.TemplateParameter) RegexConstraint {
+func (c RegexpConstraint) WithMessage(template string, parameters ...validation.TemplateParameter) RegexpConstraint {
 	c.messageTemplate = template
 	c.messageParameters = parameters
 	return c
@@ -233,20 +233,20 @@ func (c RegexConstraint) Message(template string, parameters ...validation.Templ
 
 // When enables conditional validation of this constraint. If the expression evaluates to false,
 // then the constraint will be ignored.
-func (c RegexConstraint) When(condition bool) RegexConstraint {
+func (c RegexpConstraint) When(condition bool) RegexpConstraint {
 	c.isIgnored = !condition
 	return c
 }
 
 // WhenGroups enables conditional validation of the constraint by using the validation groups.
-func (c RegexConstraint) WhenGroups(groups ...string) RegexConstraint {
+func (c RegexpConstraint) WhenGroups(groups ...string) RegexpConstraint {
 	c.groups = groups
 	return c
 }
 
-func (c RegexConstraint) ValidateString(value *string, scope validation.Scope) error {
+func (c RegexpConstraint) ValidateString(value *string, scope validation.Scope) error {
 	if c.regex == nil {
-		return scope.NewConstraintError("RegexConstraint", "nil regex")
+		return scope.NewConstraintError("RegexpConstraint", "nil regex")
 	}
 	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == "" {
 		return nil
@@ -256,7 +256,7 @@ func (c RegexConstraint) ValidateString(value *string, scope validation.Scope) e
 	}
 
 	return scope.
-		BuildViolation(c.code, c.messageTemplate).
+		BuildViolation(c.err, c.messageTemplate).
 		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ value }}", Value: *value},
@@ -267,27 +267,21 @@ func (c RegexConstraint) ValidateString(value *string, scope validation.Scope) e
 
 // IsJSON validates that a value is a valid JSON.
 func IsJSON() validation.CustomStringConstraint {
-	return validation.NewCustomStringConstraint(
-		is.JSON,
-		code.InvalidJSON,
-		message.Templates[code.InvalidJSON],
-	)
+	return validation.NewCustomStringConstraint(is.JSON).
+		WithError(validation.ErrInvalidJSON).
+		WithMessage(validation.ErrInvalidJSON.Template())
 }
 
 // IsInteger checks that string value is an integer.
 func IsInteger() validation.CustomStringConstraint {
-	return validation.NewCustomStringConstraint(
-		is.Integer,
-		code.NotInteger,
-		message.Templates[code.NotInteger],
-	)
+	return validation.NewCustomStringConstraint(is.Integer).
+		WithError(validation.ErrNotInteger).
+		WithMessage(validation.ErrNotInteger.Template())
 }
 
 // IsNumeric checks that string value is a valid numeric (integer or float).
 func IsNumeric() validation.CustomStringConstraint {
-	return validation.NewCustomStringConstraint(
-		is.Number,
-		code.NotNumeric,
-		message.Templates[code.NotNumeric],
-	)
+	return validation.NewCustomStringConstraint(is.Number).
+		WithError(validation.ErrNotNumeric).
+		WithMessage(validation.ErrNotNumeric.Template())
 }

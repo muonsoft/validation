@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/muonsoft/validation"
-	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/validationtest"
 	"github.com/muonsoft/validation/validator"
@@ -78,9 +77,9 @@ func TestValidateValue_WhenStructWithComplexRules_ExpectViolations(t *testing.T)
 	err := validator.Validate(context.Background(), validation.Valid(p))
 
 	validationtest.Assert(t, err).IsViolationList().WithAttributes(
-		validationtest.ViolationAttributes{Code: code.NotBlank, PropertyPath: "name"},
-		validationtest.ViolationAttributes{Code: code.CountTooFew, PropertyPath: "tags"},
-		validationtest.ViolationAttributes{Code: code.NotBlank, PropertyPath: "components[0].name"},
-		validationtest.ViolationAttributes{Code: code.CountTooFew, PropertyPath: "components[0].tags"},
+		validationtest.ViolationAttributes{Error: validation.ErrIsBlank, PropertyPath: "name"},
+		validationtest.ViolationAttributes{Error: validation.ErrTooFewElements, PropertyPath: "tags"},
+		validationtest.ViolationAttributes{Error: validation.ErrIsBlank, PropertyPath: "components[0].name"},
+		validationtest.ViolationAttributes{Error: validation.ErrTooFewElements, PropertyPath: "components[0].tags"},
 	)
 }

@@ -2,14 +2,21 @@ package test
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
 	"github.com/muonsoft/validation"
 )
 
+var (
+	ErrCustom = errors.New("custom")
+	ErrMin    = errors.New("min")
+	ErrMax    = errors.New("max")
+	ErrExact  = errors.New("exact")
+)
+
 const (
-	customCode            = "customCode"
 	customMessage         = "Custom message at {{ custom }}."
 	renderedCustomMessage = "Custom message at parameter."
 	customPath            = "properties[0].value"
@@ -63,7 +70,6 @@ var validateTestCases = mergeTestCases(
 	countConstraintTestCases,
 	choiceConstraintTestCases,
 	numberComparisonTestCases,
-	stringComparisonTestCases,
 	comparableComparisonTestCases,
 	hasUniqueValuesTestCases,
 	customStringConstraintTestCases,

@@ -2,7 +2,6 @@ package test
 
 import (
 	"github.com/muonsoft/validation"
-	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
 )
@@ -39,20 +38,20 @@ var choiceConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType, comparableType),
 		stringValue:     stringValue("not-expected"),
 		constraint:      it.IsOneOf("expected"),
-		assert:          assertHasOneViolation(code.NoSuchChoice, message.Templates[code.NoSuchChoice]),
+		assert:          assertHasOneViolation(validation.ErrNoSuchChoice, message.NoSuchChoice),
 	},
 	{
 		name:            "IsOneOf violation on missing value with custom message",
 		isApplicableFor: specificValueTypes(stringType, comparableType),
 		stringValue:     stringValue("unexpected"),
 		constraint: it.IsOneOf("alpha", "beta", "gamma").
-			Code(customCode).
-			Message(
+			WithError(ErrCustom).
+			WithMessage(
 				`Unexpected value "{{ value }}" at {{ custom }}, expected values are: {{ choices }}.`,
 				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
 			),
 		assert: assertHasOneViolation(
-			customCode,
+			ErrCustom,
 			`Unexpected value "unexpected" at parameter, expected values are: alpha, beta, gamma.`,
 		),
 	},
@@ -75,13 +74,13 @@ var choiceConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType, comparableType),
 		stringValue:     stringValue("not-expected"),
 		constraint:      it.IsOneOf("expected").When(true),
-		assert:          assertHasOneViolation(code.NoSuchChoice, message.Templates[code.NoSuchChoice]),
+		assert:          assertHasOneViolation(validation.ErrNoSuchChoice, message.NoSuchChoice),
 	},
 	{
 		name:            "IsOneOf violation on missing integer value",
 		isApplicableFor: specificValueTypes(intType),
 		intValue:        intValue(4),
 		constraint:      it.IsOneOf(1, 2, 3, 5),
-		assert:          assertHasOneViolation(code.NoSuchChoice, message.Templates[code.NoSuchChoice]),
+		assert:          assertHasOneViolation(validation.ErrNoSuchChoice, message.NoSuchChoice),
 	},
 }

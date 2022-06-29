@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/muonsoft/validation"
-	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
 	"github.com/muonsoft/validation/validationtest"
@@ -184,8 +183,8 @@ func TestCheck_WhenFalse_ExpectViolation(t *testing.T) {
 
 	validationtest.Assert(t, err).IsViolationList().
 		WithOneViolation().
-		WithCode(code.NotValid).
-		WithMessage(message.Templates[code.NotValid]).
+		WithError(validation.ErrNotValid).
+		WithMessage(message.NotValid).
 		WithPropertyPath("")
 }
 
@@ -201,8 +200,8 @@ func TestCheck_WhenFalseWithPath_ExpectViolationWithPath(t *testing.T) {
 
 	validationtest.Assert(t, err).IsViolationList().
 		WithOneViolation().
-		WithCode(code.NotValid).
-		WithMessage(message.Templates[code.NotValid]).
+		WithError(validation.ErrNotValid).
+		WithMessage(message.NotValid).
 		WithPropertyPath("properties[0].property")
 }
 
@@ -210,13 +209,13 @@ func TestCheck_WhenCustomCodeAndTemplate_ExpectCodeAndTemplateInViolation(t *tes
 	err := validator.Validate(
 		context.Background(),
 		validation.Check(false).
-			Code("custom").
-			Message("message with {{ value }}", validation.TemplateParameter{Key: "{{ value }}", Value: "value"}),
+			WithError(ErrCustom).
+			WithMessage("message with {{ value }}", validation.TemplateParameter{Key: "{{ value }}", Value: "value"}),
 	)
 
 	validationtest.Assert(t, err).IsViolationList().
 		WithOneViolation().
-		WithCode("custom").
+		WithError(ErrCustom).
 		WithMessage("message with value").
 		WithPropertyPath("")
 }
@@ -244,8 +243,8 @@ func TestCheckProperty_WhenFalse_ExpectPropertyNameInViolation(t *testing.T) {
 
 	validationtest.Assert(t, err).IsViolationList().WithAttributes(
 		validationtest.ViolationAttributes{
-			Code:         code.NotValid,
-			Message:      message.Templates[code.NotValid],
+			Error:        validation.ErrNotValid,
+			Message:      message.NotValid,
 			PropertyPath: "propertyName",
 		},
 	)
@@ -260,7 +259,7 @@ func TestCheckNoViolations_WhenThereAreViolations_ExpectAppendedViolationsReturn
 		validation.Check(false),
 	)
 
-	validationtest.Assert(t, err).IsViolationList().WithCodes(code.NotBlank, code.NotValid)
+	validationtest.Assert(t, err).IsViolationList().WithErrors(validation.ErrIsBlank, validation.ErrNotValid)
 }
 
 func TestCheckNoViolations_WhenThereIsAnError_ExpectError(t *testing.T) {

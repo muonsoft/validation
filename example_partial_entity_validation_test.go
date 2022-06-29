@@ -72,7 +72,7 @@ func (c AllowedFileExtensionConstraint) ValidateFile(file *File, scope validatio
 		scope.Context(),
 		validation.Comparable[string](
 			extension,
-			it.IsOneOf(c.extensions...).Message("Not allowed extension. Must be one of: {{ choices }}."),
+			it.IsOneOf(c.extensions...).WithMessage("Not allowed extension. Must be one of: {{ choices }}."),
 		),
 	)
 }
@@ -99,8 +99,8 @@ func (c AllowedFileSizeConstraint) ValidateFile(file *File, scope validation.Sco
 		scope.Context(),
 		validation.Number[int](
 			size,
-			it.IsGreaterThan(c.minSize).Message("File size is too small."),
-			it.IsLessThan(c.maxSize).Message("File size is too large."),
+			it.IsGreaterThan(c.minSize).WithMessage("File size is too small."),
+			it.IsLessThan(c.maxSize).WithMessage("File size is too large."),
 		),
 	)
 }

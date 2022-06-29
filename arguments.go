@@ -3,8 +3,6 @@ package validation
 import (
 	"time"
 
-	"github.com/muonsoft/validation/code"
-	"github.com/muonsoft/validation/message"
 	"golang.org/x/text/language"
 )
 
@@ -223,8 +221,8 @@ func CheckNoViolations(err error) ValidatorArgument {
 func Check(isValid bool) Checker {
 	return Checker{
 		isValid:         isValid,
-		code:            code.NotValid,
-		messageTemplate: message.Templates[code.NotValid],
+		err:             ErrNotValid,
+		messageTemplate: ErrNotValid.Template(),
 	}
 }
 
@@ -234,8 +232,8 @@ func CheckProperty(name string, isValid bool) Checker {
 	return Checker{
 		propertyName:    name,
 		isValid:         isValid,
-		code:            code.NotValid,
-		messageTemplate: message.Templates[code.NotValid],
+		err:             ErrNotValid,
+		messageTemplate: ErrNotValid.Template(),
 	}
 }
 
@@ -311,7 +309,7 @@ type Checker struct {
 	isValid           bool
 	propertyName      string
 	groups            []string
-	code              string
+	err               error
 	messageTemplate   string
 	messageParameters TemplateParameterList
 }
@@ -335,15 +333,15 @@ func (c Checker) WhenGroups(groups ...string) Checker {
 	return c
 }
 
-// Code overrides default code for produced violation.
-func (c Checker) Code(code string) Checker {
-	c.code = code
+// WithError overrides default code for produced violation.
+func (c Checker) WithError(err error) Checker {
+	c.err = err
 	return c
 }
 
-// Message sets the violation message template. You can set custom template parameters
+// WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message.
-func (c Checker) Message(template string, parameters ...TemplateParameter) Checker {
+func (c Checker) WithMessage(template string, parameters ...TemplateParameter) Checker {
 	c.messageTemplate = template
 	c.messageParameters = parameters
 	return c
@@ -361,7 +359,7 @@ func (c Checker) validate(scope Scope) (*ViolationList, error) {
 		scope = scope.AtProperty(c.propertyName)
 	}
 
-	violation := scope.BuildViolation(c.code, c.messageTemplate).
+	violation := scope.BuildViolation(c.err, c.messageTemplate).
 		WithParameters(c.messageParameters...).
 		Create()
 

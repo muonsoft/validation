@@ -37,52 +37,32 @@ func givenLocation(name string) *time.Location {
 }
 
 type mockViolation struct {
-	err             string
-	code            string
+	err             error
 	message         string
 	messageTemplate string
 	parameters      []validation.TemplateParameter
 	propertyPath    *validation.PropertyPath
 }
 
-func (mock *mockViolation) Is(codes ...string) bool {
-	return false
-}
-
-func (mock *mockViolation) Error() string {
-	return mock.err
-}
-
-func (mock *mockViolation) Code() string {
-	return mock.code
-}
-
-func (mock *mockViolation) Message() string {
-	return mock.message
-}
-
-func (mock *mockViolation) MessageTemplate() string {
-	return mock.messageTemplate
-}
-
-func (mock *mockViolation) Parameters() []validation.TemplateParameter {
-	return mock.parameters
-}
-
-func (mock *mockViolation) PropertyPath() *validation.PropertyPath {
-	return mock.propertyPath
-}
+func (mock *mockViolation) Is(target error) bool                       { return mock.err == target }
+func (mock *mockViolation) Unwrap() error                              { return mock.err }
+func (mock *mockViolation) Error() string                              { return mock.err.Error() }
+func (mock *mockViolation) Message() string                            { return mock.message }
+func (mock *mockViolation) MessageTemplate() string                    { return mock.messageTemplate }
+func (mock *mockViolation) Parameters() []validation.TemplateParameter { return mock.parameters }
+func (mock *mockViolation) PropertyPath() *validation.PropertyPath     { return mock.propertyPath }
 
 func mockNewViolationFunc() validation.ViolationFactory {
 	return validation.NewViolationFunc(func(
-		code, messageTemplate string,
+		err error,
+		messageTemplate string,
 		pluralCount int,
 		parameters []validation.TemplateParameter,
 		propertyPath *validation.PropertyPath,
 		lang language.Tag,
 	) validation.Violation {
 		return &mockViolation{
-			code:            code,
+			err:             err,
 			messageTemplate: messageTemplate,
 			parameters:      parameters,
 			propertyPath:    propertyPath,

@@ -2,6 +2,7 @@ package validation_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 
@@ -9,6 +10,8 @@ import (
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/validator"
 )
+
+var ErrNotNumeric = errors.New("not numeric")
 
 type NumericConstraint struct {
 	matcher *regexp.Regexp
@@ -31,7 +34,7 @@ func (c NumericConstraint) ValidateString(value *string, scope validation.Scope)
 	}
 
 	// use the scope to build violation with translations
-	return scope.CreateViolation("notNumeric", "This value should be numeric.")
+	return scope.CreateViolation(ErrNotNumeric, "This value should be numeric.")
 }
 
 func ExampleValidator_Validate_customConstraint() {
@@ -43,6 +46,8 @@ func ExampleValidator_Validate_customConstraint() {
 	)
 
 	fmt.Println(err)
+	fmt.Println("errors.Is(err, ErrNotNumeric) =", errors.Is(err, ErrNotNumeric))
 	// Output:
 	// violation: This value should be numeric.
+	// errors.Is(err, ErrNotNumeric) = true
 }

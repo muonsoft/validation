@@ -12,17 +12,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var ErrTest = errors.New("test")
+
 func TestViolation_Error_MessageOnly_ErrorWithMessage(t *testing.T) {
 	validator := newValidator(t)
 
-	violation := validator.BuildViolation(context.Background(), "", "message").Create()
+	violation := validator.BuildViolation(context.Background(), ErrTest, "message").Create()
 
 	assert.Equal(t, "violation: message", violation.Error())
 }
 
 func TestNewViolationList(t *testing.T) {
-	first := newViolationWithCode(t, "first")
-	last := newViolationWithCode(t, "last")
+	first := newViolationWithError(t, errors.New("first"))
+	last := newViolationWithError(t, errors.New("last"))
 
 	violations := validation.NewViolationList(first, last)
 
@@ -45,15 +47,15 @@ func TestViolationList_Len_WhenNil_ExpectZero(t *testing.T) {
 
 func TestViolationList_Each_WhenMultipleViolations_ExpectAllIterated(t *testing.T) {
 	violations := validation.NewViolationList(
-		newViolationWithCode(t, "first"),
-		newViolationWithCode(t, "second"),
-		newViolationWithCode(t, "third"),
+		newViolationWithError(t, errors.New("first")),
+		newViolationWithError(t, errors.New("second")),
+		newViolationWithError(t, errors.New("third")),
 	)
 	iterated := make([]string, 0)
 	indices := make([]int, 0)
 
-	err := violations.Each(func(i int, violation validation.Violation) error {
-		iterated = append(iterated, violation.Code())
+	err := violations.ForEach(func(i int, violation validation.Violation) error {
+		iterated = append(iterated, violation.Unwrap().Error())
 		indices = append(indices, i)
 		return nil
 	})
@@ -65,15 +67,15 @@ func TestViolationList_Each_WhenMultipleViolations_ExpectAllIterated(t *testing.
 
 func TestViolationList_Each_WhenErrorReturned_ExpectLoopBreak(t *testing.T) {
 	violations := validation.NewViolationList(
-		newViolationWithCode(t, "first"),
-		newViolationWithCode(t, "second"),
-		newViolationWithCode(t, "third"),
+		newViolationWithError(t, errors.New("first")),
+		newViolationWithError(t, errors.New("second")),
+		newViolationWithError(t, errors.New("third")),
 	)
 	iterated := make([]string, 0)
 	indices := make([]int, 0)
 
-	err := violations.Each(func(i int, violation validation.Violation) error {
-		iterated = append(iterated, violation.Code())
+	err := violations.ForEach(func(i int, violation validation.Violation) error {
+		iterated = append(iterated, violation.Unwrap().Error())
 		indices = append(indices, i)
 		return fmt.Errorf("error at %d", i)
 	})
@@ -85,56 +87,56 @@ func TestViolationList_Each_WhenErrorReturned_ExpectLoopBreak(t *testing.T) {
 
 func TestViolationList_Join(t *testing.T) {
 	tests := []struct {
-		name          string
-		list          *validation.ViolationList
-		joined        *validation.ViolationList
-		expectedCodes []string
+		name           string
+		list           *validation.ViolationList
+		joined         *validation.ViolationList
+		expectedErrors []string
 	}{
 		{
-			name:          "nil joined list",
-			list:          newViolationList(t),
-			joined:        nil,
-			expectedCodes: nil,
+			name:           "nil joined list",
+			list:           newViolationList(t),
+			joined:         nil,
+			expectedErrors: nil,
 		},
 		{
-			name:          "empty joined list",
-			list:          newViolationList(t),
-			joined:        newViolationList(t),
-			expectedCodes: nil,
+			name:           "empty joined list",
+			list:           newViolationList(t),
+			joined:         newViolationList(t),
+			expectedErrors: nil,
 		},
 		{
-			name:          "joined list with one element",
-			list:          newViolationList(t),
-			joined:        newViolationList(t, "code"),
-			expectedCodes: []string{"code"},
+			name:           "joined list with one element",
+			list:           newViolationList(t),
+			joined:         newViolationList(t, errors.New("code")),
+			expectedErrors: []string{"code"},
 		},
 		{
-			name:          "1 + 1",
-			list:          newViolationList(t, "first"),
-			joined:        newViolationList(t, "second"),
-			expectedCodes: []string{"first", "second"},
+			name:           "1 + 1",
+			list:           newViolationList(t, errors.New("first")),
+			joined:         newViolationList(t, errors.New("second")),
+			expectedErrors: []string{"first", "second"},
 		},
 		{
-			name:          "2 + 1",
-			list:          newViolationList(t, "first", "second"),
-			joined:        newViolationList(t, "third"),
-			expectedCodes: []string{"first", "second", "third"},
+			name:           "2 + 1",
+			list:           newViolationList(t, errors.New("first"), errors.New("second")),
+			joined:         newViolationList(t, errors.New("third")),
+			expectedErrors: []string{"first", "second", "third"},
 		},
 		{
-			name:          "1 + 0",
-			list:          newViolationList(t, "first"),
-			joined:        newViolationList(t),
-			expectedCodes: []string{"first"},
+			name:           "1 + 0",
+			list:           newViolationList(t, errors.New("first")),
+			joined:         newViolationList(t),
+			expectedErrors: []string{"first"},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			test.list.Join(test.joined)
 
-			if assert.Equal(t, len(test.expectedCodes), test.list.Len()) {
+			if assert.Equal(t, len(test.expectedErrors), test.list.Len()) {
 				i := 0
 				for e := test.list.First(); e != nil; e = e.Next() {
-					assert.Equal(t, test.expectedCodes[i], e.Violation().Code())
+					assert.Equal(t, test.expectedErrors[i], e.Violation().Unwrap().Error())
 					i++
 				}
 			}
@@ -143,7 +145,7 @@ func TestViolationList_Join(t *testing.T) {
 }
 
 func TestViolationList_Join_WhenEmptyListJoinedCoupleOfTimes_ExpectJoinedList(t *testing.T) {
-	list := newViolationList(t, "first")
+	list := newViolationList(t, errors.New("first"))
 	list.Join(newViolationList(t))
 	list.Join(newViolationList(t))
 
@@ -153,81 +155,103 @@ func TestViolationList_Join_WhenEmptyListJoinedCoupleOfTimes_ExpectJoinedList(t 
 func TestInternalViolation_Is(t *testing.T) {
 	tests := []struct {
 		name       string
-		codes      []string
+		violation  validation.Violation
+		err        error
 		expectedIs bool
 	}{
 		{
-			name:       "empty list",
+			name:       "nil error",
+			violation:  newViolationWithError(t, ErrTest),
 			expectedIs: false,
 		},
 		{
-			name:       "no matches",
-			codes:      []string{"alpha", "beta"},
+			name:       "matching error",
+			violation:  newViolationWithError(t, ErrTest),
+			err:        ErrTest,
+			expectedIs: true,
+		},
+		{
+			name:       "not equal by value",
+			violation:  newViolationWithError(t, ErrTest),
+			err:        errors.New(ErrTest.Error()),
 			expectedIs: false,
 		},
 		{
-			name:       "one of the codes is matching",
-			codes:      []string{"alpha", "beta", "code"},
+			name:       "wrapped error",
+			violation:  newViolationWithError(t, fmt.Errorf("%w", ErrTest)),
+			err:        ErrTest,
 			expectedIs: true,
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			violation := newViolationWithCode(t, "code")
-
-			is := violation.Is(test.codes...)
+			is := errors.Is(test.violation, test.err)
 
 			assert.Equal(t, test.expectedIs, is)
 		})
 	}
 }
 
-func TestViolationList_Has(t *testing.T) {
+func TestViolationList_Is(t *testing.T) {
 	tests := []struct {
 		name       string
-		codes      []string
+		violation  validation.Violation
+		err        error
 		expectedIs bool
 	}{
 		{
-			name:       "empty list",
+			name:       "nil error",
+			violation:  newViolationWithError(t, ErrTest),
 			expectedIs: false,
 		},
 		{
-			name:       "no matches",
-			codes:      []string{"alpha", "beta"},
+			name:       "matching error",
+			violation:  newViolationWithError(t, ErrTest),
+			err:        ErrTest,
+			expectedIs: true,
+		},
+		{
+			name:       "not equal by value",
+			violation:  newViolationWithError(t, ErrTest),
+			err:        errors.New(ErrTest.Error()),
 			expectedIs: false,
 		},
 		{
-			name:       "one of the codes is matching",
-			codes:      []string{"alpha", "beta", "code"},
+			name:       "wrapped error",
+			violation:  newViolationWithError(t, fmt.Errorf("%w", ErrTest)),
+			err:        ErrTest,
 			expectedIs: true,
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			violations := validation.NewViolationList(newViolationWithCode(t, "code"))
+			violations := validation.NewViolationList(test.violation)
 
-			has := violations.Has(test.codes...)
+			is := errors.Is(violations, test.err)
 
-			assert.Equal(t, test.expectedIs, has)
+			assert.Equal(t, test.expectedIs, is)
 		})
 	}
 }
 
 func TestViolationList_Filter_ViolationsWithCodes_FilteredList(t *testing.T) {
-	violations := newViolationList(t, "alpha", "beta", "gamma", "delta")
+	errA := errors.New("alpha")
+	errB := errors.New("beta")
+	errC := errors.New("gamma")
+	errD := errors.New("delta")
+	violations := newViolationList(t, errA, errB, errC, errD)
 
-	filtered := violations.Filter("delta", "beta").AsSlice()
+	filtered := violations.Filter(errD, errB).AsSlice()
 
 	if assert.Len(t, filtered, 2) {
-		assert.Equal(t, "beta", filtered[0].Code())
-		assert.Equal(t, "delta", filtered[1].Code())
+		assert.Equal(t, errB, filtered[0].Unwrap())
+		assert.Equal(t, errD, filtered[1].Unwrap())
 	}
 }
 
 func TestViolation_Error_MessageAndPropertyPath_ErrorWithPropertyPathAndMessage(t *testing.T) {
 	validator := newValidator(t)
-	violation := validator.BuildViolation(context.Background(), "", "message").
+	violation := validator.BuildViolation(context.Background(), ErrTest, "message").
 		At(validation.PropertyNameElement("propertyPath")).
 		Create()
 
@@ -239,13 +263,13 @@ func TestViolation_Error_MessageAndPropertyPath_ErrorWithPropertyPathAndMessage(
 func TestViolationList_Error_CoupleOfViolations_JoinedMessage(t *testing.T) {
 	validator := newValidator(t)
 	violations := validation.NewViolationList(
-		validator.BuildViolation(context.Background(), "", "first message").
+		validator.BuildViolation(context.Background(), ErrTest, "first message").
 			At(
 				validation.PropertyNameElement("path"),
 				validation.ArrayIndexElement(0),
 			).
 			Create(),
-		validator.BuildViolation(context.Background(), "", "second message").
+		validator.BuildViolation(context.Background(), ErrTest, "second message").
 			At(
 				validation.PropertyNameElement("path"),
 				validation.ArrayIndexElement(1),
@@ -275,7 +299,7 @@ func TestIsViolation_CustomError_False(t *testing.T) {
 }
 
 func TestIsViolation_Violation_True(t *testing.T) {
-	err := fmt.Errorf("%w", newViolationWithCode(t, "code"))
+	err := fmt.Errorf("%w", newViolationWithError(t, ErrTest))
 
 	is := validation.IsViolation(err)
 
@@ -291,7 +315,7 @@ func TestIsViolationList_CustomError_False(t *testing.T) {
 }
 
 func TestIsViolationList_Violation_True(t *testing.T) {
-	err := fmt.Errorf("%w", validation.NewViolationList(newViolationWithCode(t, "code")))
+	err := fmt.Errorf("%w", validation.NewViolationList(newViolationWithError(t, ErrTest)))
 
 	is := validation.IsViolationList(err)
 
@@ -299,7 +323,7 @@ func TestIsViolationList_Violation_True(t *testing.T) {
 }
 
 func TestUnwrapViolation_WrappedViolation_UnwrappedViolation(t *testing.T) {
-	wrapped := newViolationWithCode(t, "code")
+	wrapped := newViolationWithError(t, ErrTest)
 	err := fmt.Errorf("error: %w", wrapped)
 
 	unwrapped, ok := validation.UnwrapViolation(err)
@@ -309,7 +333,7 @@ func TestUnwrapViolation_WrappedViolation_UnwrappedViolation(t *testing.T) {
 }
 
 func TestUnwrapViolationList_WrappedViolationList_UnwrappedViolationList(t *testing.T) {
-	wrapped := validation.NewViolationList(newViolationWithCode(t, "code"))
+	wrapped := validation.NewViolationList(newViolationWithError(t, ErrTest))
 	err := fmt.Errorf("error: %w", wrapped)
 
 	unwrapped, ok := validation.UnwrapViolationList(err)
@@ -335,7 +359,7 @@ func TestMarshalViolationToJSON(t *testing.T) {
 	}{
 		{
 			name: "full data",
-			violation: validator.BuildViolation(context.Background(), "code", "message").
+			violation: validator.BuildViolation(context.Background(), ErrTest, "message").
 				WithParameters(validation.TemplateParameter{Key: "key", Value: "value"}).
 				At(
 					validation.PropertyNameElement("properties"),
@@ -343,15 +367,15 @@ func TestMarshalViolationToJSON(t *testing.T) {
 					validation.PropertyNameElement("name"),
 				).Create(),
 			expectedJSON: `{
-				"code": "code",
+				"error": "test",
 				"message": "message",
 				"propertyPath": "properties[1].name"
 			}`,
 		},
 		{
 			name:         "empty data",
-			violation:    validator.BuildViolation(context.Background(), "", "").Create(),
-			expectedJSON: `{"code": "", "message": ""}`,
+			violation:    validator.BuildViolation(context.Background(), nil, "").Create(),
+			expectedJSON: `{"message": ""}`,
 		},
 	}
 	for _, test := range tests {
@@ -381,14 +405,14 @@ func TestMarshalViolationListToJSON(t *testing.T) {
 		{
 			name: "empty data",
 			list: validation.NewViolationList(
-				validator.BuildViolation(context.Background(), "", "").Create(),
+				validator.BuildViolation(context.Background(), nil, "").Create(),
 			),
-			expectedJSON: `[{"code": "", "message": ""}]`,
+			expectedJSON: `[{"message": ""}]`,
 		},
 		{
 			name: "one full violation",
 			list: validation.NewViolationList(
-				validator.BuildViolation(context.Background(), "code", "message").
+				validator.BuildViolation(context.Background(), ErrTest, "message").
 					WithParameters(validation.TemplateParameter{Key: "key", Value: "value"}).
 					At(
 						validation.PropertyNameElement("properties"),
@@ -398,7 +422,7 @@ func TestMarshalViolationListToJSON(t *testing.T) {
 			),
 			expectedJSON: `[
 				{
-					"code": "code",
+					"error": "test",
 					"message": "message",
 					"propertyPath": "properties[1].name"
 				}
@@ -407,14 +431,14 @@ func TestMarshalViolationListToJSON(t *testing.T) {
 		{
 			name: "two violations",
 			list: validation.NewViolationList(
-				validator.BuildViolation(context.Background(), "code", "message").
+				validator.BuildViolation(context.Background(), ErrTest, "message").
 					WithParameters(validation.TemplateParameter{Key: "key", Value: "value"}).
 					At(
 						validation.PropertyNameElement("properties"),
 						validation.ArrayIndexElement(1),
 						validation.PropertyNameElement("name"),
 					).Create(),
-				validator.BuildViolation(context.Background(), "code", "message").
+				validator.BuildViolation(context.Background(), ErrTest, "message").
 					WithParameters(validation.TemplateParameter{Key: "key", Value: "value"}).
 					At(
 						validation.PropertyNameElement("properties"),
@@ -424,12 +448,12 @@ func TestMarshalViolationListToJSON(t *testing.T) {
 			),
 			expectedJSON: `[
 				{
-					"code": "code",
+					"error": "test",
 					"message": "message",
 					"propertyPath": "properties[1].name"
 				},
 				{
-					"code": "code",
+					"error": "test",
 					"message": "message",
 					"propertyPath": "properties[1].name"
 				}
@@ -449,58 +473,61 @@ func TestMarshalViolationListToJSON(t *testing.T) {
 
 func TestValidator_BuildViolationList_WhenBasePath_ExpectViolationListBuiltWithPath(t *testing.T) {
 	validator := newValidator(t)
+	err1 := errors.New("error 1")
+	err2 := errors.New("error 2")
+	err3 := errors.New("error 3")
 
 	err := validator.
 		AtProperty("base").AtIndex(1).
 		BuildViolationList(context.Background()).
 		At(validation.PropertyNameElement("listPath")).
 		AtProperty("list").AtIndex(0).
-		BuildViolation("code1", "message with {{ parameter 1 }}").
+		BuildViolation(err1, "message with {{ parameter 1 }}").
 		WithParameter("{{ parameter 1 }}", "value 1").
 		At(validation.PropertyNameElement("propertyPath")).
 		AtProperty("properties").AtIndex(0).
 		Add().
-		BuildViolation("code2", "message with {{ parameter 2 }}").
+		BuildViolation(err2, "message with {{ parameter 2 }}").
 		WithParameter("{{ parameter 2 }}", "value 2").
 		At(validation.PropertyNameElement("propertyPath")).
 		AtProperty("properties").AtIndex(1).
 		Add().
-		AddViolation("code3", "message 3", validation.PropertyNameElement("singleProperty")).
+		AddViolation(err3, "message 3", validation.PropertyNameElement("singleProperty")).
 		Create().
 		AsError()
 
 	validationtest.Assert(t, err).IsViolationList().WithAttributes(
 		validationtest.ViolationAttributes{
-			Code:         "code1",
+			Error:        err1,
 			Message:      "message with value 1",
 			PropertyPath: "base[1].listPath.list[0].propertyPath.properties[0]",
 		},
 		validationtest.ViolationAttributes{
-			Code:         "code2",
+			Error:        err2,
 			Message:      "message with value 2",
 			PropertyPath: "base[1].listPath.list[0].propertyPath.properties[1]",
 		},
 		validationtest.ViolationAttributes{
-			Code:         "code3",
+			Error:        err3,
 			Message:      "message 3",
 			PropertyPath: "base[1].listPath.list[0].singleProperty",
 		},
 	)
 }
 
-func newViolationWithCode(t *testing.T, code string) validation.Violation {
+func newViolationWithError(t *testing.T, err error) validation.Violation {
 	t.Helper()
 	validator := newValidator(t)
-	violation := validator.BuildViolation(context.Background(), code, "").Create()
+	violation := validator.BuildViolation(context.Background(), err, "").Create()
 	return violation
 }
 
-func newViolationList(t *testing.T, codes ...string) *validation.ViolationList {
+func newViolationList(t *testing.T, errs ...error) *validation.ViolationList {
 	t.Helper()
 	validator := newValidator(t)
 	violations := validation.NewViolationList()
-	for _, code := range codes {
-		violation := validator.BuildViolation(context.Background(), code, "").Create()
+	for _, err := range errs {
+		violation := validator.BuildViolation(context.Background(), err, "").Create()
 		violations.Append(violation)
 	}
 	return violations

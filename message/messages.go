@@ -26,49 +26,47 @@
 // It is recommended not to use this code directly in your application.
 package message
 
-import "github.com/muonsoft/validation/code"
-
-var Templates = map[string]string{
-	code.Blank:             "This value should be blank.",
-	code.CountExact:        "This collection should contain exactly {{ limit }} element(s).",
-	code.CountTooFew:       "This collection should contain {{ limit }} element(s) or more.",
-	code.CountTooMany:      "This collection should contain {{ limit }} element(s) or less.",
-	code.Equal:             "This value should be equal to {{ comparedValue }}.",
-	code.False:             "This value should be false.",
-	code.InvalidEAN13:      "This value is not a valid EAN-13.",
-	code.InvalidEAN8:       "This value is not a valid EAN-8.",
-	code.InvalidEmail:      "This value is not a valid email address.",
-	code.InvalidHostname:   "This value is not a valid hostname.",
-	code.InvalidIP:         "This is not a valid IP address.",
-	code.InvalidJSON:       "This value should be valid JSON.",
-	code.InvalidUPCA:       "This value is not a valid UPC-A.",
-	code.InvalidUPCE:       "This value is not a valid UPC-E.",
-	code.InvalidURL:        "This value is not a valid URL.",
-	code.LengthExact:       "This value should have exactly {{ limit }} character(s).",
-	code.LengthTooFew:      "This value is too short. It should have {{ limit }} character(s) or more.",
-	code.LengthTooMany:     "This value is too long. It should have {{ limit }} character(s) or less.",
-	code.Nil:               "This value should be nil.",
-	code.NoSuchChoice:      "The value you selected is not a valid choice.",
-	code.NotBlank:          "This value should not be blank.",
-	code.NotEqual:          "This value should not be equal to {{ comparedValue }}.",
-	code.NotInRange:        "This value should be between {{ min }} and {{ max }}.",
-	code.NotInteger:        "This value is not an integer.",
-	code.NotNegative:       "This value should be negative.",
-	code.NotNegativeOrZero: "This value should be either negative or zero.",
-	code.NotNil:            "This value should not be nil.",
-	code.NotNumeric:        "This value is not a numeric.",
-	code.NotPositive:       "This value should be positive.",
-	code.NotPositiveOrZero: "This value should be either positive or zero.",
-	code.NotUnique:         "This collection should contain only unique elements.",
-	code.NotValid:          "This value is not valid.",
-	code.ProhibitedIP:      "This IP address is prohibited to use.",
-	code.TooEarly:          "This value should be later than {{ comparedValue }}.",
-	code.TooEarlyOrEqual:   "This value should be later than or equal to {{ comparedValue }}.",
-	code.TooHigh:           "This value should be less than {{ comparedValue }}.",
-	code.TooHighOrEqual:    "This value should be less than or equal to {{ comparedValue }}.",
-	code.TooLate:           "This value should be earlier than {{ comparedValue }}.",
-	code.TooLateOrEqual:    "This value should be earlier than or equal to {{ comparedValue }}.",
-	code.TooLow:            "This value should be greater than {{ comparedValue }}.",
-	code.TooLowOrEqual:     "This value should be greater than or equal to {{ comparedValue }}.",
-	code.True:              "This value should be true.",
-}
+const (
+	InvalidEAN13      = "This value is not a valid EAN-13."
+	InvalidEAN8       = "This value is not a valid EAN-8."
+	InvalidEmail      = "This value is not a valid email address."
+	InvalidHostname   = "This value is not a valid hostname."
+	InvalidIP         = "This is not a valid IP address."
+	InvalidJSON       = "This value should be valid JSON."
+	InvalidUPCA       = "This value is not a valid UPC-A."
+	InvalidUPCE       = "This value is not a valid UPC-E."
+	InvalidURL        = "This value is not a valid URL."
+	IsBlank           = "This value should not be blank."
+	IsEqual           = "This value should not be equal to {{ comparedValue }}."
+	IsNil             = "This value should not be nil."
+	NoSuchChoice      = "The value you selected is not a valid choice."
+	NotBlank          = "This value should be blank."
+	NotEqual          = "This value should be equal to {{ comparedValue }}."
+	NotExactCount     = "This collection should contain exactly {{ limit }} element(s)."
+	NotExactLength    = "This value should have exactly {{ limit }} character(s)."
+	NotFalse          = "This value should be false."
+	NotInRange        = "This value should be between {{ min }} and {{ max }}."
+	NotInteger        = "This value is not an integer."
+	NotNegative       = "This value should be negative."
+	NotNegativeOrZero = "This value should be either negative or zero."
+	NotNil            = "This value should be nil."
+	NotNumeric        = "This value is not a numeric."
+	NotPositive       = "This value should be positive."
+	NotPositiveOrZero = "This value should be either positive or zero."
+	NotTrue           = "This value should be true."
+	NotUnique         = "This collection should contain only unique elements."
+	NotValid          = "This value is not valid."
+	ProhibitedIP      = "This IP address is prohibited to use."
+	TooEarly          = "This value should be later than {{ comparedValue }}."
+	TooEarlyOrEqual   = "This value should be later than or equal to {{ comparedValue }}."
+	TooFewElements    = "This collection should contain {{ limit }} element(s) or more."
+	TooHigh           = "This value should be less than {{ comparedValue }}."
+	TooHighOrEqual    = "This value should be less than or equal to {{ comparedValue }}."
+	TooLate           = "This value should be earlier than {{ comparedValue }}."
+	TooLateOrEqual    = "This value should be earlier than or equal to {{ comparedValue }}."
+	TooLong           = "This value is too long. It should have {{ limit }} character(s) or less."
+	TooLow            = "This value should be greater than {{ comparedValue }}."
+	TooLowOrEqual     = "This value should be greater than or equal to {{ comparedValue }}."
+	TooManyElements   = "This collection should contain {{ limit }} element(s) or less."
+	TooShort          = "This value is too short. It should have {{ limit }} character(s) or more."
+)

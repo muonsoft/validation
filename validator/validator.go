@@ -24,16 +24,6 @@ func SetUp(options ...validation.ValidatorOption) (err error) {
 	return err
 }
 
-// SetOptions can be used to set up a new instance of singleton validator. Make sure you call this function once
-// at the initialization of your application because it totally replaces validator instance.
-//
-// Deprecated: use SetUp function instead.
-func SetOptions(options ...validation.ValidatorOption) (err error) {
-	validator, err = validation.NewValidator(options...)
-
-	return err
-}
-
 // Validate is the main validation method. It accepts validation arguments. executionContext can be
 // used to tune up the validation process or to pass values of a specific type.
 func Validate(ctx context.Context, arguments ...validation.Argument) error {
@@ -130,13 +120,13 @@ func AtIndex(index int) *validation.Validator {
 }
 
 // CreateViolation can be used to quickly create a custom violation on the client-side.
-func CreateViolation(ctx context.Context, code, message string, path ...validation.PropertyPathElement) validation.Violation {
-	return validator.CreateViolation(ctx, code, message, path...)
+func CreateViolation(ctx context.Context, err error, message string, path ...validation.PropertyPathElement) validation.Violation {
+	return validator.CreateViolation(ctx, err, message, path...)
 }
 
 // BuildViolation can be used to build a custom violation on the client-side.
-func BuildViolation(ctx context.Context, code, message string) *validation.ViolationBuilder {
-	return validator.BuildViolation(ctx, code, message)
+func BuildViolation(ctx context.Context, err error, message string) *validation.ViolationBuilder {
+	return validator.BuildViolation(ctx, err, message)
 }
 
 // BuildViolationList can be used to build a custom violation list on the client-side.

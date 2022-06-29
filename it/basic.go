@@ -4,8 +4,6 @@ import (
 	"time"
 
 	"github.com/muonsoft/validation"
-	"github.com/muonsoft/validation/code"
-	"github.com/muonsoft/validation/message"
 )
 
 // NotBlankConstraint checks that a value is not blank: an empty string, an empty countable (slice/array/map),
@@ -16,7 +14,7 @@ type NotBlankConstraint[T comparable] struct {
 	isIgnored         bool
 	allowNil          bool
 	groups            []string
-	code              string
+	err               error
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
 }
@@ -34,8 +32,8 @@ func IsNotBlankNumber[T validation.Numeric]() NotBlankConstraint[T] {
 // IsNotBlankComparable creates a NotBlankConstraint for checking that comparable value is not empty.
 func IsNotBlankComparable[T comparable]() NotBlankConstraint[T] {
 	return NotBlankConstraint[T]{
-		code:            code.NotBlank,
-		messageTemplate: message.Templates[code.NotBlank],
+		err:             validation.ErrIsBlank,
+		messageTemplate: validation.ErrIsBlank.Template(),
 	}
 }
 
@@ -58,15 +56,15 @@ func (c NotBlankConstraint[T]) WhenGroups(groups ...string) NotBlankConstraint[T
 	return c
 }
 
-// Code overrides default code for produced violation.
-func (c NotBlankConstraint[T]) Code(code string) NotBlankConstraint[T] {
-	c.code = code
+// WithError overrides default error for produced violation.
+func (c NotBlankConstraint[T]) WithError(err error) NotBlankConstraint[T] {
+	c.err = err
 	return c
 }
 
-// Message sets the violation message template. You can set custom template parameters
+// WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message.
-func (c NotBlankConstraint[T]) Message(template string, parameters ...validation.TemplateParameter) NotBlankConstraint[T] {
+func (c NotBlankConstraint[T]) WithMessage(template string, parameters ...validation.TemplateParameter) NotBlankConstraint[T] {
 	c.messageTemplate = template
 	c.messageParameters = parameters
 	return c
@@ -142,7 +140,7 @@ func (c NotBlankConstraint[T]) ValidateTime(value *time.Time, scope validation.S
 }
 
 func (c NotBlankConstraint[T]) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(c.code, c.messageTemplate).
+	return scope.BuildViolation(c.err, c.messageTemplate).
 		WithParameters(c.messageParameters...).
 		Create()
 }
@@ -153,7 +151,7 @@ type BlankConstraint[T comparable] struct {
 	blank             T
 	isIgnored         bool
 	groups            []string
-	code              string
+	err               error
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
 }
@@ -171,8 +169,8 @@ func IsBlankNumber[T validation.Numeric]() BlankConstraint[T] {
 // IsBlankComparable creates a BlankConstraint for checking that comparable value is not empty.
 func IsBlankComparable[T comparable]() BlankConstraint[T] {
 	return BlankConstraint[T]{
-		code:            code.Blank,
-		messageTemplate: message.Templates[code.Blank],
+		err:             validation.ErrNotBlank,
+		messageTemplate: validation.ErrNotBlank.Template(),
 	}
 }
 
@@ -189,15 +187,15 @@ func (c BlankConstraint[T]) WhenGroups(groups ...string) BlankConstraint[T] {
 	return c
 }
 
-// Code overrides default code for produced violation.
-func (c BlankConstraint[T]) Code(code string) BlankConstraint[T] {
-	c.code = code
+// WithError overrides default error for produced violation.
+func (c BlankConstraint[T]) WithError(err error) BlankConstraint[T] {
+	c.err = err
 	return c
 }
 
-// Message sets the violation message template. You can set custom template parameters
+// WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message.
-func (c BlankConstraint[T]) Message(template string, parameters ...validation.TemplateParameter) BlankConstraint[T] {
+func (c BlankConstraint[T]) WithMessage(template string, parameters ...validation.TemplateParameter) BlankConstraint[T] {
 	c.messageTemplate = template
 	c.messageParameters = parameters
 	return c
@@ -248,7 +246,7 @@ func (c BlankConstraint[T]) ValidateTime(value *time.Time, scope validation.Scop
 }
 
 func (c BlankConstraint[T]) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(c.code, c.messageTemplate).
+	return scope.BuildViolation(c.err, c.messageTemplate).
 		WithParameters(c.messageParameters...).
 		Create()
 }
@@ -258,7 +256,7 @@ func (c BlankConstraint[T]) newViolation(scope validation.Scope) validation.Viol
 type NotNilConstraint[T comparable] struct {
 	isIgnored         bool
 	groups            []string
-	code              string
+	err               error
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
 }
@@ -276,8 +274,8 @@ func IsNotNilNumber[T validation.Numeric]() NotNilConstraint[T] {
 // IsNotNilComparable creates a NotNilConstraint to check that a comparable value is not strictly equal to nil.
 func IsNotNilComparable[T comparable]() NotNilConstraint[T] {
 	return NotNilConstraint[T]{
-		code:            code.NotNil,
-		messageTemplate: message.Templates[code.NotNil],
+		err:             validation.ErrIsNil,
+		messageTemplate: validation.ErrIsNil.Template(),
 	}
 }
 
@@ -294,15 +292,15 @@ func (c NotNilConstraint[T]) WhenGroups(groups ...string) NotNilConstraint[T] {
 	return c
 }
 
-// Code overrides default code for produced violation.
-func (c NotNilConstraint[T]) Code(code string) NotNilConstraint[T] {
-	c.code = code
+// WithError overrides default error for produced violation.
+func (c NotNilConstraint[T]) WithError(err error) NotNilConstraint[T] {
+	c.err = err
 	return c
 }
 
-// Message sets the violation message template. You can set custom template parameters
+// WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message.
-func (c NotNilConstraint[T]) Message(template string, parameters ...validation.TemplateParameter) NotNilConstraint[T] {
+func (c NotNilConstraint[T]) WithMessage(template string, parameters ...validation.TemplateParameter) NotNilConstraint[T] {
 	c.messageTemplate = template
 	c.messageParameters = parameters
 	return c
@@ -337,7 +335,7 @@ func (c NotNilConstraint[T]) ValidateTime(value *time.Time, scope validation.Sco
 }
 
 func (c NotNilConstraint[T]) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(c.code, c.messageTemplate).
+	return scope.BuildViolation(c.err, c.messageTemplate).
 		WithParameters(c.messageParameters...).
 		Create()
 }
@@ -347,7 +345,7 @@ func (c NotNilConstraint[T]) newViolation(scope validation.Scope) validation.Vio
 type NilConstraint[T comparable] struct {
 	isIgnored         bool
 	groups            []string
-	code              string
+	err               error
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
 }
@@ -365,8 +363,8 @@ func IsNilNumber[T validation.Numeric]() NilConstraint[T] {
 // IsNilComparable creates a NilConstraint to check that a comparable value is strictly equal to nil.
 func IsNilComparable[T comparable]() NilConstraint[T] {
 	return NilConstraint[T]{
-		code:            code.Nil,
-		messageTemplate: message.Templates[code.Nil],
+		err:             validation.ErrNotNil,
+		messageTemplate: validation.ErrNotNil.Template(),
 	}
 }
 
@@ -383,15 +381,15 @@ func (c NilConstraint[T]) WhenGroups(groups ...string) NilConstraint[T] {
 	return c
 }
 
-// Code overrides default code for produced violation.
-func (c NilConstraint[T]) Code(code string) NilConstraint[T] {
-	c.code = code
+// WithError overrides default error for produced violation.
+func (c NilConstraint[T]) WithError(err error) NilConstraint[T] {
+	c.err = err
 	return c
 }
 
-// Message sets the violation message template. You can set custom template parameters
+// WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message.
-func (c NilConstraint[T]) Message(template string, parameters ...validation.TemplateParameter) NilConstraint[T] {
+func (c NilConstraint[T]) WithMessage(template string, parameters ...validation.TemplateParameter) NilConstraint[T] {
 	c.messageTemplate = template
 	c.messageParameters = parameters
 	return c
@@ -426,7 +424,7 @@ func (c NilConstraint[T]) ValidateTime(value *time.Time, scope validation.Scope)
 }
 
 func (c NilConstraint[T]) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(c.code, c.messageTemplate).
+	return scope.BuildViolation(c.err, c.messageTemplate).
 		WithParameters(c.messageParameters...).
 		Create()
 }
@@ -436,7 +434,7 @@ type BoolConstraint struct {
 	isIgnored         bool
 	expected          bool
 	groups            []string
-	code              string
+	err               error
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
 }
@@ -445,8 +443,8 @@ type BoolConstraint struct {
 func IsTrue() BoolConstraint {
 	return BoolConstraint{
 		expected:        true,
-		code:            code.True,
-		messageTemplate: message.Templates[code.True],
+		err:             validation.ErrNotTrue,
+		messageTemplate: validation.ErrNotTrue.Template(),
 	}
 }
 
@@ -454,8 +452,8 @@ func IsTrue() BoolConstraint {
 func IsFalse() BoolConstraint {
 	return BoolConstraint{
 		expected:        false,
-		code:            code.False,
-		messageTemplate: message.Templates[code.False],
+		err:             validation.ErrNotFalse,
+		messageTemplate: validation.ErrNotFalse.Template(),
 	}
 }
 
@@ -472,15 +470,15 @@ func (c BoolConstraint) WhenGroups(groups ...string) BoolConstraint {
 	return c
 }
 
-// Code overrides default code for produced violation.
-func (c BoolConstraint) Code(code string) BoolConstraint {
-	c.code = code
+// WithError overrides default error for produced violation.
+func (c BoolConstraint) WithError(err error) BoolConstraint {
+	c.err = err
 	return c
 }
 
-// Message sets the violation message template. You can set custom template parameters
+// WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message.
-func (c BoolConstraint) Message(template string, parameters ...validation.TemplateParameter) BoolConstraint {
+func (c BoolConstraint) WithMessage(template string, parameters ...validation.TemplateParameter) BoolConstraint {
 	c.messageTemplate = template
 	c.messageParameters = parameters
 	return c
@@ -491,7 +489,7 @@ func (c BoolConstraint) ValidateBool(value *bool, scope validation.Scope) error 
 		return nil
 	}
 
-	return scope.BuildViolation(c.code, c.messageTemplate).
+	return scope.BuildViolation(c.err, c.messageTemplate).
 		WithParameters(c.messageParameters...).
 		Create()
 }

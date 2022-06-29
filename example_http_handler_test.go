@@ -87,5 +87,5 @@ func ExampleValidator_Validate_httpHandler() {
 	// recorded response should contain array of violations
 	fmt.Println(recorder.Body.String())
 	// Output:
-	// [{"code":"notBlank","message":"Значение не должно быть пустым.","propertyPath":"title"},{"code":"notBlank","message":"Значение не должно быть пустым.","propertyPath":"author"},{"code":"countTooFew","message":"Эта коллекция должна содержать 1 элемент или больше.","propertyPath":"keywords"}]
+	// [{"error":"is blank","message":"Значение не должно быть пустым.","propertyPath":"title"},{"error":"is blank","message":"Значение не должно быть пустым.","propertyPath":"author"},{"error":"too few elements","message":"Эта коллекция должна содержать 1 элемент или больше.","propertyPath":"keywords"}]
 }

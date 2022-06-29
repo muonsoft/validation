@@ -231,34 +231,6 @@ func ExampleIsNotEqualTo() {
 	// violation: This value should not be equal to "foo".
 }
 
-func ExampleIsEqualToNumber() {
-	fmt.Println(validator.Validate(
-		context.Background(),
-		validation.Number[int](1, it.IsEqualToNumber(2))),
-	)
-	fmt.Println(validator.Validate(
-		context.Background(),
-		validation.Number[float64](1.1, it.IsEqualToNumber(1.2))),
-	)
-	// Output:
-	// violation: This value should be equal to 2.
-	// violation: This value should be equal to 1.2.
-}
-
-func ExampleIsNotEqualToNumber() {
-	fmt.Println(validator.Validate(
-		context.Background(),
-		validation.Number[int](1, it.IsNotEqualToNumber(1))),
-	)
-	fmt.Println(validator.Validate(
-		context.Background(),
-		validation.Number[float64](1.1, it.IsNotEqualToNumber(1.1))),
-	)
-	// Output:
-	// violation: This value should not be equal to 1.
-	// violation: This value should not be equal to 1.1.
-}
-
 func ExampleIsLessThan() {
 	fmt.Println(validator.Validate(
 		context.Background(),
@@ -383,22 +355,6 @@ func ExampleIsBetween() {
 	// Output:
 	// violation: This value should be between 10 and 20.
 	// violation: This value should be between 10.111 and 20.222.
-}
-
-func ExampleIsEqualToString() {
-	v := "foo"
-	err := validator.ValidateString(context.Background(), v, it.IsEqualToString("bar"))
-	fmt.Println(err)
-	// Output:
-	// violation: This value should be equal to "bar".
-}
-
-func ExampleIsNotEqualToString() {
-	v := "foo"
-	err := validator.ValidateString(context.Background(), v, it.IsNotEqualToString("foo"))
-	fmt.Println(err)
-	// Output:
-	// violation: This value should not be equal to "foo".
 }
 
 func ExampleIsEarlierThan() {

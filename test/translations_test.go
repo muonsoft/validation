@@ -7,7 +7,6 @@ import (
 
 	"github.com/muonsoft/language"
 	"github.com/muonsoft/validation"
-	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
 	"github.com/muonsoft/validation/message/translations/russian"
@@ -162,7 +161,7 @@ func TestValidator_Validate_WhenTranslatableParameter_ExpectParameterTranslated(
 		validation.String(
 			v,
 			it.IsNotBlank().
-				Message(
+				WithMessage(
 					"The operation is only possible for the {{ role }}.",
 					validation.TemplateParameter{
 						Key:              "{{ role }}",
@@ -173,7 +172,7 @@ func TestValidator_Validate_WhenTranslatableParameter_ExpectParameterTranslated(
 		),
 	)
 
-	assertHasOneViolation(code.NotBlank, "Операция возможна только для роли администратора.")(t, err)
+	assertHasOneViolation(validation.ErrIsBlank, "Операция возможна только для роли администратора.")(t, err)
 }
 
 func TestValidate_WhenTranslationsLoadedAfterInit_ExpectTranslationsWorking(t *testing.T) {
@@ -193,7 +192,7 @@ func TestValidate_WhenTranslationsLoadedAfterInit_ExpectTranslationsWorking(t *t
 
 func TestValidate_WhenTranslatorIsOverridden_ExpectTranslationsByOverriddenTranslator(t *testing.T) {
 	translator := mockTranslator{translate: func(tag textlanguage.Tag, msg string, pluralCount int) string {
-		if msg == message.Templates[code.NotBlank] {
+		if msg == message.IsBlank {
 			return "expected message"
 		}
 		return "unexpected message"

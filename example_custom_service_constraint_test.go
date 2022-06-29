@@ -39,6 +39,8 @@ func (storage *TagStorage) FindByName(ctx context.Context, name string) ([]strin
 	return found, nil
 }
 
+var ErrUnknownTag = errors.New("unknown tag")
+
 type ExistingTagConstraint struct {
 	storage *TagStorage
 }
@@ -63,7 +65,7 @@ func (c *ExistingTagConstraint) ValidateString(value *string, scope validation.S
 
 	// use the scope to build violation with translations
 	return scope.
-		BuildViolation("unknownTag", `Tag "{{ value }}" does not exist.`).
+		BuildViolation(ErrUnknownTag, `Tag "{{ value }}" does not exist.`).
 		// you can inject parameter value to the message here
 		WithParameter("{{ value }}", *value).
 		Create()
@@ -112,6 +114,8 @@ func ExampleValidator_GetConstraint_customServiceConstraint() {
 	)
 
 	fmt.Println(err)
+	fmt.Println("errors.Is(err, ErrUnknownTag) =", errors.Is(err, ErrUnknownTag))
 	// Output:
 	// violation at 'tags[1]': Tag "camera" does not exist.
+	// errors.Is(err, ErrUnknownTag) = true
 }

@@ -1,7 +1,7 @@
 package test
 
 import (
-	"github.com/muonsoft/validation/code"
+	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
 )
@@ -19,7 +19,7 @@ var barcodeConstraintsTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("42345670"),
 		constraint:      it.IsEAN8(),
-		assert:          assertHasOneViolation(code.InvalidEAN8, message.Templates[code.InvalidEAN8]),
+		assert:          assertHasOneViolation(validation.ErrInvalidEAN8, message.InvalidEAN8),
 	},
 	{
 		name:            "IsEAN13 passes on valid value",
@@ -33,7 +33,7 @@ var barcodeConstraintsTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("4006381333932"),
 		constraint:      it.IsEAN13(),
-		assert:          assertHasOneViolation(code.InvalidEAN13, message.Templates[code.InvalidEAN13]),
+		assert:          assertHasOneViolation(validation.ErrInvalidEAN13, message.InvalidEAN13),
 	},
 	{
 		name:            "IsUPCA passes on valid value",
@@ -47,7 +47,7 @@ var barcodeConstraintsTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("614141000037"),
 		constraint:      it.IsUPCA(),
-		assert:          assertHasOneViolation(code.InvalidUPCA, message.Templates[code.InvalidUPCA]),
+		assert:          assertHasOneViolation(validation.ErrInvalidUPCA, message.InvalidUPCA),
 	},
 	{
 		name:            "IsUPCE passes on valid value",
@@ -61,6 +61,6 @@ var barcodeConstraintsTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("01234501"),
 		constraint:      it.IsUPCE(),
-		assert:          assertHasOneViolation(code.InvalidUPCE, message.Templates[code.InvalidUPCE]),
+		assert:          assertHasOneViolation(validation.ErrInvalidUPCE, message.InvalidUPCE),
 	},
 }

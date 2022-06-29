@@ -39,14 +39,14 @@ func (s Scope) NewConstraintError(constraintName, description string) *Constrain
 
 // CreateViolation is used to quickly create a violation with only code and message attributes.
 // This method automatically injects the property path and language of the current validation scope.
-func (s Scope) CreateViolation(code, message string, path ...PropertyPathElement) Violation {
-	return s.BuildViolation(code, message).At(path...).Create()
+func (s Scope) CreateViolation(err error, message string, path ...PropertyPathElement) Violation {
+	return s.BuildViolation(err, message).At(path...).Create()
 }
 
 // BuildViolation is used to create violations in validation methods of constraints.
 // This method automatically injects the property path and language of the current validation scope.
-func (s Scope) BuildViolation(code, message string) *ViolationBuilder {
-	b := NewViolationBuilder(s.violationFactory).BuildViolation(code, message)
+func (s Scope) BuildViolation(err error, message string) *ViolationBuilder {
+	b := NewViolationBuilder(s.violationFactory).BuildViolation(err, message)
 	b = b.SetPropertyPath(s.propertyPath)
 
 	if s.language != language.Und {

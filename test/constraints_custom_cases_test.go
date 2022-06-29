@@ -2,7 +2,6 @@ package test
 
 import (
 	"github.com/muonsoft/validation"
-	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/message"
 )
 
@@ -40,27 +39,27 @@ var customStringConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      validation.NewCustomStringConstraint(invalidString),
 		stringValue:     stringValue("foo"),
-		assert:          assertHasOneViolation(code.NotValid, message.Templates[code.NotValid]),
+		assert:          assertHasOneViolation(validation.ErrNotValid, message.NotValid),
 	},
 	{
-		name:            "CustomStringConstraint violation with given code and message",
+		name:            "CustomStringConstraint violation with given error and message",
 		isApplicableFor: specificValueTypes(stringType),
-		constraint:      validation.NewCustomStringConstraint(invalidString, "code", "message"),
+		constraint:      validation.NewCustomStringConstraint(invalidString).WithError(ErrCustom).WithMessage("message"),
 		stringValue:     stringValue("foo"),
-		assert:          assertHasOneViolation("code", "message"),
+		assert:          assertHasOneViolation(ErrCustom, "message"),
 	},
 	{
 		name:            "CustomStringConstraint violation with custom message",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint: validation.
 			NewCustomStringConstraint(invalidString).
-			Code(customCode).
-			Message(
+			WithError(ErrCustom).
+			WithMessage(
 				`Unexpected value "{{ value }}" for {{ custom }}.`,
 				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
 			),
 		stringValue: stringValue("foo"),
-		assert:      assertHasOneViolation(customCode, `Unexpected value "foo" for parameter.`),
+		assert:      assertHasOneViolation(ErrCustom, `Unexpected value "foo" for parameter.`),
 	},
 	{
 		name:            "CustomStringConstraint passes when condition is false",
@@ -81,6 +80,6 @@ var customStringConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      validation.NewCustomStringConstraint(invalidString).When(true),
 		stringValue:     stringValue("foo"),
-		assert:          assertHasOneViolation(code.NotValid, message.Templates[code.NotValid]),
+		assert:          assertHasOneViolation(validation.ErrNotValid, message.NotValid),
 	},
 }

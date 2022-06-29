@@ -2,6 +2,7 @@ package validation_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/muonsoft/validation"
@@ -34,6 +35,8 @@ func ValidBrand(brand *Brand, constraints ...validation.Constraint[*Brand]) vali
 	return validation.NewTypedArgument[*Brand](brand, constraints...)
 }
 
+var ErrNotUniqueBrand = errors.New("not unique brand")
+
 // UniqueBrandConstraint implements BrandConstraint.
 type UniqueBrandConstraint struct {
 	brands *BrandRepository
@@ -59,7 +62,7 @@ func (c *UniqueBrandConstraint) Validate(brand *Brand, scope validation.Scope) e
 
 	// use the scope to build violation with translations
 	return scope.
-		BuildViolation("notUniqueBrand", `Brand with name "{{ name }}" already exists.`).
+		BuildViolation(ErrNotUniqueBrand, `Brand with name "{{ name }}" already exists.`).
 		// you can inject parameter value to the message here
 		WithParameter("{{ name }}", brand.Name).
 		Create()
@@ -78,6 +81,8 @@ func ExampleNewTypedArgument_customArgumentConstraintValidator() {
 	)
 
 	fmt.Println(err)
+	fmt.Println("errors.Is(err, ErrNotUniqueBrand) =", errors.Is(err, ErrNotUniqueBrand))
 	// Output:
 	// violation: Brand with name "Apple" already exists.
+	// errors.Is(err, ErrNotUniqueBrand) = true
 }
