@@ -460,17 +460,15 @@ if violations, ok := validation.UnwrapViolationList(err); ok {
 // violation: Значение не должно быть пустым.
 ```
 
-The second way is to use the `validation.Language()` argument. Be aware that this method works only on a specific scope.
-Also, you can use the `validator.WithLanguage()` method to create scoped validator and use it in different places.
+The second way is to use the `validator.WithLanguage()` method to create scoped validator and use it in different places.
 
 ```golang
 validator, _ := validation.NewValidator(
     validation.Translations(russian.Messages),
 )
 
-err := validator.Validate(
+err := validator.WithLanguage(language.Russian).Validate(
     context.Background(),
-    validation.Language(language.Russian),
     validation.String("", it.IsNotBlank()),
 )
 
@@ -493,8 +491,8 @@ useful in combination with [language middleware](https://github.com/muonsoft/lan
 validator, _ := validation.NewValidator(
     validation.Translations(russian.Messages),
 )
-ctx := language.WithContext(context.Background(), language.Russian)
 
+ctx := language.WithContext(context.Background(), language.Russian)
 err := validator.ValidateString(ctx, "", it.IsNotBlank())
 
 if violations, ok := validation.UnwrapViolationList(err); ok {
