@@ -695,17 +695,19 @@ func ExampleAll() {
 }
 
 func ExampleValidator_Validate_basicValidation() {
-	s := ""
-
 	validator, err := validation.NewValidator()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	s := ""
 	err = validator.Validate(context.Background(), validation.String(s, it.IsNotBlank()))
 
 	fmt.Println(err)
+	fmt.Println("errors.Is(err, validation.ErrIsBlank) =", errors.Is(err, validation.ErrIsBlank))
 	// Output:
 	// violation: This value should not be blank.
+	// errors.Is(err, validation.ErrIsBlank) = true
 }
 
 func ExampleValidator_Validate_singletonValidator() {
