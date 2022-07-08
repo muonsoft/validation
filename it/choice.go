@@ -1,6 +1,7 @@
 package it
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -72,27 +73,27 @@ func (c ChoiceConstraint[T]) WhenGroups(groups ...string) ChoiceConstraint[T] {
 	return c
 }
 
-func (c ChoiceConstraint[T]) ValidateNumber(value *T, scope validation.Scope) error {
-	return c.ValidateComparable(value, scope)
+func (c ChoiceConstraint[T]) ValidateNumber(ctx context.Context, validator *validation.Validator, value *T) error {
+	return c.ValidateComparable(ctx, validator, value)
 }
 
-func (c ChoiceConstraint[T]) ValidateString(value *T, scope validation.Scope) error {
-	return c.ValidateComparable(value, scope)
+func (c ChoiceConstraint[T]) ValidateString(ctx context.Context, validator *validation.Validator, value *T) error {
+	return c.ValidateComparable(ctx, validator, value)
 }
 
-func (c ChoiceConstraint[T]) ValidateComparable(value *T, scope validation.Scope) error {
+func (c ChoiceConstraint[T]) ValidateComparable(ctx context.Context, validator *validation.Validator, value *T) error {
 	if len(c.choices) == 0 {
-		return scope.NewConstraintError("ChoiceConstraint", "empty list of choices")
+		return validator.CreateConstraintError("ChoiceConstraint", "empty list of choices")
 	}
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == c.blank {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || *value == c.blank {
 		return nil
 	}
 	if c.choices[*value] {
 		return nil
 	}
 
-	return scope.
-		BuildViolation(c.err, c.messageTemplate).
+	return validator.
+		BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ value }}", Value: fmt.Sprint(*value)},

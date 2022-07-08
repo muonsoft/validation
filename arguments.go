@@ -258,7 +258,7 @@ func NewTypedArgument[T any](v T, constraints ...Constraint[T]) ValidatorArgumen
 		violations := NewViolationList()
 
 		for _, constraint := range constraints {
-			err := violations.AppendFromError(constraint.Validate(v, scope))
+			err := violations.AppendFromError(constraint.Validate(scope.context, scope.Validator(), v))
 			if err != nil {
 				return nil, err
 			}

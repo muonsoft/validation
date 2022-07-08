@@ -25,7 +25,7 @@ func validateNil(isNil bool, constraints []NilConstraint) ValidateOnScopeFunc {
 		violations := NewViolationList()
 
 		for i := range constraints {
-			err := violations.AppendFromError(constraints[i].ValidateNil(isNil, scope))
+			err := violations.AppendFromError(constraints[i].ValidateNil(scope.context, scope.Validator(), isNil))
 			if err != nil {
 				return nil, err
 			}
@@ -40,7 +40,7 @@ func validateBool(value *bool, constraints []BoolConstraint) ValidateOnScopeFunc
 		violations := NewViolationList()
 
 		for i := range constraints {
-			err := violations.AppendFromError(constraints[i].ValidateBool(value, scope))
+			err := violations.AppendFromError(constraints[i].ValidateBool(scope.context, scope.Validator(), value))
 			if err != nil {
 				return nil, err
 			}
@@ -55,7 +55,7 @@ func validateNumber[T Numeric](value *T, constraints []NumberConstraint[T]) Vali
 		violations := NewViolationList()
 
 		for i := range constraints {
-			err := violations.AppendFromError(constraints[i].ValidateNumber(value, scope))
+			err := violations.AppendFromError(constraints[i].ValidateNumber(scope.context, scope.Validator(), value))
 			if err != nil {
 				return nil, err
 			}
@@ -70,7 +70,7 @@ func validateString(value *string, constraints []StringConstraint) ValidateOnSco
 		violations := NewViolationList()
 
 		for i := range constraints {
-			err := violations.AppendFromError(constraints[i].ValidateString(value, scope))
+			err := violations.AppendFromError(constraints[i].ValidateString(scope.context, scope.Validator(), value))
 			if err != nil {
 				return nil, err
 			}
@@ -85,7 +85,7 @@ func validateCountable(count int, constraints []CountableConstraint) ValidateOnS
 		violations := NewViolationList()
 
 		for i := range constraints {
-			err := violations.AppendFromError(constraints[i].ValidateCountable(count, scope))
+			err := violations.AppendFromError(constraints[i].ValidateCountable(scope.context, scope.Validator(), count))
 			if err != nil {
 				return nil, err
 			}
@@ -100,7 +100,7 @@ func validateTime(value *time.Time, constraints []TimeConstraint) ValidateOnScop
 		violations := NewViolationList()
 
 		for i := range constraints {
-			err := violations.AppendFromError(constraints[i].ValidateTime(value, scope))
+			err := violations.AppendFromError(constraints[i].ValidateTime(scope.context, scope.Validator(), value))
 			if err != nil {
 				return nil, err
 			}
@@ -116,7 +116,7 @@ func validateEachString(values []string, constraints []StringConstraint) Validat
 
 		for i := range values {
 			for _, constraint := range constraints {
-				err := violations.AppendFromError(constraint.ValidateString(&values[i], scope.AtIndex(i)))
+				err := violations.AppendFromError(constraint.ValidateString(scope.context, scope.AtIndex(i).Validator(), &values[i]))
 				if err != nil {
 					return nil, err
 				}
@@ -133,7 +133,7 @@ func validateEachNumber[T Numeric](values []T, constraints []NumberConstraint[T]
 
 		for i := range values {
 			for _, constraint := range constraints {
-				err := violations.AppendFromError(constraint.ValidateNumber(&values[i], scope.AtIndex(i)))
+				err := violations.AppendFromError(constraint.ValidateNumber(scope.context, scope.AtIndex(i).Validator(), &values[i]))
 				if err != nil {
 					return nil, err
 				}
@@ -150,7 +150,7 @@ func validateEachComparable[T comparable](values []T, constraints []ComparableCo
 
 		for i := range values {
 			for _, constraint := range constraints {
-				err := violations.AppendFromError(constraint.ValidateComparable(&values[i], scope.AtIndex(i)))
+				err := violations.AppendFromError(constraint.ValidateComparable(scope.context, scope.AtIndex(i).Validator(), &values[i]))
 				if err != nil {
 					return nil, err
 				}
@@ -210,7 +210,7 @@ func validateComparable[T comparable](value *T, constraints []ComparableConstrai
 		violations := NewViolationList()
 
 		for i := range constraints {
-			err := violations.AppendFromError(constraints[i].ValidateComparable(value, scope))
+			err := violations.AppendFromError(constraints[i].ValidateComparable(scope.context, scope.Validator(), value))
 			if err != nil {
 				return nil, err
 			}
@@ -225,7 +225,7 @@ func validateComparables[T comparable](values []T, constraints []ComparablesCons
 		violations := NewViolationList()
 
 		for i := range constraints {
-			err := violations.AppendFromError(constraints[i].ValidateComparables(values, scope))
+			err := violations.AppendFromError(constraints[i].ValidateComparables(scope.context, scope.Validator(), values))
 			if err != nil {
 				return nil, err
 			}

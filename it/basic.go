@@ -1,6 +1,7 @@
 package it
 
 import (
+	"context"
 	"time"
 
 	"github.com/muonsoft/validation"
@@ -70,8 +71,8 @@ func (c NotBlankConstraint[T]) WithMessage(template string, parameters ...valida
 	return c
 }
 
-func (c NotBlankConstraint[T]) ValidateBool(value *bool, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) {
+func (c NotBlankConstraint[T]) ValidateBool(ctx context.Context, validator *validation.Validator, value *bool) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) {
 		return nil
 	}
 	if c.allowNil && value == nil {
@@ -81,15 +82,15 @@ func (c NotBlankConstraint[T]) ValidateBool(value *bool, scope validation.Scope)
 		return nil
 	}
 
-	return c.newViolation(scope)
+	return c.newViolation(ctx, validator)
 }
 
-func (c NotBlankConstraint[T]) ValidateNumber(value *T, scope validation.Scope) error {
-	return c.ValidateComparable(value, scope)
+func (c NotBlankConstraint[T]) ValidateNumber(ctx context.Context, validator *validation.Validator, value *T) error {
+	return c.ValidateComparable(ctx, validator, value)
 }
 
-func (c NotBlankConstraint[T]) ValidateString(value *string, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) {
+func (c NotBlankConstraint[T]) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) {
 		return nil
 	}
 	if c.allowNil && value == nil {
@@ -99,11 +100,11 @@ func (c NotBlankConstraint[T]) ValidateString(value *string, scope validation.Sc
 		return nil
 	}
 
-	return c.newViolation(scope)
+	return c.newViolation(ctx, validator)
 }
 
-func (c NotBlankConstraint[T]) ValidateComparable(value *T, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) {
+func (c NotBlankConstraint[T]) ValidateComparable(ctx context.Context, validator *validation.Validator, value *T) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) {
 		return nil
 	}
 	if c.allowNil && value == nil {
@@ -113,19 +114,19 @@ func (c NotBlankConstraint[T]) ValidateComparable(value *T, scope validation.Sco
 		return nil
 	}
 
-	return c.newViolation(scope)
+	return c.newViolation(ctx, validator)
 }
 
-func (c NotBlankConstraint[T]) ValidateCountable(count int, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || count > 0 {
+func (c NotBlankConstraint[T]) ValidateCountable(ctx context.Context, validator *validation.Validator, count int) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || count > 0 {
 		return nil
 	}
 
-	return c.newViolation(scope)
+	return c.newViolation(ctx, validator)
 }
 
-func (c NotBlankConstraint[T]) ValidateTime(value *time.Time, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) {
+func (c NotBlankConstraint[T]) ValidateTime(ctx context.Context, validator *validation.Validator, value *time.Time) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) {
 		return nil
 	}
 	if c.allowNil && value == nil {
@@ -136,11 +137,11 @@ func (c NotBlankConstraint[T]) ValidateTime(value *time.Time, scope validation.S
 		return nil
 	}
 
-	return c.newViolation(scope)
+	return c.newViolation(ctx, validator)
 }
 
-func (c NotBlankConstraint[T]) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(c.err, c.messageTemplate).
+func (c NotBlankConstraint[T]) newViolation(ctx context.Context, validator *validation.Validator) validation.Violation {
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(c.messageParameters...).
 		Create()
 }
@@ -201,52 +202,52 @@ func (c BlankConstraint[T]) WithMessage(template string, parameters ...validatio
 	return c
 }
 
-func (c BlankConstraint[T]) ValidateBool(value *bool, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || !*value {
+func (c BlankConstraint[T]) ValidateBool(ctx context.Context, validator *validation.Validator, value *bool) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || !*value {
 		return nil
 	}
 
-	return c.newViolation(scope)
+	return c.newViolation(ctx, validator)
 }
 
-func (c BlankConstraint[T]) ValidateNumber(value *T, scope validation.Scope) error {
-	return c.ValidateComparable(value, scope)
+func (c BlankConstraint[T]) ValidateNumber(ctx context.Context, validator *validation.Validator, value *T) error {
+	return c.ValidateComparable(ctx, validator, value)
 }
 
-func (c BlankConstraint[T]) ValidateString(value *string, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == "" {
+func (c BlankConstraint[T]) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || *value == "" {
 		return nil
 	}
 
-	return c.newViolation(scope)
+	return c.newViolation(ctx, validator)
 }
 
-func (c BlankConstraint[T]) ValidateComparable(value *T, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == c.blank {
+func (c BlankConstraint[T]) ValidateComparable(ctx context.Context, validator *validation.Validator, value *T) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || *value == c.blank {
 		return nil
 	}
 
-	return c.newViolation(scope)
+	return c.newViolation(ctx, validator)
 }
 
-func (c BlankConstraint[T]) ValidateCountable(count int, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || count == 0 {
+func (c BlankConstraint[T]) ValidateCountable(ctx context.Context, validator *validation.Validator, count int) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || count == 0 {
 		return nil
 	}
 
-	return c.newViolation(scope)
+	return c.newViolation(ctx, validator)
 }
 
-func (c BlankConstraint[T]) ValidateTime(value *time.Time, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || value.IsZero() {
+func (c BlankConstraint[T]) ValidateTime(ctx context.Context, validator *validation.Validator, value *time.Time) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || value.IsZero() {
 		return nil
 	}
 
-	return c.newViolation(scope)
+	return c.newViolation(ctx, validator)
 }
 
-func (c BlankConstraint[T]) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(c.err, c.messageTemplate).
+func (c BlankConstraint[T]) newViolation(ctx context.Context, validator *validation.Validator) validation.Violation {
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(c.messageParameters...).
 		Create()
 }
@@ -306,36 +307,36 @@ func (c NotNilConstraint[T]) WithMessage(template string, parameters ...validati
 	return c
 }
 
-func (c NotNilConstraint[T]) ValidateNil(isNil bool, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || !isNil {
+func (c NotNilConstraint[T]) ValidateNil(ctx context.Context, validator *validation.Validator, isNil bool) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || !isNil {
 		return nil
 	}
 
-	return c.newViolation(scope)
+	return c.newViolation(ctx, validator)
 }
 
-func (c NotNilConstraint[T]) ValidateBool(value *bool, scope validation.Scope) error {
-	return c.ValidateNil(value == nil, scope)
+func (c NotNilConstraint[T]) ValidateBool(ctx context.Context, validator *validation.Validator, value *bool) error {
+	return c.ValidateNil(ctx, validator, value == nil)
 }
 
-func (c NotNilConstraint[T]) ValidateNumber(value *T, scope validation.Scope) error {
-	return c.ValidateNil(value == nil, scope)
+func (c NotNilConstraint[T]) ValidateNumber(ctx context.Context, validator *validation.Validator, value *T) error {
+	return c.ValidateNil(ctx, validator, value == nil)
 }
 
-func (c NotNilConstraint[T]) ValidateString(value *string, scope validation.Scope) error {
-	return c.ValidateNil(value == nil, scope)
+func (c NotNilConstraint[T]) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
+	return c.ValidateNil(ctx, validator, value == nil)
 }
 
-func (c NotNilConstraint[T]) ValidateComparable(value *T, scope validation.Scope) error {
-	return c.ValidateNil(value == nil, scope)
+func (c NotNilConstraint[T]) ValidateComparable(ctx context.Context, validator *validation.Validator, value *T) error {
+	return c.ValidateNil(ctx, validator, value == nil)
 }
 
-func (c NotNilConstraint[T]) ValidateTime(value *time.Time, scope validation.Scope) error {
-	return c.ValidateNil(value == nil, scope)
+func (c NotNilConstraint[T]) ValidateTime(ctx context.Context, validator *validation.Validator, value *time.Time) error {
+	return c.ValidateNil(ctx, validator, value == nil)
 }
 
-func (c NotNilConstraint[T]) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(c.err, c.messageTemplate).
+func (c NotNilConstraint[T]) newViolation(ctx context.Context, validator *validation.Validator) validation.Violation {
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(c.messageParameters...).
 		Create()
 }
@@ -395,36 +396,36 @@ func (c NilConstraint[T]) WithMessage(template string, parameters ...validation.
 	return c
 }
 
-func (c NilConstraint[T]) ValidateNil(isNil bool, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || isNil {
+func (c NilConstraint[T]) ValidateNil(ctx context.Context, validator *validation.Validator, isNil bool) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || isNil {
 		return nil
 	}
 
-	return c.newViolation(scope)
+	return c.newViolation(ctx, validator)
 }
 
-func (c NilConstraint[T]) ValidateBool(value *bool, scope validation.Scope) error {
-	return c.ValidateNil(value == nil, scope)
+func (c NilConstraint[T]) ValidateBool(ctx context.Context, validator *validation.Validator, value *bool) error {
+	return c.ValidateNil(ctx, validator, value == nil)
 }
 
-func (c NilConstraint[T]) ValidateNumber(value *T, scope validation.Scope) error {
-	return c.ValidateNil(value == nil, scope)
+func (c NilConstraint[T]) ValidateNumber(ctx context.Context, validator *validation.Validator, value *T) error {
+	return c.ValidateNil(ctx, validator, value == nil)
 }
 
-func (c NilConstraint[T]) ValidateString(value *string, scope validation.Scope) error {
-	return c.ValidateNil(value == nil, scope)
+func (c NilConstraint[T]) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
+	return c.ValidateNil(ctx, validator, value == nil)
 }
 
-func (c NilConstraint[T]) ValidateComparable(value *T, scope validation.Scope) error {
-	return c.ValidateNil(value == nil, scope)
+func (c NilConstraint[T]) ValidateComparable(ctx context.Context, validator *validation.Validator, value *T) error {
+	return c.ValidateNil(ctx, validator, value == nil)
 }
 
-func (c NilConstraint[T]) ValidateTime(value *time.Time, scope validation.Scope) error {
-	return c.ValidateNil(value == nil, scope)
+func (c NilConstraint[T]) ValidateTime(ctx context.Context, validator *validation.Validator, value *time.Time) error {
+	return c.ValidateNil(ctx, validator, value == nil)
 }
 
-func (c NilConstraint[T]) newViolation(scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(c.err, c.messageTemplate).
+func (c NilConstraint[T]) newViolation(ctx context.Context, validator *validation.Validator) validation.Violation {
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(c.messageParameters...).
 		Create()
 }
@@ -484,12 +485,12 @@ func (c BoolConstraint) WithMessage(template string, parameters ...validation.Te
 	return c
 }
 
-func (c BoolConstraint) ValidateBool(value *bool, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == c.expected {
+func (c BoolConstraint) ValidateBool(ctx context.Context, validator *validation.Validator, value *bool) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || *value == c.expected {
 		return nil
 	}
 
-	return scope.BuildViolation(c.err, c.messageTemplate).
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(c.messageParameters...).
 		Create()
 }

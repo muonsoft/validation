@@ -42,7 +42,7 @@ type UniqueBrandConstraint struct {
 	brands *BrandRepository
 }
 
-func (c *UniqueBrandConstraint) Validate(brand *Brand, scope validation.Scope) error {
+func (c *UniqueBrandConstraint) Validate(ctx context.Context, validator *validation.Validator, brand *Brand) error {
 	// usually, you should ignore empty values
 	// to check for an empty value you should use it.NotBlankConstraint
 	if brand == nil {
@@ -50,7 +50,7 @@ func (c *UniqueBrandConstraint) Validate(brand *Brand, scope validation.Scope) e
 	}
 
 	// you can pass the context value from the scope
-	brands, err := c.brands.FindByName(scope.Context(), brand.Name)
+	brands, err := c.brands.FindByName(ctx, brand.Name)
 	// here you can return a service error so that the validation process
 	// is stopped immediately
 	if err != nil {
@@ -60,9 +60,9 @@ func (c *UniqueBrandConstraint) Validate(brand *Brand, scope validation.Scope) e
 		return nil
 	}
 
-	// use the scope to build violation with translations
-	return scope.
-		BuildViolation(ErrNotUniqueBrand, `Brand with name "{{ name }}" already exists.`).
+	// use the validator to build violation with translations
+	return validator.
+		BuildViolation(ctx, ErrNotUniqueBrand, `Brand with name "{{ name }}" already exists.`).
 		// you can inject parameter value to the message here
 		WithParameter("{{ name }}", brand.Name).
 		Create()
@@ -70,14 +70,14 @@ func (c *UniqueBrandConstraint) Validate(brand *Brand, scope validation.Scope) e
 
 func ExampleNewTypedArgument_customArgumentConstraintValidator() {
 	repository := &BrandRepository{brands: []Brand{{"Apple"}, {"Orange"}}}
-	isEntityUnique := &UniqueBrandConstraint{brands: repository}
+	isUnique := &UniqueBrandConstraint{brands: repository}
 
 	brand := Brand{Name: "Apple"}
 
 	err := validator.Validate(
 		// you can pass here the context value to the validation scope
 		context.WithValue(context.Background(), exampleKey, "value"),
-		ValidBrand(&brand, isEntityUnique),
+		ValidBrand(&brand, isUnique),
 	)
 
 	fmt.Println(err)

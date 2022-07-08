@@ -22,7 +22,7 @@ func IsNumeric() NumericConstraint {
 	return NumericConstraint{matcher: regexp.MustCompile("^[0-9]+$")}
 }
 
-func (c NumericConstraint) ValidateString(value *string, scope validation.Scope) error {
+func (c NumericConstraint) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
 	// usually, you should ignore empty values
 	// to check for an empty value you should use it.NotBlankConstraint
 	if value == nil || *value == "" {
@@ -33,8 +33,8 @@ func (c NumericConstraint) ValidateString(value *string, scope validation.Scope)
 		return nil
 	}
 
-	// use the scope to build violation with translations
-	return scope.CreateViolation(ErrNotNumeric, "This value should be numeric.")
+	// use the validator to build violation with translations
+	return validator.CreateViolation(ctx, ErrNotNumeric, "This value should be numeric.")
 }
 
 func ExampleValidator_Validate_customConstraint() {

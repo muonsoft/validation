@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"context"
 	"time"
 )
 
@@ -13,47 +14,47 @@ type Numeric interface {
 
 // Constraint is a generic interface for client-side typed constraints.
 type Constraint[T any] interface {
-	Validate(v T, scope Scope) error
+	Validate(ctx context.Context, validator *Validator, v T) error
 }
 
 // NilConstraint is used for a special cases to check a value for nil.
 type NilConstraint interface {
-	ValidateNil(isNil bool, scope Scope) error
+	ValidateNil(ctx context.Context, validator *Validator, isNil bool) error
 }
 
 // BoolConstraint is used to build constraints for boolean values validation.
 type BoolConstraint interface {
-	ValidateBool(value *bool, scope Scope) error
+	ValidateBool(ctx context.Context, validator *Validator, value *bool) error
 }
 
 // NumberConstraint is used to build constraints for numeric values validation.
 type NumberConstraint[T Numeric] interface {
-	ValidateNumber(value *T, scope Scope) error
+	ValidateNumber(ctx context.Context, validator *Validator, value *T) error
 }
 
 // StringConstraint is used to build constraints for string values validation.
 type StringConstraint interface {
-	ValidateString(value *string, scope Scope) error
+	ValidateString(ctx context.Context, validator *Validator, value *string) error
 }
 
 // ComparableConstraint is used to build constraints for generic comparable value validation.
 type ComparableConstraint[T comparable] interface {
-	ValidateComparable(value *T, scope Scope) error
+	ValidateComparable(ctx context.Context, validator *Validator, value *T) error
 }
 
 // ComparablesConstraint is used to build constraints for generic comparable values validation.
 type ComparablesConstraint[T comparable] interface {
-	ValidateComparables(values []T, scope Scope) error
+	ValidateComparables(ctx context.Context, validator *Validator, values []T) error
 }
 
 // CountableConstraint is used to build constraints for simpler validation of iterable elements count.
 type CountableConstraint interface {
-	ValidateCountable(count int, scope Scope) error
+	ValidateCountable(ctx context.Context, validator *Validator, count int) error
 }
 
 // TimeConstraint is used to build constraints for date/time validation.
 type TimeConstraint interface {
-	ValidateTime(value *time.Time, scope Scope) error
+	ValidateTime(ctx context.Context, validator *Validator, value *time.Time) error
 }
 
 // CustomStringConstraint can be used to create custom constraints for validating string values
@@ -105,12 +106,12 @@ func (c CustomStringConstraint) WhenGroups(groups ...string) CustomStringConstra
 	return c
 }
 
-func (c CustomStringConstraint) ValidateString(value *string, scope Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == "" || c.isValid(*value) {
+func (c CustomStringConstraint) ValidateString(ctx context.Context, validator *Validator, value *string) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || *value == "" || c.isValid(*value) {
 		return nil
 	}
 
-	return scope.BuildViolation(c.err, c.messageTemplate).
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(
 			c.messageParameters.Prepend(
 				TemplateParameter{Key: "{{ value }}", Value: *value},

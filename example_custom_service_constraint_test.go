@@ -45,7 +45,7 @@ type ExistingTagConstraint struct {
 	storage *TagStorage
 }
 
-func (c *ExistingTagConstraint) ValidateString(value *string, scope validation.Scope) error {
+func (c *ExistingTagConstraint) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
 	// usually, you should ignore empty values
 	// to check for an empty value you should use it.NotBlankConstraint
 	if value == nil || *value == "" {
@@ -53,7 +53,7 @@ func (c *ExistingTagConstraint) ValidateString(value *string, scope validation.S
 	}
 
 	// you can pass the context value from the scope
-	entities, err := c.storage.FindByName(scope.Context(), *value)
+	entities, err := c.storage.FindByName(ctx, *value)
 	// here you can return a service error so that the validation process
 	// is stopped immediately
 	if err != nil {
@@ -64,8 +64,8 @@ func (c *ExistingTagConstraint) ValidateString(value *string, scope validation.S
 	}
 
 	// use the scope to build violation with translations
-	return scope.
-		BuildViolation(ErrUnknownTag, `Tag "{{ value }}" does not exist.`).
+	return validator.
+		BuildViolation(ctx, ErrUnknownTag, `Tag "{{ value }}" does not exist.`).
 		// you can inject parameter value to the message here
 		WithParameter("{{ value }}", *value).
 		Create()

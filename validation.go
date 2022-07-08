@@ -10,6 +10,8 @@ import (
 	"context"
 )
 
+const DefaultGroup = "default"
+
 // Validatable is interface for creating validatable types on the client side.
 // By using it you can build complex validation rules on a set of objects used in other objects.
 //

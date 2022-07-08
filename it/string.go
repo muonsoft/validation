@@ -1,6 +1,7 @@
 package it
 
 import (
+	"context"
 	"regexp"
 	"strconv"
 	"unicode/utf8"
@@ -141,30 +142,31 @@ func (c LengthConstraint) WithExactMessage(template string, parameters ...valida
 	return c
 }
 
-func (c LengthConstraint) ValidateString(value *string, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == "" {
+func (c LengthConstraint) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || *value == "" {
 		return nil
 	}
 
 	count := utf8.RuneCountInString(*value)
 
 	if c.checkMax && count > c.max {
-		return c.newViolation(count, c.max, *value, c.maxErr, c.maxMessageTemplate, c.maxMessageParameters, scope)
+		return c.newViolation(ctx, validator, count, c.max, *value, c.maxErr, c.maxMessageTemplate, c.maxMessageParameters)
 	}
 	if c.checkMin && count < c.min {
-		return c.newViolation(count, c.min, *value, c.minErr, c.minMessageTemplate, c.minMessageParameters, scope)
+		return c.newViolation(ctx, validator, count, c.min, *value, c.minErr, c.minMessageTemplate, c.minMessageParameters)
 	}
 
 	return nil
 }
 
 func (c LengthConstraint) newViolation(
+	ctx context.Context,
+	validator *validation.Validator,
 	count, limit int,
 	value string,
 	err error,
 	template string,
 	parameters validation.TemplateParameterList,
-	scope validation.Scope,
 ) validation.Violation {
 	if c.checkMin && c.checkMax && c.min == c.max {
 		template = c.exactMessageTemplate
@@ -172,7 +174,7 @@ func (c LengthConstraint) newViolation(
 		err = c.exactErr
 	}
 
-	return scope.BuildViolation(err, template).
+	return validator.BuildViolation(ctx, err, template).
 		WithPluralCount(limit).
 		WithParameters(
 			parameters.Prepend(
@@ -244,19 +246,19 @@ func (c RegexpConstraint) WhenGroups(groups ...string) RegexpConstraint {
 	return c
 }
 
-func (c RegexpConstraint) ValidateString(value *string, scope validation.Scope) error {
+func (c RegexpConstraint) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
 	if c.regex == nil {
-		return scope.NewConstraintError("RegexpConstraint", "nil regex")
+		return validator.CreateConstraintError("RegexpConstraint", "nil regex")
 	}
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == "" {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || *value == "" {
 		return nil
 	}
 	if c.match == c.regex.MatchString(*value) {
 		return nil
 	}
 
-	return scope.
-		BuildViolation(c.err, c.messageTemplate).
+	return validator.
+		BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ value }}", Value: *value},

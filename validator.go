@@ -227,6 +227,26 @@ func (validator *Validator) WithGroups(groups ...string) *Validator {
 	return newScopedValidator(validator.scope.withGroups(groups...))
 }
 
+// IsAppliedForGroups compares current validation groups and constraint groups. If one of the validator groups
+// intersects with the constraint groups, the validation process should be applied (returns true).
+// Empty groups are treated as DefaultGroup. To create a new validation with the validation groups
+// use the WithGroups method.
+func (validator *Validator) IsAppliedForGroups(groups ...string) bool {
+	return validator.scope.IsApplied(groups...)
+}
+
+// IsIgnoredForGroups is the reverse condition for applying validation groups to the IsAppliedForGroups method.
+// It is recommended to use this method in every validation method of the constraint.
+func (validator *Validator) IsIgnoredForGroups(groups ...string) bool {
+	return validator.scope.IsIgnored(groups...)
+}
+
+// CreateConstraintError creates a new ConstraintError, which can be used to stop validation process
+// if constraint is not properly configured.
+func (validator *Validator) CreateConstraintError(constraintName, description string) *ConstraintError {
+	return validator.scope.NewConstraintError(constraintName, description)
+}
+
 // WithLanguage method creates a new scoped validator with a given language tag. All created violations
 // will be translated into this language.
 func (validator *Validator) WithLanguage(tag language.Tag) *Validator {

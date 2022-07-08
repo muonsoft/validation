@@ -11,8 +11,8 @@ import (
 
 type errConstraint struct{}
 
-func (c errConstraint) ValidateString(value *string, scope validation.Scope) error {
-	return scope.NewConstraintError("errConstraint", "description")
+func (c errConstraint) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
+	return validator.CreateConstraintError("errConstraint", "description")
 }
 
 func TestValidator_Validate_WhenInvalidConstraintAtPropertyPath_ExpectErrorWithPropertyPath(t *testing.T) {

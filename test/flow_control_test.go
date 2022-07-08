@@ -310,14 +310,14 @@ func TestAsyncArgument_WhenFatalError_ExpectContextCanceled(t *testing.T) {
 	err := newValidator(t).Validate(
 		context.Background(),
 		validation.Async(
-			validation.String("", asyncConstraint(func(value *string, scope validation.Scope) error {
+			validation.String("", asyncConstraint(func(ctx context.Context, validator *validation.Validator, value *string) error {
 				return fatal
 			})),
-			validation.String("", asyncConstraint(func(value *string, scope validation.Scope) error {
+			validation.String("", asyncConstraint(func(ctx context.Context, validator *validation.Validator, value *string) error {
 				select {
 				case <-time.After(10 * time.Millisecond):
 					cancellation <- false
-				case <-scope.Context().Done():
+				case <-ctx.Done():
 					cancellation <- true
 				}
 				return nil

@@ -1,6 +1,7 @@
 package it
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"time"
@@ -76,20 +77,20 @@ func (c ComparisonConstraint[T]) WhenGroups(groups ...string) ComparisonConstrai
 	return c
 }
 
-func (c ComparisonConstraint[T]) ValidateNumber(value *T, scope validation.Scope) error {
-	return c.ValidateComparable(value, scope)
+func (c ComparisonConstraint[T]) ValidateNumber(ctx context.Context, validator *validation.Validator, value *T) error {
+	return c.ValidateComparable(ctx, validator, value)
 }
 
-func (c ComparisonConstraint[T]) ValidateString(value *T, scope validation.Scope) error {
-	return c.ValidateComparable(value, scope)
+func (c ComparisonConstraint[T]) ValidateString(ctx context.Context, validator *validation.Validator, value *T) error {
+	return c.ValidateComparable(ctx, validator, value)
 }
 
-func (c ComparisonConstraint[T]) ValidateComparable(value *T, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || c.isValid(*value) {
+func (c ComparisonConstraint[T]) ValidateComparable(ctx context.Context, validator *validation.Validator, value *T) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || c.isValid(*value) {
 		return nil
 	}
 
-	return scope.BuildViolation(c.err, c.messageTemplate).
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ comparedValue }}", Value: c.comparedValue},
@@ -236,12 +237,12 @@ func (c NumberComparisonConstraint[T]) WhenGroups(groups ...string) NumberCompar
 	return c
 }
 
-func (c NumberComparisonConstraint[T]) ValidateNumber(value *T, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || c.isValid(*value) {
+func (c NumberComparisonConstraint[T]) ValidateNumber(ctx context.Context, validator *validation.Validator, value *T) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || c.isValid(*value) {
 		return nil
 	}
 
-	return scope.BuildViolation(c.err, c.messageTemplate).
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ comparedValue }}", Value: c.comparedValue},
@@ -308,27 +309,23 @@ func (c RangeConstraint[T]) WhenGroups(groups ...string) RangeConstraint[T] {
 	return c
 }
 
-func (c RangeConstraint[T]) ValidateNumber(value *T, scope validation.Scope) error {
+func (c RangeConstraint[T]) ValidateNumber(ctx context.Context, validator *validation.Validator, value *T) error {
 	if c.min >= c.max {
-		return scope.NewConstraintError(c.Name(), "invalid range")
+		return validator.CreateConstraintError(c.Name(), "invalid range")
 	}
-	if c.isIgnored || value == nil || scope.IsIgnored(c.groups...) {
+	if c.isIgnored || value == nil || validator.IsIgnoredForGroups(c.groups...) {
 		return nil
 	}
-	if *value < c.min || *value > c.max {
-		return c.newViolation(*value, scope)
+	if *value >= c.min && *value <= c.max {
+		return nil
 	}
 
-	return nil
-}
-
-func (c RangeConstraint[T]) newViolation(value T, scope validation.Scope) error {
-	return scope.BuildViolation(c.err, c.messageTemplate).
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ min }}", Value: fmt.Sprint(c.min)},
 				validation.TemplateParameter{Key: "{{ max }}", Value: fmt.Sprint(c.max)},
-				validation.TemplateParameter{Key: "{{ value }}", Value: fmt.Sprint(value)},
+				validation.TemplateParameter{Key: "{{ value }}", Value: fmt.Sprint(*value)},
 			)...,
 		).
 		Create()
@@ -440,12 +437,12 @@ func (c TimeComparisonConstraint) WhenGroups(groups ...string) TimeComparisonCon
 	return c
 }
 
-func (c TimeComparisonConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || c.isValid(*value) {
+func (c TimeComparisonConstraint) ValidateTime(ctx context.Context, validator *validation.Validator, value *time.Time) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || c.isValid(*value) {
 		return nil
 	}
 
-	return scope.BuildViolation(c.err, c.messageTemplate).
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ comparedValue }}", Value: c.comparedValue.Format(c.layout)},
@@ -518,22 +515,22 @@ func (c TimeRangeConstraint) WithLayout(layout string) TimeRangeConstraint {
 	return c
 }
 
-func (c TimeRangeConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
+func (c TimeRangeConstraint) ValidateTime(ctx context.Context, validator *validation.Validator, value *time.Time) error {
 	if c.min.After(c.max) || c.min.Equal(c.max) {
-		return scope.NewConstraintError("TimeRangeConstraint", "invalid range")
+		return validator.CreateConstraintError("TimeRangeConstraint", "invalid range")
 	}
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil {
 		return nil
 	}
 	if value.Before(c.min) || value.After(c.max) {
-		return c.newViolation(value, scope)
+		return c.newViolation(ctx, validator, value)
 	}
 
 	return nil
 }
 
-func (c TimeRangeConstraint) newViolation(value *time.Time, scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(c.err, c.messageTemplate).
+func (c TimeRangeConstraint) newViolation(ctx context.Context, validator *validation.Validator, value *time.Time) validation.Violation {
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ min }}", Value: c.min.Format(c.layout)},
@@ -589,12 +586,12 @@ func (c UniqueConstraint[T]) WhenGroups(groups ...string) UniqueConstraint[T] {
 	return c
 }
 
-func (c UniqueConstraint[T]) ValidateComparables(values []T, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || is.Unique(values) {
+func (c UniqueConstraint[T]) ValidateComparables(ctx context.Context, validator *validation.Validator, values []T) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || is.Unique(values) {
 		return nil
 	}
 
-	return scope.BuildViolation(c.err, c.messageTemplate).
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(c.messageParameters...).
 		Create()
 }

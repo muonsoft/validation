@@ -7,8 +7,6 @@ import (
 	"github.com/muonsoft/language"
 )
 
-const DefaultGroup = "default"
-
 // Scope holds the current state of validation. On the client-side of the package,
 // it can be used to build violations.
 type Scope struct {

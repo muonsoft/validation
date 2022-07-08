@@ -1,6 +1,7 @@
 package it
 
 import (
+	"context"
 	"errors"
 	"net"
 
@@ -120,11 +121,11 @@ func (c URLConstraint) WhenGroups(groups ...string) URLConstraint {
 	return c
 }
 
-func (c URLConstraint) ValidateString(value *string, scope validation.Scope) error {
+func (c URLConstraint) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
 	if len(c.schemas) == 0 {
-		return scope.NewConstraintError("URLConstraint", "empty list of schemas")
+		return validator.CreateConstraintError("URLConstraint", "empty list of schemas")
 	}
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == "" {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || *value == "" {
 		return nil
 	}
 
@@ -136,7 +137,7 @@ func (c URLConstraint) ValidateString(value *string, scope validation.Scope) err
 		return nil
 	}
 
-	return scope.BuildViolation(c.err, c.messageTemplate).
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ value }}", Value: *value},
@@ -248,15 +249,15 @@ func (c IPConstraint) WhenGroups(groups ...string) IPConstraint {
 	return c
 }
 
-func (c IPConstraint) ValidateString(value *string, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == "" {
+func (c IPConstraint) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || *value == "" {
 		return nil
 	}
 
-	return c.validateIP(*value, scope)
+	return c.validateIP(ctx, validator, *value)
 }
 
-func (c IPConstraint) validateIP(value string, scope validation.Scope) error {
+func (c IPConstraint) validateIP(ctx context.Context, validator *validation.Validator, value string) error {
 	err := c.validate(value, c.restrictions...)
 	if err == nil {
 		return nil
@@ -266,10 +267,10 @@ func (c IPConstraint) validateIP(value string, scope validation.Scope) error {
 	var parameters validation.TemplateParameterList
 
 	if errors.Is(err, validate.ErrProhibited) {
-		builder = scope.BuildViolation(c.prohibitedErr, c.prohibitedMessageTemplate)
+		builder = validator.BuildViolation(ctx, c.prohibitedErr, c.prohibitedMessageTemplate)
 		parameters = c.prohibitedMessageParameters
 	} else {
-		builder = scope.BuildViolation(c.invalidErr, c.invalidMessageTemplate)
+		builder = validator.BuildViolation(ctx, c.invalidErr, c.invalidMessageTemplate)
 		parameters = c.invalidMessageParameters
 	}
 

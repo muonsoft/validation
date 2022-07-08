@@ -93,8 +93,8 @@ func (m mockTranslator) Translate(tag language.Tag, message string, pluralCount 
 	return m.translate(tag, message, pluralCount)
 }
 
-type asyncConstraint func(value *string, scope validation.Scope) error
+type asyncConstraint func(ctx context.Context, validator *validation.Validator, value *string) error
 
-func (f asyncConstraint) ValidateString(value *string, scope validation.Scope) error {
-	return f(value, scope)
+func (f asyncConstraint) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
+	return f(ctx, validator, value)
 }

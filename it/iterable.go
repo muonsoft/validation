@@ -1,6 +1,7 @@
 package it
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/muonsoft/validation"
@@ -135,26 +136,27 @@ func (c CountConstraint) WithExactMessage(template string, parameters ...validat
 	return c
 }
 
-func (c CountConstraint) ValidateCountable(count int, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) {
+func (c CountConstraint) ValidateCountable(ctx context.Context, validator *validation.Validator, count int) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) {
 		return nil
 	}
 	if c.checkMax && count > c.max {
-		return c.newViolation(count, c.max, c.maxErr, c.maxMessageTemplate, c.maxMessageParameters, scope)
+		return c.newViolation(ctx, validator, count, c.max, c.maxErr, c.maxMessageTemplate, c.maxMessageParameters)
 	}
 	if c.checkMin && count < c.min {
-		return c.newViolation(count, c.min, c.minErr, c.minMessageTemplate, c.minMessageParameters, scope)
+		return c.newViolation(ctx, validator, count, c.min, c.minErr, c.minMessageTemplate, c.minMessageParameters)
 	}
 
 	return nil
 }
 
 func (c CountConstraint) newViolation(
+	ctx context.Context,
+	validator *validation.Validator,
 	count, limit int,
 	err error,
 	template string,
 	parameters validation.TemplateParameterList,
-	scope validation.Scope,
 ) validation.Violation {
 	if c.checkMin && c.checkMax && c.min == c.max {
 		template = c.exactMessageTemplate
@@ -162,7 +164,7 @@ func (c CountConstraint) newViolation(
 		err = c.exactErr
 	}
 
-	return scope.BuildViolation(err, template).
+	return validator.BuildViolation(ctx, err, template).
 		WithPluralCount(limit).
 		WithParameters(
 			parameters.Prepend(
