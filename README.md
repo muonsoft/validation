@@ -19,7 +19,7 @@ This project is inspired by [Symfony Validator component](https://symfony.com/in
 ## Key features
 
 * Flexible and customizable API built in mind to use benefits of static typing and generics
-* Nice and readable way to describe validation process in code
+* Nice and fluent way to describe validation process in code
 * Validation of different types: booleans, numbers, strings, slices, maps, and time
 * Validation of custom data types that implements `Validatable` interface
 * Customizable validation errors with translations and pluralization supported out of the box
@@ -374,8 +374,8 @@ errors is to check for implementing the `validation.ViolationList` struct. You c
 ```golang
 err := validator.Validate(/* validation arguments */)
 
-var violations *validation.ViolationList
 if err != nil {
+    var violations *validation.ViolationList
     if errors.As(err, &violations) {
         // handle violations
     } else {
@@ -507,6 +507,12 @@ if violations, ok := validation.UnwrapViolationList(err); ok {
 
 You can see the complex example with handling HTTP
 request [here](https://pkg.go.dev/github.com/muonsoft/validation#example-Validator.Validate-HttpHandler).
+
+The priority of language selection methods:
+
+* `validator.WithLanguage()` has the highest priority and will override any other options;
+* if the validator language is not specified, the validator will try to get the language from the context;
+* in all other cases, the default language specified in the translator will be used.
 
 Also, there is an ability to totally override translations behaviour. You can use your own translator by
 implementing `validation.Translator` interface and passing it to validator constructor via `SetTranslator` option.

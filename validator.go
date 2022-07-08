@@ -281,6 +281,12 @@ func (validator *Validator) CreateConstraintError(constraintName, description st
 
 // WithLanguage method creates a new context validator with a given language tag. All created violations
 // will be translated into this language.
+//
+// The priority of language selection methods:
+//
+//   - validator.WithLanguage has the highest priority and will override any other options;
+//   - if the validator language is not specified, the validator will try to get the language from the context;
+//   - in all other cases, the default language specified in the translator will be used.
 func (validator *Validator) WithLanguage(tag language.Tag) *Validator {
 	v := validator.copy()
 	v.language = tag
