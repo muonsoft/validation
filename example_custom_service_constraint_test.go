@@ -52,7 +52,6 @@ func (c *ExistingTagConstraint) ValidateString(ctx context.Context, validator *v
 		return nil
 	}
 
-	// you can pass the context value from the scope
 	entities, err := c.storage.FindByName(ctx, *value)
 	// here you can return a service error so that the validation process
 	// is stopped immediately
@@ -63,7 +62,7 @@ func (c *ExistingTagConstraint) ValidateString(ctx context.Context, validator *v
 		return nil
 	}
 
-	// use the scope to build violation with translations
+	// use the validator to build violation with translations
 	return validator.
 		BuildViolation(ctx, ErrUnknownTag, `Tag "{{ value }}" does not exist.`).
 		// you can inject parameter value to the message here
@@ -108,7 +107,7 @@ func ExampleValidator_GetConstraint_customServiceConstraint() {
 	}
 
 	err = validator.Validate(
-		// you can pass here the context value to the validation scope
+		// you can pass here the context value to the validation context
 		context.WithValue(context.Background(), exampleKey, "value"),
 		validation.Valid(item),
 	)

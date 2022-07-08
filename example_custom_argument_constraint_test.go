@@ -49,7 +49,6 @@ func (c *UniqueBrandConstraint) Validate(ctx context.Context, validator *validat
 		return nil
 	}
 
-	// you can pass the context value from the scope
 	brands, err := c.brands.FindByName(ctx, brand.Name)
 	// here you can return a service error so that the validation process
 	// is stopped immediately
@@ -75,7 +74,7 @@ func ExampleNewTypedArgument_customArgumentConstraintValidator() {
 	brand := Brand{Name: "Apple"}
 
 	err := validator.Validate(
-		// you can pass here the context value to the validation scope
+		// you can pass here the context value to the validation context
 		context.WithValue(context.Background(), exampleKey, "value"),
 		ValidBrand(&brand, isUnique),
 	)

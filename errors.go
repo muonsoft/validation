@@ -70,8 +70,8 @@ func (err *Error) Error() string    { return err.code }
 func (err *Error) Template() string { return err.template }
 
 // ConstraintError is used to return critical error from constraint that immediately
-// stops the validation process. It is recommended to use Scope.NewConstraintError() method
-// to initiate an error from current scope.
+// stops the validation process. It is recommended to use validator.CreateConstraintError() method
+// to initiate an error from current validation context.
 type ConstraintError struct {
 	ConstraintName string
 	Path           *PropertyPath

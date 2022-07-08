@@ -17,16 +17,15 @@ type NestingLimitConstraint struct {
 	limit int
 }
 
-func (c NestingLimitConstraint) ValidateProperty(property *Property, scope validation.Scope) error {
-	// You can read any passed context value from scope.
-	level, ok := scope.Context().Value(nestingLevelKey).(int)
+func (c NestingLimitConstraint) ValidateProperty(ctx context.Context, validator *validation.Validator, property *Property) error {
+	level, ok := ctx.Value(nestingLevelKey).(int)
 	if !ok {
 		// Don't forget to handle missing value.
 		return fmt.Errorf("nesting level not found in context")
 	}
 
 	if level >= c.limit {
-		return scope.CreateViolation(ErrNestingLimitReached, "Maximum nesting level reached.")
+		return validator.CreateViolation(ctx, ErrNestingLimitReached, "Maximum nesting level reached.")
 	}
 
 	return nil
@@ -44,17 +43,17 @@ type Property struct {
 
 // You can declare you own constraint interface to create custom constraints.
 type PropertyConstraint interface {
-	ValidateProperty(property *Property, scope validation.Scope) error
+	ValidateProperty(ctx context.Context, validator *validation.Validator, property *Property) error
 }
 
 // To create your own functional argument for validation simply create a function with
 // a typed value and use the validation.NewArgument constructor.
 func ValidProperty(property *Property, constraints ...PropertyConstraint) validation.ValidatorArgument {
-	return validation.NewArgument(func(scope validation.Scope) (*validation.ViolationList, error) {
+	return validation.NewArgument(func(ctx context.Context, validator *validation.Validator) (*validation.ViolationList, error) {
 		violations := validation.NewViolationList()
 
 		for i := range constraints {
-			err := violations.AppendFromError(constraints[i].ValidateProperty(property, scope))
+			err := violations.AppendFromError(constraints[i].ValidateProperty(ctx, validator, property))
 			if err != nil {
 				return nil, err
 			}

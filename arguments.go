@@ -1,12 +1,11 @@
 package validation
 
 import (
+	"context"
 	"time"
-
-	"golang.org/x/text/language"
 )
 
-// Argument used to set up the validation process. It is used to set up the current validation scope and to pass
+// Argument used to set up the validation process. It is used to set up the current validation context and to pass
 // arguments for validation values.
 type Argument interface {
 	setUp(ctx *executionContext)
@@ -17,7 +16,7 @@ func Nil(isNil bool, constraints ...NilConstraint) ValidatorArgument {
 	return NewArgument(validateNil(isNil, constraints))
 }
 
-// NilProperty argument is an alias for Nil that automatically adds property name to the current scope.
+// NilProperty argument is an alias for Nil that automatically adds property name to the current validation context.
 func NilProperty(name string, isNil bool, constraints ...NilConstraint) ValidatorArgument {
 	return NewArgument(validateNil(isNil, constraints)).With(PropertyName(name))
 }
@@ -27,7 +26,7 @@ func Bool(value bool, constraints ...BoolConstraint) ValidatorArgument {
 	return NewArgument(validateBool(&value, constraints))
 }
 
-// BoolProperty argument is an alias for Bool that automatically adds property name to the current scope.
+// BoolProperty argument is an alias for Bool that automatically adds property name to the current validation context.
 func BoolProperty(name string, value bool, constraints ...BoolConstraint) ValidatorArgument {
 	return NewArgument(validateBool(&value, constraints)).With(PropertyName(name))
 }
@@ -37,7 +36,7 @@ func NilBool(value *bool, constraints ...BoolConstraint) ValidatorArgument {
 	return NewArgument(validateBool(value, constraints))
 }
 
-// NilBoolProperty argument is an alias for NilBool that automatically adds property name to the current scope.
+// NilBoolProperty argument is an alias for NilBool that automatically adds property name to the current validation context.
 func NilBoolProperty(name string, value *bool, constraints ...BoolConstraint) ValidatorArgument {
 	return NewArgument(validateBool(value, constraints)).With(PropertyName(name))
 }
@@ -47,7 +46,7 @@ func Number[T Numeric](value T, constraints ...NumberConstraint[T]) ValidatorArg
 	return NewArgument(validateNumber(&value, constraints))
 }
 
-// NumberProperty argument is an alias for Number that automatically adds property name to the current scope.
+// NumberProperty argument is an alias for Number that automatically adds property name to the current validation context.
 func NumberProperty[T Numeric](name string, value T, constraints ...NumberConstraint[T]) ValidatorArgument {
 	return NewArgument(validateNumber(&value, constraints)).With(PropertyName(name))
 }
@@ -57,7 +56,7 @@ func NilNumber[T Numeric](value *T, constraints ...NumberConstraint[T]) Validato
 	return NewArgument(validateNumber(value, constraints))
 }
 
-// NilNumberProperty argument is an alias for NilNumber that automatically adds property name to the current scope.
+// NilNumberProperty argument is an alias for NilNumber that automatically adds property name to the current validation context.
 func NilNumberProperty[T Numeric](name string, value *T, constraints ...NumberConstraint[T]) ValidatorArgument {
 	return NewArgument(validateNumber(value, constraints)).With(PropertyName(name))
 }
@@ -67,7 +66,7 @@ func String(value string, constraints ...StringConstraint) ValidatorArgument {
 	return NewArgument(validateString(&value, constraints))
 }
 
-// StringProperty argument is an alias for String that automatically adds property name to the current scope.
+// StringProperty argument is an alias for String that automatically adds property name to the current validation context.
 func StringProperty(name string, value string, constraints ...StringConstraint) ValidatorArgument {
 	return NewArgument(validateString(&value, constraints)).With(PropertyName(name))
 }
@@ -77,7 +76,7 @@ func NilString(value *string, constraints ...StringConstraint) ValidatorArgument
 	return NewArgument(validateString(value, constraints))
 }
 
-// NilStringProperty argument is an alias for NilString that automatically adds property name to the current scope.
+// NilStringProperty argument is an alias for NilString that automatically adds property name to the current validation context.
 func NilStringProperty(name string, value *string, constraints ...StringConstraint) ValidatorArgument {
 	return NewArgument(validateString(value, constraints)).With(PropertyName(name))
 }
@@ -88,7 +87,7 @@ func Countable(count int, constraints ...CountableConstraint) ValidatorArgument 
 	return NewArgument(validateCountable(count, constraints))
 }
 
-// CountableProperty argument is an alias for Countable that automatically adds property name to the current scope.
+// CountableProperty argument is an alias for Countable that automatically adds property name to the current validation context.
 func CountableProperty(name string, count int, constraints ...CountableConstraint) ValidatorArgument {
 	return NewArgument(validateCountable(count, constraints)).With(PropertyName(name))
 }
@@ -98,7 +97,7 @@ func Time(value time.Time, constraints ...TimeConstraint) ValidatorArgument {
 	return NewArgument(validateTime(&value, constraints))
 }
 
-// TimeProperty argument is an alias for Time that automatically adds property name to the current scope.
+// TimeProperty argument is an alias for Time that automatically adds property name to the current validation context.
 func TimeProperty(name string, value time.Time, constraints ...TimeConstraint) ValidatorArgument {
 	return NewArgument(validateTime(&value, constraints)).With(PropertyName(name))
 }
@@ -108,7 +107,7 @@ func NilTime(value *time.Time, constraints ...TimeConstraint) ValidatorArgument 
 	return NewArgument(validateTime(value, constraints))
 }
 
-// NilTimeProperty argument is an alias for NilTime that automatically adds property name to the current scope.
+// NilTimeProperty argument is an alias for NilTime that automatically adds property name to the current validation context.
 func NilTimeProperty(name string, value *time.Time, constraints ...TimeConstraint) ValidatorArgument {
 	return NewArgument(validateTime(value, constraints)).With(PropertyName(name))
 }
@@ -119,7 +118,7 @@ func Valid(value Validatable) ValidatorArgument {
 	return NewArgument(validateIt(value))
 }
 
-// ValidProperty argument is an alias for Valid that automatically adds property name to the current scope.
+// ValidProperty argument is an alias for Valid that automatically adds property name to the current validation context.
 func ValidProperty(name string, value Validatable) ValidatorArgument {
 	return NewArgument(validateIt(value)).With(PropertyName(name))
 }
@@ -130,7 +129,7 @@ func ValidSlice[T Validatable](values []T) ValidatorArgument {
 	return NewArgument(validateSlice(values))
 }
 
-// ValidSliceProperty argument is an alias for ValidSlice that automatically adds property name to the current scope.
+// ValidSliceProperty argument is an alias for ValidSlice that automatically adds property name to the current validation context.
 func ValidSliceProperty[T Validatable](name string, values []T) ValidatorArgument {
 	return NewArgument(validateSlice(values)).With(PropertyName(name))
 }
@@ -141,7 +140,7 @@ func ValidMap[T Validatable](values map[string]T) ValidatorArgument {
 	return NewArgument(validateMap(values))
 }
 
-// ValidMapProperty argument is an alias for ValidSlice that automatically adds property name to the current scope.
+// ValidMapProperty argument is an alias for ValidSlice that automatically adds property name to the current validation context.
 func ValidMapProperty[T Validatable](name string, values map[string]T) ValidatorArgument {
 	return NewArgument(validateMap(values)).With(PropertyName(name))
 }
@@ -151,7 +150,7 @@ func Comparable[T comparable](value T, constraints ...ComparableConstraint[T]) V
 	return NewArgument(validateComparable(&value, constraints))
 }
 
-// ComparableProperty argument is an alias for Comparable that automatically adds property name to the current scope.
+// ComparableProperty argument is an alias for Comparable that automatically adds property name to the current validation context.
 func ComparableProperty[T comparable](name string, value T, constraints ...ComparableConstraint[T]) ValidatorArgument {
 	return NewArgument(validateComparable(&value, constraints)).With(PropertyName(name))
 }
@@ -161,7 +160,7 @@ func NilComparable[T comparable](value *T, constraints ...ComparableConstraint[T
 	return NewArgument(validateComparable(value, constraints))
 }
 
-// NilComparableProperty argument is an alias for NilComparable that automatically adds property name to the current scope.
+// NilComparableProperty argument is an alias for NilComparable that automatically adds property name to the current validation context.
 func NilComparableProperty[T comparable](name string, value *T, constraints ...ComparableConstraint[T]) ValidatorArgument {
 	return NewArgument(validateComparable(value, constraints)).With(PropertyName(name))
 }
@@ -171,7 +170,7 @@ func Comparables[T comparable](values []T, constraints ...ComparablesConstraint[
 	return NewArgument(validateComparables(values, constraints))
 }
 
-// ComparablesProperty argument is an alias for Comparables that automatically adds property name to the current scope.
+// ComparablesProperty argument is an alias for Comparables that automatically adds property name to the current validation context.
 func ComparablesProperty[T comparable](name string, values []T, constraints ...ComparablesConstraint[T]) ValidatorArgument {
 	return NewArgument(validateComparables(values, constraints)).With(PropertyName(name))
 }
@@ -181,7 +180,7 @@ func EachString(values []string, constraints ...StringConstraint) ValidatorArgum
 	return NewArgument(validateEachString(values, constraints))
 }
 
-// EachStringProperty argument is an alias for EachString that automatically adds property name to the current scope.
+// EachStringProperty argument is an alias for EachString that automatically adds property name to the current validation context.
 func EachStringProperty(name string, values []string, constraints ...StringConstraint) ValidatorArgument {
 	return NewArgument(validateEachString(values, constraints)).With(PropertyName(name))
 }
@@ -191,7 +190,7 @@ func EachNumber[T Numeric](values []T, constraints ...NumberConstraint[T]) Valid
 	return NewArgument(validateEachNumber(values, constraints))
 }
 
-// EachNumberProperty argument is an alias for EachString that automatically adds property name to the current scope.
+// EachNumberProperty argument is an alias for EachString that automatically adds property name to the current validation context.
 func EachNumberProperty[T Numeric](name string, values []T, constraints ...NumberConstraint[T]) ValidatorArgument {
 	return NewArgument(validateEachNumber(values, constraints)).With(PropertyName(name))
 }
@@ -201,7 +200,7 @@ func EachComparable[T comparable](values []T, constraints ...ComparableConstrain
 	return NewArgument(validateEachComparable(values, constraints))
 }
 
-// EachComparableProperty argument is an alias for EachComparable that automatically adds property name to the current scope.
+// EachComparableProperty argument is an alias for EachComparable that automatically adds property name to the current validation context.
 func EachComparableProperty[T comparable](name string, values []T, constraints ...ComparableConstraint[T]) ValidatorArgument {
 	return NewArgument(validateEachComparable(values, constraints)).With(PropertyName(name))
 }
@@ -211,7 +210,7 @@ func EachComparableProperty[T comparable](name string, values []T, constraints .
 // that does not implement an error interface, then the validation process will be terminated and
 // this error will be returned.
 func CheckNoViolations(err error) ValidatorArgument {
-	return NewArgument(func(scope Scope) (*ViolationList, error) {
+	return NewArgument(func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		return unwrapViolationList(err)
 	})
 }
@@ -226,7 +225,7 @@ func Check(isValid bool) Checker {
 	}
 }
 
-// CheckProperty argument is an alias for Check that automatically adds property name to the current scope.
+// CheckProperty argument is an alias for Check that automatically adds property name to the current validation context.
 // It is useful to apply a simple checks on structs.
 func CheckProperty(name string, isValid bool) Checker {
 	return Checker{
@@ -237,28 +236,21 @@ func CheckProperty(name string, isValid bool) Checker {
 	}
 }
 
-// Language argument sets the current language for translation of a violation message.
-func Language(tag language.Tag) Argument {
-	return argumentFunc(func(ctx *executionContext) {
-		ctx.scope.language = tag
-	})
-}
-
-type ValidateOnScopeFunc func(scope Scope) (*ViolationList, error)
+type ValidateFunc func(ctx context.Context, validator *Validator) (*ViolationList, error)
 
 // NewArgument can be used to implement validation functional arguments for the specific types.
-func NewArgument(validate ValidateOnScopeFunc) ValidatorArgument {
+func NewArgument(validate ValidateFunc) ValidatorArgument {
 	return ValidatorArgument{validate: validate}
 }
 
 // NewTypedArgument creates a generic validation argument that can help implement the validation
 // argument for client-side types.
 func NewTypedArgument[T any](v T, constraints ...Constraint[T]) ValidatorArgument {
-	return NewArgument(func(scope Scope) (*ViolationList, error) {
+	return NewArgument(func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		violations := NewViolationList()
 
 		for _, constraint := range constraints {
-			err := violations.AppendFromError(constraint.Validate(scope.context, scope.Validator(), v))
+			err := violations.AppendFromError(constraint.Validate(ctx, validator, v))
 			if err != nil {
 				return nil, err
 			}
@@ -272,7 +264,7 @@ func NewTypedArgument[T any](v T, constraints ...Constraint[T]) ValidatorArgumen
 // process on given argument.
 type ValidatorArgument struct {
 	isIgnored bool
-	validate  ValidateOnScopeFunc
+	validate  ValidateFunc
 	options   []Option
 }
 
@@ -291,14 +283,8 @@ func (arg ValidatorArgument) When(condition bool) ValidatorArgument {
 
 func (arg ValidatorArgument) setUp(ctx *executionContext) {
 	if !arg.isIgnored {
-		ctx.addValidator(arg.options, arg.validate)
+		ctx.addValidation(arg.options, arg.validate)
 	}
-}
-
-type argumentFunc func(ctx *executionContext)
-
-func (f argumentFunc) setUp(ctx *executionContext) {
-	f(ctx)
 }
 
 // Checker is an argument that can be useful for quickly checking the result of
@@ -348,18 +334,18 @@ func (c Checker) WithMessage(template string, parameters ...TemplateParameter) C
 }
 
 func (c Checker) setUp(arguments *executionContext) {
-	arguments.addValidator(c.options, c.validate)
+	arguments.addValidation(c.options, c.validate)
 }
 
-func (c Checker) validate(scope Scope) (*ViolationList, error) {
-	if c.isValid || c.isIgnored || scope.IsIgnored(c.groups...) {
+func (c Checker) validate(ctx context.Context, validator *Validator) (*ViolationList, error) {
+	if c.isValid || c.isIgnored || validator.IsIgnoredForGroups(c.groups...) {
 		return nil, nil
 	}
 	if c.propertyName != "" {
-		scope = scope.AtProperty(c.propertyName)
+		validator = validator.AtProperty(c.propertyName)
 	}
 
-	violation := scope.BuildViolation(c.err, c.messageTemplate).
+	violation := validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(c.messageParameters...).
 		Create()
 

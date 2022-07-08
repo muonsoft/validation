@@ -41,12 +41,12 @@ func (arg WhenArgument) With(options ...Option) WhenArgument {
 }
 
 func (arg WhenArgument) setUp(ctx *executionContext) {
-	ctx.addValidator(arg.options, func(scope Scope) (*ViolationList, error) {
+	ctx.addValidation(arg.options, func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		var err error
 		if arg.isTrue {
-			err = scope.Validate(arg.thenArguments...)
+			err = validator.Validate(ctx, arg.thenArguments...)
 		} else {
-			err = scope.Validate(arg.elseArguments...)
+			err = validator.Validate(ctx, arg.elseArguments...)
 		}
 
 		return unwrapViolationList(err)
@@ -90,12 +90,12 @@ func (arg WhenGroupsArgument) With(options ...Option) WhenGroupsArgument {
 }
 
 func (arg WhenGroupsArgument) setUp(ctx *executionContext) {
-	ctx.addValidator(arg.options, func(scope Scope) (*ViolationList, error) {
+	ctx.addValidation(arg.options, func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		var err error
-		if scope.IsIgnored(arg.groups...) {
-			err = scope.Validate(arg.elseArguments...)
+		if validator.IsIgnoredForGroups(arg.groups...) {
+			err = validator.Validate(ctx, arg.elseArguments...)
 		} else {
-			err = scope.Validate(arg.thenArguments...)
+			err = validator.Validate(ctx, arg.thenArguments...)
 		}
 
 		return unwrapViolationList(err)
@@ -128,7 +128,7 @@ func (arg SequentialArgument) When(condition bool) SequentialArgument {
 }
 
 func (arg SequentialArgument) setUp(ctx *executionContext) {
-	ctx.addValidator(arg.options, func(scope Scope) (*ViolationList, error) {
+	ctx.addValidation(arg.options, func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		if arg.isIgnored {
 			return nil, nil
 		}
@@ -136,7 +136,7 @@ func (arg SequentialArgument) setUp(ctx *executionContext) {
 		violations := &ViolationList{}
 
 		for _, argument := range arg.arguments {
-			err := violations.AppendFromError(scope.Validate(argument))
+			err := violations.AppendFromError(validator.Validate(ctx, argument))
 			if err != nil {
 				return nil, err
 			}
@@ -177,7 +177,7 @@ func (arg AtLeastOneOfArgument) When(condition bool) AtLeastOneOfArgument {
 }
 
 func (arg AtLeastOneOfArgument) setUp(ctx *executionContext) {
-	ctx.addValidator(arg.options, func(scope Scope) (*ViolationList, error) {
+	ctx.addValidation(arg.options, func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		if arg.isIgnored {
 			return nil, nil
 		}
@@ -185,7 +185,7 @@ func (arg AtLeastOneOfArgument) setUp(ctx *executionContext) {
 		violations := &ViolationList{}
 
 		for _, argument := range arg.arguments {
-			violation := scope.Validate(argument)
+			violation := validator.Validate(ctx, argument)
 			if violation == nil {
 				return nil, nil
 			}
@@ -227,7 +227,7 @@ func (arg AllArgument) When(condition bool) AllArgument {
 }
 
 func (arg AllArgument) setUp(ctx *executionContext) {
-	ctx.addValidator(arg.options, func(scope Scope) (*ViolationList, error) {
+	ctx.addValidation(arg.options, func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		if arg.isIgnored {
 			return nil, nil
 		}
@@ -235,7 +235,7 @@ func (arg AllArgument) setUp(ctx *executionContext) {
 		violations := &ViolationList{}
 
 		for _, argument := range arg.arguments {
-			err := violations.AppendFromError(scope.Validate(argument))
+			err := violations.AppendFromError(validator.Validate(ctx, argument))
 			if err != nil {
 				return nil, err
 			}
@@ -271,14 +271,13 @@ func (arg AsyncArgument) When(condition bool) AsyncArgument {
 }
 
 func (arg AsyncArgument) setUp(executionCtx *executionContext) {
-	executionCtx.addValidator(arg.options, func(scope Scope) (*ViolationList, error) {
+	executionCtx.addValidation(arg.options, func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		if arg.isIgnored {
 			return nil, nil
 		}
 
-		ctx, cancel := context.WithCancel(scope.context)
+		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
-		scope = scope.withContext(ctx)
 
 		waiter := &sync.WaitGroup{}
 		waiter.Add(len(arg.arguments))
@@ -286,7 +285,7 @@ func (arg AsyncArgument) setUp(executionCtx *executionContext) {
 		for _, argument := range arg.arguments {
 			go func(argument Argument) {
 				defer waiter.Done()
-				errs <- scope.Validate(argument)
+				errs <- validator.Validate(ctx, argument)
 			}(argument)
 		}
 

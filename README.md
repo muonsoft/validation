@@ -174,8 +174,8 @@ if violations, ok := validation.UnwrapViolationList(err); ok {
 // property path: properties[1].tag
 ```
 
-Also, you can create scoped validator by using `valdiator.AtProperty()` or `validator.AtIndex()` methods. It can be used
-to validate a couple of attributes of one object.
+Also, you can create context validator by using `validator.At()`, `validator.AtProperty()` or `validator.AtIndex()` 
+methods. It can be used to validate a couple of attributes of one object.
 
 ```golang
 err := validator.
@@ -460,7 +460,7 @@ if violations, ok := validation.UnwrapViolationList(err); ok {
 // violation: Значение не должно быть пустым.
 ```
 
-The second way is to use the `validator.WithLanguage()` method to create scoped validator and use it in different places.
+The second way is to use the `validator.WithLanguage()` method to create context validator and use it in different places.
 
 ```golang
 validator, _ := validation.NewValidator(

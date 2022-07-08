@@ -214,7 +214,11 @@ func ExampleString() {
 }
 
 func ExampleStringProperty() {
-	v := Book{Title: ""}
+	v := struct {
+		Title string
+	}{
+		Title: "",
+	}
 	err := validator.Validate(
 		context.Background(),
 		validation.StringProperty("title", v.Title, it.IsNotBlank()),
@@ -236,7 +240,11 @@ func ExampleNilString() {
 }
 
 func ExampleNilStringProperty() {
-	v := Book{Title: ""}
+	v := struct {
+		Title string
+	}{
+		Title: "",
+	}
 	err := validator.Validate(
 		context.Background(),
 		validation.NilStringProperty("title", &v.Title, it.IsNotBlank()),
@@ -258,7 +266,11 @@ func ExampleCountable() {
 }
 
 func ExampleCountableProperty() {
-	v := Product{Tags: []string{"a", "b"}}
+	v := struct {
+		Tags []string
+	}{
+		Tags: []string{"a", "b"},
+	}
 	err := validator.Validate(
 		context.Background(),
 		validation.CountableProperty("tags", len(v.Tags), it.HasMinCount(3)),
@@ -336,7 +348,11 @@ func ExampleEachString() {
 }
 
 func ExampleEachStringProperty() {
-	v := Product{Tags: []string{""}}
+	v := struct {
+		Tags []string
+	}{
+		Tags: []string{""},
+	}
 	err := validator.Validate(
 		context.Background(),
 		validation.EachStringProperty("tags", v.Tags, it.IsNotBlank()),
@@ -514,7 +530,11 @@ func ExampleComparables() {
 }
 
 func ExampleComparablesProperty() {
-	v := Book{Keywords: []string{"foo", "bar", "baz", "foo"}}
+	v := struct {
+		Keywords []string
+	}{
+		Keywords: []string{"foo", "bar", "baz", "foo"},
+	}
 	err := validator.Validate(
 		context.Background(),
 		validation.ComparablesProperty[string]("keywords", v.Keywords, it.HasUniqueValues[string]()),
@@ -859,7 +879,7 @@ func ExampleValidator_Validate_passingPropertyPathViaOptions() {
 	// property path: properties[1].tag
 }
 
-func ExampleValidator_Validate_propertyPathWithScopedValidator() {
+func ExampleValidator_Validate_propertyPathWithContextValidator() {
 	s := ""
 
 	err := validator.
@@ -890,8 +910,30 @@ func ExampleValidator_Validate_propertyPathBySpecialArgument() {
 	// property path: property
 }
 
+func ExampleValidator_At() {
+	books := []struct {
+		Title string
+	}{
+		{Title: ""},
+	}
+
+	err := validator.At(validation.PropertyNameElement("books"), validation.ArrayIndexElement(0)).Validate(
+		context.Background(),
+		validation.StringProperty("title", books[0].Title, it.IsNotBlank()),
+	)
+
+	violation := err.(*validation.ViolationList).First()
+	fmt.Println("property path:", violation.PropertyPath().String())
+	// Output:
+	// property path: books[0].title
+}
+
 func ExampleValidator_AtProperty() {
-	book := &Book{Title: ""}
+	book := struct {
+		Title string
+	}{
+		Title: "",
+	}
 
 	err := validator.AtProperty("book").Validate(
 		context.Background(),
@@ -905,7 +947,11 @@ func ExampleValidator_AtProperty() {
 }
 
 func ExampleValidator_AtIndex() {
-	books := []Book{{Title: ""}}
+	books := []struct {
+		Title string
+	}{
+		{Title: ""},
+	}
 
 	err := validator.AtIndex(0).Validate(
 		context.Background(),
@@ -916,24 +962,6 @@ func ExampleValidator_AtIndex() {
 	fmt.Println("property path:", violation.PropertyPath().String())
 	// Output:
 	// property path: [0].title
-}
-
-func ExampleLanguage() {
-	validator, err := validation.NewValidator(validation.Translations(russian.Messages))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	s := ""
-	err = validator.Validate(
-		context.Background(),
-		validation.Language(language.Russian),
-		validation.String(s, it.IsNotBlank()),
-	)
-
-	fmt.Println(err)
-	// Output:
-	// violation: Значение не должно быть пустым.
 }
 
 func ExampleValidator_WithLanguage() {
@@ -970,7 +998,7 @@ func ExampleValidator_Validate_translationsByDefaultLanguage() {
 	// violation: Значение не должно быть пустым.
 }
 
-func ExampleValidator_Validate_translationsByArgument() {
+func ExampleValidator_Validate_translationsByContextualValidator() {
 	validator, err := validation.NewValidator(
 		validation.Translations(russian.Messages),
 	)
@@ -979,9 +1007,8 @@ func ExampleValidator_Validate_translationsByArgument() {
 	}
 
 	s := ""
-	err = validator.Validate(
+	err = validator.WithLanguage(language.Russian).Validate(
 		context.Background(),
-		validation.Language(language.Russian),
 		validation.String(s, it.IsNotBlank()),
 	)
 
@@ -1060,9 +1087,8 @@ func ExampleValidator_Validate_translationForCustomMessage() {
 	}
 
 	var tags []string
-	err = validator.Validate(
+	err = validator.WithLanguage(language.Russian).Validate(
 		context.Background(),
-		validation.Language(language.Russian),
 		validation.Countable(len(tags), it.HasMinCount(1).WithMinMessage(customMessage)),
 	)
 

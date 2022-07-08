@@ -1,31 +1,26 @@
 package validation
 
 import (
+	"context"
 	"time"
 )
 
 type executionContext struct {
-	scope      Scope
-	validators []ValidateOnScopeFunc
+	validations []ValidateFunc
 }
 
-func (ctx *executionContext) addValidator(options []Option, validator ValidateOnScopeFunc) {
-	ctx.validators = append(ctx.validators, func(scope Scope) (*ViolationList, error) {
-		err := scope.applyOptions(options...)
-		if err != nil {
-			return nil, err
-		}
-
-		return validator(scope)
+func (ctx *executionContext) addValidation(options []Option, validate ValidateFunc) {
+	ctx.validations = append(ctx.validations, func(ctx context.Context, validator *Validator) (*ViolationList, error) {
+		return validate(ctx, validator.withOptions(options...))
 	})
 }
 
-func validateNil(isNil bool, constraints []NilConstraint) ValidateOnScopeFunc {
-	return func(scope Scope) (*ViolationList, error) {
+func validateNil(isNil bool, constraints []NilConstraint) ValidateFunc {
+	return func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		violations := NewViolationList()
 
 		for i := range constraints {
-			err := violations.AppendFromError(constraints[i].ValidateNil(scope.context, scope.Validator(), isNil))
+			err := violations.AppendFromError(constraints[i].ValidateNil(ctx, validator, isNil))
 			if err != nil {
 				return nil, err
 			}
@@ -35,12 +30,12 @@ func validateNil(isNil bool, constraints []NilConstraint) ValidateOnScopeFunc {
 	}
 }
 
-func validateBool(value *bool, constraints []BoolConstraint) ValidateOnScopeFunc {
-	return func(scope Scope) (*ViolationList, error) {
+func validateBool(value *bool, constraints []BoolConstraint) ValidateFunc {
+	return func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		violations := NewViolationList()
 
 		for i := range constraints {
-			err := violations.AppendFromError(constraints[i].ValidateBool(scope.context, scope.Validator(), value))
+			err := violations.AppendFromError(constraints[i].ValidateBool(ctx, validator, value))
 			if err != nil {
 				return nil, err
 			}
@@ -50,12 +45,12 @@ func validateBool(value *bool, constraints []BoolConstraint) ValidateOnScopeFunc
 	}
 }
 
-func validateNumber[T Numeric](value *T, constraints []NumberConstraint[T]) ValidateOnScopeFunc {
-	return func(scope Scope) (*ViolationList, error) {
+func validateNumber[T Numeric](value *T, constraints []NumberConstraint[T]) ValidateFunc {
+	return func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		violations := NewViolationList()
 
 		for i := range constraints {
-			err := violations.AppendFromError(constraints[i].ValidateNumber(scope.context, scope.Validator(), value))
+			err := violations.AppendFromError(constraints[i].ValidateNumber(ctx, validator, value))
 			if err != nil {
 				return nil, err
 			}
@@ -65,12 +60,12 @@ func validateNumber[T Numeric](value *T, constraints []NumberConstraint[T]) Vali
 	}
 }
 
-func validateString(value *string, constraints []StringConstraint) ValidateOnScopeFunc {
-	return func(scope Scope) (*ViolationList, error) {
+func validateString(value *string, constraints []StringConstraint) ValidateFunc {
+	return func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		violations := NewViolationList()
 
 		for i := range constraints {
-			err := violations.AppendFromError(constraints[i].ValidateString(scope.context, scope.Validator(), value))
+			err := violations.AppendFromError(constraints[i].ValidateString(ctx, validator, value))
 			if err != nil {
 				return nil, err
 			}
@@ -80,12 +75,12 @@ func validateString(value *string, constraints []StringConstraint) ValidateOnSco
 	}
 }
 
-func validateCountable(count int, constraints []CountableConstraint) ValidateOnScopeFunc {
-	return func(scope Scope) (*ViolationList, error) {
+func validateCountable(count int, constraints []CountableConstraint) ValidateFunc {
+	return func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		violations := NewViolationList()
 
 		for i := range constraints {
-			err := violations.AppendFromError(constraints[i].ValidateCountable(scope.context, scope.Validator(), count))
+			err := violations.AppendFromError(constraints[i].ValidateCountable(ctx, validator, count))
 			if err != nil {
 				return nil, err
 			}
@@ -95,12 +90,12 @@ func validateCountable(count int, constraints []CountableConstraint) ValidateOnS
 	}
 }
 
-func validateTime(value *time.Time, constraints []TimeConstraint) ValidateOnScopeFunc {
-	return func(scope Scope) (*ViolationList, error) {
+func validateTime(value *time.Time, constraints []TimeConstraint) ValidateFunc {
+	return func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		violations := NewViolationList()
 
 		for i := range constraints {
-			err := violations.AppendFromError(constraints[i].ValidateTime(scope.context, scope.Validator(), value))
+			err := violations.AppendFromError(constraints[i].ValidateTime(ctx, validator, value))
 			if err != nil {
 				return nil, err
 			}
@@ -110,13 +105,13 @@ func validateTime(value *time.Time, constraints []TimeConstraint) ValidateOnScop
 	}
 }
 
-func validateEachString(values []string, constraints []StringConstraint) ValidateOnScopeFunc {
-	return func(scope Scope) (*ViolationList, error) {
+func validateEachString(values []string, constraints []StringConstraint) ValidateFunc {
+	return func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		violations := NewViolationList()
 
 		for i := range values {
 			for _, constraint := range constraints {
-				err := violations.AppendFromError(constraint.ValidateString(scope.context, scope.AtIndex(i).Validator(), &values[i]))
+				err := violations.AppendFromError(constraint.ValidateString(ctx, validator.AtIndex(i), &values[i]))
 				if err != nil {
 					return nil, err
 				}
@@ -127,13 +122,13 @@ func validateEachString(values []string, constraints []StringConstraint) Validat
 	}
 }
 
-func validateEachNumber[T Numeric](values []T, constraints []NumberConstraint[T]) ValidateOnScopeFunc {
-	return func(scope Scope) (*ViolationList, error) {
+func validateEachNumber[T Numeric](values []T, constraints []NumberConstraint[T]) ValidateFunc {
+	return func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		violations := NewViolationList()
 
 		for i := range values {
 			for _, constraint := range constraints {
-				err := violations.AppendFromError(constraint.ValidateNumber(scope.context, scope.AtIndex(i).Validator(), &values[i]))
+				err := violations.AppendFromError(constraint.ValidateNumber(ctx, validator.AtIndex(i), &values[i]))
 				if err != nil {
 					return nil, err
 				}
@@ -144,13 +139,13 @@ func validateEachNumber[T Numeric](values []T, constraints []NumberConstraint[T]
 	}
 }
 
-func validateEachComparable[T comparable](values []T, constraints []ComparableConstraint[T]) ValidateOnScopeFunc {
-	return func(scope Scope) (*ViolationList, error) {
+func validateEachComparable[T comparable](values []T, constraints []ComparableConstraint[T]) ValidateFunc {
+	return func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		violations := NewViolationList()
 
 		for i := range values {
 			for _, constraint := range constraints {
-				err := violations.AppendFromError(constraint.ValidateComparable(scope.context, scope.AtIndex(i).Validator(), &values[i]))
+				err := violations.AppendFromError(constraint.ValidateComparable(ctx, validator.AtIndex(i), &values[i]))
 				if err != nil {
 					return nil, err
 				}
@@ -161,9 +156,9 @@ func validateEachComparable[T comparable](values []T, constraints []ComparableCo
 	}
 }
 
-func validateIt(value Validatable) ValidateOnScopeFunc {
-	return func(scope Scope) (*ViolationList, error) {
-		err := value.Validate(scope.context, scope.Validator())
+func validateIt(value Validatable) ValidateFunc {
+	return func(ctx context.Context, validator *Validator) (*ViolationList, error) {
+		err := value.Validate(ctx, validator)
 		violations, ok := UnwrapViolationList(err)
 		if ok {
 			return violations, nil
@@ -173,13 +168,12 @@ func validateIt(value Validatable) ValidateOnScopeFunc {
 	}
 }
 
-func validateSlice[T Validatable](values []T) ValidateOnScopeFunc {
-	return func(scope Scope) (*ViolationList, error) {
+func validateSlice[T Validatable](values []T) ValidateFunc {
+	return func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		violations := NewViolationList()
 
 		for i, value := range values {
-			s := scope.AtIndex(i)
-			err := violations.AppendFromError(value.Validate(s.context, s.Validator()))
+			err := violations.AppendFromError(value.Validate(ctx, validator.AtIndex(i)))
 			if err != nil {
 				return nil, err
 			}
@@ -189,13 +183,12 @@ func validateSlice[T Validatable](values []T) ValidateOnScopeFunc {
 	}
 }
 
-func validateMap[T Validatable](values map[string]T) ValidateOnScopeFunc {
-	return func(scope Scope) (*ViolationList, error) {
+func validateMap[T Validatable](values map[string]T) ValidateFunc {
+	return func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		violations := NewViolationList()
 
 		for key, value := range values {
-			s := scope.AtProperty(key)
-			err := violations.AppendFromError(value.Validate(s.context, s.Validator()))
+			err := violations.AppendFromError(value.Validate(ctx, validator.AtProperty(key)))
 			if err != nil {
 				return nil, err
 			}
@@ -205,12 +198,12 @@ func validateMap[T Validatable](values map[string]T) ValidateOnScopeFunc {
 	}
 }
 
-func validateComparable[T comparable](value *T, constraints []ComparableConstraint[T]) ValidateOnScopeFunc {
-	return func(scope Scope) (*ViolationList, error) {
+func validateComparable[T comparable](value *T, constraints []ComparableConstraint[T]) ValidateFunc {
+	return func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		violations := NewViolationList()
 
 		for i := range constraints {
-			err := violations.AppendFromError(constraints[i].ValidateComparable(scope.context, scope.Validator(), value))
+			err := violations.AppendFromError(constraints[i].ValidateComparable(ctx, validator, value))
 			if err != nil {
 				return nil, err
 			}
@@ -220,12 +213,12 @@ func validateComparable[T comparable](value *T, constraints []ComparableConstrai
 	}
 }
 
-func validateComparables[T comparable](values []T, constraints []ComparablesConstraint[T]) ValidateOnScopeFunc {
-	return func(scope Scope) (*ViolationList, error) {
+func validateComparables[T comparable](values []T, constraints []ComparablesConstraint[T]) ValidateFunc {
+	return func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		violations := NewViolationList()
 
 		for i := range constraints {
-			err := violations.AppendFromError(constraints[i].ValidateComparables(scope.context, scope.Validator(), values))
+			err := violations.AppendFromError(constraints[i].ValidateComparables(ctx, validator, values))
 			if err != nil {
 				return nil, err
 			}

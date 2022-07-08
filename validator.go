@@ -5,15 +5,20 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/muonsoft/language"
 	"github.com/muonsoft/validation/message/translations"
-	"golang.org/x/text/language"
 	"golang.org/x/text/message/catalog"
 )
 
-// Validator is the main validation service. It can be created by NewValidator constructor.
+// Validator is the root validation service. It can be created by NewValidator constructor.
 // Also, you can use singleton version from the package "github.com/muonsoft/validation/validator".
 type Validator struct {
-	scope Scope
+	propertyPath     *PropertyPath
+	language         language.Tag
+	translator       Translator
+	violationFactory ViolationFactory
+	groups           []string
+	constraints      map[string]interface{}
 }
 
 // Translator is used to translate violation messages. By default, validator uses an implementation from
@@ -64,17 +69,13 @@ func NewValidator(options ...ValidatorOption) (*Validator, error) {
 		opts.violationFactory = newViolationFactory(opts.translator)
 	}
 
-	validator := &Validator{scope: newScope(
-		opts.translator,
-		opts.violationFactory,
-		opts.constraints,
-	)}
+	validator := &Validator{
+		translator:       opts.translator,
+		violationFactory: opts.violationFactory,
+		constraints:      opts.constraints,
+	}
 
 	return validator, nil
-}
-
-func newScopedValidator(scope Scope) *Validator {
-	return &Validator{scope: scope}
 }
 
 // DefaultLanguage option is used to set up the default language for translation of violation messages.
@@ -135,17 +136,17 @@ func StoredConstraint(key string, constraint interface{}) ValidatorOption {
 	}
 }
 
-// Validate is the main validation method. It accepts validation arguments. executionContext can be
+// Validate is the main validation method. It accepts validation arguments that can be
 // used to tune up the validation process or to pass values of a specific type.
 func (validator *Validator) Validate(ctx context.Context, arguments ...Argument) error {
-	execContext := &executionContext{scope: validator.scope.withContext(ctx)}
+	execContext := &executionContext{}
 	for _, argument := range arguments {
 		argument.setUp(execContext)
 	}
 
 	violations := &ViolationList{}
-	for _, validate := range execContext.validators {
-		vs, err := validate(execContext.scope)
+	for _, validate := range execContext.validations {
+		vs, err := validate(ctx, validator)
 		if err != nil {
 			return err
 		}
@@ -206,11 +207,11 @@ func (validator *Validator) ValidateIt(ctx context.Context, validatable Validata
 //
 // Experimental. This feature is experimental and may be changed in future versions.
 func (validator *Validator) GetConstraint(key string) interface{} {
-	return validator.scope.constraints[key]
+	return validator.constraints[key]
 }
 
 // WithGroups is used to execute conditional validation based on validation groups. It creates
-// a new scoped validation with a given set of groups.
+// a new context validator with a given set of groups.
 //
 // By default, when validating an object all constraints of it will be checked whether or not
 // they pass. In some cases, however, you will need to validate an object against
@@ -224,7 +225,10 @@ func (validator *Validator) GetConstraint(key string) interface{} {
 //
 // Be careful, empty groups are considered as the default group. Its value is equal to the DefaultGroup ("default").
 func (validator *Validator) WithGroups(groups ...string) *Validator {
-	return newScopedValidator(validator.scope.withGroups(groups...))
+	v := validator.copy()
+	v.groups = groups
+
+	return v
 }
 
 // IsAppliedForGroups compares current validation groups and constraint groups. If one of the validator groups
@@ -232,48 +236,130 @@ func (validator *Validator) WithGroups(groups ...string) *Validator {
 // Empty groups are treated as DefaultGroup. To create a new validation with the validation groups
 // use the WithGroups method.
 func (validator *Validator) IsAppliedForGroups(groups ...string) bool {
-	return validator.scope.IsApplied(groups...)
+	if len(validator.groups) == 0 {
+		if len(groups) == 0 {
+			return true
+		}
+		for _, g := range groups {
+			if g == DefaultGroup {
+				return true
+			}
+		}
+	}
+
+	for _, g1 := range validator.groups {
+		if len(groups) == 0 {
+			if g1 == DefaultGroup {
+				return true
+			}
+		}
+		for _, g2 := range groups {
+			if g1 == g2 {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 // IsIgnoredForGroups is the reverse condition for applying validation groups to the IsAppliedForGroups method.
 // It is recommended to use this method in every validation method of the constraint.
 func (validator *Validator) IsIgnoredForGroups(groups ...string) bool {
-	return validator.scope.IsIgnored(groups...)
+	return !validator.IsAppliedForGroups(groups...)
 }
 
 // CreateConstraintError creates a new ConstraintError, which can be used to stop validation process
 // if constraint is not properly configured.
 func (validator *Validator) CreateConstraintError(constraintName, description string) *ConstraintError {
-	return validator.scope.NewConstraintError(constraintName, description)
+	return &ConstraintError{
+		ConstraintName: constraintName,
+		Path:           validator.propertyPath,
+		Description:    description,
+	}
 }
 
-// WithLanguage method creates a new scoped validator with a given language tag. All created violations
+// WithLanguage method creates a new context validator with a given language tag. All created violations
 // will be translated into this language.
 func (validator *Validator) WithLanguage(tag language.Tag) *Validator {
-	return newScopedValidator(validator.scope.withLanguage(tag))
+	v := validator.copy()
+	v.language = tag
+
+	return v
 }
 
-// AtProperty method creates a new scoped validator with injected property name element to scope property path.
+// At method creates a new context validator with appended property path.
+func (validator *Validator) At(path ...PropertyPathElement) *Validator {
+	v := validator.copy()
+	v.propertyPath = v.propertyPath.With(path...)
+
+	return v
+}
+
+// AtProperty method creates a new context validator with appended property name to the property path.
 func (validator *Validator) AtProperty(name string) *Validator {
-	return newScopedValidator(validator.scope.AtProperty(name))
+	v := validator.copy()
+	v.propertyPath = v.propertyPath.WithProperty(name)
+
+	return v
 }
 
-// AtIndex method creates a new scoped validator with injected array index element to scope property path.
+// AtIndex method creates a new context validator with appended array index to the property path.
 func (validator *Validator) AtIndex(index int) *Validator {
-	return newScopedValidator(validator.scope.AtIndex(index))
+	v := validator.copy()
+	v.propertyPath = v.propertyPath.WithIndex(index)
+
+	return v
 }
 
 // CreateViolation can be used to quickly create a custom violation on the client-side.
 func (validator *Validator) CreateViolation(ctx context.Context, err error, message string, path ...PropertyPathElement) Violation {
-	return validator.scope.withContext(ctx).CreateViolation(err, message, path...)
+	return validator.BuildViolation(ctx, err, message).At(path...).Create()
 }
 
 // BuildViolation can be used to build a custom violation on the client-side.
 func (validator *Validator) BuildViolation(ctx context.Context, err error, message string) *ViolationBuilder {
-	return validator.scope.withContext(ctx).BuildViolation(err, message)
+	b := NewViolationBuilder(validator.violationFactory).BuildViolation(err, message)
+	b = b.SetPropertyPath(validator.propertyPath)
+
+	if validator.language != language.Und {
+		b = b.WithLanguage(validator.language)
+	} else if ctx != nil {
+		b = b.WithLanguage(language.FromContext(ctx))
+	}
+
+	return b
 }
 
 // BuildViolationList can be used to build a custom violation list on the client-side.
 func (validator *Validator) BuildViolationList(ctx context.Context) *ViolationListBuilder {
-	return validator.scope.withContext(ctx).BuildViolationList()
+	b := NewViolationListBuilder(validator.violationFactory)
+	b = b.SetPropertyPath(validator.propertyPath)
+
+	if validator.language != language.Und {
+		b = b.WithLanguage(validator.language)
+	} else if ctx != nil {
+		b = b.WithLanguage(language.FromContext(ctx))
+	}
+
+	return b
+}
+
+func (validator *Validator) copy() *Validator {
+	return &Validator{
+		propertyPath:     validator.propertyPath,
+		language:         validator.language,
+		translator:       validator.translator,
+		violationFactory: validator.violationFactory,
+		groups:           validator.groups,
+		constraints:      validator.constraints,
+	}
+}
+
+func (validator *Validator) withOptions(options ...Option) *Validator {
+	v := validator
+	for _, option := range options {
+		v = option.SetUp(v)
+	}
+	return v
 }

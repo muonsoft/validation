@@ -56,9 +56,8 @@ func TestValidator_Validate_WhenRussianIsPassedViaArgument_ExpectViolationTransl
 	}
 	for _, test := range tests {
 		t.Run("plural form for "+strconv.Itoa(test.maxCount), func(t *testing.T) {
-			err := v.Validate(
+			err := v.WithLanguage(language.Russian).Validate(
 				context.Background(),
-				validation.Language(language.Russian),
 				validation.Countable(10, it.HasMaxCount(test.maxCount)),
 			)
 
@@ -74,9 +73,8 @@ func TestValidator_Validate_WhenCustomDefaultLanguageAndUndefinedTranslationLang
 		validation.Translations(russian.Messages),
 	)
 
-	err := v.Validate(
+	err := v.WithLanguage(language.Afrikaans).Validate(
 		context.Background(),
-		validation.Language(language.Afrikaans),
 		validation.String("", it.IsNotBlank()),
 	)
 
@@ -102,7 +100,7 @@ func TestValidator_Validate_WhenTranslationLanguageInContextArgument_ExpectTrans
 	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithMessage("Значение не должно быть пустым.")
 }
 
-func TestValidator_Validate_WhenTranslationLanguageInScopedValidator_ExpectTranslationLanguageUsed(t *testing.T) {
+func TestValidator_Validate_WhenTranslationLanguageInContextValidator_ExpectTranslationLanguageUsed(t *testing.T) {
 	v := newValidator(t, validation.Translations(russian.Messages)).WithLanguage(language.Russian)
 
 	err := v.Validate(context.Background(), validation.String("", it.IsNotBlank()))
@@ -110,7 +108,7 @@ func TestValidator_Validate_WhenTranslationLanguageInScopedValidator_ExpectTrans
 	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithMessage("Значение не должно быть пустым.")
 }
 
-func TestValidator_Validate_WhenTranslationLanguageInContextOfScopedValidator_ExpectTranslationLanguageUsed(t *testing.T) {
+func TestValidator_Validate_WhenTranslationLanguageInContextOfContextValidator_ExpectTranslationLanguageUsed(t *testing.T) {
 	ctx := language.WithContext(context.Background(), language.Russian)
 	v := newValidator(t, validation.Translations(russian.Messages))
 
