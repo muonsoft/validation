@@ -552,13 +552,13 @@ func ExampleCheck() {
 	// violation: This value is not valid.
 }
 
-func ExampleNewCustomStringConstraint() {
+func ExampleOfStringBy() {
 	validate := func(s string) bool {
 		return s == "valid"
 	}
 	errExample := errors.New("exampleCode")
 
-	constraint := validation.NewCustomStringConstraint(validate).
+	constraint := validation.OfStringBy(validate).
 		WithError(errExample).           // underlying static error
 		WithMessage("Unexpected value.") // violation message template
 

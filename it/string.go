@@ -268,22 +268,22 @@ func (c RegexpConstraint) ValidateString(ctx context.Context, validator *validat
 }
 
 // IsJSON validates that a value is a valid JSON.
-func IsJSON() validation.CustomStringConstraint {
-	return validation.NewCustomStringConstraint(is.JSON).
+func IsJSON() validation.StringFuncConstraint {
+	return validation.OfStringBy(is.JSON).
 		WithError(validation.ErrInvalidJSON).
 		WithMessage(validation.ErrInvalidJSON.Template())
 }
 
 // IsInteger checks that string value is an integer.
-func IsInteger() validation.CustomStringConstraint {
-	return validation.NewCustomStringConstraint(is.Integer).
+func IsInteger() validation.StringFuncConstraint {
+	return validation.OfStringBy(is.Integer).
 		WithError(validation.ErrNotInteger).
 		WithMessage(validation.ErrNotInteger.Template())
 }
 
 // IsNumeric checks that string value is a valid numeric (integer or float).
-func IsNumeric() validation.CustomStringConstraint {
-	return validation.NewCustomStringConstraint(is.Number).
+func IsNumeric() validation.StringFuncConstraint {
+	return validation.OfStringBy(is.Number).
 		WithError(validation.ErrNotNumeric).
 		WithMessage(validation.ErrNotNumeric.Template())
 }

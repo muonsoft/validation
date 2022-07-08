@@ -243,9 +243,9 @@ func NewArgument(validate ValidateFunc) ValidatorArgument {
 	return ValidatorArgument{validate: validate}
 }
 
-// NewTypedArgument creates a generic validation argument that can help implement the validation
+// This creates a generic validation argument that can help implement the validation
 // argument for client-side types.
-func NewTypedArgument[T any](v T, constraints ...Constraint[T]) ValidatorArgument {
+func This[T any](v T, constraints ...Constraint[T]) ValidatorArgument {
 	return NewArgument(func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		violations := NewViolationList()
 

@@ -15,44 +15,44 @@ func invalidString(value string) bool {
 
 var customStringConstraintTestCases = []ConstraintValidationTestCase{
 	{
-		name:            "CustomStringConstraint passes on nil",
+		name:            "StringFuncConstraint passes on nil",
 		isApplicableFor: specificValueTypes(stringType),
-		constraint:      validation.NewCustomStringConstraint(invalidString),
+		constraint:      validation.OfStringBy(invalidString),
 		assert:          assertNoError,
 	},
 	{
-		name:            "CustomStringConstraint passes on empty value",
+		name:            "StringFuncConstraint passes on empty value",
 		isApplicableFor: specificValueTypes(stringType),
-		constraint:      validation.NewCustomStringConstraint(invalidString),
+		constraint:      validation.OfStringBy(invalidString),
 		stringValue:     stringValue(""),
 		assert:          assertNoError,
 	},
 	{
-		name:            "CustomStringConstraint passes on valid value",
+		name:            "StringFuncConstraint passes on valid value",
 		isApplicableFor: specificValueTypes(stringType),
-		constraint:      validation.NewCustomStringConstraint(validString),
+		constraint:      validation.OfStringBy(validString),
 		stringValue:     stringValue("foo"),
 		assert:          assertNoError,
 	},
 	{
-		name:            "CustomStringConstraint violation on invalid value",
+		name:            "StringFuncConstraint violation on invalid value",
 		isApplicableFor: specificValueTypes(stringType),
-		constraint:      validation.NewCustomStringConstraint(invalidString),
+		constraint:      validation.OfStringBy(invalidString),
 		stringValue:     stringValue("foo"),
 		assert:          assertHasOneViolation(validation.ErrNotValid, message.NotValid),
 	},
 	{
-		name:            "CustomStringConstraint violation with given error and message",
+		name:            "StringFuncConstraint violation with given error and message",
 		isApplicableFor: specificValueTypes(stringType),
-		constraint:      validation.NewCustomStringConstraint(invalidString).WithError(ErrCustom).WithMessage("message"),
+		constraint:      validation.OfStringBy(invalidString).WithError(ErrCustom).WithMessage("message"),
 		stringValue:     stringValue("foo"),
 		assert:          assertHasOneViolation(ErrCustom, "message"),
 	},
 	{
-		name:            "CustomStringConstraint violation with custom message",
+		name:            "StringFuncConstraint violation with custom message",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint: validation.
-			NewCustomStringConstraint(invalidString).
+			OfStringBy(invalidString).
 			WithError(ErrCustom).
 			WithMessage(
 				`Unexpected value "{{ value }}" for {{ custom }}.`,
@@ -62,23 +62,23 @@ var customStringConstraintTestCases = []ConstraintValidationTestCase{
 		assert:      assertHasOneViolation(ErrCustom, `Unexpected value "foo" for parameter.`),
 	},
 	{
-		name:            "CustomStringConstraint passes when condition is false",
+		name:            "StringFuncConstraint passes when condition is false",
 		isApplicableFor: specificValueTypes(stringType),
-		constraint:      validation.NewCustomStringConstraint(invalidString).When(false),
+		constraint:      validation.OfStringBy(invalidString).When(false),
 		stringValue:     stringValue("foo"),
 		assert:          assertNoError,
 	},
 	{
-		name:            "CustomStringConstraint passes when groups not match",
+		name:            "StringFuncConstraint passes when groups not match",
 		isApplicableFor: specificValueTypes(stringType),
-		constraint:      validation.NewCustomStringConstraint(invalidString).WhenGroups(testGroup),
+		constraint:      validation.OfStringBy(invalidString).WhenGroups(testGroup),
 		stringValue:     stringValue("foo"),
 		assert:          assertNoError,
 	},
 	{
-		name:            "CustomStringConstraint violation when condition is true",
+		name:            "StringFuncConstraint violation when condition is true",
 		isApplicableFor: specificValueTypes(stringType),
-		constraint:      validation.NewCustomStringConstraint(invalidString).When(true),
+		constraint:      validation.OfStringBy(invalidString).When(true),
 		stringValue:     stringValue("foo"),
 		assert:          assertHasOneViolation(validation.ErrNotValid, message.NotValid),
 	},

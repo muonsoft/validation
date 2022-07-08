@@ -12,16 +12,16 @@ import (
 
 // IsEmail is used for simplified validation of an email address. It allows all values
 // with an "@" symbol in, and a "." in the second host part of the email address.
-func IsEmail() validation.CustomStringConstraint {
-	return validation.NewCustomStringConstraint(is.Email).
+func IsEmail() validation.StringFuncConstraint {
+	return validation.OfStringBy(is.Email).
 		WithError(validation.ErrInvalidEmail).
 		WithMessage(validation.ErrInvalidEmail.Template())
 }
 
 // IsHTML5Email is used for validation of an email address based on pattern for HTML5
 // (see https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address).
-func IsHTML5Email() validation.CustomStringConstraint {
-	return validation.NewCustomStringConstraint(is.HTML5Email).
+func IsHTML5Email() validation.StringFuncConstraint {
+	return validation.OfStringBy(is.HTML5Email).
 		WithError(validation.ErrInvalidEmail).
 		WithMessage(validation.ErrInvalidEmail.Template())
 }
@@ -36,8 +36,8 @@ func IsHTML5Email() validation.CustomStringConstraint {
 //	  .example, .invalid, .localhost, and .test).
 //
 // If you do not want to check for top-level domains use IsLooseHostname version of constraint.
-func IsHostname() validation.CustomStringConstraint {
-	return validation.NewCustomStringConstraint(is.StrictHostname).
+func IsHostname() validation.StringFuncConstraint {
+	return validation.OfStringBy(is.StrictHostname).
 		WithError(validation.ErrInvalidHostname).
 		WithMessage(validation.ErrInvalidHostname.Template())
 }
@@ -45,8 +45,8 @@ func IsHostname() validation.CustomStringConstraint {
 // IsLooseHostname validates that a value is a valid hostname. It checks that:
 //	• each label within a valid hostname may be no more than 63 octets long;
 //	• the total length of the hostname must not exceed 255 characters.
-func IsLooseHostname() validation.CustomStringConstraint {
-	return validation.NewCustomStringConstraint(is.Hostname).
+func IsLooseHostname() validation.StringFuncConstraint {
+	return validation.OfStringBy(is.Hostname).
 		WithError(validation.ErrInvalidHostname).
 		WithMessage(validation.ErrInvalidHostname.Template())
 }

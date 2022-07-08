@@ -30,9 +30,9 @@ func (repository *BrandRepository) FindByName(ctx context.Context, name string) 
 }
 
 // To create your own functional argument for validation simply create a function with
-// a typed value and use the validation.NewTypedArgument constructor.
+// a typed value and use the validation.This constructor.
 func ValidBrand(brand *Brand, constraints ...validation.Constraint[*Brand]) validation.ValidatorArgument {
-	return validation.NewTypedArgument[*Brand](brand, constraints...)
+	return validation.This[*Brand](brand, constraints...)
 }
 
 var ErrNotUniqueBrand = errors.New("not unique brand")
@@ -67,7 +67,7 @@ func (c *UniqueBrandConstraint) Validate(ctx context.Context, validator *validat
 		Create()
 }
 
-func ExampleNewTypedArgument_customArgumentConstraintValidator() {
+func ExampleThis_customArgumentConstraintValidator() {
 	repository := &BrandRepository{brands: []Brand{{"Apple"}, {"Orange"}}}
 	isUnique := &UniqueBrandConstraint{brands: repository}
 
@@ -77,6 +77,8 @@ func ExampleNewTypedArgument_customArgumentConstraintValidator() {
 		// you can pass here the context value to the validation context
 		context.WithValue(context.Background(), exampleKey, "value"),
 		ValidBrand(&brand, isUnique),
+		// it is full equivalent of
+		// validation.This[*Brand](&brand, isUnique),
 	)
 
 	fmt.Println(err)

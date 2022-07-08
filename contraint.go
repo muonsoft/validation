@@ -57,9 +57,9 @@ type TimeConstraint interface {
 	ValidateTime(ctx context.Context, validator *Validator, value *time.Time) error
 }
 
-// CustomStringConstraint can be used to create custom constraints for validating string values
+// StringFuncConstraint can be used to create constraints for validating string values
 // based on function with signature func(string) bool.
-type CustomStringConstraint struct {
+type StringFuncConstraint struct {
 	isIgnored         bool
 	isValid           func(string) bool
 	groups            []string
@@ -68,9 +68,9 @@ type CustomStringConstraint struct {
 	messageParameters TemplateParameterList
 }
 
-// NewCustomStringConstraint creates a new string constraint from a function with signature func(string) bool.
-func NewCustomStringConstraint(isValid func(string) bool) CustomStringConstraint {
-	return CustomStringConstraint{
+// OfStringBy creates a new string constraint from a function with signature func(string) bool.
+func OfStringBy(isValid func(string) bool) StringFuncConstraint {
+	return StringFuncConstraint{
 		isValid:         isValid,
 		err:             ErrNotValid,
 		messageTemplate: ErrNotValid.Template(),
@@ -78,7 +78,7 @@ func NewCustomStringConstraint(isValid func(string) bool) CustomStringConstraint
 }
 
 // WithError overrides default error for produced violation.
-func (c CustomStringConstraint) WithError(err error) CustomStringConstraint {
+func (c StringFuncConstraint) WithError(err error) StringFuncConstraint {
 	c.err = err
 	return c
 }
@@ -87,7 +87,7 @@ func (c CustomStringConstraint) WithError(err error) CustomStringConstraint {
 // for injecting its values into the final message. Also, you can use default parameters:
 //
 //	{{ value }} - the current (invalid) value.
-func (c CustomStringConstraint) WithMessage(template string, parameters ...TemplateParameter) CustomStringConstraint {
+func (c StringFuncConstraint) WithMessage(template string, parameters ...TemplateParameter) StringFuncConstraint {
 	c.messageTemplate = template
 	c.messageParameters = parameters
 	return c
@@ -95,18 +95,18 @@ func (c CustomStringConstraint) WithMessage(template string, parameters ...Templ
 
 // When enables conditional validation of this constraint. If the expression evaluates to false,
 // then the constraint will be ignored.
-func (c CustomStringConstraint) When(condition bool) CustomStringConstraint {
+func (c StringFuncConstraint) When(condition bool) StringFuncConstraint {
 	c.isIgnored = !condition
 	return c
 }
 
 // WhenGroups enables conditional validation of the constraint by using the validation groups.
-func (c CustomStringConstraint) WhenGroups(groups ...string) CustomStringConstraint {
+func (c StringFuncConstraint) WhenGroups(groups ...string) StringFuncConstraint {
 	c.groups = groups
 	return c
 }
 
-func (c CustomStringConstraint) ValidateString(ctx context.Context, validator *Validator, value *string) error {
+func (c StringFuncConstraint) ValidateString(ctx context.Context, validator *Validator, value *string) error {
 	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || *value == "" || c.isValid(*value) {
 		return nil
 	}

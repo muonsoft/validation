@@ -8,8 +8,8 @@ import (
 // IsEAN8 is used to validate EAN-8 value.
 //
 // See https://en.wikipedia.org/wiki/EAN-8.
-func IsEAN8() validation.CustomStringConstraint {
-	return validation.NewCustomStringConstraint(is.EAN8).
+func IsEAN8() validation.StringFuncConstraint {
+	return validation.OfStringBy(is.EAN8).
 		WithError(validation.ErrInvalidEAN8).
 		WithMessage(validation.ErrInvalidEAN8.Template())
 }
@@ -17,8 +17,8 @@ func IsEAN8() validation.CustomStringConstraint {
 // IsEAN13 is used to validate EAN-13 value.
 //
 // See https://en.wikipedia.org/wiki/International_Article_Number.
-func IsEAN13() validation.CustomStringConstraint {
-	return validation.NewCustomStringConstraint(is.EAN13).
+func IsEAN13() validation.StringFuncConstraint {
+	return validation.OfStringBy(is.EAN13).
 		WithError(validation.ErrInvalidEAN13).
 		WithMessage(validation.ErrInvalidEAN13.Template())
 }
@@ -26,8 +26,8 @@ func IsEAN13() validation.CustomStringConstraint {
 // IsUPCA is used to validate UPC-A value.
 //
 // See https://en.wikipedia.org/wiki/Universal_Product_Code.
-func IsUPCA() validation.CustomStringConstraint {
-	return validation.NewCustomStringConstraint(is.UPCA).
+func IsUPCA() validation.StringFuncConstraint {
+	return validation.OfStringBy(is.UPCA).
 		WithError(validation.ErrInvalidUPCA).
 		WithMessage(validation.ErrInvalidUPCA.Template())
 }
@@ -35,8 +35,8 @@ func IsUPCA() validation.CustomStringConstraint {
 // IsUPCE is used to validate UPC-E value.
 //
 // See https://en.wikipedia.org/wiki/Universal_Product_Code#UPC-E.
-func IsUPCE() validation.CustomStringConstraint {
-	return validation.NewCustomStringConstraint(is.UPCE).
+func IsUPCE() validation.StringFuncConstraint {
+	return validation.OfStringBy(is.UPCE).
 		WithError(validation.ErrInvalidUPCE).
 		WithMessage(validation.ErrInvalidUPCE.Template())
 }
