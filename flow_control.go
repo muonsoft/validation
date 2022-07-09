@@ -10,7 +10,7 @@ import (
 // Otherwise, the arguments passed through the Else function will be processed.
 type WhenArgument struct {
 	isTrue        bool
-	options       []Option
+	path          []PropertyPathElement
 	thenArguments []Argument
 	elseArguments []Argument
 }
@@ -34,23 +34,25 @@ func (arg WhenArgument) Else(arguments ...Argument) WhenArgument {
 	return arg
 }
 
-// With returns a copy of WhenArgument with appended options.
-func (arg WhenArgument) With(options ...Option) WhenArgument {
-	arg.options = append(arg.options, options...)
+// At returns a copy of WhenArgument with appended property path suffix.
+func (arg WhenArgument) At(path ...PropertyPathElement) WhenArgument {
+	arg.path = append(arg.path, path...)
 	return arg
 }
 
 func (arg WhenArgument) setUp(ctx *executionContext) {
-	ctx.addValidation(arg.options, func(ctx context.Context, validator *Validator) (*ViolationList, error) {
-		var err error
-		if arg.isTrue {
-			err = validator.Validate(ctx, arg.thenArguments...)
-		} else {
-			err = validator.Validate(ctx, arg.elseArguments...)
-		}
+	ctx.addValidation(arg.validate, arg.path...)
+}
 
-		return unwrapViolationList(err)
-	})
+func (arg WhenArgument) validate(ctx context.Context, validator *Validator) (*ViolationList, error) {
+	var err error
+	if arg.isTrue {
+		err = validator.Validate(ctx, arg.thenArguments...)
+	} else {
+		err = validator.Validate(ctx, arg.elseArguments...)
+	}
+
+	return unwrapViolationList(err)
 }
 
 // WhenGroupsArgument is used to build conditional validation based on groups. Use the WhenGroups function
@@ -59,7 +61,7 @@ func (arg WhenArgument) setUp(ctx *executionContext) {
 // Otherwise, the arguments passed through the Else function will be processed.
 type WhenGroupsArgument struct {
 	groups        []string
-	options       []Option
+	path          []PropertyPathElement
 	thenArguments []Argument
 	elseArguments []Argument
 }
@@ -83,29 +85,31 @@ func (arg WhenGroupsArgument) Else(arguments ...Argument) WhenGroupsArgument {
 	return arg
 }
 
-// With returns a copy of WhenArgument with appended options.
-func (arg WhenGroupsArgument) With(options ...Option) WhenGroupsArgument {
-	arg.options = append(arg.options, options...)
+// At returns a copy of WhenGroupsArgument with appended property path suffix.
+func (arg WhenGroupsArgument) At(path ...PropertyPathElement) WhenGroupsArgument {
+	arg.path = append(arg.path, path...)
 	return arg
 }
 
 func (arg WhenGroupsArgument) setUp(ctx *executionContext) {
-	ctx.addValidation(arg.options, func(ctx context.Context, validator *Validator) (*ViolationList, error) {
-		var err error
-		if validator.IsIgnoredForGroups(arg.groups...) {
-			err = validator.Validate(ctx, arg.elseArguments...)
-		} else {
-			err = validator.Validate(ctx, arg.thenArguments...)
-		}
+	ctx.addValidation(arg.validate, arg.path...)
+}
 
-		return unwrapViolationList(err)
-	})
+func (arg WhenGroupsArgument) validate(ctx context.Context, validator *Validator) (*ViolationList, error) {
+	var err error
+	if validator.IsIgnoredForGroups(arg.groups...) {
+		err = validator.Validate(ctx, arg.elseArguments...)
+	} else {
+		err = validator.Validate(ctx, arg.thenArguments...)
+	}
+
+	return unwrapViolationList(err)
 }
 
 // SequentialArgument can be used to interrupt validation process when the first violation is raised.
 type SequentialArgument struct {
 	isIgnored bool
-	options   []Option
+	path      []PropertyPathElement
 	arguments []Argument
 }
 
@@ -114,9 +118,9 @@ func Sequentially(arguments ...Argument) SequentialArgument {
 	return SequentialArgument{arguments: arguments}
 }
 
-// With returns a copy of SequentialArgument with appended options.
-func (arg SequentialArgument) With(options ...Option) SequentialArgument {
-	arg.options = append(arg.options, options...)
+// At returns a copy of SequentialArgument with appended property path suffix.
+func (arg SequentialArgument) At(path ...PropertyPathElement) SequentialArgument {
+	arg.path = append(arg.path, path...)
 	return arg
 }
 
@@ -128,32 +132,34 @@ func (arg SequentialArgument) When(condition bool) SequentialArgument {
 }
 
 func (arg SequentialArgument) setUp(ctx *executionContext) {
-	ctx.addValidation(arg.options, func(ctx context.Context, validator *Validator) (*ViolationList, error) {
-		if arg.isIgnored {
-			return nil, nil
+	ctx.addValidation(arg.validate, arg.path...)
+}
+
+func (arg SequentialArgument) validate(ctx context.Context, validator *Validator) (*ViolationList, error) {
+	if arg.isIgnored {
+		return nil, nil
+	}
+
+	violations := &ViolationList{}
+
+	for _, argument := range arg.arguments {
+		err := violations.AppendFromError(validator.Validate(ctx, argument))
+		if err != nil {
+			return nil, err
 		}
-
-		violations := &ViolationList{}
-
-		for _, argument := range arg.arguments {
-			err := violations.AppendFromError(validator.Validate(ctx, argument))
-			if err != nil {
-				return nil, err
-			}
-			if violations.len > 0 {
-				return violations, nil
-			}
+		if violations.len > 0 {
+			return violations, nil
 		}
+	}
 
-		return violations, nil
-	})
+	return violations, nil
 }
 
 // AtLeastOneOfArgument can be used to set up validation process to check that the value satisfies
 // at least one of the given constraints. The validation stops as soon as one constraint is satisfied.
 type AtLeastOneOfArgument struct {
 	isIgnored bool
-	options   []Option
+	path      []PropertyPathElement
 	arguments []Argument
 }
 
@@ -163,9 +169,9 @@ func AtLeastOneOf(arguments ...Argument) AtLeastOneOfArgument {
 	return AtLeastOneOfArgument{arguments: arguments}
 }
 
-// With returns a copy of AtLeastOneOfArgument with appended options.
-func (arg AtLeastOneOfArgument) With(options ...Option) AtLeastOneOfArgument {
-	arg.options = append(arg.options, options...)
+// At returns a copy of AtLeastOneOfArgument with appended property path suffix.
+func (arg AtLeastOneOfArgument) At(path ...PropertyPathElement) AtLeastOneOfArgument {
+	arg.path = append(arg.path, path...)
 	return arg
 }
 
@@ -177,33 +183,35 @@ func (arg AtLeastOneOfArgument) When(condition bool) AtLeastOneOfArgument {
 }
 
 func (arg AtLeastOneOfArgument) setUp(ctx *executionContext) {
-	ctx.addValidation(arg.options, func(ctx context.Context, validator *Validator) (*ViolationList, error) {
-		if arg.isIgnored {
+	ctx.addValidation(arg.validate, arg.path...)
+}
+
+func (arg AtLeastOneOfArgument) validate(ctx context.Context, validator *Validator) (*ViolationList, error) {
+	if arg.isIgnored {
+		return nil, nil
+	}
+
+	violations := &ViolationList{}
+
+	for _, argument := range arg.arguments {
+		violation := validator.Validate(ctx, argument)
+		if violation == nil {
 			return nil, nil
 		}
 
-		violations := &ViolationList{}
-
-		for _, argument := range arg.arguments {
-			violation := validator.Validate(ctx, argument)
-			if violation == nil {
-				return nil, nil
-			}
-
-			err := violations.AppendFromError(violation)
-			if err != nil {
-				return nil, err
-			}
+		err := violations.AppendFromError(violation)
+		if err != nil {
+			return nil, err
 		}
+	}
 
-		return violations, nil
-	})
+	return violations, nil
 }
 
 // AllArgument can be used to interrupt validation process when the first violation is raised.
 type AllArgument struct {
 	isIgnored bool
-	options   []Option
+	path      []PropertyPathElement
 	arguments []Argument
 }
 
@@ -213,9 +221,9 @@ func All(arguments ...Argument) AllArgument {
 	return AllArgument{arguments: arguments}
 }
 
-// With returns a copy of AllArgument with appended options.
-func (arg AllArgument) With(options ...Option) AllArgument {
-	arg.options = append(arg.options, options...)
+// At returns a copy of AllArgument with appended property path suffix.
+func (arg AllArgument) At(path ...PropertyPathElement) AllArgument {
+	arg.path = append(arg.path, path...)
 	return arg
 }
 
@@ -227,28 +235,30 @@ func (arg AllArgument) When(condition bool) AllArgument {
 }
 
 func (arg AllArgument) setUp(ctx *executionContext) {
-	ctx.addValidation(arg.options, func(ctx context.Context, validator *Validator) (*ViolationList, error) {
-		if arg.isIgnored {
-			return nil, nil
+	ctx.addValidation(arg.validate, arg.path...)
+}
+
+func (arg AllArgument) validate(ctx context.Context, validator *Validator) (*ViolationList, error) {
+	if arg.isIgnored {
+		return nil, nil
+	}
+
+	violations := &ViolationList{}
+
+	for _, argument := range arg.arguments {
+		err := violations.AppendFromError(validator.Validate(ctx, argument))
+		if err != nil {
+			return nil, err
 		}
+	}
 
-		violations := &ViolationList{}
-
-		for _, argument := range arg.arguments {
-			err := violations.AppendFromError(validator.Validate(ctx, argument))
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		return violations, nil
-	})
+	return violations, nil
 }
 
 // AsyncArgument can be used to interrupt validation process when the first violation is raised.
 type AsyncArgument struct {
 	isIgnored bool
-	options   []Option
+	path      []PropertyPathElement
 	arguments []Argument
 }
 
@@ -257,9 +267,9 @@ func Async(arguments ...Argument) AsyncArgument {
 	return AsyncArgument{arguments: arguments}
 }
 
-// With returns a copy of AsyncArgument with appended options.
-func (arg AsyncArgument) With(options ...Option) AsyncArgument {
-	arg.options = append(arg.options, options...)
+// At returns a copy of AsyncArgument with appended property path suffix.
+func (arg AsyncArgument) At(path ...PropertyPathElement) AsyncArgument {
+	arg.path = append(arg.path, path...)
 	return arg
 }
 
@@ -270,39 +280,41 @@ func (arg AsyncArgument) When(condition bool) AsyncArgument {
 	return arg
 }
 
-func (arg AsyncArgument) setUp(executionCtx *executionContext) {
-	executionCtx.addValidation(arg.options, func(ctx context.Context, validator *Validator) (*ViolationList, error) {
-		if arg.isIgnored {
-			return nil, nil
+func (arg AsyncArgument) setUp(ctx *executionContext) {
+	ctx.addValidation(arg.validate, arg.path...)
+}
+
+func (arg AsyncArgument) validate(ctx context.Context, validator *Validator) (*ViolationList, error) {
+	if arg.isIgnored {
+		return nil, nil
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	waiter := &sync.WaitGroup{}
+	waiter.Add(len(arg.arguments))
+	errs := make(chan error)
+	for _, argument := range arg.arguments {
+		go func(argument Argument) {
+			defer waiter.Done()
+			errs <- validator.Validate(ctx, argument)
+		}(argument)
+	}
+
+	go func() {
+		waiter.Wait()
+		close(errs)
+	}()
+
+	violations := &ViolationList{}
+
+	for violation := range errs {
+		err := violations.AppendFromError(violation)
+		if err != nil {
+			return nil, err
 		}
+	}
 
-		ctx, cancel := context.WithCancel(ctx)
-		defer cancel()
-
-		waiter := &sync.WaitGroup{}
-		waiter.Add(len(arg.arguments))
-		errs := make(chan error)
-		for _, argument := range arg.arguments {
-			go func(argument Argument) {
-				defer waiter.Done()
-				errs <- validator.Validate(ctx, argument)
-			}(argument)
-		}
-
-		go func() {
-			waiter.Wait()
-			close(errs)
-		}()
-
-		violations := &ViolationList{}
-
-		for violation := range errs {
-			err := violations.AppendFromError(violation)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		return violations, nil
-	})
+	return violations, nil
 }

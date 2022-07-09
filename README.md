@@ -149,7 +149,7 @@ how it reached the invalid value from the root element. Property path is denoted
 by square brackets. For example, `book.keywords[0]` means that the violation occurred on the first element of
 array `keywords` in the `book` object.
 
-You can pass a property name or an array index via `validation.PropertyName()` and `validation.ArrayIndex()` options.
+You can pass a property path by calling `At` function on any argument.
 
 ```golang
 err := validator.Validate(
@@ -157,7 +157,7 @@ err := validator.Validate(
     validation.String(
         "",
         it.IsNotBlank(),
-    ).With(
+    ).At(
         validation.PropertyName("properties"),
         validation.ArrayIndex(1),
         validation.PropertyName("tag"),

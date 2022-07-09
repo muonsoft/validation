@@ -252,7 +252,7 @@ func TestViolationList_Filter_ViolationsWithCodes_FilteredList(t *testing.T) {
 func TestViolation_Error_MessageAndPropertyPath_ErrorWithPropertyPathAndMessage(t *testing.T) {
 	validator := newValidator(t)
 	violation := validator.BuildViolation(context.Background(), ErrTest, "message").
-		At(validation.PropertyNameElement("propertyPath")).
+		At(validation.PropertyName("propertyPath")).
 		Create()
 
 	err := violation.Error()
@@ -265,14 +265,14 @@ func TestViolationList_Error_CoupleOfViolations_JoinedMessage(t *testing.T) {
 	violations := validation.NewViolationList(
 		validator.BuildViolation(context.Background(), ErrTest, "first message").
 			At(
-				validation.PropertyNameElement("path"),
-				validation.ArrayIndexElement(0),
+				validation.PropertyName("path"),
+				validation.ArrayIndex(0),
 			).
 			Create(),
 		validator.BuildViolation(context.Background(), ErrTest, "second message").
 			At(
-				validation.PropertyNameElement("path"),
-				validation.ArrayIndexElement(1),
+				validation.PropertyName("path"),
+				validation.ArrayIndex(1),
 			).
 			Create(),
 	)
@@ -362,9 +362,9 @@ func TestMarshalViolationToJSON(t *testing.T) {
 			violation: validator.BuildViolation(context.Background(), ErrTest, "message").
 				WithParameters(validation.TemplateParameter{Key: "key", Value: "value"}).
 				At(
-					validation.PropertyNameElement("properties"),
-					validation.ArrayIndexElement(1),
-					validation.PropertyNameElement("name"),
+					validation.PropertyName("properties"),
+					validation.ArrayIndex(1),
+					validation.PropertyName("name"),
 				).Create(),
 			expectedJSON: `{
 				"error": "test",
@@ -415,9 +415,9 @@ func TestMarshalViolationListToJSON(t *testing.T) {
 				validator.BuildViolation(context.Background(), ErrTest, "message").
 					WithParameters(validation.TemplateParameter{Key: "key", Value: "value"}).
 					At(
-						validation.PropertyNameElement("properties"),
-						validation.ArrayIndexElement(1),
-						validation.PropertyNameElement("name"),
+						validation.PropertyName("properties"),
+						validation.ArrayIndex(1),
+						validation.PropertyName("name"),
 					).Create(),
 			),
 			expectedJSON: `[
@@ -434,16 +434,16 @@ func TestMarshalViolationListToJSON(t *testing.T) {
 				validator.BuildViolation(context.Background(), ErrTest, "message").
 					WithParameters(validation.TemplateParameter{Key: "key", Value: "value"}).
 					At(
-						validation.PropertyNameElement("properties"),
-						validation.ArrayIndexElement(1),
-						validation.PropertyNameElement("name"),
+						validation.PropertyName("properties"),
+						validation.ArrayIndex(1),
+						validation.PropertyName("name"),
 					).Create(),
 				validator.BuildViolation(context.Background(), ErrTest, "message").
 					WithParameters(validation.TemplateParameter{Key: "key", Value: "value"}).
 					At(
-						validation.PropertyNameElement("properties"),
-						validation.ArrayIndexElement(1),
-						validation.PropertyNameElement("name"),
+						validation.PropertyName("properties"),
+						validation.ArrayIndex(1),
+						validation.PropertyName("name"),
 					).Create(),
 			),
 			expectedJSON: `[
@@ -480,19 +480,19 @@ func TestValidator_BuildViolationList_WhenBasePath_ExpectViolationListBuiltWithP
 	err := validator.
 		AtProperty("base").AtIndex(1).
 		BuildViolationList(context.Background()).
-		At(validation.PropertyNameElement("listPath")).
+		At(validation.PropertyName("listPath")).
 		AtProperty("list").AtIndex(0).
 		BuildViolation(err1, "message with {{ parameter 1 }}").
 		WithParameter("{{ parameter 1 }}", "value 1").
-		At(validation.PropertyNameElement("propertyPath")).
+		At(validation.PropertyName("propertyPath")).
 		AtProperty("properties").AtIndex(0).
 		Add().
 		BuildViolation(err2, "message with {{ parameter 2 }}").
 		WithParameter("{{ parameter 2 }}", "value 2").
-		At(validation.PropertyNameElement("propertyPath")).
+		At(validation.PropertyName("propertyPath")).
 		AtProperty("properties").AtIndex(1).
 		Add().
-		AddViolation(err3, "message 3", validation.PropertyNameElement("singleProperty")).
+		AddViolation(err3, "message 3", validation.PropertyName("singleProperty")).
 		Create().
 		AsError()
 

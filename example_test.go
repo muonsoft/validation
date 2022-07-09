@@ -592,7 +592,7 @@ func ExampleWhen() {
 			it.IsOneOf("Visa", "MasterCard"),
 		),
 		validation.When(payment.CardType == "Visa").
-			With(validation.PropertyName("cardNumber")).
+			At(validation.PropertyName("cardNumber")).
 			Then(validation.String(payment.CardNumber, it.Matches(visaRegex))).
 			Else(validation.String(payment.CardNumber, it.Matches(masterCardRegex))),
 	)
@@ -866,7 +866,7 @@ func ExampleValidator_Validate_passingPropertyPathViaOptions() {
 
 	err := validator.Validate(
 		context.Background(),
-		validation.String(s, it.IsNotBlank()).With(
+		validation.String(s, it.IsNotBlank()).At(
 			validation.PropertyName("properties"),
 			validation.ArrayIndex(1),
 			validation.PropertyName("tag"),
@@ -917,7 +917,7 @@ func ExampleValidator_At() {
 		{Title: ""},
 	}
 
-	err := validator.At(validation.PropertyNameElement("books"), validation.ArrayIndexElement(0)).Validate(
+	err := validator.At(validation.PropertyName("books"), validation.ArrayIndex(0)).Validate(
 		context.Background(),
 		validation.StringProperty("title", books[0].Title, it.IsNotBlank()),
 	)
@@ -1108,8 +1108,8 @@ func ExampleValidator_CreateViolation() {
 		context.Background(),
 		errClient,
 		"Client message.",
-		validation.PropertyNameElement("properties"),
-		validation.ArrayIndexElement(1),
+		validation.PropertyName("properties"),
+		validation.ArrayIndex(1),
 	)
 
 	fmt.Println(violation.Error())

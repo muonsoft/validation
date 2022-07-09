@@ -18,7 +18,7 @@ func Nil(isNil bool, constraints ...NilConstraint) ValidatorArgument {
 
 // NilProperty argument is an alias for Nil that automatically adds property name to the current validation context.
 func NilProperty(name string, isNil bool, constraints ...NilConstraint) ValidatorArgument {
-	return NewArgument(validateNil(isNil, constraints)).With(PropertyName(name))
+	return NewArgument(validateNil(isNil, constraints)).At(PropertyName(name))
 }
 
 // Bool argument is used to validate boolean values.
@@ -28,7 +28,7 @@ func Bool(value bool, constraints ...BoolConstraint) ValidatorArgument {
 
 // BoolProperty argument is an alias for Bool that automatically adds property name to the current validation context.
 func BoolProperty(name string, value bool, constraints ...BoolConstraint) ValidatorArgument {
-	return NewArgument(validateBool(&value, constraints)).With(PropertyName(name))
+	return NewArgument(validateBool(&value, constraints)).At(PropertyName(name))
 }
 
 // NilBool argument is used to validate nillable boolean values.
@@ -38,7 +38,7 @@ func NilBool(value *bool, constraints ...BoolConstraint) ValidatorArgument {
 
 // NilBoolProperty argument is an alias for NilBool that automatically adds property name to the current validation context.
 func NilBoolProperty(name string, value *bool, constraints ...BoolConstraint) ValidatorArgument {
-	return NewArgument(validateBool(value, constraints)).With(PropertyName(name))
+	return NewArgument(validateBool(value, constraints)).At(PropertyName(name))
 }
 
 // Number argument is used to validate numbers.
@@ -48,7 +48,7 @@ func Number[T Numeric](value T, constraints ...NumberConstraint[T]) ValidatorArg
 
 // NumberProperty argument is an alias for Number that automatically adds property name to the current validation context.
 func NumberProperty[T Numeric](name string, value T, constraints ...NumberConstraint[T]) ValidatorArgument {
-	return NewArgument(validateNumber(&value, constraints)).With(PropertyName(name))
+	return NewArgument(validateNumber(&value, constraints)).At(PropertyName(name))
 }
 
 // NilNumber argument is used to validate nillable numbers.
@@ -58,7 +58,7 @@ func NilNumber[T Numeric](value *T, constraints ...NumberConstraint[T]) Validato
 
 // NilNumberProperty argument is an alias for NilNumber that automatically adds property name to the current validation context.
 func NilNumberProperty[T Numeric](name string, value *T, constraints ...NumberConstraint[T]) ValidatorArgument {
-	return NewArgument(validateNumber(value, constraints)).With(PropertyName(name))
+	return NewArgument(validateNumber(value, constraints)).At(PropertyName(name))
 }
 
 // String argument is used to validate strings.
@@ -68,7 +68,7 @@ func String(value string, constraints ...StringConstraint) ValidatorArgument {
 
 // StringProperty argument is an alias for String that automatically adds property name to the current validation context.
 func StringProperty(name string, value string, constraints ...StringConstraint) ValidatorArgument {
-	return NewArgument(validateString(&value, constraints)).With(PropertyName(name))
+	return NewArgument(validateString(&value, constraints)).At(PropertyName(name))
 }
 
 // NilString argument is used to validate nillable strings.
@@ -78,7 +78,7 @@ func NilString(value *string, constraints ...StringConstraint) ValidatorArgument
 
 // NilStringProperty argument is an alias for NilString that automatically adds property name to the current validation context.
 func NilStringProperty(name string, value *string, constraints ...StringConstraint) ValidatorArgument {
-	return NewArgument(validateString(value, constraints)).With(PropertyName(name))
+	return NewArgument(validateString(value, constraints)).At(PropertyName(name))
 }
 
 // Countable argument can be used to validate size of an array, slice, or map. You can pass result of len()
@@ -89,7 +89,7 @@ func Countable(count int, constraints ...CountableConstraint) ValidatorArgument 
 
 // CountableProperty argument is an alias for Countable that automatically adds property name to the current validation context.
 func CountableProperty(name string, count int, constraints ...CountableConstraint) ValidatorArgument {
-	return NewArgument(validateCountable(count, constraints)).With(PropertyName(name))
+	return NewArgument(validateCountable(count, constraints)).At(PropertyName(name))
 }
 
 // Time argument is used to validate time.Time value.
@@ -99,7 +99,7 @@ func Time(value time.Time, constraints ...TimeConstraint) ValidatorArgument {
 
 // TimeProperty argument is an alias for Time that automatically adds property name to the current validation context.
 func TimeProperty(name string, value time.Time, constraints ...TimeConstraint) ValidatorArgument {
-	return NewArgument(validateTime(&value, constraints)).With(PropertyName(name))
+	return NewArgument(validateTime(&value, constraints)).At(PropertyName(name))
 }
 
 // NilTime argument is used to validate nillable time.Time value.
@@ -109,7 +109,7 @@ func NilTime(value *time.Time, constraints ...TimeConstraint) ValidatorArgument 
 
 // NilTimeProperty argument is an alias for NilTime that automatically adds property name to the current validation context.
 func NilTimeProperty(name string, value *time.Time, constraints ...TimeConstraint) ValidatorArgument {
-	return NewArgument(validateTime(value, constraints)).With(PropertyName(name))
+	return NewArgument(validateTime(value, constraints)).At(PropertyName(name))
 }
 
 // Valid is used to run validation on the Validatable type. This method is recommended
@@ -120,7 +120,7 @@ func Valid(value Validatable) ValidatorArgument {
 
 // ValidProperty argument is an alias for Valid that automatically adds property name to the current validation context.
 func ValidProperty(name string, value Validatable) ValidatorArgument {
-	return NewArgument(validateIt(value)).With(PropertyName(name))
+	return NewArgument(validateIt(value)).At(PropertyName(name))
 }
 
 // ValidSlice is a generic argument used to run validation on the slice of Validatable types.
@@ -131,7 +131,7 @@ func ValidSlice[T Validatable](values []T) ValidatorArgument {
 
 // ValidSliceProperty argument is an alias for ValidSlice that automatically adds property name to the current validation context.
 func ValidSliceProperty[T Validatable](name string, values []T) ValidatorArgument {
-	return NewArgument(validateSlice(values)).With(PropertyName(name))
+	return NewArgument(validateSlice(values)).At(PropertyName(name))
 }
 
 // ValidMap is a generic argument used to run validation on the map of Validatable types.
@@ -142,7 +142,7 @@ func ValidMap[T Validatable](values map[string]T) ValidatorArgument {
 
 // ValidMapProperty argument is an alias for ValidSlice that automatically adds property name to the current validation context.
 func ValidMapProperty[T Validatable](name string, values map[string]T) ValidatorArgument {
-	return NewArgument(validateMap(values)).With(PropertyName(name))
+	return NewArgument(validateMap(values)).At(PropertyName(name))
 }
 
 // Comparable argument is used to validate generic comparable value.
@@ -152,7 +152,7 @@ func Comparable[T comparable](value T, constraints ...ComparableConstraint[T]) V
 
 // ComparableProperty argument is an alias for Comparable that automatically adds property name to the current validation context.
 func ComparableProperty[T comparable](name string, value T, constraints ...ComparableConstraint[T]) ValidatorArgument {
-	return NewArgument(validateComparable(&value, constraints)).With(PropertyName(name))
+	return NewArgument(validateComparable(&value, constraints)).At(PropertyName(name))
 }
 
 // NilComparable argument is used to validate nillable generic comparable value.
@@ -162,7 +162,7 @@ func NilComparable[T comparable](value *T, constraints ...ComparableConstraint[T
 
 // NilComparableProperty argument is an alias for NilComparable that automatically adds property name to the current validation context.
 func NilComparableProperty[T comparable](name string, value *T, constraints ...ComparableConstraint[T]) ValidatorArgument {
-	return NewArgument(validateComparable(value, constraints)).With(PropertyName(name))
+	return NewArgument(validateComparable(value, constraints)).At(PropertyName(name))
 }
 
 // Comparables argument is used to validate generic comparable types.
@@ -172,7 +172,7 @@ func Comparables[T comparable](values []T, constraints ...ComparablesConstraint[
 
 // ComparablesProperty argument is an alias for Comparables that automatically adds property name to the current validation context.
 func ComparablesProperty[T comparable](name string, values []T, constraints ...ComparablesConstraint[T]) ValidatorArgument {
-	return NewArgument(validateComparables(values, constraints)).With(PropertyName(name))
+	return NewArgument(validateComparables(values, constraints)).At(PropertyName(name))
 }
 
 // EachString is used to validate a slice of strings.
@@ -182,7 +182,7 @@ func EachString(values []string, constraints ...StringConstraint) ValidatorArgum
 
 // EachStringProperty argument is an alias for EachString that automatically adds property name to the current validation context.
 func EachStringProperty(name string, values []string, constraints ...StringConstraint) ValidatorArgument {
-	return NewArgument(validateEachString(values, constraints)).With(PropertyName(name))
+	return NewArgument(validateEachString(values, constraints)).At(PropertyName(name))
 }
 
 // EachNumber is used to validate a slice of numbers.
@@ -192,7 +192,7 @@ func EachNumber[T Numeric](values []T, constraints ...NumberConstraint[T]) Valid
 
 // EachNumberProperty argument is an alias for EachString that automatically adds property name to the current validation context.
 func EachNumberProperty[T Numeric](name string, values []T, constraints ...NumberConstraint[T]) ValidatorArgument {
-	return NewArgument(validateEachNumber(values, constraints)).With(PropertyName(name))
+	return NewArgument(validateEachNumber(values, constraints)).At(PropertyName(name))
 }
 
 // EachComparable is used to validate a slice of generic comparables.
@@ -202,7 +202,7 @@ func EachComparable[T comparable](values []T, constraints ...ComparableConstrain
 
 // EachComparableProperty argument is an alias for EachComparable that automatically adds property name to the current validation context.
 func EachComparableProperty[T comparable](name string, values []T, constraints ...ComparableConstraint[T]) ValidatorArgument {
-	return NewArgument(validateEachComparable(values, constraints)).With(PropertyName(name))
+	return NewArgument(validateEachComparable(values, constraints)).At(PropertyName(name))
 }
 
 // CheckNoViolations is a special argument that checks err for violations. If err contains Violation or ViolationList
@@ -228,12 +228,7 @@ func Check(isValid bool) Checker {
 // CheckProperty argument is an alias for Check that automatically adds property name to the current validation context.
 // It is useful to apply a simple checks on structs.
 func CheckProperty(name string, isValid bool) Checker {
-	return Checker{
-		propertyName:    name,
-		isValid:         isValid,
-		err:             ErrNotValid,
-		messageTemplate: ErrNotValid.Template(),
-	}
+	return Check(isValid).At(PropertyName(name))
 }
 
 type ValidateFunc func(ctx context.Context, validator *Validator) (*ViolationList, error)
@@ -265,12 +260,12 @@ func This[T any](v T, constraints ...Constraint[T]) ValidatorArgument {
 type ValidatorArgument struct {
 	isIgnored bool
 	validate  ValidateFunc
-	options   []Option
+	path      []PropertyPathElement
 }
 
-// With returns a copy of ValidatorArgument with appended options.
-func (arg ValidatorArgument) With(options ...Option) ValidatorArgument {
-	arg.options = append(arg.options, options...)
+// At returns a copy of ValidatorArgument with appended property path suffix.
+func (arg ValidatorArgument) At(path ...PropertyPathElement) ValidatorArgument {
+	arg.path = append(arg.path, path...)
 	return arg
 }
 
@@ -283,26 +278,25 @@ func (arg ValidatorArgument) When(condition bool) ValidatorArgument {
 
 func (arg ValidatorArgument) setUp(ctx *executionContext) {
 	if !arg.isIgnored {
-		ctx.addValidation(arg.options, arg.validate)
+		ctx.addValidation(arg.validate, arg.path...)
 	}
 }
 
 // Checker is an argument that can be useful for quickly checking the result of
 // some simple expression that returns a boolean value.
 type Checker struct {
-	options           []Option
 	isIgnored         bool
 	isValid           bool
-	propertyName      string
+	path              []PropertyPathElement
 	groups            []string
 	err               error
 	messageTemplate   string
 	messageParameters TemplateParameterList
 }
 
-// With returns a copy of Checker with appended options.
-func (c Checker) With(options ...Option) Checker {
-	c.options = append(c.options, options...)
+// At returns a copy of Checker with appended property path suffix.
+func (c Checker) At(path ...PropertyPathElement) Checker {
+	c.path = append(c.path, path...)
 	return c
 }
 
@@ -334,15 +328,12 @@ func (c Checker) WithMessage(template string, parameters ...TemplateParameter) C
 }
 
 func (c Checker) setUp(arguments *executionContext) {
-	arguments.addValidation(c.options, c.validate)
+	arguments.addValidation(c.validate, c.path...)
 }
 
 func (c Checker) validate(ctx context.Context, validator *Validator) (*ViolationList, error) {
 	if c.isValid || c.isIgnored || validator.IsIgnoredForGroups(c.groups...) {
 		return nil, nil
-	}
-	if c.propertyName != "" {
-		validator = validator.AtProperty(c.propertyName)
 	}
 
 	violation := validator.BuildViolation(ctx, c.err, c.messageTemplate).

@@ -65,7 +65,7 @@ func TestWhenArgument_WhenPathIsSet_ExpectViolationWithPath(t *testing.T) {
 	err := newValidator(t).Validate(
 		context.Background(),
 		validation.When(true).
-			With(
+			At(
 				validation.PropertyName("properties"),
 				validation.ArrayIndex(0),
 				validation.PropertyName("property"),
@@ -115,7 +115,7 @@ func TestWhenGroupsArgument_WhenPathIsSet_ExpectViolationWithPath(t *testing.T) 
 		context.Background(),
 		validation.WhenGroups(testGroup).
 			Then(validation.String("", it.IsNotBlank().WhenGroups(testGroup).WithError(ErrThen))).
-			With(
+			At(
 				validation.PropertyName("properties"),
 				validation.ArrayIndex(0),
 				validation.PropertyName("property"),
@@ -145,7 +145,7 @@ func TestSequentialArgument_WhenPathIsSet_ExpectOneViolationWithPath(t *testing.
 		validation.Sequentially(
 			validation.String("", it.IsNotBlank().WithError(ErrFirst)),
 			validation.String("", it.IsNotBlank().WithError(ErrSecond)),
-		).With(
+		).At(
 			validation.PropertyName("properties"),
 			validation.ArrayIndex(0),
 			validation.PropertyName("property"),
@@ -198,7 +198,7 @@ func TestAtLeastOneOfArgument_WhenPathIsSet_ExpectOneViolationWithPath(t *testin
 		context.Background(),
 		validation.AtLeastOneOf(
 			validation.String("", it.IsNotBlank()),
-		).With(
+		).At(
 			validation.PropertyName("properties"),
 			validation.ArrayIndex(0),
 			validation.PropertyName("property"),
@@ -240,7 +240,7 @@ func TestAllArgument_WhenPathIsSet_ExpectOneViolationWithPath(t *testing.T) {
 		validation.All(
 			validation.String("", it.IsNotBlank().WithError(ErrFirst)),
 			validation.String("", it.IsNotBlank().WithError(ErrSecond)),
-		).With(
+		).At(
 			validation.PropertyName("properties"),
 			validation.ArrayIndex(0),
 			validation.PropertyName("property"),
@@ -280,7 +280,7 @@ func TestAsyncArgument_WhenPathIsSet_ExpectOneViolationWithPath(t *testing.T) {
 		context.Background(),
 		validation.Async(
 			validation.String("", it.IsNotBlank().WithError(ErrFirst)),
-		).With(
+		).At(
 			validation.PropertyName("properties"),
 			validation.ArrayIndex(0),
 			validation.PropertyName("property"),

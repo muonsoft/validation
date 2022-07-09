@@ -57,115 +57,115 @@ func TestValidate_WhenPropertyArgument_ExpectValidPathInViolation(t *testing.T) 
 		{
 			name: "NilProperty",
 			argument: validation.NilProperty("property", true, it.IsNotNil()).
-				With(validation.PropertyName("internal")),
+				At(validation.PropertyName("internal")),
 			expectedPath: "property.internal",
 		},
 		{
 			name: "BoolProperty",
 			argument: validation.BoolProperty("property", false, it.IsNotBlank()).
-				With(validation.PropertyName("internal")),
+				At(validation.PropertyName("internal")),
 			expectedPath: "property.internal",
 		},
 		{
 			name: "NilBoolProperty",
 			argument: validation.NilBoolProperty("property", boolValue(false), it.IsNotBlank()).
-				With(validation.PropertyName("internal")),
+				At(validation.PropertyName("internal")),
 			expectedPath: "property.internal",
 		},
 		{
 			name: "NumberProperty",
 			argument: validation.NumberProperty[int]("property", 0, it.IsNotBlankNumber[int]()).
-				With(validation.PropertyName("internal")),
+				At(validation.PropertyName("internal")),
 			expectedPath: "property.internal",
 		},
 		{
 			name: "NilNumberProperty",
 			argument: validation.NilNumberProperty[int]("property", intValue(0), it.IsNotBlankNumber[int]()).
-				With(validation.PropertyName("internal")),
+				At(validation.PropertyName("internal")),
 			expectedPath: "property.internal",
 		},
 		{
 			name: "StringProperty",
 			argument: validation.StringProperty("property", "", it.IsNotBlank()).
-				With(validation.PropertyName("internal")),
+				At(validation.PropertyName("internal")),
 			expectedPath: "property.internal",
 		},
 		{
 			name: "NilStringProperty",
 			argument: validation.NilStringProperty("property", stringValue(""), it.IsNotBlank()).
-				With(validation.PropertyName("internal")),
+				At(validation.PropertyName("internal")),
 			expectedPath: "property.internal",
 		},
 		{
 			name: "CountableProperty",
 			argument: validation.CountableProperty("property", 0, it.IsNotBlank()).
-				With(validation.PropertyName("internal")),
+				At(validation.PropertyName("internal")),
 			expectedPath: "property.internal",
 		},
 		{
 			name: "TimeProperty",
 			argument: validation.TimeProperty("property", time.Time{}, it.IsNotBlank()).
-				With(validation.PropertyName("internal")),
+				At(validation.PropertyName("internal")),
 			expectedPath: "property.internal",
 		},
 		{
 			name: "NilTimeProperty",
 			argument: validation.NilTimeProperty("property", nilTime, it.IsNotBlank()).
-				With(validation.PropertyName("internal")),
+				At(validation.PropertyName("internal")),
 			expectedPath: "property.internal",
 		},
 		{
 			name: "ComparableProperty",
 			argument: validation.ComparableProperty[string]("property", "foo", it.IsOneOf("bar")).
-				With(validation.PropertyName("internal")),
+				At(validation.PropertyName("internal")),
 			expectedPath: "property.internal",
 		},
 		{
 			name: "NilComparableProperty",
 			argument: validation.NilComparableProperty[string]("property", stringValue("foo"), it.IsOneOf("bar")).
-				With(validation.PropertyName("internal")),
+				At(validation.PropertyName("internal")),
 			expectedPath: "property.internal",
 		},
 		{
 			name: "ComparablesProperty",
 			argument: validation.ComparablesProperty[string]("property", []string{"foo", "foo"}, it.HasUniqueValues[string]()).
-				With(validation.PropertyName("internal")),
+				At(validation.PropertyName("internal")),
 			expectedPath: "property.internal",
 		},
 		{
 			name: "EachStringProperty",
 			argument: validation.EachStringProperty("property", []string{""}, it.IsNotBlank()).
-				With(validation.PropertyName("internal")),
+				At(validation.PropertyName("internal")),
 			expectedPath: "property.internal[0]",
 		},
 		{
 			name: "EachNumberProperty",
 			argument: validation.EachNumberProperty[int]("property", []int{0}, it.IsNotBlankNumber[int]()).
-				With(validation.PropertyName("internal")),
+				At(validation.PropertyName("internal")),
 			expectedPath: "property.internal[0]",
 		},
 		{
 			name: "EachComparableProperty",
 			argument: validation.EachComparableProperty[string]("property", []string{"foo"}, it.IsOneOf("bar")).
-				With(validation.PropertyName("internal")),
+				At(validation.PropertyName("internal")),
 			expectedPath: "property.internal[0]",
 		},
 		{
 			name: "ValidProperty",
 			argument: validation.ValidProperty("property", mockValidatableString{""}).
-				With(validation.PropertyName("internal")),
+				At(validation.PropertyName("internal")),
 			expectedPath: "property.internal.value",
 		},
 		{
 			name: "ValidSliceProperty",
 			argument: validation.ValidSliceProperty("property", []mockValidatableString{{""}}).
-				With(validation.PropertyName("internal")),
+				At(validation.PropertyName("internal")),
 			expectedPath: "property.internal[0].value",
 		},
 		{
 			name: "ValidMapProperty",
 			argument: validation.ValidMapProperty("property", map[string]mockValidatableString{"key": {""}}).
-				With(validation.PropertyName("internal")),
+				At(validation.PropertyName("internal")),
 			expectedPath: "property.internal.key.value",
 		},
 	}
@@ -191,7 +191,7 @@ func TestCheck_WhenFalse_ExpectViolation(t *testing.T) {
 func TestCheck_WhenFalseWithPath_ExpectViolationWithPath(t *testing.T) {
 	err := validator.Validate(
 		context.Background(),
-		validation.Check(false).With(
+		validation.Check(false).At(
 			validation.PropertyName("properties"),
 			validation.ArrayIndex(0),
 			validation.PropertyName("property"),

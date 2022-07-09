@@ -361,11 +361,3 @@ func (validator *Validator) copy() *Validator {
 		constraints:      validator.constraints,
 	}
 }
-
-func (validator *Validator) withOptions(options ...Option) *Validator {
-	v := validator
-	for _, option := range options {
-		v = option.SetUp(v)
-	}
-	return v
-}

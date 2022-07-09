@@ -9,9 +9,9 @@ type executionContext struct {
 	validations []ValidateFunc
 }
 
-func (ctx *executionContext) addValidation(options []Option, validate ValidateFunc) {
+func (ctx *executionContext) addValidation(validate ValidateFunc, path ...PropertyPathElement) {
 	ctx.validations = append(ctx.validations, func(ctx context.Context, validator *Validator) (*ViolationList, error) {
-		return validate(ctx, validator.withOptions(options...))
+		return validate(ctx, validator.At(path...))
 	})
 }
 

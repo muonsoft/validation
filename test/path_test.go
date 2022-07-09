@@ -57,7 +57,7 @@ func TestValidate_WhenPathIsSetViaOptions_ExpectViolationAtPath(t *testing.T) {
 
 	err := validator.Validate(
 		context.Background(),
-		validation.String(v, it.IsNotBlank()).With(
+		validation.String(v, it.IsNotBlank()).At(
 			validation.PropertyName("properties"),
 			validation.ArrayIndex(0),
 			validation.PropertyName("value"),

@@ -18,7 +18,7 @@ func (c errConstraint) ValidateString(ctx context.Context, validator *validation
 func TestValidator_Validate_WhenInvalidConstraintAtPropertyPath_ExpectErrorWithPropertyPath(t *testing.T) {
 	err := validator.Validate(
 		context.Background(),
-		validation.String("", errConstraint{}).With(
+		validation.String("", errConstraint{}).At(
 			validation.PropertyName("properties"),
 			validation.ArrayIndex(1),
 			validation.PropertyName("error"),
