@@ -69,7 +69,7 @@ var isNotBlankConstraintTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsNotBlank passes on nil when allowed",
 		isApplicableFor: specificValueTypes(boolType, stringType, timeType),
-		constraint:      it.IsNotBlank().AllowNil(),
+		constraint:      it.IsNotBlank().WithAllowedNil(),
 		assert:          assertNoError,
 	},
 	{
@@ -124,7 +124,7 @@ var isNotBlankNumberConstraintTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsNotBlankNumber passes on nil when allowed",
 		isApplicableFor: specificValueTypes(intType),
-		constraint:      it.IsNotBlankNumber[int]().AllowNil(),
+		constraint:      it.IsNotBlankNumber[int]().WithAllowedNil(),
 		assert:          assertNoError,
 	},
 	{
@@ -172,7 +172,7 @@ var isNotBlankComparableConstraintTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsNotBlankComparable passes on nil when allowed",
 		isApplicableFor: specificValueTypes(comparableType),
-		constraint:      it.IsNotBlankComparable[string]().AllowNil(),
+		constraint:      it.IsNotBlankComparable[string]().WithAllowedNil(),
 		assert:          assertNoError,
 	},
 	{

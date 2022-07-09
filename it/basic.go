@@ -8,7 +8,7 @@ import (
 )
 
 // NotBlankConstraint checks that a value is not blank: an empty string, an empty countable (slice/array/map),
-// an empty generic number, generic comparable, false or nil. Nil behavior is configurable via AllowNil() method.
+// an empty generic number, generic comparable, false or nil. Nil behavior is configurable via WithAllowedNil() method.
 // To check that a value is not nil only use NotNilConstraint.
 type NotBlankConstraint[T comparable] struct {
 	blank             T
@@ -38,8 +38,8 @@ func IsNotBlankComparable[T comparable]() NotBlankConstraint[T] {
 	}
 }
 
-// AllowNil makes nil values valid.
-func (c NotBlankConstraint[T]) AllowNil() NotBlankConstraint[T] {
+// WithAllowedNil makes nil values valid.
+func (c NotBlankConstraint[T]) WithAllowedNil() NotBlankConstraint[T] {
 	c.allowNil = true
 	return c
 }
