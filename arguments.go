@@ -221,7 +221,7 @@ func Check(isValid bool) Checker {
 	return Checker{
 		isValid:         isValid,
 		err:             ErrNotValid,
-		messageTemplate: ErrNotValid.Template(),
+		messageTemplate: ErrNotValid.Message(),
 	}
 }
 

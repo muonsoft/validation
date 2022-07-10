@@ -15,7 +15,7 @@ import (
 func IsEmail() validation.StringFuncConstraint {
 	return validation.OfStringBy(is.Email).
 		WithError(validation.ErrInvalidEmail).
-		WithMessage(validation.ErrInvalidEmail.Template())
+		WithMessage(validation.ErrInvalidEmail.Message())
 }
 
 // IsHTML5Email is used for validation of an email address based on pattern for HTML5
@@ -23,7 +23,7 @@ func IsEmail() validation.StringFuncConstraint {
 func IsHTML5Email() validation.StringFuncConstraint {
 	return validation.OfStringBy(is.HTML5Email).
 		WithError(validation.ErrInvalidEmail).
-		WithMessage(validation.ErrInvalidEmail.Template())
+		WithMessage(validation.ErrInvalidEmail.Message())
 }
 
 // IsHostname validates that a value is a valid hostname. It checks that:
@@ -39,7 +39,7 @@ func IsHTML5Email() validation.StringFuncConstraint {
 func IsHostname() validation.StringFuncConstraint {
 	return validation.OfStringBy(is.StrictHostname).
 		WithError(validation.ErrInvalidHostname).
-		WithMessage(validation.ErrInvalidHostname.Template())
+		WithMessage(validation.ErrInvalidHostname.Message())
 }
 
 // IsLooseHostname validates that a value is a valid hostname. It checks that:
@@ -48,7 +48,7 @@ func IsHostname() validation.StringFuncConstraint {
 func IsLooseHostname() validation.StringFuncConstraint {
 	return validation.OfStringBy(is.Hostname).
 		WithError(validation.ErrInvalidHostname).
-		WithMessage(validation.ErrInvalidHostname.Template())
+		WithMessage(validation.ErrInvalidHostname.Message())
 }
 
 // URLConstraint is used to validate URL string. This constraint doesn’t check that the host of the
@@ -73,7 +73,7 @@ func IsURL() URLConstraint {
 	return URLConstraint{
 		schemas:         []string{"http", "https"},
 		err:             validation.ErrInvalidURL,
-		messageTemplate: validation.ErrInvalidURL.Template(),
+		messageTemplate: validation.ErrInvalidURL.Message(),
 	}
 }
 
@@ -184,8 +184,8 @@ func newIPConstraint(validate func(value string, restrictions ...validate.IPRest
 		validate:                  validate,
 		invalidErr:                validation.ErrInvalidIP,
 		prohibitedErr:             validation.ErrProhibitedIP,
-		invalidMessageTemplate:    validation.ErrInvalidIP.Template(),
-		prohibitedMessageTemplate: validation.ErrProhibitedIP.Template(),
+		invalidMessageTemplate:    validation.ErrInvalidIP.Message(),
+		prohibitedMessageTemplate: validation.ErrProhibitedIP.Message(),
 	}
 }
 

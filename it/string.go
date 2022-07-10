@@ -39,9 +39,9 @@ func newLengthConstraint(min int, max int, checkMin bool, checkMax bool) LengthC
 		minErr:               validation.ErrTooShort,
 		maxErr:               validation.ErrTooLong,
 		exactErr:             validation.ErrNotExactLength,
-		minMessageTemplate:   validation.ErrTooShort.Template(),
-		maxMessageTemplate:   validation.ErrTooLong.Template(),
-		exactMessageTemplate: validation.ErrNotExactLength.Template(),
+		minMessageTemplate:   validation.ErrTooShort.Message(),
+		maxMessageTemplate:   validation.ErrTooLong.Message(),
+		exactMessageTemplate: validation.ErrNotExactLength.Message(),
 	}
 }
 
@@ -203,7 +203,7 @@ func Matches(regex *regexp.Regexp) RegexpConstraint {
 		regex:           regex,
 		match:           true,
 		err:             validation.ErrNotValid,
-		messageTemplate: validation.ErrNotValid.Template(),
+		messageTemplate: validation.ErrNotValid.Message(),
 	}
 }
 
@@ -213,7 +213,7 @@ func DoesNotMatch(regex *regexp.Regexp) RegexpConstraint {
 		regex:           regex,
 		match:           false,
 		err:             validation.ErrNotValid,
-		messageTemplate: validation.ErrNotValid.Template(),
+		messageTemplate: validation.ErrNotValid.Message(),
 	}
 }
 
@@ -271,19 +271,19 @@ func (c RegexpConstraint) ValidateString(ctx context.Context, validator *validat
 func IsJSON() validation.StringFuncConstraint {
 	return validation.OfStringBy(is.JSON).
 		WithError(validation.ErrInvalidJSON).
-		WithMessage(validation.ErrInvalidJSON.Template())
+		WithMessage(validation.ErrInvalidJSON.Message())
 }
 
 // IsInteger checks that string value is an integer.
 func IsInteger() validation.StringFuncConstraint {
 	return validation.OfStringBy(is.Integer).
 		WithError(validation.ErrNotInteger).
-		WithMessage(validation.ErrNotInteger.Template())
+		WithMessage(validation.ErrNotInteger.Message())
 }
 
 // IsNumeric checks that string value is a valid numeric (integer or float).
 func IsNumeric() validation.StringFuncConstraint {
 	return validation.OfStringBy(is.Number).
 		WithError(validation.ErrNotNumeric).
-		WithMessage(validation.ErrNotNumeric.Template())
+		WithMessage(validation.ErrNotNumeric.Message())
 }

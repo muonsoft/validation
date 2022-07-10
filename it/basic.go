@@ -34,7 +34,7 @@ func IsNotBlankNumber[T validation.Numeric]() NotBlankConstraint[T] {
 func IsNotBlankComparable[T comparable]() NotBlankConstraint[T] {
 	return NotBlankConstraint[T]{
 		err:             validation.ErrIsBlank,
-		messageTemplate: validation.ErrIsBlank.Template(),
+		messageTemplate: validation.ErrIsBlank.Message(),
 	}
 }
 
@@ -171,7 +171,7 @@ func IsBlankNumber[T validation.Numeric]() BlankConstraint[T] {
 func IsBlankComparable[T comparable]() BlankConstraint[T] {
 	return BlankConstraint[T]{
 		err:             validation.ErrNotBlank,
-		messageTemplate: validation.ErrNotBlank.Template(),
+		messageTemplate: validation.ErrNotBlank.Message(),
 	}
 }
 
@@ -276,7 +276,7 @@ func IsNotNilNumber[T validation.Numeric]() NotNilConstraint[T] {
 func IsNotNilComparable[T comparable]() NotNilConstraint[T] {
 	return NotNilConstraint[T]{
 		err:             validation.ErrIsNil,
-		messageTemplate: validation.ErrIsNil.Template(),
+		messageTemplate: validation.ErrIsNil.Message(),
 	}
 }
 
@@ -365,7 +365,7 @@ func IsNilNumber[T validation.Numeric]() NilConstraint[T] {
 func IsNilComparable[T comparable]() NilConstraint[T] {
 	return NilConstraint[T]{
 		err:             validation.ErrNotNil,
-		messageTemplate: validation.ErrNotNil.Template(),
+		messageTemplate: validation.ErrNotNil.Message(),
 	}
 }
 
@@ -445,7 +445,7 @@ func IsTrue() BoolConstraint {
 	return BoolConstraint{
 		expected:        true,
 		err:             validation.ErrNotTrue,
-		messageTemplate: validation.ErrNotTrue.Template(),
+		messageTemplate: validation.ErrNotTrue.Message(),
 	}
 }
 
@@ -454,7 +454,7 @@ func IsFalse() BoolConstraint {
 	return BoolConstraint{
 		expected:        false,
 		err:             validation.ErrNotFalse,
-		messageTemplate: validation.ErrNotFalse.Template(),
+		messageTemplate: validation.ErrNotFalse.Message(),
 	}
 }
 

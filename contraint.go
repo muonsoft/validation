@@ -73,7 +73,7 @@ func OfStringBy(isValid func(string) bool) StringFuncConstraint {
 	return StringFuncConstraint{
 		isValid:         isValid,
 		err:             ErrNotValid,
-		messageTemplate: ErrNotValid.Template(),
+		messageTemplate: ErrNotValid.Message(),
 	}
 }
 

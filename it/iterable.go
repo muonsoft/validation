@@ -36,9 +36,9 @@ func newCountConstraint(min int, max int, checkMin bool, checkMax bool) CountCon
 		minErr:               validation.ErrTooFewElements,
 		maxErr:               validation.ErrTooManyElements,
 		exactErr:             validation.ErrNotExactCount,
-		minMessageTemplate:   validation.ErrTooFewElements.Template(),
-		maxMessageTemplate:   validation.ErrTooManyElements.Template(),
-		exactMessageTemplate: validation.ErrNotExactCount.Template(),
+		minMessageTemplate:   validation.ErrTooFewElements.Message(),
+		maxMessageTemplate:   validation.ErrTooManyElements.Message(),
+		exactMessageTemplate: validation.ErrNotExactCount.Message(),
 	}
 }
 

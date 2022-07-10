@@ -44,7 +44,7 @@ func IsOneOf[T comparable](values ...T) ChoiceConstraint[T] {
 		choices:         choices,
 		choicesValue:    s.String(),
 		err:             validation.ErrNoSuchChoice,
-		messageTemplate: validation.ErrNoSuchChoice.Template(),
+		messageTemplate: validation.ErrNoSuchChoice.Message(),
 	}
 }
 

@@ -27,7 +27,7 @@ func IsEqualTo[T comparable](value T) ComparisonConstraint[T] {
 	return ComparisonConstraint[T]{
 		err:             validation.ErrNotEqual,
 		value:           value,
-		messageTemplate: validation.ErrNotEqual.Template(),
+		messageTemplate: validation.ErrNotEqual.Message(),
 		comparedValue:   formatComparable(value),
 		isValid:         func(v T) bool { return v == value },
 	}
@@ -38,7 +38,7 @@ func IsNotEqualTo[T comparable](value T) ComparisonConstraint[T] {
 	return ComparisonConstraint[T]{
 		err:             validation.ErrIsEqual,
 		value:           value,
-		messageTemplate: validation.ErrIsEqual.Template(),
+		messageTemplate: validation.ErrIsEqual.Message(),
 		comparedValue:   formatComparable(value),
 		isValid:         func(v T) bool { return v != value },
 	}
@@ -117,7 +117,7 @@ func IsLessThan[T validation.Numeric](value T) NumberComparisonConstraint[T] {
 	return NumberComparisonConstraint[T]{
 		err:             validation.ErrTooHigh,
 		value:           value,
-		messageTemplate: validation.ErrTooHigh.Template(),
+		messageTemplate: validation.ErrTooHigh.Message(),
 		comparedValue:   fmt.Sprint(value),
 		isValid:         func(n T) bool { return n < value },
 	}
@@ -128,7 +128,7 @@ func IsLessThanOrEqual[T validation.Numeric](value T) NumberComparisonConstraint
 	return NumberComparisonConstraint[T]{
 		err:             validation.ErrTooHighOrEqual,
 		value:           value,
-		messageTemplate: validation.ErrTooHighOrEqual.Template(),
+		messageTemplate: validation.ErrTooHighOrEqual.Message(),
 		comparedValue:   fmt.Sprint(value),
 		isValid:         func(n T) bool { return n <= value },
 	}
@@ -139,7 +139,7 @@ func IsGreaterThan[T validation.Numeric](value T) NumberComparisonConstraint[T] 
 	return NumberComparisonConstraint[T]{
 		err:             validation.ErrTooLow,
 		value:           value,
-		messageTemplate: validation.ErrTooLow.Template(),
+		messageTemplate: validation.ErrTooLow.Message(),
 		comparedValue:   fmt.Sprint(value),
 		isValid:         func(n T) bool { return n > value },
 	}
@@ -150,7 +150,7 @@ func IsGreaterThanOrEqual[T validation.Numeric](value T) NumberComparisonConstra
 	return NumberComparisonConstraint[T]{
 		err:             validation.ErrTooLowOrEqual,
 		value:           value,
-		messageTemplate: validation.ErrTooLowOrEqual.Template(),
+		messageTemplate: validation.ErrTooLowOrEqual.Message(),
 		comparedValue:   fmt.Sprint(value),
 		isValid:         func(n T) bool { return n >= value },
 	}
@@ -162,7 +162,7 @@ func IsPositive[T validation.Numeric]() NumberComparisonConstraint[T] {
 	return NumberComparisonConstraint[T]{
 		err:             validation.ErrNotPositive,
 		value:           0,
-		messageTemplate: validation.ErrNotPositive.Template(),
+		messageTemplate: validation.ErrNotPositive.Message(),
 		comparedValue:   "0",
 		isValid:         func(n T) bool { return n > 0 },
 	}
@@ -174,7 +174,7 @@ func IsPositiveOrZero[T validation.Numeric]() NumberComparisonConstraint[T] {
 	return NumberComparisonConstraint[T]{
 		err:             validation.ErrNotPositiveOrZero,
 		value:           0,
-		messageTemplate: validation.ErrNotPositiveOrZero.Template(),
+		messageTemplate: validation.ErrNotPositiveOrZero.Message(),
 		comparedValue:   "0",
 		isValid:         func(n T) bool { return n >= 0 },
 	}
@@ -186,7 +186,7 @@ func IsNegative[T validation.Numeric]() NumberComparisonConstraint[T] {
 	return NumberComparisonConstraint[T]{
 		err:             validation.ErrNotNegative,
 		value:           0,
-		messageTemplate: validation.ErrNotNegative.Template(),
+		messageTemplate: validation.ErrNotNegative.Message(),
 		comparedValue:   "0",
 		isValid:         func(n T) bool { return n < 0 },
 	}
@@ -198,7 +198,7 @@ func IsNegativeOrZero[T validation.Numeric]() NumberComparisonConstraint[T] {
 	return NumberComparisonConstraint[T]{
 		err:             validation.ErrNotNegativeOrZero,
 		value:           0,
-		messageTemplate: validation.ErrNotNegativeOrZero.Template(),
+		messageTemplate: validation.ErrNotNegativeOrZero.Message(),
 		comparedValue:   "0",
 		isValid:         func(n T) bool { return n <= 0 },
 	}
@@ -269,7 +269,7 @@ func IsBetween[T validation.Numeric](min, max T) RangeConstraint[T] {
 		min:             min,
 		max:             max,
 		err:             validation.ErrNotInRange,
-		messageTemplate: validation.ErrNotInRange.Template(),
+		messageTemplate: validation.ErrNotInRange.Message(),
 	}
 }
 
@@ -347,7 +347,7 @@ type TimeComparisonConstraint struct {
 func IsEarlierThan(value time.Time) TimeComparisonConstraint {
 	return TimeComparisonConstraint{
 		err:             validation.ErrTooLate,
-		messageTemplate: validation.ErrTooLate.Template(),
+		messageTemplate: validation.ErrTooLate.Message(),
 		comparedValue:   value,
 		layout:          time.RFC3339,
 		isValid: func(actualValue time.Time) bool {
@@ -360,7 +360,7 @@ func IsEarlierThan(value time.Time) TimeComparisonConstraint {
 func IsEarlierThanOrEqual(value time.Time) TimeComparisonConstraint {
 	return TimeComparisonConstraint{
 		err:             validation.ErrTooLateOrEqual,
-		messageTemplate: validation.ErrTooLateOrEqual.Template(),
+		messageTemplate: validation.ErrTooLateOrEqual.Message(),
 		comparedValue:   value,
 		layout:          time.RFC3339,
 		isValid: func(actualValue time.Time) bool {
@@ -373,7 +373,7 @@ func IsEarlierThanOrEqual(value time.Time) TimeComparisonConstraint {
 func IsLaterThan(value time.Time) TimeComparisonConstraint {
 	return TimeComparisonConstraint{
 		err:             validation.ErrTooEarly,
-		messageTemplate: validation.ErrTooEarly.Template(),
+		messageTemplate: validation.ErrTooEarly.Message(),
 		comparedValue:   value,
 		layout:          time.RFC3339,
 		isValid: func(actualValue time.Time) bool {
@@ -386,7 +386,7 @@ func IsLaterThan(value time.Time) TimeComparisonConstraint {
 func IsLaterThanOrEqual(value time.Time) TimeComparisonConstraint {
 	return TimeComparisonConstraint{
 		err:             validation.ErrTooEarlyOrEqual,
-		messageTemplate: validation.ErrTooEarlyOrEqual.Template(),
+		messageTemplate: validation.ErrTooEarlyOrEqual.Message(),
 		comparedValue:   value,
 		layout:          time.RFC3339,
 		isValid: func(actualValue time.Time) bool {
@@ -468,7 +468,7 @@ type TimeRangeConstraint struct {
 func IsBetweenTime(min, max time.Time) TimeRangeConstraint {
 	return TimeRangeConstraint{
 		err:             validation.ErrNotInRange,
-		messageTemplate: validation.ErrNotInRange.Template(),
+		messageTemplate: validation.ErrNotInRange.Message(),
 		layout:          time.RFC3339,
 		min:             min,
 		max:             max,
@@ -555,7 +555,7 @@ type UniqueConstraint[T comparable] struct {
 func HasUniqueValues[T comparable]() UniqueConstraint[T] {
 	return UniqueConstraint[T]{
 		err:             validation.ErrNotUnique,
-		messageTemplate: validation.ErrNotUnique.Template(),
+		messageTemplate: validation.ErrNotUnique.Message(),
 	}
 }
 

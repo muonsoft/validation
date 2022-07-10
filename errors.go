@@ -55,19 +55,23 @@ var (
 
 // Error is a base type for static validation error used as an underlying error for Violation.
 // It can be used to programmatically test for a specific violation.
-// Error code values are protected by backward compatibility rules, template values are not protected.
+// Error code values are protected by backward compatibility rules, message values are not protected.
 type Error struct {
-	code     string
-	template string
+	code    string
+	message string
 }
 
 // NewError creates a static validation error. It should be used to create only package-level errors.
 func NewError(code string, template string) *Error {
-	return &Error{code: code, template: template}
+	return &Error{code: code, message: template}
 }
 
-func (err *Error) Error() string    { return err.code }
-func (err *Error) Template() string { return err.template }
+// Error returns error code. This code is protected by backward compatibility rules.
+func (err *Error) Error() string { return err.code }
+
+// Message returns message template that will be shown to the end user.
+// Be aware. This message is not protected by backward compatibility rules and may be changed even in patch versions.
+func (err *Error) Message() string { return err.message }
 
 // ConstraintError is used to return critical error from constraint that immediately
 // stops the validation process. It is recommended to use validator.CreateConstraintError() method
