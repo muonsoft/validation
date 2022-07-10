@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/muonsoft/validation"
-	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +18,7 @@ func TestValidator_GetConstraint_WhenConstraintExists_ExpectValidationByStoredCo
 		validation.String("", validator.GetConstraint("notBlank").(validation.StringConstraint)),
 	)
 
-	assertHasOneViolation(code.NotBlank, message.Templates[code.NotBlank])(t, err)
+	assertHasOneViolation(validation.ErrIsBlank, message.IsBlank)(t, err)
 }
 
 func TestValidator_StoreConstraint_WhenConstraintExists_ExpectError(t *testing.T) {

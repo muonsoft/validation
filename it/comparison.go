@@ -1,14 +1,13 @@
 package it
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"time"
 
 	"github.com/muonsoft/validation"
-	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/is"
-	"github.com/muonsoft/validation/message"
 )
 
 // ComparisonConstraint is used for comparisons between comparable generic types.
@@ -16,7 +15,7 @@ type ComparisonConstraint[T comparable] struct {
 	isIgnored         bool
 	value             T
 	groups            []string
-	code              string
+	err               error
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
 	comparedValue     string
@@ -26,9 +25,9 @@ type ComparisonConstraint[T comparable] struct {
 // IsEqualTo checks that the value is equal to the specified value.
 func IsEqualTo[T comparable](value T) ComparisonConstraint[T] {
 	return ComparisonConstraint[T]{
-		code:            code.Equal,
+		err:             validation.ErrNotEqual,
 		value:           value,
-		messageTemplate: message.Templates[code.Equal],
+		messageTemplate: validation.ErrNotEqual.Message(),
 		comparedValue:   formatComparable(value),
 		isValid:         func(v T) bool { return v == value },
 	}
@@ -37,38 +36,26 @@ func IsEqualTo[T comparable](value T) ComparisonConstraint[T] {
 // IsNotEqualTo checks that the value is not equal to the specified value.
 func IsNotEqualTo[T comparable](value T) ComparisonConstraint[T] {
 	return ComparisonConstraint[T]{
-		code:            code.NotEqual,
+		err:             validation.ErrIsEqual,
 		value:           value,
-		messageTemplate: message.Templates[code.NotEqual],
+		messageTemplate: validation.ErrIsEqual.Message(),
 		comparedValue:   formatComparable(value),
 		isValid:         func(v T) bool { return v != value },
 	}
 }
 
-// IsEqualToString checks that the string value is equal to the specified string value.
-// Deprecated: use IsEqualTo instead.
-func IsEqualToString(value string) ComparisonConstraint[string] {
-	return IsEqualTo(value)
-}
-
-// IsNotEqualToString checks that the string value is not equal to the specified string value.
-// Deprecated: use IsNotEqualTo instead.
-func IsNotEqualToString(value string) ComparisonConstraint[string] {
-	return IsNotEqualTo(value)
-}
-
-// Code overrides default code for produced violation.
-func (c ComparisonConstraint[T]) Code(code string) ComparisonConstraint[T] {
-	c.code = code
+// WithError overrides default error for produced violation.
+func (c ComparisonConstraint[T]) WithError(err error) ComparisonConstraint[T] {
+	c.err = err
 	return c
 }
 
-// Message sets the violation message template. You can set custom template parameters
+// WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message. Also, you can use default parameters:
 //
 //  {{ comparedValue }} - the expected value;
 //  {{ value }} - the current (invalid) value.
-func (c ComparisonConstraint[T]) Message(
+func (c ComparisonConstraint[T]) WithMessage(
 	template string,
 	parameters ...validation.TemplateParameter,
 ) ComparisonConstraint[T] {
@@ -90,20 +77,20 @@ func (c ComparisonConstraint[T]) WhenGroups(groups ...string) ComparisonConstrai
 	return c
 }
 
-func (c ComparisonConstraint[T]) ValidateNumber(value *T, scope validation.Scope) error {
-	return c.ValidateComparable(value, scope)
+func (c ComparisonConstraint[T]) ValidateNumber(ctx context.Context, validator *validation.Validator, value *T) error {
+	return c.ValidateComparable(ctx, validator, value)
 }
 
-func (c ComparisonConstraint[T]) ValidateString(value *T, scope validation.Scope) error {
-	return c.ValidateComparable(value, scope)
+func (c ComparisonConstraint[T]) ValidateString(ctx context.Context, validator *validation.Validator, value *T) error {
+	return c.ValidateComparable(ctx, validator, value)
 }
 
-func (c ComparisonConstraint[T]) ValidateComparable(value *T, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || c.isValid(*value) {
+func (c ComparisonConstraint[T]) ValidateComparable(ctx context.Context, validator *validation.Validator, value *T) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || c.isValid(*value) {
 		return nil
 	}
 
-	return scope.BuildViolation(c.code, c.messageTemplate).
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ comparedValue }}", Value: c.comparedValue},
@@ -118,43 +105,19 @@ type NumberComparisonConstraint[T validation.Numeric] struct {
 	isIgnored         bool
 	value             T
 	groups            []string
-	code              string
+	err               error
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
 	comparedValue     string
 	isValid           func(value T) bool
 }
 
-// IsEqualToNumber checks that the number is equal to the specified value.
-// Deprecated: use IsEqualTo instead.
-func IsEqualToNumber[T validation.Numeric](value T) NumberComparisonConstraint[T] {
-	return NumberComparisonConstraint[T]{
-		code:            code.Equal,
-		value:           value,
-		messageTemplate: message.Templates[code.Equal],
-		comparedValue:   fmt.Sprint(value),
-		isValid:         func(n T) bool { return n == value },
-	}
-}
-
-// IsNotEqualToNumber checks that the number is not equal to the specified value.
-// Deprecated: use IsNotEqualTo instead.
-func IsNotEqualToNumber[T validation.Numeric](value T) NumberComparisonConstraint[T] {
-	return NumberComparisonConstraint[T]{
-		code:            code.NotEqual,
-		value:           value,
-		messageTemplate: message.Templates[code.NotEqual],
-		comparedValue:   fmt.Sprint(value),
-		isValid:         func(n T) bool { return n != value },
-	}
-}
-
 // IsLessThan checks that the number is less than the specified value.
 func IsLessThan[T validation.Numeric](value T) NumberComparisonConstraint[T] {
 	return NumberComparisonConstraint[T]{
-		code:            code.TooHigh,
+		err:             validation.ErrTooHigh,
 		value:           value,
-		messageTemplate: message.Templates[code.TooHigh],
+		messageTemplate: validation.ErrTooHigh.Message(),
 		comparedValue:   fmt.Sprint(value),
 		isValid:         func(n T) bool { return n < value },
 	}
@@ -163,9 +126,9 @@ func IsLessThan[T validation.Numeric](value T) NumberComparisonConstraint[T] {
 // IsLessThanOrEqual checks that the number is less than or equal to the specified value.
 func IsLessThanOrEqual[T validation.Numeric](value T) NumberComparisonConstraint[T] {
 	return NumberComparisonConstraint[T]{
-		code:            code.TooHighOrEqual,
+		err:             validation.ErrTooHighOrEqual,
 		value:           value,
-		messageTemplate: message.Templates[code.TooHighOrEqual],
+		messageTemplate: validation.ErrTooHighOrEqual.Message(),
 		comparedValue:   fmt.Sprint(value),
 		isValid:         func(n T) bool { return n <= value },
 	}
@@ -174,9 +137,9 @@ func IsLessThanOrEqual[T validation.Numeric](value T) NumberComparisonConstraint
 // IsGreaterThan checks that the number is greater than the specified value.
 func IsGreaterThan[T validation.Numeric](value T) NumberComparisonConstraint[T] {
 	return NumberComparisonConstraint[T]{
-		code:            code.TooLow,
+		err:             validation.ErrTooLow,
 		value:           value,
-		messageTemplate: message.Templates[code.TooLow],
+		messageTemplate: validation.ErrTooLow.Message(),
 		comparedValue:   fmt.Sprint(value),
 		isValid:         func(n T) bool { return n > value },
 	}
@@ -185,9 +148,9 @@ func IsGreaterThan[T validation.Numeric](value T) NumberComparisonConstraint[T] 
 // IsGreaterThanOrEqual checks that the number is greater than or equal to the specified value.
 func IsGreaterThanOrEqual[T validation.Numeric](value T) NumberComparisonConstraint[T] {
 	return NumberComparisonConstraint[T]{
-		code:            code.TooLowOrEqual,
+		err:             validation.ErrTooLowOrEqual,
 		value:           value,
-		messageTemplate: message.Templates[code.TooLowOrEqual],
+		messageTemplate: validation.ErrTooLowOrEqual.Message(),
 		comparedValue:   fmt.Sprint(value),
 		isValid:         func(n T) bool { return n >= value },
 	}
@@ -197,9 +160,9 @@ func IsGreaterThanOrEqual[T validation.Numeric](value T) NumberComparisonConstra
 // If you want to allow zero use IsPositiveOrZero comparison.
 func IsPositive[T validation.Numeric]() NumberComparisonConstraint[T] {
 	return NumberComparisonConstraint[T]{
-		code:            code.NotPositive,
+		err:             validation.ErrNotPositive,
 		value:           0,
-		messageTemplate: message.Templates[code.NotPositive],
+		messageTemplate: validation.ErrNotPositive.Message(),
 		comparedValue:   "0",
 		isValid:         func(n T) bool { return n > 0 },
 	}
@@ -209,9 +172,9 @@ func IsPositive[T validation.Numeric]() NumberComparisonConstraint[T] {
 // If you don't want to allow zero as a valid value, use IsPositive comparison.
 func IsPositiveOrZero[T validation.Numeric]() NumberComparisonConstraint[T] {
 	return NumberComparisonConstraint[T]{
-		code:            code.NotPositiveOrZero,
+		err:             validation.ErrNotPositiveOrZero,
 		value:           0,
-		messageTemplate: message.Templates[code.NotPositiveOrZero],
+		messageTemplate: validation.ErrNotPositiveOrZero.Message(),
 		comparedValue:   "0",
 		isValid:         func(n T) bool { return n >= 0 },
 	}
@@ -221,9 +184,9 @@ func IsPositiveOrZero[T validation.Numeric]() NumberComparisonConstraint[T] {
 // If you want to allow zero use IsNegativeOrZero comparison.
 func IsNegative[T validation.Numeric]() NumberComparisonConstraint[T] {
 	return NumberComparisonConstraint[T]{
-		code:            code.NotNegative,
+		err:             validation.ErrNotNegative,
 		value:           0,
-		messageTemplate: message.Templates[code.NotNegative],
+		messageTemplate: validation.ErrNotNegative.Message(),
 		comparedValue:   "0",
 		isValid:         func(n T) bool { return n < 0 },
 	}
@@ -233,26 +196,26 @@ func IsNegative[T validation.Numeric]() NumberComparisonConstraint[T] {
 // If you don't want to allow zero as a valid value, use IsNegative comparison.
 func IsNegativeOrZero[T validation.Numeric]() NumberComparisonConstraint[T] {
 	return NumberComparisonConstraint[T]{
-		code:            code.NotNegativeOrZero,
+		err:             validation.ErrNotNegativeOrZero,
 		value:           0,
-		messageTemplate: message.Templates[code.NotNegativeOrZero],
+		messageTemplate: validation.ErrNotNegativeOrZero.Message(),
 		comparedValue:   "0",
 		isValid:         func(n T) bool { return n <= 0 },
 	}
 }
 
-// Code overrides default code for produced violation.
-func (c NumberComparisonConstraint[T]) Code(code string) NumberComparisonConstraint[T] {
-	c.code = code
+// WithError overrides default error for produced violation.
+func (c NumberComparisonConstraint[T]) WithError(err error) NumberComparisonConstraint[T] {
+	c.err = err
 	return c
 }
 
-// Message sets the violation message template. You can set custom template parameters
+// WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message. Also, you can use default parameters:
 //
 //  {{ comparedValue }} - the expected value;
 //  {{ value }} - the current (invalid) value.
-func (c NumberComparisonConstraint[T]) Message(
+func (c NumberComparisonConstraint[T]) WithMessage(
 	template string,
 	parameters ...validation.TemplateParameter,
 ) NumberComparisonConstraint[T] {
@@ -274,12 +237,12 @@ func (c NumberComparisonConstraint[T]) WhenGroups(groups ...string) NumberCompar
 	return c
 }
 
-func (c NumberComparisonConstraint[T]) ValidateNumber(value *T, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || c.isValid(*value) {
+func (c NumberComparisonConstraint[T]) ValidateNumber(ctx context.Context, validator *validation.Validator, value *T) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || c.isValid(*value) {
 		return nil
 	}
 
-	return scope.BuildViolation(c.code, c.messageTemplate).
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ comparedValue }}", Value: c.comparedValue},
@@ -293,7 +256,7 @@ func (c NumberComparisonConstraint[T]) ValidateNumber(value *T, scope validation
 type RangeConstraint[T validation.Numeric] struct {
 	isIgnored         bool
 	groups            []string
-	code              string
+	err               error
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
 	min               T
@@ -305,8 +268,8 @@ func IsBetween[T validation.Numeric](min, max T) RangeConstraint[T] {
 	return RangeConstraint[T]{
 		min:             min,
 		max:             max,
-		code:            code.NotInRange,
-		messageTemplate: message.Templates[code.NotInRange],
+		err:             validation.ErrNotInRange,
+		messageTemplate: validation.ErrNotInRange.Message(),
 	}
 }
 
@@ -315,19 +278,19 @@ func (c RangeConstraint[T]) Name() string {
 	return fmt.Sprintf("RangeConstraint[%s]", reflect.TypeOf(c.min).String())
 }
 
-// Code overrides default code for produced violation.
-func (c RangeConstraint[T]) Code(code string) RangeConstraint[T] {
-	c.code = code
+// WithError overrides default error for produced violation.
+func (c RangeConstraint[T]) WithError(err error) RangeConstraint[T] {
+	c.err = err
 	return c
 }
 
-// Message sets the violation message template. You can set custom template parameters
+// WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message. Also, you can use default parameters:
 //
 //  {{ max }} - the upper limit;
 //  {{ min }} - the lower limit;
 //  {{ value }} - the current (invalid) value.
-func (c RangeConstraint[T]) Message(template string, parameters ...validation.TemplateParameter) RangeConstraint[T] {
+func (c RangeConstraint[T]) WithMessage(template string, parameters ...validation.TemplateParameter) RangeConstraint[T] {
 	c.messageTemplate = template
 	c.messageParameters = parameters
 	return c
@@ -346,27 +309,23 @@ func (c RangeConstraint[T]) WhenGroups(groups ...string) RangeConstraint[T] {
 	return c
 }
 
-func (c RangeConstraint[T]) ValidateNumber(value *T, scope validation.Scope) error {
+func (c RangeConstraint[T]) ValidateNumber(ctx context.Context, validator *validation.Validator, value *T) error {
 	if c.min >= c.max {
-		return scope.NewConstraintError(c.Name(), "invalid range")
+		return validator.CreateConstraintError(c.Name(), "invalid range")
 	}
-	if c.isIgnored || value == nil || scope.IsIgnored(c.groups...) {
+	if c.isIgnored || value == nil || validator.IsIgnoredForGroups(c.groups...) {
 		return nil
 	}
-	if *value < c.min || *value > c.max {
-		return c.newViolation(*value, scope)
+	if *value >= c.min && *value <= c.max {
+		return nil
 	}
 
-	return nil
-}
-
-func (c RangeConstraint[T]) newViolation(value T, scope validation.Scope) error {
-	return scope.BuildViolation(c.code, c.messageTemplate).
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ min }}", Value: fmt.Sprint(c.min)},
 				validation.TemplateParameter{Key: "{{ max }}", Value: fmt.Sprint(c.max)},
-				validation.TemplateParameter{Key: "{{ value }}", Value: fmt.Sprint(value)},
+				validation.TemplateParameter{Key: "{{ value }}", Value: fmt.Sprint(*value)},
 			)...,
 		).
 		Create()
@@ -376,7 +335,7 @@ func (c RangeConstraint[T]) newViolation(value T, scope validation.Scope) error 
 type TimeComparisonConstraint struct {
 	isIgnored         bool
 	groups            []string
-	code              string
+	err               error
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
 	comparedValue     time.Time
@@ -387,8 +346,8 @@ type TimeComparisonConstraint struct {
 // IsEarlierThan checks that the given time is earlier than the specified value.
 func IsEarlierThan(value time.Time) TimeComparisonConstraint {
 	return TimeComparisonConstraint{
-		code:            code.TooLate,
-		messageTemplate: message.Templates[code.TooLate],
+		err:             validation.ErrTooLate,
+		messageTemplate: validation.ErrTooLate.Message(),
 		comparedValue:   value,
 		layout:          time.RFC3339,
 		isValid: func(actualValue time.Time) bool {
@@ -400,8 +359,8 @@ func IsEarlierThan(value time.Time) TimeComparisonConstraint {
 // IsEarlierThanOrEqual checks that the given time is earlier or equal to the specified value.
 func IsEarlierThanOrEqual(value time.Time) TimeComparisonConstraint {
 	return TimeComparisonConstraint{
-		code:            code.TooLateOrEqual,
-		messageTemplate: message.Templates[code.TooLateOrEqual],
+		err:             validation.ErrTooLateOrEqual,
+		messageTemplate: validation.ErrTooLateOrEqual.Message(),
 		comparedValue:   value,
 		layout:          time.RFC3339,
 		isValid: func(actualValue time.Time) bool {
@@ -413,8 +372,8 @@ func IsEarlierThanOrEqual(value time.Time) TimeComparisonConstraint {
 // IsLaterThan checks that the given time is later than the specified value.
 func IsLaterThan(value time.Time) TimeComparisonConstraint {
 	return TimeComparisonConstraint{
-		code:            code.TooEarly,
-		messageTemplate: message.Templates[code.TooEarly],
+		err:             validation.ErrTooEarly,
+		messageTemplate: validation.ErrTooEarly.Message(),
 		comparedValue:   value,
 		layout:          time.RFC3339,
 		isValid: func(actualValue time.Time) bool {
@@ -426,8 +385,8 @@ func IsLaterThan(value time.Time) TimeComparisonConstraint {
 // IsLaterThanOrEqual checks that the given time is later or equal to the specified value.
 func IsLaterThanOrEqual(value time.Time) TimeComparisonConstraint {
 	return TimeComparisonConstraint{
-		code:            code.TooEarlyOrEqual,
-		messageTemplate: message.Templates[code.TooEarlyOrEqual],
+		err:             validation.ErrTooEarlyOrEqual,
+		messageTemplate: validation.ErrTooEarlyOrEqual.Message(),
 		comparedValue:   value,
 		layout:          time.RFC3339,
 		isValid: func(actualValue time.Time) bool {
@@ -436,21 +395,21 @@ func IsLaterThanOrEqual(value time.Time) TimeComparisonConstraint {
 	}
 }
 
-// Code overrides default code for produced violation.
-func (c TimeComparisonConstraint) Code(code string) TimeComparisonConstraint {
-	c.code = code
+// WithError overrides default error for produced violation.
+func (c TimeComparisonConstraint) WithError(err error) TimeComparisonConstraint {
+	c.err = err
 	return c
 }
 
-// Message sets the violation message template. You can set custom template parameters
+// WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message. Also, you can use default parameters:
 //
 //  {{ comparedValue }} - the expected value;
 //  {{ value }} - the current (invalid) value.
 //
-// All values are formatted by the layout that can be defined by the Layout method.
+// All values are formatted by the layout that can be defined by the WithLayout method.
 // Default layout is time.RFC3339.
-func (c TimeComparisonConstraint) Message(
+func (c TimeComparisonConstraint) WithMessage(
 	template string,
 	parameters ...validation.TemplateParameter,
 ) TimeComparisonConstraint {
@@ -459,8 +418,8 @@ func (c TimeComparisonConstraint) Message(
 	return c
 }
 
-// Layout can be used to set the layout that is used to format time values.
-func (c TimeComparisonConstraint) Layout(layout string) TimeComparisonConstraint {
+// WithLayout can be used to set the layout that is used to format time values.
+func (c TimeComparisonConstraint) WithLayout(layout string) TimeComparisonConstraint {
 	c.layout = layout
 	return c
 }
@@ -478,12 +437,12 @@ func (c TimeComparisonConstraint) WhenGroups(groups ...string) TimeComparisonCon
 	return c
 }
 
-func (c TimeComparisonConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || c.isValid(*value) {
+func (c TimeComparisonConstraint) ValidateTime(ctx context.Context, validator *validation.Validator, value *time.Time) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || c.isValid(*value) {
 		return nil
 	}
 
-	return scope.BuildViolation(c.code, c.messageTemplate).
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ comparedValue }}", Value: c.comparedValue.Format(c.layout)},
@@ -497,7 +456,7 @@ func (c TimeComparisonConstraint) ValidateTime(value *time.Time, scope validatio
 type TimeRangeConstraint struct {
 	isIgnored         bool
 	groups            []string
-	code              string
+	err               error
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
 	layout            string
@@ -508,30 +467,30 @@ type TimeRangeConstraint struct {
 // IsBetweenTime checks that the time is between specified minimum and maximum time values.
 func IsBetweenTime(min, max time.Time) TimeRangeConstraint {
 	return TimeRangeConstraint{
-		code:            code.NotInRange,
-		messageTemplate: message.Templates[code.NotInRange],
+		err:             validation.ErrNotInRange,
+		messageTemplate: validation.ErrNotInRange.Message(),
 		layout:          time.RFC3339,
 		min:             min,
 		max:             max,
 	}
 }
 
-// Code overrides default code for produced violation.
-func (c TimeRangeConstraint) Code(code string) TimeRangeConstraint {
-	c.code = code
+// WithError overrides default error for produced violation.
+func (c TimeRangeConstraint) WithError(err error) TimeRangeConstraint {
+	c.err = err
 	return c
 }
 
-// Message sets the violation message template. You can set custom template parameters
+// WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message. Also, you can use default parameters:
 //
 //  {{ max }} - the upper limit;
 //  {{ min }} - the lower limit;
 //  {{ value }} - the current (invalid) value.
 //
-// All values are formatted by the layout that can be defined by the Layout method.
+// All values are formatted by the layout that can be defined by the WithLayout method.
 // Default layout is time.RFC3339.
-func (c TimeRangeConstraint) Message(template string, parameters ...validation.TemplateParameter) TimeRangeConstraint {
+func (c TimeRangeConstraint) WithMessage(template string, parameters ...validation.TemplateParameter) TimeRangeConstraint {
 	c.messageTemplate = template
 	c.messageParameters = parameters
 	return c
@@ -550,28 +509,28 @@ func (c TimeRangeConstraint) WhenGroups(groups ...string) TimeRangeConstraint {
 	return c
 }
 
-// Layout can be used to set the layout that is used to format time values.
-func (c TimeRangeConstraint) Layout(layout string) TimeRangeConstraint {
+// WithLayout can be used to set the layout that is used to format time values.
+func (c TimeRangeConstraint) WithLayout(layout string) TimeRangeConstraint {
 	c.layout = layout
 	return c
 }
 
-func (c TimeRangeConstraint) ValidateTime(value *time.Time, scope validation.Scope) error {
+func (c TimeRangeConstraint) ValidateTime(ctx context.Context, validator *validation.Validator, value *time.Time) error {
 	if c.min.After(c.max) || c.min.Equal(c.max) {
-		return scope.NewConstraintError("TimeRangeConstraint", "invalid range")
+		return validator.CreateConstraintError("TimeRangeConstraint", "invalid range")
 	}
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil {
 		return nil
 	}
 	if value.Before(c.min) || value.After(c.max) {
-		return c.newViolation(value, scope)
+		return c.newViolation(ctx, validator, value)
 	}
 
 	return nil
 }
 
-func (c TimeRangeConstraint) newViolation(value *time.Time, scope validation.Scope) validation.Violation {
-	return scope.BuildViolation(c.code, c.messageTemplate).
+func (c TimeRangeConstraint) newViolation(ctx context.Context, validator *validation.Validator, value *time.Time) validation.Violation {
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ min }}", Value: c.min.Format(c.layout)},
@@ -586,7 +545,7 @@ func (c TimeRangeConstraint) newViolation(value *time.Time, scope validation.Sco
 type UniqueConstraint[T comparable] struct {
 	isIgnored         bool
 	groups            []string
-	code              string
+	err               error
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
 }
@@ -595,20 +554,20 @@ type UniqueConstraint[T comparable] struct {
 // (none of them is present more than once).
 func HasUniqueValues[T comparable]() UniqueConstraint[T] {
 	return UniqueConstraint[T]{
-		code:            code.NotUnique,
-		messageTemplate: message.Templates[code.NotUnique],
+		err:             validation.ErrNotUnique,
+		messageTemplate: validation.ErrNotUnique.Message(),
 	}
 }
 
-// Code overrides default code for produced violation.
-func (c UniqueConstraint[T]) Code(code string) UniqueConstraint[T] {
-	c.code = code
+// WithError overrides default error for produced violation.
+func (c UniqueConstraint[T]) WithError(err error) UniqueConstraint[T] {
+	c.err = err
 	return c
 }
 
-// Message sets the violation message template. You can set custom template parameters
+// WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message.
-func (c UniqueConstraint[T]) Message(template string, parameters ...validation.TemplateParameter) UniqueConstraint[T] {
+func (c UniqueConstraint[T]) WithMessage(template string, parameters ...validation.TemplateParameter) UniqueConstraint[T] {
 	c.messageTemplate = template
 	c.messageParameters = parameters
 	return c
@@ -627,12 +586,12 @@ func (c UniqueConstraint[T]) WhenGroups(groups ...string) UniqueConstraint[T] {
 	return c
 }
 
-func (c UniqueConstraint[T]) ValidateComparables(values []T, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || is.Unique(values) {
+func (c UniqueConstraint[T]) ValidateComparables(ctx context.Context, validator *validation.Validator, values []T) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || is.Unique(values) {
 		return nil
 	}
 
-	return scope.BuildViolation(c.code, c.messageTemplate).
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(c.messageParameters...).
 		Create()
 }

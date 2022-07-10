@@ -2,6 +2,7 @@ package validation_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 
@@ -9,6 +10,8 @@ import (
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/validator"
 )
+
+var ErrNotNumeric = errors.New("not numeric")
 
 type NumericConstraint struct {
 	matcher *regexp.Regexp
@@ -19,7 +22,7 @@ func IsNumeric() NumericConstraint {
 	return NumericConstraint{matcher: regexp.MustCompile("^[0-9]+$")}
 }
 
-func (c NumericConstraint) ValidateString(value *string, scope validation.Scope) error {
+func (c NumericConstraint) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
 	// usually, you should ignore empty values
 	// to check for an empty value you should use it.NotBlankConstraint
 	if value == nil || *value == "" {
@@ -30,8 +33,8 @@ func (c NumericConstraint) ValidateString(value *string, scope validation.Scope)
 		return nil
 	}
 
-	// use the scope to build violation with translations
-	return scope.CreateViolation("notNumeric", "This value should be numeric.")
+	// use the validator to build violation with translations
+	return validator.CreateViolation(ctx, ErrNotNumeric, "This value should be numeric.")
 }
 
 func ExampleValidator_Validate_customConstraint() {
@@ -43,6 +46,8 @@ func ExampleValidator_Validate_customConstraint() {
 	)
 
 	fmt.Println(err)
+	fmt.Println("errors.Is(err, ErrNotNumeric) =", errors.Is(err, ErrNotNumeric))
 	// Output:
 	// violation: This value should be numeric.
+	// errors.Is(err, ErrNotNumeric) = true
 }

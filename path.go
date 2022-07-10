@@ -14,29 +14,29 @@ type PropertyPathElement interface {
 	fmt.Stringer
 }
 
-// PropertyNameElement holds up property name value under PropertyPath.
-type PropertyNameElement string
+// PropertyName holds up property name value under PropertyPath.
+type PropertyName string
 
-// IsIndex on PropertyNameElement always returns false.
-func (p PropertyNameElement) IsIndex() bool {
+// IsIndex on PropertyName always returns false.
+func (p PropertyName) IsIndex() bool {
 	return false
 }
 
 // String returns property name as is.
-func (p PropertyNameElement) String() string {
+func (p PropertyName) String() string {
 	return string(p)
 }
 
-// ArrayIndexElement holds up array index value under PropertyPath.
-type ArrayIndexElement int
+// ArrayIndex holds up array index value under PropertyPath.
+type ArrayIndex int
 
-// IsIndex on ArrayIndexElement always returns true.
-func (a ArrayIndexElement) IsIndex() bool {
+// IsIndex on ArrayIndex always returns true.
+func (a ArrayIndex) IsIndex() bool {
 	return true
 }
 
 // String returns array index values converted into a string.
-func (a ArrayIndexElement) String() string {
+func (a ArrayIndex) String() string {
 	return strconv.Itoa(int(a))
 }
 
@@ -71,19 +71,19 @@ func (path *PropertyPath) With(elements ...PropertyPathElement) *PropertyPath {
 	return current
 }
 
-// WithProperty returns new PropertyPath with appended PropertyNameElement to the end of the list.
+// WithProperty returns new PropertyPath with appended PropertyName to the end of the list.
 func (path *PropertyPath) WithProperty(name string) *PropertyPath {
 	return &PropertyPath{
 		parent: path,
-		value:  PropertyNameElement(name),
+		value:  PropertyName(name),
 	}
 }
 
-// WithIndex returns new PropertyPath with appended ArrayIndexElement to the end of the list.
+// WithIndex returns new PropertyPath with appended ArrayIndex to the end of the list.
 func (path *PropertyPath) WithIndex(index int) *PropertyPath {
 	return &PropertyPath{
 		parent: path,
-		value:  ArrayIndexElement(index),
+		value:  ArrayIndex(index),
 	}
 }
 

@@ -18,22 +18,22 @@ func TestFilter_WhenNoViolations_ExpectNil(t *testing.T) {
 }
 
 func TestFilter_WhenSingleViolation_ExpectViolationInList(t *testing.T) {
-	violation := validator.BuildViolation(context.Background(), "code", "message").Create()
+	violation := validator.BuildViolation(context.Background(), ErrCustom, "message").Create()
 	wrapped := fmt.Errorf("error: %w", violation)
 
 	err := validation.Filter(nil, wrapped)
 
-	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithCode("code").WithMessage("message")
+	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithError(ErrCustom).WithMessage("message")
 }
 
 func TestFilter_WhenViolationList_ExpectViolationsInList(t *testing.T) {
-	violation := validator.BuildViolation(context.Background(), "code", "message").Create()
+	violation := validator.BuildViolation(context.Background(), ErrCustom, "message").Create()
 	violations := validation.NewViolationList(violation)
 	wrapped := fmt.Errorf("error: %w", violations)
 
 	err := validation.Filter(nil, wrapped)
 
-	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithCode("code").WithMessage("message")
+	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithError(ErrCustom).WithMessage("message")
 }
 
 func TestFilter_WhenUnexpectedError_ExpectError(t *testing.T) {

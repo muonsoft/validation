@@ -39,19 +39,20 @@ func (storage *TagStorage) FindByName(ctx context.Context, name string) ([]strin
 	return found, nil
 }
 
+var ErrUnknownTag = errors.New("unknown tag")
+
 type ExistingTagConstraint struct {
 	storage *TagStorage
 }
 
-func (c *ExistingTagConstraint) ValidateString(value *string, scope validation.Scope) error {
+func (c *ExistingTagConstraint) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
 	// usually, you should ignore empty values
 	// to check for an empty value you should use it.NotBlankConstraint
 	if value == nil || *value == "" {
 		return nil
 	}
 
-	// you can pass the context value from the scope
-	entities, err := c.storage.FindByName(scope.Context(), *value)
+	entities, err := c.storage.FindByName(ctx, *value)
 	// here you can return a service error so that the validation process
 	// is stopped immediately
 	if err != nil {
@@ -61,9 +62,9 @@ func (c *ExistingTagConstraint) ValidateString(value *string, scope validation.S
 		return nil
 	}
 
-	// use the scope to build violation with translations
-	return scope.
-		BuildViolation("unknownTag", `Tag "{{ value }}" does not exist.`).
+	// use the validator to build violation with translations
+	return validator.
+		BuildViolation(ctx, ErrUnknownTag, `Tag "{{ value }}" does not exist.`).
 		// you can inject parameter value to the message here
 		WithParameter("{{ value }}", *value).
 		Create()
@@ -106,12 +107,14 @@ func ExampleValidator_GetConstraint_customServiceConstraint() {
 	}
 
 	err = validator.Validate(
-		// you can pass here the context value to the validation scope
+		// you can pass here the context value to the validation context
 		context.WithValue(context.Background(), exampleKey, "value"),
 		validation.Valid(item),
 	)
 
 	fmt.Println(err)
+	fmt.Println("errors.Is(err, ErrUnknownTag) =", errors.Is(err, ErrUnknownTag))
 	// Output:
 	// violation at 'tags[1]': Tag "camera" does not exist.
+	// errors.Is(err, ErrUnknownTag) = true
 }

@@ -6,6 +6,7 @@
 package validationtest
 
 import (
+	"fmt"
 	"strconv"
 	"testing"
 
@@ -23,7 +24,7 @@ type TestingT interface {
 
 // ViolationAttributes are used to compare violation against expected values. An empty value is not compared.
 type ViolationAttributes struct {
-	Code         string
+	Error        error
 	Message      string
 	PropertyPath string
 }
@@ -48,7 +49,7 @@ func (a *Assertion) IsViolation() *ViolationAssertion {
 
 	violation, ok := validation.UnwrapViolation(a.err)
 	if !ok {
-		a.t.Error("failed asserting that err is a Violation")
+		assert.Fail(a.t, "failed asserting that err is a Violation")
 
 		return nil
 	}
@@ -63,7 +64,7 @@ func (a *Assertion) IsViolationList() *ViolationListAssertion {
 
 	violations, ok := validation.UnwrapViolationList(a.err)
 	if !ok {
-		a.t.Error("failed asserting that err is a ViolationList")
+		assert.Fail(a.t, "failed asserting that err is a ViolationList")
 
 		return nil
 	}
@@ -104,11 +105,11 @@ func (a *ViolationListAssertion) WithLen(length int) *ViolationListAssertion {
 
 	actual := a.violations.Len()
 	if actual != length {
-		a.t.Errorf(
+		a.t.Errorf(fmt.Sprintf(
 			"failed asserting that violation list length is equal to %d, actual is %d",
 			length,
 			actual,
-		)
+		))
 	}
 
 	return a
@@ -123,7 +124,7 @@ func (a *ViolationListAssertion) WithOneViolation() *ViolationAssertion {
 	a.t.Helper()
 
 	if a.violations.Len() != 1 {
-		a.t.Error("failed asserting that violation list contains exactly one violation")
+		assert.Fail(a.t, "failed asserting that violation list contains exactly one violation")
 		return nil
 	}
 
@@ -140,38 +141,38 @@ func (a *ViolationListAssertion) HasViolationAt(index int) *ViolationAssertion {
 
 	violations := a.violations.AsSlice()
 	if index >= len(violations) {
-		a.t.Errorf("failed asserting that violation list contains violation at index %d", index)
+		assert.Fail(a.t, fmt.Sprintf("failed asserting that violation list contains violation at index %d", index))
 		return nil
 	}
 
 	return newViolationAssertionAt(a.t, violations[index], 0)
 }
 
-// WithCodes checks that the violation list contains violations with specific codes in a given order.
-func (a *ViolationListAssertion) WithCodes(codes ...string) *ViolationListAssertion {
+// WithErrors checks that the violation list contains violations with specific codes in a given order.
+func (a *ViolationListAssertion) WithErrors(errs ...error) *ViolationListAssertion {
 	if a == nil {
 		return nil
 	}
 	a.t.Helper()
 
 	length := a.violations.Len()
-	if length != len(codes) {
-		a.t.Errorf(
+	if length != len(errs) {
+		assert.Fail(a.t, fmt.Sprintf(
 			"failed asserting that violation list length is equal to %d, actual is %d",
-			len(codes),
+			len(errs),
 			length,
-		)
+		))
 		return a
 	}
 
-	a.violations.Each(func(i int, violation validation.Violation) error {
-		if violation.Code() != codes[i] {
-			a.t.Errorf(
-				`failed asserting that violation at %d has code "%s", actual is "%s"`,
+	a.violations.ForEach(func(i int, violation validation.Violation) error {
+		if violation.Unwrap() != errs[i] {
+			assert.Fail(a.t, fmt.Sprintf(
+				`failed asserting that violation at %d has error "%s", actual is "%s"`,
 				i,
-				codes[i],
-				violation.Code(),
-			)
+				errs[i],
+				violation.Unwrap(),
+			))
 		}
 		return nil
 	})
@@ -189,42 +190,42 @@ func (a *ViolationListAssertion) WithAttributes(violations ...ViolationAttribute
 
 	length := a.violations.Len()
 	if length != len(violations) {
-		a.t.Errorf(
+		assert.Fail(a.t, fmt.Sprintf(
 			"failed asserting that violation list length is equal to %d, actual is %d",
 			len(violations),
 			length,
-		)
+		))
 		return a
 	}
 
-	a.violations.Each(func(i int, violation validation.Violation) error {
+	a.violations.ForEach(func(i int, violation validation.Violation) error {
 		expected := violations[i]
 
-		if expected.Code != "" && violation.Code() != expected.Code {
-			a.t.Errorf(
-				`failed asserting that violation at %d has code "%s", actual is "%s"`,
+		if expected.Error != nil && violation.Unwrap() != expected.Error {
+			assert.Fail(a.t, fmt.Sprintf(
+				`failed asserting that violation at %d has error "%s", actual is "%s"`,
 				i,
-				expected.Code,
-				violation.Code(),
-			)
+				expected.Error,
+				violation.Unwrap(),
+			))
 		}
 
 		if expected.Message != "" && violation.Message() != expected.Message {
-			a.t.Errorf(
+			assert.Fail(a.t, fmt.Sprintf(
 				`failed asserting that violation at %d has message "%s", actual is "%s"`,
 				i,
 				expected.Message,
 				violation.Message(),
-			)
+			))
 		}
 
 		if expected.PropertyPath != "" && violation.PropertyPath().String() != expected.PropertyPath {
-			a.t.Errorf(
+			assert.Fail(a.t, fmt.Sprintf(
 				`failed asserting that violation at %d has property path "%s", actual is "%s"`,
 				i,
 				expected.PropertyPath,
 				violation.PropertyPath().String(),
-			)
+			))
 		}
 
 		return nil
@@ -266,21 +267,21 @@ func (a *ViolationAssertion) Assert(
 	return a
 }
 
-// WithCode checks that violation has expected code.
-func (a *ViolationAssertion) WithCode(code string) *ViolationAssertion {
+// WithError checks that violation has expected error.
+func (a *ViolationAssertion) WithError(err error) *ViolationAssertion {
 	if a == nil {
 		return nil
 	}
 	a.t.Helper()
 
-	actual := a.violation.Code()
-	if actual != code {
-		a.t.Errorf(
-			`failed asserting that violation%s has code "%s", actual is "%s"`,
+	actual := a.violation.Unwrap()
+	if actual != err {
+		assert.Fail(a.t, fmt.Sprintf(
+			`failed asserting that violation%s has error "%s", actual is "%s"`,
 			a.atIndex(),
-			code,
+			err,
 			actual,
-		)
+		))
 	}
 
 	return a
@@ -295,12 +296,12 @@ func (a *ViolationAssertion) WithMessage(message string) *ViolationAssertion {
 
 	actual := a.violation.Message()
 	if actual != message {
-		a.t.Errorf(
+		assert.Fail(a.t, fmt.Sprintf(
 			`failed asserting that violation%s has message "%s", actual is "%s"`,
 			a.atIndex(),
 			message,
 			actual,
-		)
+		))
 	}
 
 	return a
@@ -315,12 +316,12 @@ func (a *ViolationAssertion) WithPropertyPath(path string) *ViolationAssertion {
 
 	actual := a.violation.PropertyPath().String()
 	if actual != path {
-		a.t.Errorf(
+		assert.Fail(a.t, fmt.Sprintf(
 			`failed asserting that violation%s has property path "%s", actual is "%s"`,
 			a.atIndex(),
 			path,
 			actual,
-		)
+		))
 	}
 
 	return a
@@ -347,12 +348,12 @@ func (a *ViolationAssertion) EqualToError(errString string) *ViolationAssertion 
 
 	actual := a.violation.Error()
 	if actual != errString {
-		a.t.Errorf(
+		assert.Fail(a.t, fmt.Sprintf(
 			`failed asserting that violation%s error is equal to "%s", actual is "%s"`,
 			a.atIndex(),
 			errString,
 			actual,
-		)
+		))
 	}
 
 	return a

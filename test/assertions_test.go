@@ -7,19 +7,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func assertHasOneViolation(code, message string) func(t *testing.T, err error) {
+func assertHasOneViolation(expectedError error, message string) func(t *testing.T, err error) {
 	return func(t *testing.T, err error) {
 		t.Helper()
-		validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithCode(code).WithMessage(message)
+		validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithError(expectedError).WithMessage(message)
 	}
 }
 
-func assertHasOneViolationAtPath(code, message, path string) func(t *testing.T, err error) {
+func assertHasOneViolationAtPath(expectedError error, message, path string) func(t *testing.T, err error) {
 	return func(t *testing.T, err error) {
 		t.Helper()
 		validationtest.Assert(t, err).IsViolationList().
 			WithOneViolation().
-			WithCode(code).
+			WithError(expectedError).
 			WithMessage(message).
 			WithPropertyPath(path)
 	}

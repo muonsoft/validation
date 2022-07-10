@@ -19,7 +19,7 @@ This project is inspired by [Symfony Validator component](https://symfony.com/in
 ## Key features
 
 * Flexible and customizable API built in mind to use benefits of static typing and generics
-* Nice and readable way to describe validation process in code
+* Nice and fluent way to describe validation process in code
 * Validation of different types: booleans, numbers, strings, slices, maps, and time
 * Validation of custom data types that implements `Validatable` interface
 * Customizable validation errors with translations and pluralization supported out of the box
@@ -56,10 +56,7 @@ constraints.
 ```golang
 err := validator.Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
-violations := err.(validation.ViolationList)
-for _, violation := range violations {
-    fmt.Println(violation.Error())
-}
+fmt.Println(err)
 // Output:
 // violation: This value should not be blank.
 ```
@@ -129,7 +126,7 @@ application.
 ```golang
 // import "github.com/muonsoft/validation/validator"
 
-err := validator.SetOptions(
+err := validator.SetUp(
     validation.DefaultLanguage(language.Russian), // passing default language of translations
     validation.Translations(russian.Messages), // setting up custom or built-in translations
     validation.SetViolationFactory(userViolationFactory), // if you want to override creation of violations
@@ -152,7 +149,7 @@ how it reached the invalid value from the root element. Property path is denoted
 by square brackets. For example, `book.keywords[0]` means that the violation occurred on the first element of
 array `keywords` in the `book` object.
 
-You can pass a property name or an array index via `validation.PropertyName()` and `validation.ArrayIndex()` options.
+You can pass a property path by calling `At` function on any argument.
 
 ```golang
 err := validator.Validate(
@@ -160,21 +157,25 @@ err := validator.Validate(
     validation.String(
         "",
         it.IsNotBlank(),
-    ).With(
+    ).At(
         validation.PropertyName("properties"),
         validation.ArrayIndex(1),
         validation.PropertyName("tag"),
     ),
 )
 
-violation := err.(validation.ViolationList)[0]
-fmt.Println("property path:", violation.GetPropertyPath().Format())
+if violations, ok := validation.UnwrapViolationList(err); ok {
+    violations.ForEach(func (i int, violation validation.Violation) error {
+        fmt.Println("property path:", violation.PropertyPath().String())
+        return nil
+    })
+}
 // Output:
 // property path: properties[1].tag
 ```
 
-Also, you can create scoped validator by using `valdiator.AtProperty()` or `validator.AtIndex()` methods. It can be used
-to validate a couple of attributes of one object.
+Also, you can create context validator by using `validator.At()`, `validator.AtProperty()` or `validator.AtIndex()` 
+methods. It can be used to validate a couple of attributes of one object.
 
 ```golang
 err := validator.
@@ -183,8 +184,12 @@ err := validator.
     AtProperty("tag").
     Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
-violation := err.(validation.ViolationList)[0]
-fmt.Println("property path:", violation.GetPropertyPath().Format())
+if violations, ok := validation.UnwrapViolationList(err); ok {
+    violations.ForEach(func (i int, violation validation.Violation) error {
+        fmt.Println("property path:", violation.PropertyPath().String())
+        return nil
+    })
+}
 // Output:
 // property path: properties[1].tag
 ```
@@ -217,8 +222,12 @@ err := validator.Validate(
     validation.StringProperty("property", "", it.IsNotBlank()),
 )
 
-violation := err.(validation.ViolationList)[0]
-fmt.Println("property path:", violation.GetPropertyPath().Format())
+if violations, ok := validation.UnwrapViolationList(err); ok {
+    violations.ForEach(func (i int, violation validation.Violation) error {
+        fmt.Println("property path:", violation.PropertyPath().String())
+        return nil
+    })
+}
 // Output:
 // property path: property
 ```
@@ -243,9 +252,10 @@ err := validator.Validate(
 )
 
 if violations, ok := validation.UnwrapViolationList(err); ok {
-    for violation := violations.First(); violation != nil; violation = violation.Next() {
+    violations.ForEach(func (i int, violation validation.Violation) error {
         fmt.Println(violation)
-    }
+        return nil
+    })
 }
 // Output:
 // violation at 'title': This value should not be blank.
@@ -304,10 +314,12 @@ func main() {
     }
     
     err := validator.ValidateIt(context.Background(), p)
-    
-    violations := err.(validation.ViolationList)
-    for _, violation := range violations {
-        fmt.Println(violation.Error())
+
+    if violations, ok := validation.UnwrapViolationList(err); ok {
+        violations.ForEach(func (i int, violation validation.Violation) error {
+            fmt.Println(violation)
+            return nil
+        })
     }
     // Output:
     // violation at 'name': This value should not be blank.
@@ -329,9 +341,11 @@ err := validator.Validate(
     validation.StringProperty("text", note.Text, it.IsNotBlank().When(note.IsPublic)),
 )
 
-violations := err.(validation.ViolationList)
-for _, violation := range violations {
-    fmt.Println(violation.Error())
+if violations, ok := validation.UnwrapViolationList(err); ok {
+    violations.ForEach(func (i int, violation validation.Violation) error {
+        fmt.Println(violation)
+        return nil
+    })
 }
 // Output:
 // violation at 'text': This value should not be blank.
@@ -360,8 +374,8 @@ errors is to check for implementing the `validation.ViolationList` struct. You c
 ```golang
 err := validator.Validate(/* validation arguments */)
 
-var violations ViolationList
 if err != nil {
+    var violations *validation.ViolationList
     if errors.As(err, &violations) {
         // handle violations
     } else {
@@ -383,9 +397,10 @@ if violations, ok := validation.UnwrapViolationList(err); ok {
 
 The validation error called violation consists of a few parameters.
 
-* `code` - unique, short, and semantic violation code that can be used to programmatically test for specific violation.
-  All `code` values are defined in the `github.com/muonsoft/validation/code` package and are protected by backward
-  compatibility rules.
+* `error` - underlying static error. This error can be used as a unique, short, and semantic code of violation.
+  You can use it to test `Violation` for specific static error by `errors.Is` from standard library.
+  Built-in error values are defined in the `github.com/muonsoft/validation/errors.go`.
+  Error code values are protected by backward compatibility rules, template values are not protected.
 * `message` - translated message with injected values from constraint. It can be used to show a description of a
   violation to the end-user. Possible values for build-in constraints are defined in
   the `github.com/muonsoft/validation/message` package and can be changed at any time, even in patch versions.
@@ -393,6 +408,17 @@ The validation error called violation consists of a few parameters.
   client-side of the library.
 * `parameters` is the map of the template variables and their values provided by the specific constraint.
 * `propertyPath` points to the violated property as it described in the [previous section](#processing-property-paths).
+
+Thanks to the static error codes provided, you can quickly test the resulting validation error for a specific violation 
+error using standard `errors.Is()` function.
+
+```golang
+err := validator.Validate(context.Background(), validation.String("", it.IsNotBlank()))
+
+fmt.Println("is validation.ErrIsBlank =", errors.Is(err, validation.ErrIsBlank))
+// Output:
+// is validation.ErrIsBlank = true
+```
 
 You can hook into process of violation generation by implementing `validation.ViolationFactory` interface and passing it
 via `validation.SetViolationFactory()` option. Custom violation must implement `validation.Violation` interface.
@@ -408,7 +434,7 @@ the `golang.org/x/text` package (be aware, it has no stable version yet).
 // import "github.com/muonsoft/validation/message/translations/russian"
 
 validator, err := validation.NewValidator(
-	validation.Translations(russian.Messages),
+    validation.Translations(russian.Messages),
 )
 ```
 
@@ -424,31 +450,33 @@ validator, _ := validation.NewValidator(
 
 err := validator.ValidateString(context.Background(), "", it.IsNotBlank())
 
-violations := err.(validation.ViolationList)
-for _, violation := range violations {
-    fmt.Println(violation.Error())
+if violations, ok := validation.UnwrapViolationList(err); ok {
+    violations.ForEach(func (i int, violation validation.Violation) error {
+        fmt.Println(violation.Error())
+        return nil
+    })
 }
 // Output:
 // violation: Значение не должно быть пустым.
 ```
 
-The second way is to use the `validation.Language()` argument. Be aware that this method works only on a specific scope.
-Also, you can use the `validator.WithLanguage()` method to create scoped validator and use it in different places.
+The second way is to use the `validator.WithLanguage()` method to create context validator and use it in different places.
 
 ```golang
 validator, _ := validation.NewValidator(
     validation.Translations(russian.Messages),
 )
 
-err := validator.Validate(
+err := validator.WithLanguage(language.Russian).Validate(
     context.Background(),
-    validation.Language(language.Russian),
     validation.String("", it.IsNotBlank()),
 )
 
-violations := err.(validation.ViolationList)
-for _, violation := range violations {
-    fmt.Println(violation.Error())
+if violations, ok := validation.UnwrapViolationList(err); ok {
+    violations.ForEach(func (i int, violation validation.Violation) error {
+        fmt.Println(violation.Error())
+        return nil
+    })
 }
 // Output:
 // violation: Значение не должно быть пустым.
@@ -463,13 +491,15 @@ useful in combination with [language middleware](https://github.com/muonsoft/lan
 validator, _ := validation.NewValidator(
     validation.Translations(russian.Messages),
 )
-ctx := language.WithContext(context.Background(), language.Russian)
 
+ctx := language.WithContext(context.Background(), language.Russian)
 err := validator.ValidateString(ctx, "", it.IsNotBlank())
 
-violations := err.(validation.ViolationList)
-for _, violation := range violations {
-    fmt.Println(violation.Error())
+if violations, ok := validation.UnwrapViolationList(err); ok {
+    violations.ForEach(func (i int, violation validation.Violation) error {
+        fmt.Println(violation.Error())
+        return nil
+    })
 }
 // Output:
 // violation: Значение не должно быть пустым.
@@ -477,6 +507,12 @@ for _, violation := range violations {
 
 You can see the complex example with handling HTTP
 request [here](https://pkg.go.dev/github.com/muonsoft/validation#example-Validator.Validate-HttpHandler).
+
+The priority of language selection methods:
+
+* `validator.WithLanguage()` has the highest priority and will override any other options;
+* if the validator language is not specified, the validator will try to get the language from the context;
+* in all other cases, the default language specified in the translator will be used.
 
 Also, there is an ability to totally override translations behaviour. You can use your own translator by
 implementing `validation.Translator` interface and passing it to validator constructor via `SetTranslator` option.
@@ -507,9 +543,11 @@ constraint to know what parameters are available.
 ```golang
 err := validator.ValidateString(context.Background(), "", it.IsNotBlank().Message("this value is required"))
 
-violations := err.(validation.ViolationList)
-for _, violation := range violations {
-    fmt.Println(violation.Error())
+if violations, ok := validation.UnwrapViolationList(err); ok {
+    violations.ForEach(func (i int, violation validation.Violation) error {
+        fmt.Println(violation.Error())
+        return nil
+    })
 }
 // Output:
 // violation: this value is required
@@ -540,9 +578,11 @@ err := validator.ValidateIterable(
     it.HasMinCount(1).MinMessage(customMessage),
 )
 
-violations := err.(validation.ViolationList)
-for _, violation := range violations {
-    fmt.Println(violation.Error())
+if violations, ok := validation.UnwrapViolationList(err); ok {
+    violations.ForEach(func (i int, violation validation.Violation) error {
+        fmt.Println(violation.Error())
+        return nil
+    })
 }
 // Output:
 // violation: теги должны содержать 1 элемент и более
@@ -568,13 +608,13 @@ Also, you can combine several types of constraints. See examples for more detail
 
 ### Recommendations for storing violations in a database
 
-If you have a need to store violations in persistent storage (database), then it is recommended to store only code,
+If you have a need to store violations in persistent storage (database), then it is recommended to store only error code,
 property path, and template parameters. It is not recommended to store message templates because they can contain
-mistakes and can be changed more frequently than violation codes. The better practice is to store messages in separate
-storage with translations and to load them by violation codes. So make sure that violation codes are unique and have
-only one specific message template. To restore the violations from a storage load a code, property path, template
-parameters, and find a message template by the violation code. To make a violation code unique it is recommended to use
-a namespaced value, for example `app.product.emptyTags`.
+mistakes and can be changed more frequently than violation error codes. The better practice is to store messages in 
+separate storage with translations and to load them by violation error codes. So make sure that violation errors codes 
+are unique and have only one specific message template. To restore the violations from a storage load an error code, 
+property path, template parameters, and find a message template by the violation error code. To make a violation 
+error code unique it is recommended to use a namespaced value, for example `app: product: empty tags`.
 
 ## Contributing
 

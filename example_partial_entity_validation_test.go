@@ -33,15 +33,15 @@ type FileUploadRequest struct {
 }
 
 type FileConstraint interface {
-	ValidateFile(file *File, scope validation.Scope) error
+	ValidateFile(ctx context.Context, validator *validation.Validator, file *File) error
 }
 
 func ValidFile(file *File, constraints ...FileConstraint) validation.ValidatorArgument {
-	return validation.NewArgument(func(scope validation.Scope) (*validation.ViolationList, error) {
+	return validation.NewArgument(func(ctx context.Context, validator *validation.Validator) (*validation.ViolationList, error) {
 		violations := validation.NewViolationList()
 
 		for _, constraint := range constraints {
-			err := violations.AppendFromError(constraint.ValidateFile(file, scope))
+			err := violations.AppendFromError(constraint.ValidateFile(ctx, validator, file))
 			if err != nil {
 				return nil, err
 			}
@@ -61,18 +61,18 @@ func FileHasAllowedExtension(extensions ...string) AllowedFileExtensionConstrain
 	return AllowedFileExtensionConstraint{extensions: extensions}
 }
 
-func (c AllowedFileExtensionConstraint) ValidateFile(file *File, scope validation.Scope) error {
+func (c AllowedFileExtensionConstraint) ValidateFile(ctx context.Context, validator *validation.Validator, file *File) error {
 	if file == nil {
 		return nil
 	}
 
 	extension := strings.ReplaceAll(filepath.Ext(file.Name), ".", "")
 
-	return scope.Validator().AtProperty("name").Validate(
-		scope.Context(),
+	return validator.AtProperty("name").Validate(
+		ctx,
 		validation.Comparable[string](
 			extension,
-			it.IsOneOf(c.extensions...).Message("Not allowed extension. Must be one of: {{ choices }}."),
+			it.IsOneOf(c.extensions...).WithMessage("Not allowed extension. Must be one of: {{ choices }}."),
 		),
 	)
 }
@@ -88,24 +88,24 @@ func FileHasAllowedSize(min, max int) AllowedFileSizeConstraint {
 	return AllowedFileSizeConstraint{minSize: min, maxSize: max}
 }
 
-func (c AllowedFileSizeConstraint) ValidateFile(file *File, scope validation.Scope) error {
+func (c AllowedFileSizeConstraint) ValidateFile(ctx context.Context, validator *validation.Validator, file *File) error {
 	if file == nil {
 		return nil
 	}
 
 	size := len(file.Data)
 
-	return scope.Validator().Validate(
-		scope.Context(),
+	return validator.Validate(
+		ctx,
 		validation.Number[int](
 			size,
-			it.IsGreaterThan(c.minSize).Message("File size is too small."),
-			it.IsLessThan(c.maxSize).Message("File size is too large."),
+			it.IsGreaterThan(c.minSize).WithMessage("File size is too small."),
+			it.IsLessThan(c.maxSize).WithMessage("File size is too large."),
 		),
 	)
 }
 
-func ExampleScope_Validator() {
+func ExampleValidator_Validate_partialEntityValidation() {
 	// this constraints will be applied to all files uploaded as avatars
 	avatarConstraints := []FileConstraint{
 		FileHasAllowedExtension("jpeg", "jpg", "gif"),

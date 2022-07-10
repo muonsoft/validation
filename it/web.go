@@ -1,34 +1,29 @@
 package it
 
 import (
+	"context"
 	"errors"
 	"net"
 
 	"github.com/muonsoft/validation"
-	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/is"
-	"github.com/muonsoft/validation/message"
 	"github.com/muonsoft/validation/validate"
 )
 
 // IsEmail is used for simplified validation of an email address. It allows all values
 // with an "@" symbol in, and a "." in the second host part of the email address.
-func IsEmail() validation.CustomStringConstraint {
-	return validation.NewCustomStringConstraint(
-		is.Email,
-		code.InvalidEmail,
-		message.Templates[code.InvalidEmail],
-	)
+func IsEmail() validation.StringFuncConstraint {
+	return validation.OfStringBy(is.Email).
+		WithError(validation.ErrInvalidEmail).
+		WithMessage(validation.ErrInvalidEmail.Message())
 }
 
 // IsHTML5Email is used for validation of an email address based on pattern for HTML5
 // (see https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address).
-func IsHTML5Email() validation.CustomStringConstraint {
-	return validation.NewCustomStringConstraint(
-		is.HTML5Email,
-		code.InvalidEmail,
-		message.Templates[code.InvalidEmail],
-	)
+func IsHTML5Email() validation.StringFuncConstraint {
+	return validation.OfStringBy(is.HTML5Email).
+		WithError(validation.ErrInvalidEmail).
+		WithMessage(validation.ErrInvalidEmail.Message())
 }
 
 // IsHostname validates that a value is a valid hostname. It checks that:
@@ -41,23 +36,19 @@ func IsHTML5Email() validation.CustomStringConstraint {
 //	  .example, .invalid, .localhost, and .test).
 //
 // If you do not want to check for top-level domains use IsLooseHostname version of constraint.
-func IsHostname() validation.CustomStringConstraint {
-	return validation.NewCustomStringConstraint(
-		is.StrictHostname,
-		code.InvalidHostname,
-		message.Templates[code.InvalidHostname],
-	)
+func IsHostname() validation.StringFuncConstraint {
+	return validation.OfStringBy(is.StrictHostname).
+		WithError(validation.ErrInvalidHostname).
+		WithMessage(validation.ErrInvalidHostname.Message())
 }
 
 // IsLooseHostname validates that a value is a valid hostname. It checks that:
 //	• each label within a valid hostname may be no more than 63 octets long;
 //	• the total length of the hostname must not exceed 255 characters.
-func IsLooseHostname() validation.CustomStringConstraint {
-	return validation.NewCustomStringConstraint(
-		is.Hostname,
-		code.InvalidHostname,
-		message.Templates[code.InvalidHostname],
-	)
+func IsLooseHostname() validation.StringFuncConstraint {
+	return validation.OfStringBy(is.Hostname).
+		WithError(validation.ErrInvalidHostname).
+		WithMessage(validation.ErrInvalidHostname.Message())
 }
 
 // URLConstraint is used to validate URL string. This constraint doesn’t check that the host of the
@@ -69,7 +60,7 @@ type URLConstraint struct {
 	supportsRelativeSchema bool
 	schemas                []string
 	groups                 []string
-	code                   string
+	err                    error
 	messageTemplate        string
 	messageParameters      validation.TemplateParameterList
 }
@@ -81,8 +72,8 @@ type URLConstraint struct {
 func IsURL() URLConstraint {
 	return URLConstraint{
 		schemas:         []string{"http", "https"},
-		code:            code.InvalidURL,
-		messageTemplate: message.Templates[code.InvalidURL],
+		err:             validation.ErrInvalidURL,
+		messageTemplate: validation.ErrInvalidURL.Message(),
 	}
 }
 
@@ -101,17 +92,17 @@ func (c URLConstraint) WithSchemas(schemas ...string) URLConstraint {
 	return c
 }
 
-// Code overrides default code for produced violation.
-func (c URLConstraint) Code(code string) URLConstraint {
-	c.code = code
+// WithError overrides default error for produced violation.
+func (c URLConstraint) WithError(err error) URLConstraint {
+	c.err = err
 	return c
 }
 
-// Message sets the violation message template. You can set custom template parameters
+// WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message. Also, you can use default parameters:
 //
 //	{{ value }} - the current (invalid) value.
-func (c URLConstraint) Message(template string, parameters ...validation.TemplateParameter) URLConstraint {
+func (c URLConstraint) WithMessage(template string, parameters ...validation.TemplateParameter) URLConstraint {
 	c.messageTemplate = template
 	c.messageParameters = parameters
 	return c
@@ -130,11 +121,11 @@ func (c URLConstraint) WhenGroups(groups ...string) URLConstraint {
 	return c
 }
 
-func (c URLConstraint) ValidateString(value *string, scope validation.Scope) error {
+func (c URLConstraint) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
 	if len(c.schemas) == 0 {
-		return scope.NewConstraintError("URLConstraint", "empty list of schemas")
+		return validator.CreateConstraintError("URLConstraint", "empty list of schemas")
 	}
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == "" {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || *value == "" {
 		return nil
 	}
 
@@ -146,7 +137,7 @@ func (c URLConstraint) ValidateString(value *string, scope validation.Scope) err
 		return nil
 	}
 
-	return scope.BuildViolation(c.code, c.messageTemplate).
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ value }}", Value: *value},
@@ -164,8 +155,8 @@ type IPConstraint struct {
 
 	groups []string
 
-	invalidCode    string
-	prohibitedCode string
+	invalidErr    error
+	prohibitedErr error
 
 	invalidMessageTemplate      string
 	invalidMessageParameters    validation.TemplateParameterList
@@ -191,10 +182,10 @@ func IsIPv6() IPConstraint {
 func newIPConstraint(validate func(value string, restrictions ...validate.IPRestriction) error) IPConstraint {
 	return IPConstraint{
 		validate:                  validate,
-		invalidCode:               code.InvalidIP,
-		prohibitedCode:            code.ProhibitedIP,
-		invalidMessageTemplate:    message.Templates[code.InvalidIP],
-		prohibitedMessageTemplate: message.Templates[code.ProhibitedIP],
+		invalidErr:                validation.ErrInvalidIP,
+		prohibitedErr:             validation.ErrProhibitedIP,
+		invalidMessageTemplate:    validation.ErrInvalidIP.Message(),
+		prohibitedMessageTemplate: validation.ErrProhibitedIP.Message(),
 	}
 }
 
@@ -211,35 +202,35 @@ func (c IPConstraint) DenyIP(restrict func(ip net.IP) bool) IPConstraint {
 	return c
 }
 
-// InvalidCode overrides default code for violation produced on invalid IP case.
-func (c IPConstraint) InvalidCode(code string) IPConstraint {
-	c.invalidCode = code
+// WithInvalidError overrides default underlying error for violation produced on invalid IP case.
+func (c IPConstraint) WithInvalidError(err error) IPConstraint {
+	c.invalidErr = err
 	return c
 }
 
-// ProhibitedCode overrides default code for violation produced on prohibited IP case.
-func (c IPConstraint) ProhibitedCode(code string) IPConstraint {
-	c.prohibitedCode = code
+// WithProhibitedError overrides default underlying error for violation produced on prohibited IP case.
+func (c IPConstraint) WithProhibitedError(err error) IPConstraint {
+	c.prohibitedErr = err
 	return c
 }
 
-// InvalidMessage sets the violation message template for invalid IP case.
+// WithInvalidMessage sets the violation message template for invalid IP case.
 // You can set custom template parameters for injecting its values into the final message.
 // Also, you can use default parameters:
 //
 //	{{ value }} - the current (invalid) value.
-func (c IPConstraint) InvalidMessage(template string, parameters ...validation.TemplateParameter) IPConstraint {
+func (c IPConstraint) WithInvalidMessage(template string, parameters ...validation.TemplateParameter) IPConstraint {
 	c.invalidMessageTemplate = template
 	c.invalidMessageParameters = parameters
 	return c
 }
 
-// ProhibitedMessage sets the violation message template for prohibited IP case.
+// WithProhibitedMessage sets the violation message template for prohibited IP case.
 // You can set custom template parameters for injecting its values into the final message.
 // Also, you can use default parameters:
 //
 //	{{ value }} - the current (invalid) value.
-func (c IPConstraint) ProhibitedMessage(template string, parameters ...validation.TemplateParameter) IPConstraint {
+func (c IPConstraint) WithProhibitedMessage(template string, parameters ...validation.TemplateParameter) IPConstraint {
 	c.prohibitedMessageTemplate = template
 	c.prohibitedMessageParameters = parameters
 	return c
@@ -258,15 +249,15 @@ func (c IPConstraint) WhenGroups(groups ...string) IPConstraint {
 	return c
 }
 
-func (c IPConstraint) ValidateString(value *string, scope validation.Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == "" {
+func (c IPConstraint) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || *value == "" {
 		return nil
 	}
 
-	return c.validateIP(*value, scope)
+	return c.validateIP(ctx, validator, *value)
 }
 
-func (c IPConstraint) validateIP(value string, scope validation.Scope) error {
+func (c IPConstraint) validateIP(ctx context.Context, validator *validation.Validator, value string) error {
 	err := c.validate(value, c.restrictions...)
 	if err == nil {
 		return nil
@@ -276,10 +267,10 @@ func (c IPConstraint) validateIP(value string, scope validation.Scope) error {
 	var parameters validation.TemplateParameterList
 
 	if errors.Is(err, validate.ErrProhibited) {
-		builder = scope.BuildViolation(c.prohibitedCode, c.prohibitedMessageTemplate)
+		builder = validator.BuildViolation(ctx, c.prohibitedErr, c.prohibitedMessageTemplate)
 		parameters = c.prohibitedMessageParameters
 	} else {
-		builder = scope.BuildViolation(c.invalidCode, c.invalidMessageTemplate)
+		builder = validator.BuildViolation(ctx, c.invalidErr, c.invalidMessageTemplate)
 		parameters = c.invalidMessageParameters
 	}
 

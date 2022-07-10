@@ -1,27 +1,31 @@
 package it
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/muonsoft/validation"
-	"github.com/muonsoft/validation/code"
-	"github.com/muonsoft/validation/message"
 )
 
 // ChoiceConstraint is used to ensure that the given value corresponds to one of the expected choices.
+// Zero values (zero numbers or empty strings) are also compared with the given choices.
+// In order for a blank value to be valid, use the WithAllowedBlank method.
 type ChoiceConstraint[T comparable] struct {
 	blank             T
 	choices           map[T]bool
 	choicesValue      string
 	groups            []string
-	code              string
+	err               error
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
+	allowBlank        bool
 	isIgnored         bool
 }
 
 // IsOneOf creates a ChoiceConstraint for checking that values are in the expected list of values.
+// Zero values (zero numbers or empty strings) are also compared with the given choices.
+// In order for a blank value to be valid, use the WithAllowedBlank method.
 func IsOneOf[T comparable](values ...T) ChoiceConstraint[T] {
 	choices := make(map[T]bool, len(values))
 	for _, value := range values {
@@ -39,23 +43,29 @@ func IsOneOf[T comparable](values ...T) ChoiceConstraint[T] {
 	return ChoiceConstraint[T]{
 		choices:         choices,
 		choicesValue:    s.String(),
-		code:            code.NoSuchChoice,
-		messageTemplate: message.Templates[code.NoSuchChoice],
+		err:             validation.ErrNoSuchChoice,
+		messageTemplate: validation.ErrNoSuchChoice.Message(),
 	}
 }
 
-// Code overrides default code for produced violation.
-func (c ChoiceConstraint[T]) Code(code string) ChoiceConstraint[T] {
-	c.code = code
+// WithAllowedBlank makes zero values valid.
+func (c ChoiceConstraint[T]) WithAllowedBlank() ChoiceConstraint[T] {
+	c.allowBlank = true
 	return c
 }
 
-// Message sets the violation message template. You can set custom template parameters
+// WithError overrides default error for produced violation.
+func (c ChoiceConstraint[T]) WithError(err error) ChoiceConstraint[T] {
+	c.err = err
+	return c
+}
+
+// WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message. Also, you can use default parameters:
 //
 //	{{ choices }} - a comma-separated list of available choices;
 //	{{ value }} - the current (invalid) value.
-func (c ChoiceConstraint[T]) Message(template string, parameters ...validation.TemplateParameter) ChoiceConstraint[T] {
+func (c ChoiceConstraint[T]) WithMessage(template string, parameters ...validation.TemplateParameter) ChoiceConstraint[T] {
 	c.messageTemplate = template
 	c.messageParameters = parameters
 	return c
@@ -74,27 +84,27 @@ func (c ChoiceConstraint[T]) WhenGroups(groups ...string) ChoiceConstraint[T] {
 	return c
 }
 
-func (c ChoiceConstraint[T]) ValidateNumber(value *T, scope validation.Scope) error {
-	return c.ValidateComparable(value, scope)
+func (c ChoiceConstraint[T]) ValidateNumber(ctx context.Context, validator *validation.Validator, value *T) error {
+	return c.ValidateComparable(ctx, validator, value)
 }
 
-func (c ChoiceConstraint[T]) ValidateString(value *T, scope validation.Scope) error {
-	return c.ValidateComparable(value, scope)
+func (c ChoiceConstraint[T]) ValidateString(ctx context.Context, validator *validation.Validator, value *T) error {
+	return c.ValidateComparable(ctx, validator, value)
 }
 
-func (c ChoiceConstraint[T]) ValidateComparable(value *T, scope validation.Scope) error {
+func (c ChoiceConstraint[T]) ValidateComparable(ctx context.Context, validator *validation.Validator, value *T) error {
 	if len(c.choices) == 0 {
-		return scope.NewConstraintError("ChoiceConstraint", "empty list of choices")
+		return validator.CreateConstraintError("ChoiceConstraint", "empty list of choices")
 	}
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == c.blank {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || c.allowBlank && *value == c.blank {
 		return nil
 	}
 	if c.choices[*value] {
 		return nil
 	}
 
-	return scope.
-		BuildViolation(c.code, c.messageTemplate).
+	return validator.
+		BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(
 			c.messageParameters.Prepend(
 				validation.TemplateParameter{Key: "{{ value }}", Value: fmt.Sprint(*value)},

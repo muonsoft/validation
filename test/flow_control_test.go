@@ -2,15 +2,22 @@ package test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 	"time"
 
 	"github.com/muonsoft/validation"
-	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/validationtest"
 	"github.com/stretchr/testify/assert"
+)
+
+var (
+	ErrThen   = errors.New("then")
+	ErrElse   = errors.New("else")
+	ErrFirst  = errors.New("first")
+	ErrSecond = errors.New("second")
 )
 
 func TestValidatorArgument_WhenConditionIsFalse_ExpectNoErrors(t *testing.T) {
@@ -26,29 +33,29 @@ func TestWhenArgument_WhenConditionIsTrue_ExpectAllConstraintsOfThenBranchApplie
 	err := newValidator(t).Validate(
 		context.Background(),
 		validation.When(true).
-			Then(validation.String("", it.IsNotBlank().Code("then"))).
-			Else(validation.String("", it.IsNotBlank().Code("else"))),
+			Then(validation.String("", it.IsNotBlank().WithError(ErrThen))).
+			Else(validation.String("", it.IsNotBlank().WithError(ErrElse))),
 	)
 
-	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithCode("then")
+	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithError(ErrThen)
 }
 
 func TestWhenArgument_WhenConditionIsFalse_ExpectAllConstraintsOfElseBranchApplied(t *testing.T) {
 	err := newValidator(t).Validate(
 		context.Background(),
 		validation.When(false).
-			Then(validation.String("", it.IsNotBlank().Code("then"))).
-			Else(validation.String("", it.IsNotBlank().Code("else"))),
+			Then(validation.String("", it.IsNotBlank().WithError(ErrThen))).
+			Else(validation.String("", it.IsNotBlank().WithError(ErrElse))),
 	)
 
-	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithCode("else")
+	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithError(ErrElse)
 }
 
 func TestWhenArgument_WhenConditionIsFalseAndNoElseBranch_ExpectNoViolations(t *testing.T) {
 	err := newValidator(t).Validate(
 		context.Background(),
 		validation.When(false).
-			Then(validation.String("", it.IsNotBlank().Code("then"))),
+			Then(validation.String("", it.IsNotBlank().WithError(ErrThen))),
 	)
 
 	assertNoError(t, err)
@@ -58,16 +65,16 @@ func TestWhenArgument_WhenPathIsSet_ExpectViolationWithPath(t *testing.T) {
 	err := newValidator(t).Validate(
 		context.Background(),
 		validation.When(true).
-			With(
+			At(
 				validation.PropertyName("properties"),
 				validation.ArrayIndex(0),
 				validation.PropertyName("property"),
 			).
-			Then(validation.String("", it.IsNotBlank().Code("then"))),
+			Then(validation.String("", it.IsNotBlank().WithError(ErrThen))),
 	)
 
 	validationtest.Assert(t, err).IsViolationList().WithOneViolation().
-		WithCode("then").
+		WithError(ErrThen).
 		WithPropertyPath("properties[0].property")
 }
 
@@ -75,29 +82,29 @@ func TestWhenGroupsArgument_WhenGroupMatches_ExpectViolation(t *testing.T) {
 	err := newValidator(t).WithGroups(testGroup).Validate(
 		context.Background(),
 		validation.WhenGroups(testGroup).
-			Then(validation.String("", it.IsNotBlank().WhenGroups(testGroup).Code("then"))).
-			Else(validation.String("", it.IsNotBlank().WhenGroups(testGroup).Code("else"))),
+			Then(validation.String("", it.IsNotBlank().WhenGroups(testGroup).WithError(ErrThen))).
+			Else(validation.String("", it.IsNotBlank().WhenGroups(testGroup).WithError(ErrElse))),
 	)
 
-	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithCode("then")
+	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithError(ErrThen)
 }
 
 func TestWhenGroupsArgument_WhenGroupNotMatches_ExpectNoError(t *testing.T) {
 	err := newValidator(t).Validate(
 		context.Background(),
 		validation.WhenGroups(testGroup).
-			Then(validation.String("", it.IsNotBlank().Code("then"))).
-			Else(validation.String("", it.IsNotBlank().Code("else"))),
+			Then(validation.String("", it.IsNotBlank().WithError(ErrThen))).
+			Else(validation.String("", it.IsNotBlank().WithError(ErrElse))),
 	)
 
-	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithCode("else")
+	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithError(ErrElse)
 }
 
 func TestWhenGroupsArgument_WhenGroupNotMatchesNoElseBranch_ExpectNoViolations(t *testing.T) {
 	err := newValidator(t).Validate(
 		context.Background(),
 		validation.WhenGroups(testGroup).
-			Then(validation.String("", it.IsNotBlank().Code("then"))),
+			Then(validation.String("", it.IsNotBlank().WithError(ErrThen))),
 	)
 
 	assertNoError(t, err)
@@ -107,8 +114,8 @@ func TestWhenGroupsArgument_WhenPathIsSet_ExpectViolationWithPath(t *testing.T) 
 	err := newValidator(t).WithGroups(testGroup).Validate(
 		context.Background(),
 		validation.WhenGroups(testGroup).
-			Then(validation.String("", it.IsNotBlank().WhenGroups(testGroup).Code("then"))).
-			With(
+			Then(validation.String("", it.IsNotBlank().WhenGroups(testGroup).WithError(ErrThen))).
+			At(
 				validation.PropertyName("properties"),
 				validation.ArrayIndex(0),
 				validation.PropertyName("property"),
@@ -116,7 +123,7 @@ func TestWhenGroupsArgument_WhenPathIsSet_ExpectViolationWithPath(t *testing.T) 
 	)
 
 	validationtest.Assert(t, err).IsViolationList().WithOneViolation().
-		WithCode("then").
+		WithError(ErrThen).
 		WithPropertyPath("properties[0].property")
 }
 
@@ -124,21 +131,21 @@ func TestSequentialArgument_WhenInvalidValueAtFirstConstraint_ExpectOneViolation
 	err := newValidator(t).Validate(
 		context.Background(),
 		validation.Sequentially(
-			validation.String("", it.IsNotBlank().Code("first")),
-			validation.String("", it.IsNotBlank().Code("second")),
+			validation.String("", it.IsNotBlank().WithError(ErrFirst)),
+			validation.String("", it.IsNotBlank().WithError(ErrSecond)),
 		),
 	)
 
-	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithCode("first")
+	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithError(ErrFirst)
 }
 
 func TestSequentialArgument_WhenPathIsSet_ExpectOneViolationWithPath(t *testing.T) {
 	err := newValidator(t).Validate(
 		context.Background(),
 		validation.Sequentially(
-			validation.String("", it.IsNotBlank().Code("first")),
-			validation.String("", it.IsNotBlank().Code("second")),
-		).With(
+			validation.String("", it.IsNotBlank().WithError(ErrFirst)),
+			validation.String("", it.IsNotBlank().WithError(ErrSecond)),
+		).At(
 			validation.PropertyName("properties"),
 			validation.ArrayIndex(0),
 			validation.PropertyName("property"),
@@ -146,7 +153,7 @@ func TestSequentialArgument_WhenPathIsSet_ExpectOneViolationWithPath(t *testing.
 	)
 
 	validationtest.Assert(t, err).IsViolationList().WithOneViolation().
-		WithCode("first").
+		WithError(ErrFirst).
 		WithPropertyPath("properties[0].property")
 }
 
@@ -154,8 +161,8 @@ func TestSequentialArgument_WhenValidationIsDisabled_ExpectNoErrors(t *testing.T
 	err := newValidator(t).Validate(
 		context.Background(),
 		validation.Sequentially(
-			validation.String("", it.IsNotBlank().Code("first")),
-			validation.String("", it.IsNotBlank().Code("second")),
+			validation.String("", it.IsNotBlank().WithError(ErrFirst)),
+			validation.String("", it.IsNotBlank().WithError(ErrSecond)),
 		).When(false),
 	)
 
@@ -166,20 +173,20 @@ func TestAtLeastOneOfArgument_WhenInvalidValueAtFirstConstraint_ExpectAllViolati
 	err := newValidator(t).Validate(
 		context.Background(),
 		validation.AtLeastOneOf(
-			validation.String("", it.IsNotBlank().Code("first")),
-			validation.String("", it.IsNotBlank().Code("second")),
+			validation.String("", it.IsNotBlank().WithError(ErrFirst)),
+			validation.String("", it.IsNotBlank().WithError(ErrSecond)),
 		),
 	)
 
-	validationtest.Assert(t, err).IsViolationList().WithCodes("first", "second")
+	validationtest.Assert(t, err).IsViolationList().WithErrors(ErrFirst, ErrSecond)
 }
 
 func TestAtLeastOneOfArgument_WhenInvalidValueAtSecondConstraint_ExpectNoViolation(t *testing.T) {
 	err := newValidator(t).Validate(
 		context.Background(),
 		validation.AtLeastOneOf(
-			validation.String("", it.IsNotBlank().Code("first")),
-			validation.String("foo", it.IsNotBlank().Code("second")),
+			validation.String("", it.IsNotBlank().WithError(ErrFirst)),
+			validation.String("foo", it.IsNotBlank().WithError(ErrSecond)),
 		),
 	)
 
@@ -191,7 +198,7 @@ func TestAtLeastOneOfArgument_WhenPathIsSet_ExpectOneViolationWithPath(t *testin
 		context.Background(),
 		validation.AtLeastOneOf(
 			validation.String("", it.IsNotBlank()),
-		).With(
+		).At(
 			validation.PropertyName("properties"),
 			validation.ArrayIndex(0),
 			validation.PropertyName("property"),
@@ -199,7 +206,7 @@ func TestAtLeastOneOfArgument_WhenPathIsSet_ExpectOneViolationWithPath(t *testin
 	)
 
 	validationtest.Assert(t, err).IsViolationList().WithOneViolation().
-		WithCode(code.NotBlank).
+		WithError(validation.ErrIsBlank).
 		WithPropertyPath("properties[0].property")
 }
 
@@ -207,8 +214,8 @@ func TestAtLeastOneOfArgument_WhenValidationIsDisabled_ExpectNoError(t *testing.
 	err := newValidator(t).Validate(
 		context.Background(),
 		validation.AtLeastOneOf(
-			validation.String("", it.IsNotBlank().Code("first")),
-			validation.String("", it.IsNotBlank().Code("second")),
+			validation.String("", it.IsNotBlank().WithError(ErrFirst)),
+			validation.String("", it.IsNotBlank().WithError(ErrSecond)),
 		).When(false),
 	)
 
@@ -219,21 +226,21 @@ func TestAllArgument_WhenInvalidValueAtFirstConstraint_ExpectAllViolations(t *te
 	err := newValidator(t).Validate(
 		context.Background(),
 		validation.All(
-			validation.String("", it.IsNotBlank().Code("first")),
-			validation.String("", it.IsNotBlank().Code("second")),
+			validation.String("", it.IsNotBlank().WithError(ErrFirst)),
+			validation.String("", it.IsNotBlank().WithError(ErrSecond)),
 		),
 	)
 
-	validationtest.Assert(t, err).IsViolationList().WithCodes("first", "second")
+	validationtest.Assert(t, err).IsViolationList().WithErrors(ErrFirst, ErrSecond)
 }
 
 func TestAllArgument_WhenPathIsSet_ExpectOneViolationWithPath(t *testing.T) {
 	err := newValidator(t).Validate(
 		context.Background(),
 		validation.All(
-			validation.String("", it.IsNotBlank().Code("first")),
-			validation.String("", it.IsNotBlank().Code("second")),
-		).With(
+			validation.String("", it.IsNotBlank().WithError(ErrFirst)),
+			validation.String("", it.IsNotBlank().WithError(ErrSecond)),
+		).At(
 			validation.PropertyName("properties"),
 			validation.ArrayIndex(0),
 			validation.PropertyName("property"),
@@ -241,16 +248,16 @@ func TestAllArgument_WhenPathIsSet_ExpectOneViolationWithPath(t *testing.T) {
 	)
 
 	violations := validationtest.Assert(t, err).IsViolationList()
-	violations.HasViolationAt(0).WithCode("first").WithPropertyPath("properties[0].property")
-	violations.HasViolationAt(1).WithCode("second").WithPropertyPath("properties[0].property")
+	violations.HasViolationAt(0).WithError(ErrFirst).WithPropertyPath("properties[0].property")
+	violations.HasViolationAt(1).WithError(ErrSecond).WithPropertyPath("properties[0].property")
 }
 
 func TestAllArgument_WhenValidationIsDisabled_ExpectNoErrors(t *testing.T) {
 	err := newValidator(t).Validate(
 		context.Background(),
 		validation.All(
-			validation.String("", it.IsNotBlank().Code("first")),
-			validation.String("", it.IsNotBlank().Code("second")),
+			validation.String("", it.IsNotBlank().WithError(ErrFirst)),
+			validation.String("", it.IsNotBlank().WithError(ErrSecond)),
 		).When(false),
 	)
 
@@ -261,19 +268,19 @@ func TestAsyncArgument_WhenInvalidValueAtFirstConstraint_ExpectAllViolations(t *
 	err := newValidator(t).Validate(
 		context.Background(),
 		validation.Async(
-			validation.String("", it.IsNotBlank().Code("first")),
+			validation.String("", it.IsNotBlank().WithError(ErrFirst)),
 		),
 	)
 
-	validationtest.Assert(t, err).IsViolationList().WithCodes("first")
+	validationtest.Assert(t, err).IsViolationList().WithErrors(ErrFirst)
 }
 
 func TestAsyncArgument_WhenPathIsSet_ExpectOneViolationWithPath(t *testing.T) {
 	err := newValidator(t).Validate(
 		context.Background(),
 		validation.Async(
-			validation.String("", it.IsNotBlank().Code("first")),
-		).With(
+			validation.String("", it.IsNotBlank().WithError(ErrFirst)),
+		).At(
 			validation.PropertyName("properties"),
 			validation.ArrayIndex(0),
 			validation.PropertyName("property"),
@@ -281,15 +288,15 @@ func TestAsyncArgument_WhenPathIsSet_ExpectOneViolationWithPath(t *testing.T) {
 	)
 
 	violations := validationtest.Assert(t, err).IsViolationList()
-	violations.HasViolationAt(0).WithCode("first").WithPropertyPath("properties[0].property")
+	violations.HasViolationAt(0).WithError(ErrFirst).WithPropertyPath("properties[0].property")
 }
 
 func TestAsyncArgument_WhenValidationIsDisabled_ExpectNoErrors(t *testing.T) {
 	err := newValidator(t).Validate(
 		context.Background(),
 		validation.Async(
-			validation.String("", it.IsNotBlank().Code("first")),
-			validation.String("", it.IsNotBlank().Code("second")),
+			validation.String("", it.IsNotBlank().WithError(ErrFirst)),
+			validation.String("", it.IsNotBlank().WithError(ErrSecond)),
 		).When(false),
 	)
 
@@ -303,14 +310,14 @@ func TestAsyncArgument_WhenFatalError_ExpectContextCanceled(t *testing.T) {
 	err := newValidator(t).Validate(
 		context.Background(),
 		validation.Async(
-			validation.String("", asyncConstraint(func(value *string, scope validation.Scope) error {
+			validation.String("", asyncConstraint(func(ctx context.Context, validator *validation.Validator, value *string) error {
 				return fatal
 			})),
-			validation.String("", asyncConstraint(func(value *string, scope validation.Scope) error {
+			validation.String("", asyncConstraint(func(ctx context.Context, validator *validation.Validator, value *string) error {
 				select {
 				case <-time.After(10 * time.Millisecond):
 					cancellation <- false
-				case <-scope.Context().Done():
+				case <-ctx.Done():
 					cancellation <- true
 				}
 				return nil

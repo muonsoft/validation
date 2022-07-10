@@ -4,7 +4,6 @@ import (
 	"regexp"
 
 	"github.com/muonsoft/validation"
-	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
 )
@@ -43,7 +42,7 @@ var lengthConstraintTestCases = []ConstraintValidationTestCase{
 		constraint:      it.HasMinLength(2).When(true),
 		stringValue:     stringValue("a"),
 		assert: assertHasOneViolation(
-			code.LengthTooFew,
+			validation.ErrTooShort,
 			"This value is too short. It should have 2 characters or more.",
 		),
 	},
@@ -51,14 +50,14 @@ var lengthConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "HasMinLength violation with custom min message",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint: it.HasMinLength(2).
-			MinCode("minCode").
-			MinMessage(
+			WithMinError(ErrMin).
+			WithMinMessage(
 				"Unexpected length {{ length }} at {{ custom }} value {{ value }}, should not be less than {{ limit }}.",
 				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
 			),
 		stringValue: stringValue("a"),
 		assert: assertHasOneViolation(
-			"minCode",
+			ErrMin,
 			`Unexpected length 1 at parameter value "a", should not be less than 2.`,
 		),
 	},
@@ -66,14 +65,14 @@ var lengthConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "HasMinLength violation with custom max message",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint: it.HasMaxLength(2).
-			MaxCode("maxCode").
-			MaxMessage(
+			WithMaxError(ErrMax).
+			WithMaxMessage(
 				"Unexpected length {{ length }} at {{ custom }} value {{ value }}, should not be greater than {{ limit }}.",
 				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
 			),
 		stringValue: stringValue("aaa"),
 		assert: assertHasOneViolation(
-			"maxCode",
+			ErrMax,
 			`Unexpected length 3 at parameter value "aaa", should not be greater than 2.`,
 		),
 	},
@@ -81,14 +80,14 @@ var lengthConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "HasMinLength violation with custom exact message",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint: it.HasExactLength(2).
-			ExactCode("exactCode").
-			ExactMessage(
+			WithExactError(ErrExact).
+			WithExactMessage(
 				"Unexpected length {{ length }} at {{ custom }} value {{ value }}, should be exactly {{ limit }}.",
 				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
 			),
 		stringValue: stringValue("aaa"),
 		assert: assertHasOneViolation(
-			"exactCode",
+			ErrExact,
 			`Unexpected length 3 at parameter value "aaa", should be exactly 2.`,
 		),
 	},
@@ -105,7 +104,7 @@ var lengthConstraintTestCases = []ConstraintValidationTestCase{
 		stringValue:     stringValue("aaa"),
 		constraint:      it.HasMaxLength(2),
 		assert: assertHasOneViolation(
-			code.LengthTooMany,
+			validation.ErrTooLong,
 			"This value is too long. It should have 2 characters or less.",
 		),
 	},
@@ -130,7 +129,7 @@ var regexConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "Matches error on nil regex",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.Matches(nil),
-		assert:          assertError(`failed to validate by RegexConstraint: nil regex`),
+		assert:          assertError(`failed to validate by RegexpConstraint: nil regex`),
 	},
 	{
 		name:            "Matches passes on nil",
@@ -164,19 +163,19 @@ var regexConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.Matches(regexp.MustCompile("^[a-z]+$")).When(true),
 		stringValue:     stringValue("1"),
-		assert:          assertHasOneViolation(code.MatchingFailed, message.Templates[code.NotValid]),
+		assert:          assertHasOneViolation(validation.ErrNotValid, message.NotValid),
 	},
 	{
 		name:            "Matches violation with custom message",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint: it.Matches(regexp.MustCompile("^[a-z]+$")).
-			Code(customCode).
-			Message(
+			WithError(ErrCustom).
+			WithMessage(
 				`Unexpected value "{{ value }}" at {{ custom }}.`,
 				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
 			),
 		stringValue: stringValue("1"),
-		assert:      assertHasOneViolation(customCode, `Unexpected value "1" at parameter.`),
+		assert:      assertHasOneViolation(ErrCustom, `Unexpected value "1" at parameter.`),
 	},
 	{
 		name:            "Matches passes on expected string",
@@ -190,7 +189,7 @@ var regexConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("a"),
 		constraint:      it.DoesNotMatch(regexp.MustCompile("^[a-z]+$")),
-		assert:          assertHasOneViolation(code.MatchingFailed, message.Templates[code.NotValid]),
+		assert:          assertHasOneViolation(validation.ErrNotValid, message.NotValid),
 	},
 	{
 		name:            "DoesNotMatch passes on expected string",
@@ -214,7 +213,7 @@ var jsonConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsJSON(),
 		stringValue:     stringValue(`"invalid": true`),
-		assert:          assertHasOneViolation(code.InvalidJSON, message.Templates[code.InvalidJSON]),
+		assert:          assertHasOneViolation(validation.ErrInvalidJSON, message.InvalidJSON),
 	},
 }
 
@@ -231,7 +230,7 @@ var numericConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsInteger(),
 		stringValue:     stringValue("foo"),
-		assert:          assertHasOneViolation(code.NotInteger, message.Templates[code.NotInteger]),
+		assert:          assertHasOneViolation(validation.ErrNotInteger, message.NotInteger),
 	},
 	{
 		name:            "IsNumeric passes on valid number",
@@ -245,6 +244,6 @@ var numericConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsNumeric(),
 		stringValue:     stringValue("foo.bar"),
-		assert:          assertHasOneViolation(code.NotNumeric, message.Templates[code.NotNumeric]),
+		assert:          assertHasOneViolation(validation.ErrNotNumeric, message.NotNumeric),
 	},
 }

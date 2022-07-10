@@ -24,16 +24,6 @@ func SetUp(options ...validation.ValidatorOption) (err error) {
 	return err
 }
 
-// SetOptions can be used to set up a new instance of singleton validator. Make sure you call this function once
-// at the initialization of your application because it totally replaces validator instance.
-//
-// Deprecated: use SetUp function instead.
-func SetOptions(options ...validation.ValidatorOption) (err error) {
-	validator, err = validation.NewValidator(options...)
-
-	return err
-}
-
 // Validate is the main validation method. It accepts validation arguments. executionContext can be
 // used to tune up the validation process or to pass values of a specific type.
 func Validate(ctx context.Context, arguments ...validation.Argument) error {
@@ -95,7 +85,7 @@ func GetConstraint(key string) interface{} {
 }
 
 // WithGroups is used to execute conditional validation based on validation groups. It creates
-// a new scoped validation with a given set of groups.
+// a new context validator with a given set of groups.
 //
 // By default, when validating an object all constraints of it will be checked whether or not
 // they pass. In some cases, however, you will need to validate an object against
@@ -113,30 +103,35 @@ func WithGroups(groups ...string) *validation.Validator {
 	return validator.WithGroups(groups...)
 }
 
-// WithLanguage method creates a new scoped validator with a given language tag. All created violations
+// WithLanguage method creates a new context validator with a given language tag. All created violations
 // will be translated into this language.
 func WithLanguage(tag language.Tag) *validation.Validator {
 	return validator.WithLanguage(tag)
 }
 
-// AtProperty method creates a new scoped validator with injected property name element to scope property path.
+// At method creates a new context validator with appended property path.
+func At(path ...validation.PropertyPathElement) *validation.Validator {
+	return validator.At(path...)
+}
+
+// AtProperty method creates a new context validator with appended property name to the property path.
 func AtProperty(name string) *validation.Validator {
 	return validator.AtProperty(name)
 }
 
-// AtIndex method creates a new scoped validator with injected array index element to scope property path.
+// AtIndex method creates a new context validator with appended array index to the property path.
 func AtIndex(index int) *validation.Validator {
 	return validator.AtIndex(index)
 }
 
 // CreateViolation can be used to quickly create a custom violation on the client-side.
-func CreateViolation(ctx context.Context, code, message string, path ...validation.PropertyPathElement) validation.Violation {
-	return validator.CreateViolation(ctx, code, message, path...)
+func CreateViolation(ctx context.Context, err error, message string, path ...validation.PropertyPathElement) validation.Violation {
+	return validator.CreateViolation(ctx, err, message, path...)
 }
 
 // BuildViolation can be used to build a custom violation on the client-side.
-func BuildViolation(ctx context.Context, code, message string) *validation.ViolationBuilder {
-	return validator.BuildViolation(ctx, code, message)
+func BuildViolation(ctx context.Context, err error, message string) *validation.ViolationBuilder {
+	return validator.BuildViolation(ctx, err, message)
 }
 
 // BuildViolationList can be used to build a custom violation list on the client-side.

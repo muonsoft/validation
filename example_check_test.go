@@ -2,6 +2,7 @@ package validation_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/muonsoft/validation"
@@ -30,6 +31,8 @@ func (m DigitalMovie) Supports(outletType string) bool {
 	return outletType == "digital"
 }
 
+var ErrUnsupportedCommodity = errors.New("unsupported commodity")
+
 func ExampleCheckProperty() {
 	outlet := Outlet{
 		Type:          "offline",
@@ -40,8 +43,8 @@ func ExampleCheckProperty() {
 		context.Background(),
 		validation.
 			CheckProperty("mainCommodity", outlet.MainCommodity.Supports(outlet.Type)).
-			Code("unsupportedCommodity").
-			Message(
+			WithError(ErrUnsupportedCommodity).
+			WithMessage(
 				`Commodity "{{ value }}" cannot be sold at outlet.`,
 				validation.TemplateParameter{Key: "{{ value }}", Value: outlet.MainCommodity.Name()},
 			),
@@ -49,11 +52,13 @@ func ExampleCheckProperty() {
 
 	if violations, ok := validation.UnwrapViolationList(err); ok {
 		for violation := violations.First(); violation != nil; violation = violation.Next() {
-			fmt.Println("violation code:", violation.Code())
+			fmt.Println("violation underlying error:", violation.Unwrap())
 			fmt.Println(violation)
 		}
 	}
+	fmt.Println("errors.Is(err, ErrUnsupportedCommodity) =", errors.Is(err, ErrUnsupportedCommodity))
 	// Output:
-	// violation code: unsupportedCommodity
+	// violation underlying error: unsupported commodity
 	// violation at 'mainCommodity': Commodity "Digital movie" cannot be sold at outlet.
+	// errors.Is(err, ErrUnsupportedCommodity) = true
 }

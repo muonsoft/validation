@@ -2,7 +2,6 @@ package test
 
 import (
 	"github.com/muonsoft/validation"
-	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 )
 
@@ -12,7 +11,7 @@ var countConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(iterableType, countableType),
 		constraint:      it.HasMinCount(1),
 		assert: assertHasOneViolation(
-			code.CountTooFew,
+			validation.ErrTooFewElements,
 			"This collection should contain 1 element or more.",
 		),
 	},
@@ -33,7 +32,7 @@ var countConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(iterableType, countableType),
 		constraint:      it.HasMinCount(1).When(true),
 		assert: assertHasOneViolation(
-			code.CountTooFew,
+			validation.ErrTooFewElements,
 			"This collection should contain 1 element or more.",
 		),
 	},
@@ -41,13 +40,13 @@ var countConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "HasMinCount violation with custom message",
 		isApplicableFor: specificValueTypes(iterableType, countableType),
 		constraint: it.HasMinCount(1).
-			MinCode("minCode").
-			MinMessage(
+			WithMinError(ErrMin).
+			WithMinMessage(
 				"Unexpected count {{ count }} at {{ custom }}, should not be less than {{ limit }}.",
 				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
 			),
 		assert: assertHasOneViolation(
-			"minCode",
+			ErrMin,
 			"Unexpected count 0 at parameter, should not be less than 1.",
 		),
 	},
@@ -58,7 +57,7 @@ var countConstraintTestCases = []ConstraintValidationTestCase{
 		mapValue:        map[string]string{"a": "a", "b": "b"},
 		constraint:      it.HasMinCount(3),
 		assert: assertHasOneViolation(
-			code.CountTooFew,
+			validation.ErrTooFewElements,
 			"This collection should contain 3 elements or more.",
 		),
 	},
@@ -77,7 +76,7 @@ var countConstraintTestCases = []ConstraintValidationTestCase{
 		mapValue:        map[string]string{"a": "a", "b": "b"},
 		constraint:      it.HasMaxCount(1),
 		assert: assertHasOneViolation(
-			code.CountTooMany,
+			validation.ErrTooManyElements,
 			"This collection should contain 1 element or less.",
 		),
 	},
@@ -95,13 +94,13 @@ var countConstraintTestCases = []ConstraintValidationTestCase{
 		sliceValue:      []string{"a", "b"},
 		mapValue:        map[string]string{"a": "a", "b": "b"},
 		constraint: it.HasMaxCount(1).
-			MaxCode("maxCode").
-			MaxMessage(
+			WithMaxError(ErrMax).
+			WithMaxMessage(
 				"Unexpected count {{ count }} at {{ custom }}, should not be greater than {{ limit }}.",
 				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
 			),
 		assert: assertHasOneViolation(
-			"maxCode",
+			ErrMax,
 			"Unexpected count 2 at parameter, should not be greater than 1.",
 		),
 	},
@@ -126,7 +125,7 @@ var countConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(iterableType, countableType),
 		constraint:      it.HasExactCount(1),
 		assert: assertHasOneViolation(
-			code.CountExact,
+			validation.ErrNotExactCount,
 			"This collection should contain exactly 1 element.",
 		),
 	},
@@ -134,13 +133,13 @@ var countConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "HasExactCount violation on nil with custom message",
 		isApplicableFor: specificValueTypes(iterableType, countableType),
 		constraint: it.HasExactCount(1).
-			ExactCode("exactCode").
-			ExactMessage(
+			WithExactError(ErrExact).
+			WithExactMessage(
 				"Unexpected count {{ count }} at {{ custom }}, should be exactly {{ limit }}.",
 				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
 			),
 		assert: assertHasOneViolation(
-			"exactCode",
+			ErrExact,
 			"Unexpected count 0 at parameter, should be exactly 1.",
 		),
 	},

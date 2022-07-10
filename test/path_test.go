@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/muonsoft/validation"
-	"github.com/muonsoft/validation/code"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
 )
@@ -49,7 +48,7 @@ func TestValidate_AtProperty_WhenGivenRecursiveProperties_ExpectViolationWithPro
 
 	err := validator.Validate(context.Background(), validation.ValidSlice(properties))
 
-	assertHasOneViolationAtPath(code.NotBlank, message.Templates[code.NotBlank], "[0].value[0].value[0].name")(t, err)
+	assertHasOneViolationAtPath(validation.ErrIsBlank, message.IsBlank, "[0].value[0].value[0].name")(t, err)
 }
 
 func TestValidate_WhenPathIsSetViaOptions_ExpectViolationAtPath(t *testing.T) {
@@ -58,14 +57,14 @@ func TestValidate_WhenPathIsSetViaOptions_ExpectViolationAtPath(t *testing.T) {
 
 	err := validator.Validate(
 		context.Background(),
-		validation.String(v, it.IsNotBlank()).With(
+		validation.String(v, it.IsNotBlank()).At(
 			validation.PropertyName("properties"),
 			validation.ArrayIndex(0),
 			validation.PropertyName("value"),
 		),
 	)
 
-	assertHasOneViolationAtPath(code.NotBlank, message.Templates[code.NotBlank], customPath)(t, err)
+	assertHasOneViolationAtPath(validation.ErrIsBlank, message.IsBlank, customPath)(t, err)
 }
 
 func TestValidate_AtProperty_WhenGivenProperty_ExpectViolationWithProperty(t *testing.T) {
@@ -75,7 +74,7 @@ func TestValidate_AtProperty_WhenGivenProperty_ExpectViolationWithProperty(t *te
 		AtProperty("property").
 		Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
-	assertHasOneViolationAtPath(code.NotBlank, message.Templates[code.NotBlank], "property")(t, err)
+	assertHasOneViolationAtPath(validation.ErrIsBlank, message.IsBlank, "property")(t, err)
 }
 
 func TestValidate_AtIndex_WhenGivenIndex_ExpectViolationWithIndex(t *testing.T) {
@@ -85,5 +84,5 @@ func TestValidate_AtIndex_WhenGivenIndex_ExpectViolationWithIndex(t *testing.T) 
 		AtIndex(1).
 		Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
-	assertHasOneViolationAtPath(code.NotBlank, message.Templates[code.NotBlank], "[1]")(t, err)
+	assertHasOneViolationAtPath(validation.ErrIsBlank, message.IsBlank, "[1]")(t, err)
 }

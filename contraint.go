@@ -1,10 +1,8 @@
 package validation
 
 import (
+	"context"
 	"time"
-
-	"github.com/muonsoft/validation/code"
-	"github.com/muonsoft/validation/message"
 )
 
 // Numeric is used as a type parameter for numeric values.
@@ -16,91 +14,80 @@ type Numeric interface {
 
 // Constraint is a generic interface for client-side typed constraints.
 type Constraint[T any] interface {
-	Validate(v T, scope Scope) error
+	Validate(ctx context.Context, validator *Validator, v T) error
 }
 
 // NilConstraint is used for a special cases to check a value for nil.
 type NilConstraint interface {
-	ValidateNil(isNil bool, scope Scope) error
+	ValidateNil(ctx context.Context, validator *Validator, isNil bool) error
 }
 
 // BoolConstraint is used to build constraints for boolean values validation.
 type BoolConstraint interface {
-	ValidateBool(value *bool, scope Scope) error
+	ValidateBool(ctx context.Context, validator *Validator, value *bool) error
 }
 
 // NumberConstraint is used to build constraints for numeric values validation.
 type NumberConstraint[T Numeric] interface {
-	ValidateNumber(value *T, scope Scope) error
+	ValidateNumber(ctx context.Context, validator *Validator, value *T) error
 }
 
 // StringConstraint is used to build constraints for string values validation.
 type StringConstraint interface {
-	ValidateString(value *string, scope Scope) error
+	ValidateString(ctx context.Context, validator *Validator, value *string) error
 }
 
 // ComparableConstraint is used to build constraints for generic comparable value validation.
 type ComparableConstraint[T comparable] interface {
-	ValidateComparable(value *T, scope Scope) error
+	ValidateComparable(ctx context.Context, validator *Validator, value *T) error
 }
 
 // ComparablesConstraint is used to build constraints for generic comparable values validation.
 type ComparablesConstraint[T comparable] interface {
-	ValidateComparables(values []T, scope Scope) error
+	ValidateComparables(ctx context.Context, validator *Validator, values []T) error
 }
 
 // CountableConstraint is used to build constraints for simpler validation of iterable elements count.
 type CountableConstraint interface {
-	ValidateCountable(count int, scope Scope) error
+	ValidateCountable(ctx context.Context, validator *Validator, count int) error
 }
 
 // TimeConstraint is used to build constraints for date/time validation.
 type TimeConstraint interface {
-	ValidateTime(value *time.Time, scope Scope) error
+	ValidateTime(ctx context.Context, validator *Validator, value *time.Time) error
 }
 
-// CustomStringConstraint can be used to create custom constraints for validating string values
+// StringFuncConstraint can be used to create constraints for validating string values
 // based on function with signature func(string) bool.
-type CustomStringConstraint struct {
+type StringFuncConstraint struct {
 	isIgnored         bool
 	isValid           func(string) bool
 	groups            []string
-	code              string
+	err               error
 	messageTemplate   string
 	messageParameters TemplateParameterList
 }
 
-// NewCustomStringConstraint creates a new string constraint from a function with signature func(string) bool.
-// Optional parameters can be used to set up violation code (first), message template (second).
-// All other parameters are ignored.
-func NewCustomStringConstraint(isValid func(string) bool, parameters ...string) CustomStringConstraint {
-	constraint := CustomStringConstraint{
+// OfStringBy creates a new string constraint from a function with signature func(string) bool.
+func OfStringBy(isValid func(string) bool) StringFuncConstraint {
+	return StringFuncConstraint{
 		isValid:         isValid,
-		code:            code.NotValid,
-		messageTemplate: message.Templates[code.NotValid],
+		err:             ErrNotValid,
+		messageTemplate: ErrNotValid.Message(),
 	}
-
-	if len(parameters) > 0 {
-		constraint.code = parameters[0]
-	}
-	if len(parameters) > 1 {
-		constraint.messageTemplate = parameters[1]
-	}
-
-	return constraint
 }
 
-// Code overrides default code for produced violation.
-func (c CustomStringConstraint) Code(code string) CustomStringConstraint {
-	c.code = code
+// WithError overrides default error for produced violation.
+func (c StringFuncConstraint) WithError(err error) StringFuncConstraint {
+	c.err = err
 	return c
 }
 
-// Message sets the violation message template. You can set custom template parameters
+// WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message. Also, you can use default parameters:
 //
 //	{{ value }} - the current (invalid) value.
-func (c CustomStringConstraint) Message(template string, parameters ...TemplateParameter) CustomStringConstraint {
+func (c StringFuncConstraint) WithMessage(template string, parameters ...TemplateParameter) StringFuncConstraint {
 	c.messageTemplate = template
 	c.messageParameters = parameters
 	return c
@@ -108,23 +95,23 @@ func (c CustomStringConstraint) Message(template string, parameters ...TemplateP
 
 // When enables conditional validation of this constraint. If the expression evaluates to false,
 // then the constraint will be ignored.
-func (c CustomStringConstraint) When(condition bool) CustomStringConstraint {
+func (c StringFuncConstraint) When(condition bool) StringFuncConstraint {
 	c.isIgnored = !condition
 	return c
 }
 
 // WhenGroups enables conditional validation of the constraint by using the validation groups.
-func (c CustomStringConstraint) WhenGroups(groups ...string) CustomStringConstraint {
+func (c StringFuncConstraint) WhenGroups(groups ...string) StringFuncConstraint {
 	c.groups = groups
 	return c
 }
 
-func (c CustomStringConstraint) ValidateString(value *string, scope Scope) error {
-	if c.isIgnored || scope.IsIgnored(c.groups...) || value == nil || *value == "" || c.isValid(*value) {
+func (c StringFuncConstraint) ValidateString(ctx context.Context, validator *Validator, value *string) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || *value == "" || c.isValid(*value) {
 		return nil
 	}
 
-	return scope.BuildViolation(c.code, c.messageTemplate).
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(
 			c.messageParameters.Prepend(
 				TemplateParameter{Key: "{{ value }}", Value: *value},

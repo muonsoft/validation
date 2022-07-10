@@ -16,15 +16,12 @@ import (
 // You can do this by using the SetViolationFactory option in the NewValidator constructor.
 type Violation interface {
 	error
+	// Unwrap returns underlying static error. This error can be used as a unique, short, and semantic code
+	// that can be used to test for specific violation by errors.Is from standard library.
+	Unwrap() error
 
-	// Code is unique, short, and semantic string that can be used to programmatically
-	// test for specific violation. All "code" values are defined in the "github.com/muonsoft/validation/code" package
-	// and are protected by backward compatibility rules.
-	Code() string
-
-	// Is can be used to check that the violation contains one of the specific codes.
-	// For an empty list, it should always returns false.
-	Is(codes ...string) bool
+	// Is can be used to check that the violation contains one of the specific static errors.
+	Is(target error) bool
 
 	// Message is a translated message with injected values from constraint. It can be used to show
 	// a description of a violation to the end-user. Possible values for build-in constraints
@@ -49,7 +46,7 @@ type Violation interface {
 type ViolationFactory interface {
 	// CreateViolation creates a new instance of Violation.
 	CreateViolation(
-		code,
+		err error,
 		messageTemplate string,
 		pluralCount int,
 		parameters []TemplateParameter,
@@ -60,7 +57,7 @@ type ViolationFactory interface {
 
 // NewViolationFunc is an adapter that allows you to use ordinary functions as a ViolationFactory.
 type NewViolationFunc func(
-	code,
+	err error,
 	messageTemplate string,
 	pluralCount int,
 	parameters []TemplateParameter,
@@ -70,14 +67,14 @@ type NewViolationFunc func(
 
 // CreateViolation creates a new instance of a Violation.
 func (f NewViolationFunc) CreateViolation(
-	code,
+	err error,
 	messageTemplate string,
 	pluralCount int,
 	parameters []TemplateParameter,
 	propertyPath *PropertyPath,
 	lang language.Tag,
 ) Violation {
-	return f(code, messageTemplate, pluralCount, parameters, propertyPath, lang)
+	return f(err, messageTemplate, pluralCount, parameters, propertyPath, lang)
 }
 
 // ViolationList is a linked list of violations. It is the usual type of error that is returned from a validator.
@@ -112,9 +109,9 @@ func (list *ViolationList) Len() int {
 	return list.len
 }
 
-// Each can be used to iterate over ViolationList by a callback function. If callback returns
-// any error, then it will be returned as a result of Each function.
-func (list *ViolationList) Each(f func(i int, violation Violation) error) error {
+// ForEach can be used to iterate over ViolationList by a callback function. If callback returns
+// any error, then it will be returned as a result of ForEach function.
+func (list *ViolationList) ForEach(f func(i int, violation Violation) error) error {
 	i := 0
 	for violation := list.First(); violation != nil; violation = violation.Next() {
 		err := f(i, violation)
@@ -211,11 +208,10 @@ func (list *ViolationList) AppendFromError(err error) error {
 	return nil
 }
 
-// Has can be used to check that at least one of the violations contains one of the specific codes.
-// For an empty list of codes, it should always returns false.
-func (list *ViolationList) Has(codes ...string) bool {
+// Is used to check that at least one of the violations contains the specific static error.
+func (list *ViolationList) Is(target error) bool {
 	for e := list.First(); e != nil; e = e.next {
-		if e.violation.Is(codes...) {
+		if e.violation.Is(target) {
 			return true
 		}
 	}
@@ -224,12 +220,14 @@ func (list *ViolationList) Has(codes ...string) bool {
 }
 
 // Filter returns a new list of violations with violations of given codes.
-func (list *ViolationList) Filter(codes ...string) *ViolationList {
+func (list *ViolationList) Filter(errs ...error) *ViolationList {
 	filtered := &ViolationList{}
 
 	for e := list.First(); e != nil; e = e.next {
-		if e.violation.Is(codes...) {
-			filtered.Append(e.violation)
+		for _, err := range errs {
+			if e.violation.Is(err) {
+				filtered.Append(e.violation)
+			}
 		}
 	}
 
@@ -281,7 +279,7 @@ func (list *ViolationList) MarshalJSON() ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-// Next returns next element of the linked list.
+// Next returns the next element of the linked list.
 func (element *ViolationListElement) Next() *ViolationListElement {
 	return element.next
 }
@@ -291,16 +289,19 @@ func (element *ViolationListElement) Violation() Violation {
 	return element.violation
 }
 
+// Unwrap returns underlying static error. This error can be used as a unique, short, and semantic code
+// that can be used to test for specific violation by errors.Is from standard library.
+func (element *ViolationListElement) Unwrap() error {
+	return element.violation.Unwrap()
+}
+
 func (element *ViolationListElement) Error() string {
 	return element.violation.Error()
 }
 
-func (element *ViolationListElement) Code() string {
-	return element.violation.Code()
-}
-
-func (element *ViolationListElement) Is(codes ...string) bool {
-	return element.violation.Is(codes...)
+// Is can be used to check that the violation contains one of the specific static errors.
+func (element *ViolationListElement) Is(target error) bool {
+	return element.violation.Is(target)
 }
 
 func (element *ViolationListElement) Message() string {
@@ -352,21 +353,19 @@ func UnwrapViolationList(err error) (*ViolationList, bool) {
 }
 
 type internalViolation struct {
-	code            string
+	err             error
 	message         string
 	messageTemplate string
 	parameters      []TemplateParameter
 	propertyPath    *PropertyPath
 }
 
-func (v *internalViolation) Is(codes ...string) bool {
-	for _, code := range codes {
-		if v.code == code {
-			return true
-		}
-	}
+func (v *internalViolation) Unwrap() error {
+	return v.err
+}
 
-	return false
+func (v *internalViolation) Is(target error) bool {
+	return errors.Is(v.err, target)
 }
 
 func (v *internalViolation) Error() string {
@@ -385,22 +384,25 @@ func (v *internalViolation) writeToBuilder(s *strings.Builder) {
 	s.WriteString(": " + v.message)
 }
 
-func (v *internalViolation) Code() string                    { return v.code }
 func (v *internalViolation) Message() string                 { return v.message }
 func (v *internalViolation) MessageTemplate() string         { return v.messageTemplate }
 func (v *internalViolation) Parameters() []TemplateParameter { return v.parameters }
 func (v *internalViolation) PropertyPath() *PropertyPath     { return v.propertyPath }
 
 func (v *internalViolation) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		Code         string        `json:"code"`
+	data := struct {
+		Error        string        `json:"error,omitempty"`
 		Message      string        `json:"message"`
 		PropertyPath *PropertyPath `json:"propertyPath,omitempty"`
 	}{
-		Code:         v.code,
 		Message:      v.message,
 		PropertyPath: v.propertyPath,
-	})
+	}
+	if v.err != nil {
+		data.Error = v.err.Error()
+	}
+
+	return json.Marshal(data)
 }
 
 type internalViolationFactory struct {
@@ -412,7 +414,7 @@ func newViolationFactory(translator Translator) *internalViolationFactory {
 }
 
 func (factory *internalViolationFactory) CreateViolation(
-	code,
+	err error,
 	messageTemplate string,
 	pluralCount int,
 	parameters []TemplateParameter,
@@ -428,7 +430,7 @@ func (factory *internalViolationFactory) CreateViolation(
 	}
 
 	return &internalViolation{
-		code:            code,
+		err:             err,
 		message:         renderMessage(message, parameters),
 		messageTemplate: messageTemplate,
 		parameters:      parameters,
@@ -438,7 +440,7 @@ func (factory *internalViolationFactory) CreateViolation(
 
 // ViolationBuilder used to build an instance of a Violation.
 type ViolationBuilder struct {
-	code            string
+	err             error
 	messageTemplate string
 	pluralCount     int
 	parameters      []TemplateParameter
@@ -454,49 +456,17 @@ func NewViolationBuilder(factory ViolationFactory) *ViolationBuilder {
 }
 
 // BuildViolation creates a new ViolationBuilder for composing Violation object fluently.
-func (b *ViolationBuilder) BuildViolation(code, message string) *ViolationBuilder {
+func (b *ViolationBuilder) BuildViolation(err error, message string) *ViolationBuilder {
 	return &ViolationBuilder{
-		code:             code,
+		err:              err,
 		messageTemplate:  message,
 		violationFactory: b.violationFactory,
 	}
 }
 
-// SetParameters sets template parameters that can be injected into the violation message.
-// Deprecated: use WithParameters instead.
-func (b *ViolationBuilder) SetParameters(parameters ...TemplateParameter) *ViolationBuilder {
-	b.parameters = parameters
-
-	return b
-}
-
-// AddParameter adds one parameter into a slice of parameters.
-// Deprecated: use WithParameter instead.
-func (b *ViolationBuilder) AddParameter(name, value string) *ViolationBuilder {
-	b.parameters = append(b.parameters, TemplateParameter{Key: name, Value: value})
-
-	return b
-}
-
 // SetPropertyPath resets a base property path of violated attributes.
 func (b *ViolationBuilder) SetPropertyPath(path *PropertyPath) *ViolationBuilder {
 	b.propertyPath = path
-
-	return b
-}
-
-// SetPluralCount sets a plural number that will be used for message pluralization during translations.
-// Deprecated: use WithPluralCount instead.
-func (b *ViolationBuilder) SetPluralCount(pluralCount int) *ViolationBuilder {
-	b.pluralCount = pluralCount
-
-	return b
-}
-
-// SetLanguage sets language that will be used to translate the violation message.
-// Deprecated: use WithLanguage instead.
-func (b *ViolationBuilder) SetLanguage(tag language.Tag) *ViolationBuilder {
-	b.language = tag
 
 	return b
 }
@@ -550,18 +520,11 @@ func (b *ViolationBuilder) WithLanguage(tag language.Tag) *ViolationBuilder {
 	return b
 }
 
-// CreateViolation creates a new violation with given parameters and returns it.
-// Violation is created by calling the CreateViolation method of the ViolationFactory.
-// Deprecated: use Create instead.
-func (b *ViolationBuilder) CreateViolation() Violation {
-	return b.Create()
-}
-
 // Create creates a new violation with given parameters and returns it.
 // Violation is created by calling the CreateViolation method of the ViolationFactory.
 func (b *ViolationBuilder) Create() Violation {
 	return b.violationFactory.CreateViolation(
-		b.code,
+		b.err,
 		b.messageTemplate,
 		b.pluralCount,
 		b.parameters,
@@ -584,7 +547,7 @@ type ViolationListBuilder struct {
 type ViolationListElementBuilder struct {
 	listBuilder *ViolationListBuilder
 
-	code            string
+	err             error
 	messageTemplate string
 	pluralCount     int
 	parameters      []TemplateParameter
@@ -597,10 +560,10 @@ func NewViolationListBuilder(factory ViolationFactory) *ViolationListBuilder {
 }
 
 // BuildViolation initiates a builder for violation that will be added into ViolationList.
-func (b *ViolationListBuilder) BuildViolation(code, message string) *ViolationListElementBuilder {
+func (b *ViolationListBuilder) BuildViolation(err error, message string) *ViolationListElementBuilder {
 	return &ViolationListElementBuilder{
 		listBuilder:     b,
-		code:            code,
+		err:             err,
 		messageTemplate: message,
 		propertyPath:    b.propertyPath,
 	}
@@ -608,8 +571,8 @@ func (b *ViolationListBuilder) BuildViolation(code, message string) *ViolationLi
 
 // AddViolation can be used to quickly add a new violation using only code, message
 // and optional property path elements.
-func (b *ViolationListBuilder) AddViolation(code, message string, path ...PropertyPathElement) *ViolationListBuilder {
-	return b.add(code, message, 0, nil, b.propertyPath.With(path...))
+func (b *ViolationListBuilder) AddViolation(err error, message string, path ...PropertyPathElement) *ViolationListBuilder {
+	return b.add(err, message, 0, nil, b.propertyPath.With(path...))
 }
 
 // SetPropertyPath resets a base property path of violated attributes.
@@ -646,13 +609,14 @@ func (b *ViolationListBuilder) Create() *ViolationList {
 }
 
 func (b *ViolationListBuilder) add(
-	code, template string,
+	err error,
+	template string,
 	count int,
 	parameters []TemplateParameter,
 	path *PropertyPath,
 ) *ViolationListBuilder {
 	b.violations.Append(b.violationFactory.CreateViolation(
-		code,
+		err,
 		template,
 		count,
 		parameters,
@@ -715,7 +679,7 @@ func (b *ViolationListElementBuilder) WithPluralCount(pluralCount int) *Violatio
 // Add creates a Violation and appends it into the end of the ViolationList.
 // It returns a ViolationListBuilder to continue process of creating a ViolationList.
 func (b *ViolationListElementBuilder) Add() *ViolationListBuilder {
-	return b.listBuilder.add(b.code, b.messageTemplate, b.pluralCount, b.parameters, b.propertyPath)
+	return b.listBuilder.add(b.err, b.messageTemplate, b.pluralCount, b.parameters, b.propertyPath)
 }
 
 func unwrapViolationList(err error) (*ViolationList, error) {
