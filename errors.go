@@ -62,8 +62,8 @@ type Error struct {
 }
 
 // NewError creates a static validation error. It should be used to create only package-level errors.
-func NewError(code string, template string) *Error {
-	return &Error{code: code, message: template}
+func NewError(code string, message string) *Error {
+	return &Error{code: code, message: message}
 }
 
 // Error returns error code. This code is protected by backward compatibility rules.
