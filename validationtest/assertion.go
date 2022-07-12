@@ -64,7 +64,7 @@ func (a *Assertion) IsViolationList() *ViolationListAssertion {
 
 	violations, ok := validation.UnwrapViolationList(a.err)
 	if !ok {
-		assert.Fail(a.t, "failed asserting that err is a ViolationList")
+		assert.Fail(a.t, fmt.Sprintf(`failed asserting that err is a ViolationList, actually is "%v"`, a.err))
 
 		return nil
 	}

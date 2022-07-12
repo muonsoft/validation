@@ -27,12 +27,15 @@
 package message
 
 const (
+	InvalidDate       = "This value is not a valid date."
+	InvalidDateTime   = "This value is not a valid datetime."
 	InvalidEAN13      = "This value is not a valid EAN-13."
 	InvalidEAN8       = "This value is not a valid EAN-8."
 	InvalidEmail      = "This value is not a valid email address."
 	InvalidHostname   = "This value is not a valid hostname."
 	InvalidIP         = "This is not a valid IP address."
 	InvalidJSON       = "This value should be valid JSON."
+	InvalidTime       = "This value is not a valid time."
 	InvalidUPCA       = "This value is not a valid UPC-A."
 	InvalidUPCE       = "This value is not a valid UPC-E."
 	InvalidURL        = "This value is not a valid URL."

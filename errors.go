@@ -9,12 +9,15 @@ import (
 )
 
 var (
+	ErrInvalidDate       = NewError("invalid date", message.InvalidDate)
+	ErrInvalidDateTime   = NewError("invalid datetime", message.InvalidDateTime)
 	ErrInvalidEAN13      = NewError("invalid EAN-13", message.InvalidEAN13)
 	ErrInvalidEAN8       = NewError("invalid EAN-8", message.InvalidEAN8)
 	ErrInvalidEmail      = NewError("invalid email", message.InvalidEmail)
 	ErrInvalidHostname   = NewError("invalid hostname", message.InvalidHostname)
 	ErrInvalidIP         = NewError("invalid IP address", message.InvalidIP)
 	ErrInvalidJSON       = NewError("invalid JSON", message.InvalidJSON)
+	ErrInvalidTime       = NewError("invalid time", message.InvalidTime)
 	ErrInvalidUPCA       = NewError("invalid UPC-A", message.InvalidUPCA)
 	ErrInvalidUPCE       = NewError("invalid UPC-E", message.InvalidUPCE)
 	ErrInvalidURL        = NewError("invalid URL", message.InvalidURL)
