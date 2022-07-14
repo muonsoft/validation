@@ -194,12 +194,12 @@ func (list *ViolationList) Format(f fmt.State, verb rune) {
 	switch verb {
 	case 'v':
 		if f.Flag('+') {
-			io.WriteString(f, list.toString("\n\t"))
+			_, _ = io.WriteString(f, list.toString("\n\t"))
 		} else {
-			io.WriteString(f, list.toString(" "))
+			_, _ = io.WriteString(f, list.toString(" "))
 		}
 	case 's', 'q':
-		io.WriteString(f, list.toString(" "))
+		_, _ = io.WriteString(f, list.toString(" "))
 	}
 }
 
