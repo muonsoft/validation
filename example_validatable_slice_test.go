@@ -52,6 +52,6 @@ func ExampleValid_validatableSlice() {
 		}
 	}
 	// Output:
-	// violation at '[1].name': This value should not be blank.
-	// violation at '[1].address': This value is too short. It should have 3 characters or more.
+	// violation at "[1].name": "This value should not be blank."
+	// violation at "[1].address": "This value is too short. It should have 3 characters or more."
 }

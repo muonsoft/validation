@@ -62,10 +62,10 @@ func ExampleValid_validatableStruct() {
 		}
 	}
 	// Output:
-	// violation at 'name': This value should not be blank.
-	// violation at 'tags': This collection should contain 5 elements or more.
-	// violation at 'tags': This collection should contain only unique elements.
-	// violation at 'tags[1]': This value should not be blank.
-	// violation at 'components[0].name': This value should not be blank.
-	// violation at 'components[0].tags': This collection should contain 1 element or more.
+	// violation at "name": "This value should not be blank."
+	// violation at "tags": "This collection should contain 5 elements or more."
+	// violation at "tags": "This collection should contain only unique elements."
+	// violation at "tags[1]": "This value should not be blank."
+	// violation at "components[0].name": "This value should not be blank."
+	// violation at "components[0].tags": "This collection should contain 1 element or more."
 }
