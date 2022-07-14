@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"strconv"
 	"strings"
 
 	"golang.org/x/text/language"
@@ -112,6 +114,10 @@ func (list *ViolationList) Len() int {
 // ForEach can be used to iterate over ViolationList by a callback function. If callback returns
 // any error, then it will be returned as a result of ForEach function.
 func (list *ViolationList) ForEach(f func(i int, violation Violation) error) error {
+	if list == nil {
+		return nil
+	}
+
 	i := 0
 	for violation := list.First(); violation != nil; violation = violation.Next() {
 		err := f(i, violation)
@@ -167,26 +173,60 @@ func (list *ViolationList) Join(violations *ViolationList) {
 	list.len += violations.len
 }
 
-// Error returns a formatted list of errors as a string.
+// Error returns a formatted list of violations as a string.
 func (list *ViolationList) Error() string {
 	if list == nil || list.len == 0 {
 		return "the list of violations is empty, it looks like you forgot to use the AsError method somewhere"
 	}
 
+	return list.String()
+}
+
+// String converts list of violations into a string.
+func (list *ViolationList) String() string {
+	return list.toString(" ")
+}
+
+// Format formats the list of violations according to the fmt.Formatter interface.
+// Verbs '%v', '%s', '%q' formats violation list into a single line string delimited by space.
+// Verb with flag '%+v' formats violation list into a multiple line string.
+func (list *ViolationList) Format(f fmt.State, verb rune) {
+	switch verb {
+	case 'v':
+		if f.Flag('+') {
+			io.WriteString(f, list.toString("\n\t"))
+		} else {
+			io.WriteString(f, list.toString(" "))
+		}
+	case 's', 'q':
+		io.WriteString(f, list.toString(" "))
+	}
+}
+
+func (list *ViolationList) toString(delimiter string) string {
+	if list == nil || list.len == 0 {
+		return ""
+	}
+	if list.len == 1 {
+		return list.first.violation.Error()
+	}
+
 	var s strings.Builder
 	s.Grow(32 * list.len)
+	s.WriteString("violations:")
 
 	i := 0
 	for e := list.first; e != nil; e = e.next {
 		v := e.violation
 		if i > 0 {
-			s.WriteString("; ")
+			s.WriteString(";")
 		}
-		if iv, ok := v.(*internalViolation); ok {
-			iv.writeToBuilder(&s)
-		} else {
-			s.WriteString(v.Error())
+		s.WriteString(delimiter)
+		s.WriteString("#" + strconv.Itoa(i))
+		if v.PropertyPath() != nil {
+			s.WriteString(` at "` + v.PropertyPath().String() + `"`)
 		}
+		s.WriteString(`: "` + v.Message() + `"`)
 		i++
 	}
 
@@ -379,9 +419,9 @@ func (v *internalViolation) Error() string {
 func (v *internalViolation) writeToBuilder(s *strings.Builder) {
 	s.WriteString("violation")
 	if v.propertyPath != nil {
-		s.WriteString(" at '" + v.propertyPath.String() + "'")
+		s.WriteString(` at "` + v.propertyPath.String() + `"`)
 	}
-	s.WriteString(": " + v.message)
+	s.WriteString(`: "` + v.message + `"`)
 }
 
 func (v *internalViolation) Message() string                 { return v.message }

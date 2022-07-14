@@ -115,6 +115,6 @@ func ExampleValidator_GetConstraint_customServiceConstraint() {
 	fmt.Println(err)
 	fmt.Println("errors.Is(err, ErrUnknownTag) =", errors.Is(err, ErrUnknownTag))
 	// Output:
-	// violation at 'tags[1]': Tag "camera" does not exist.
+	// violation at "tags[1]": "Tag "camera" does not exist."
 	// errors.Is(err, ErrUnknownTag) = true
 }

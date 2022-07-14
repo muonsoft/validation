@@ -115,6 +115,6 @@ func ExampleValidator_Validate_usingContextWithRecursion() {
 	fmt.Println(err)
 	fmt.Println("errors.Is(err, ErrNestingLimitReached) =", errors.Is(err, ErrNestingLimitReached))
 	// Output:
-	// violation at '[0].properties[0].properties[0].properties[0]': Maximum nesting level reached.
+	// violation at "[0].properties[0].properties[0].properties[0]": "Maximum nesting level reached."
 	// errors.Is(err, ErrNestingLimitReached) = true
 }

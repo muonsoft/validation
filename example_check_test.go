@@ -59,6 +59,6 @@ func ExampleCheckProperty() {
 	fmt.Println("errors.Is(err, ErrUnsupportedCommodity) =", errors.Is(err, ErrUnsupportedCommodity))
 	// Output:
 	// violation underlying error: unsupported commodity
-	// violation at 'mainCommodity': Commodity "Digital movie" cannot be sold at outlet.
+	// violation at "mainCommodity": "Commodity "Digital movie" cannot be sold at outlet."
 	// errors.Is(err, ErrUnsupportedCommodity) = true
 }

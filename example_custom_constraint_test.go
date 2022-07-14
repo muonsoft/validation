@@ -48,6 +48,6 @@ func ExampleValidator_Validate_customConstraint() {
 	fmt.Println(err)
 	fmt.Println("errors.Is(err, ErrNotNumeric) =", errors.Is(err, ErrNotNumeric))
 	// Output:
-	// violation: This value should be numeric.
+	// violation: "This value should be numeric."
 	// errors.Is(err, ErrNotNumeric) = true
 }

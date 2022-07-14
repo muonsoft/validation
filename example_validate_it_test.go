@@ -49,7 +49,7 @@ func ExampleValidator_ValidateIt() {
 
 	// Output:
 	// person 1 is not valid:
-	// violation at 'name': This value should not be blank.
-	// violation at 'surname': This value should not be blank.
-	// violation at 'age': This value should be between 18 and 100.
+	// violation at "name": "This value should not be blank."
+	// violation at "surname": "This value should not be blank."
+	// violation at "age": "This value should be between 18 and 100."
 }

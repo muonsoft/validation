@@ -84,6 +84,6 @@ func ExampleThis_customArgumentConstraintValidator() {
 	fmt.Println(err)
 	fmt.Println("errors.Is(err, ErrNotUniqueBrand) =", errors.Is(err, ErrNotUniqueBrand))
 	// Output:
-	// violation: Brand with name "Apple" already exists.
+	// violation: "Brand with name "Apple" already exists."
 	// errors.Is(err, ErrNotUniqueBrand) = true
 }

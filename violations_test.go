@@ -19,7 +19,7 @@ func TestViolation_Error_MessageOnly_ErrorWithMessage(t *testing.T) {
 
 	violation := validator.BuildViolation(context.Background(), ErrTest, "message").Create()
 
-	assert.Equal(t, "violation: message", violation.Error())
+	assert.Equal(t, `violation: "message"`, violation.Error())
 }
 
 func TestNewViolationList(t *testing.T) {
@@ -45,7 +45,7 @@ func TestViolationList_Len_WhenNil_ExpectZero(t *testing.T) {
 	assert.Equal(t, 0, length)
 }
 
-func TestViolationList_Each_WhenMultipleViolations_ExpectAllIterated(t *testing.T) {
+func TestViolationList_ForEach_WhenMultipleViolations_ExpectAllIterated(t *testing.T) {
 	violations := validation.NewViolationList(
 		newViolationWithError(t, errors.New("first")),
 		newViolationWithError(t, errors.New("second")),
@@ -65,7 +65,7 @@ func TestViolationList_Each_WhenMultipleViolations_ExpectAllIterated(t *testing.
 	assert.Equal(t, []string{"first", "second", "third"}, iterated)
 }
 
-func TestViolationList_Each_WhenErrorReturned_ExpectLoopBreak(t *testing.T) {
+func TestViolationList_ForEach_WhenErrorReturned_ExpectLoopBreak(t *testing.T) {
 	violations := validation.NewViolationList(
 		newViolationWithError(t, errors.New("first")),
 		newViolationWithError(t, errors.New("second")),
@@ -257,7 +257,7 @@ func TestViolation_Error_MessageAndPropertyPath_ErrorWithPropertyPathAndMessage(
 
 	err := violation.Error()
 
-	assert.Equal(t, "violation at 'propertyPath': message", err)
+	assert.Equal(t, `violation at "propertyPath": "message"`, err)
 }
 
 func TestViolationList_Error_CoupleOfViolations_JoinedMessage(t *testing.T) {
@@ -279,7 +279,7 @@ func TestViolationList_Error_CoupleOfViolations_JoinedMessage(t *testing.T) {
 
 	err := violations.Error()
 
-	assert.Equal(t, "violation at 'path[0]': first message; violation at 'path[1]': second message", err)
+	assert.Equal(t, `violations: #0 at "path[0]": "first message"; #1 at "path[1]": "second message"`, err)
 }
 
 func TestViolationList_Error_EmptyList_ErrorWithHelpMessage(t *testing.T) {
@@ -288,6 +288,92 @@ func TestViolationList_Error_EmptyList_ErrorWithHelpMessage(t *testing.T) {
 	err := violations.Error()
 
 	assert.Equal(t, "the list of violations is empty, it looks like you forgot to use the AsError method somewhere", err)
+}
+
+func TestViolationList_String_EmptyList_EmptyString(t *testing.T) {
+	violations := validation.NewViolationList()
+
+	s := violations.String()
+
+	assert.Equal(t, "", s)
+}
+
+func TestViolationList_Format(t *testing.T) {
+	validator := newValidator(t)
+
+	tests := []struct {
+		name       string
+		format     string
+		violations *validation.ViolationList
+		expected   string
+	}{
+		{
+			name:   "verb v, one violation",
+			format: "%v",
+			violations: validator.BuildViolationList(context.Background()).
+				AddViolation(ErrTest, "First message.").
+				Create(),
+			expected: "violation: \"First message.\"",
+		},
+		{
+			name:   "verb v, two violations",
+			format: "%v",
+			violations: validator.BuildViolationList(context.Background()).
+				AddViolation(ErrTest, "First message.").
+				AddViolation(ErrTest, "Second message.").
+				Create(),
+			expected: "violations: #0: \"First message.\"; #1: \"Second message.\"",
+		},
+		{
+			name:   "verb v, two violations with path",
+			format: "%v",
+			violations: validator.BuildViolationList(context.Background()).
+				AddViolation(ErrTest, "First message.", validation.PropertyName("properties"), validation.ArrayIndex(0)).
+				AddViolation(ErrTest, "Second message.").
+				Create(),
+			expected: "violations: #0 at \"properties[0]\": \"First message.\"; #1: \"Second message.\"",
+		},
+		{
+			name:   "verb +v, one violation",
+			format: "%+v",
+			violations: validator.BuildViolationList(context.Background()).
+				AddViolation(ErrTest, "First message.").
+				Create(),
+			expected: "violation: \"First message.\"",
+		},
+		{
+			name:   "verb +v, two violations with path",
+			format: "%+v",
+			violations: validator.BuildViolationList(context.Background()).
+				AddViolation(ErrTest, "First message.", validation.PropertyName("properties"), validation.ArrayIndex(0)).
+				AddViolation(ErrTest, "Second message.").
+				Create(),
+			expected: "violations:\n\t#0 at \"properties[0]\": \"First message.\";\n\t#1: \"Second message.\"",
+		},
+		{
+			name:   "verb s, one violation",
+			format: "%s",
+			violations: validator.BuildViolationList(context.Background()).
+				AddViolation(ErrTest, "First message.").
+				Create(),
+			expected: "violation: \"First message.\"",
+		},
+		{
+			name:   "verb q, one violation",
+			format: "%q",
+			violations: validator.BuildViolationList(context.Background()).
+				AddViolation(ErrTest, "First message.").
+				Create(),
+			expected: "violation: \"First message.\"",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			actual := fmt.Sprintf(test.format, test.violations)
+
+			assert.Equal(t, test.expected, actual)
+		})
+	}
 }
 
 func TestIsViolation_CustomError_False(t *testing.T) {
