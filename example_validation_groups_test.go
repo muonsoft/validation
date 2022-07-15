@@ -63,8 +63,8 @@ func ExampleValidator_WithGroups() {
 
 	// Output:
 	// violations for registration group:
-	// violation at 'email': This value is not a valid email address.
-	// violation at 'password': This value is too short. It should have 7 characters or more.
+	// violation at "email": "This value is not a valid email address."
+	// violation at "password": "This value is too short. It should have 7 characters or more."
 	// violations for default group:
-	// violation at 'city': This value is too short. It should have 2 characters or more.
+	// violation at "city": "This value is too short. It should have 2 characters or more."
 }

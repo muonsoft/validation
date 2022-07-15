@@ -75,9 +75,9 @@ func ExampleCheckNoViolations() {
 
 	// Output:
 	// vehicle 0 is not valid:
-	// violation at 'maxSpeed': This value should be between 50 and 200.
-	// violation at 'passengerSeats': This value should be between 2 and 6.
+	// violation at "maxSpeed": "This value should be between 50 and 200."
+	// violation at "passengerSeats": "This value should be between 2 and 6."
 	// vehicle 1 is not valid:
-	// violation at 'maxSpeed': This value should be between 50 and 200.
-	// violation at 'loadCapacity': This value should be between 10 and 200.
+	// violation at "maxSpeed": "This value should be between 50 and 200."
+	// violation at "loadCapacity": "This value should be between 10 and 200."
 }

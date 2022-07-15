@@ -152,6 +152,6 @@ func ExampleValidator_Validate_partialEntityValidation() {
 	}
 
 	// Output:
-	// violation at 'name': Not allowed extension. Must be one of: jpeg, jpg, gif.; violation: File size is too small.
-	// violation at 'name': Not allowed extension. Must be one of: doc, pdf, txt.; violation: File size is too large.
+	// violations: #0 at "name": "Not allowed extension. Must be one of: jpeg, jpg, gif."; #1: "File size is too small."
+	// violations: #0 at "name": "Not allowed extension. Must be one of: doc, pdf, txt."; #1: "File size is too large."
 }

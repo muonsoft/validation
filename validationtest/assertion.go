@@ -49,7 +49,7 @@ func (a *Assertion) IsViolation() *ViolationAssertion {
 
 	violation, ok := validation.UnwrapViolation(a.err)
 	if !ok {
-		assert.Fail(a.t, "failed asserting that err is a Violation")
+		assert.Fail(a.t, fmt.Sprintf("failed asserting that err is a Violation\nactual %+v", a.err))
 
 		return nil
 	}
@@ -64,7 +64,7 @@ func (a *Assertion) IsViolationList() *ViolationListAssertion {
 
 	violations, ok := validation.UnwrapViolationList(a.err)
 	if !ok {
-		assert.Fail(a.t, fmt.Sprintf(`failed asserting that err is a ViolationList, actually is "%v"`, a.err))
+		assert.Fail(a.t, fmt.Sprintf("failed asserting that err is a ViolationList\nactual %+v", a.err))
 
 		return nil
 	}
@@ -106,9 +106,10 @@ func (a *ViolationListAssertion) WithLen(length int) *ViolationListAssertion {
 	actual := a.violations.Len()
 	if actual != length {
 		a.t.Errorf(fmt.Sprintf(
-			"failed asserting that violation list length is equal to %d, actual is %d",
+			"failed asserting that violation list length is equal to %d, actual is %d\nactual %+v",
 			length,
 			actual,
+			a.violations,
 		))
 	}
 
@@ -124,7 +125,10 @@ func (a *ViolationListAssertion) WithOneViolation() *ViolationAssertion {
 	a.t.Helper()
 
 	if a.violations.Len() != 1 {
-		assert.Fail(a.t, "failed asserting that violation list contains exactly one violation")
+		assert.Fail(a.t, fmt.Sprintf(
+			"failed asserting that violation list contains exactly one violation\nactual %+v",
+			a.violations,
+		))
 		return nil
 	}
 
@@ -141,7 +145,11 @@ func (a *ViolationListAssertion) HasViolationAt(index int) *ViolationAssertion {
 
 	violations := a.violations.AsSlice()
 	if index >= len(violations) {
-		assert.Fail(a.t, fmt.Sprintf("failed asserting that violation list contains violation at index %d", index))
+		assert.Fail(a.t, fmt.Sprintf(
+			"failed asserting that violation list contains violation at index %d\nactual %+v",
+			index,
+			a.violations,
+		))
 		return nil
 	}
 
@@ -158,14 +166,17 @@ func (a *ViolationListAssertion) WithErrors(errs ...error) *ViolationListAsserti
 	length := a.violations.Len()
 	if length != len(errs) {
 		assert.Fail(a.t, fmt.Sprintf(
-			"failed asserting that violation list length is equal to %d, actual is %d",
+			"failed asserting that violation list length is equal to %d, actual is %d\nactual %+v",
 			len(errs),
 			length,
+			a.violations,
 		))
-		return a
 	}
 
 	a.violations.ForEach(func(i int, violation validation.Violation) error {
+		if i >= len(errs) {
+			return nil
+		}
 		if violation.Unwrap() != errs[i] {
 			assert.Fail(a.t, fmt.Sprintf(
 				`failed asserting that violation at %d has error "%s", actual is "%s"`,
@@ -191,14 +202,17 @@ func (a *ViolationListAssertion) WithAttributes(violations ...ViolationAttribute
 	length := a.violations.Len()
 	if length != len(violations) {
 		assert.Fail(a.t, fmt.Sprintf(
-			"failed asserting that violation list length is equal to %d, actual is %d",
+			"failed asserting that violation list length is equal to %d, actual is %d\nactual %+v",
 			len(violations),
 			length,
+			a.violations,
 		))
-		return a
 	}
 
 	a.violations.ForEach(func(i int, violation validation.Violation) error {
+		if i >= len(violations) {
+			return nil
+		}
 		expected := violations[i]
 
 		if expected.Error != nil && violation.Unwrap() != expected.Error {

@@ -31,7 +31,7 @@ func ExampleNewValidator() {
 	err = validator.Validate(context.Background(), validation.String("", it.IsNotBlank()))
 	fmt.Println(err)
 	// Output:
-	// violation: This value should not be blank.
+	// violation: "This value should not be blank."
 }
 
 func ExampleNil() {
@@ -39,7 +39,7 @@ func ExampleNil() {
 	err := validator.Validate(context.Background(), validation.Nil(v == nil, it.IsNotNil()))
 	fmt.Println(err)
 	// Output:
-	// violation: This value should not be nil.
+	// violation: "This value should not be nil."
 }
 
 func ExampleNilProperty() {
@@ -49,7 +49,7 @@ func ExampleNilProperty() {
 	err := validator.Validate(context.Background(), validation.NilProperty("tags", v.Tags == nil, it.IsNotNil()))
 	fmt.Println(err)
 	// Output:
-	// violation at 'tags': This value should not be nil.
+	// violation at "tags": "This value should not be nil."
 }
 
 func ExampleBool() {
@@ -57,7 +57,7 @@ func ExampleBool() {
 	err := validator.Validate(context.Background(), validation.Bool(v, it.IsTrue()))
 	fmt.Println(err)
 	// Output:
-	// violation: This value should be true.
+	// violation: "This value should be true."
 }
 
 func ExampleBoolProperty() {
@@ -72,7 +72,7 @@ func ExampleBoolProperty() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at 'isPublished': This value should be true.
+	// violation at "isPublished": "This value should be true."
 }
 
 func ExampleNilBool() {
@@ -80,7 +80,7 @@ func ExampleNilBool() {
 	err := validator.Validate(context.Background(), validation.NilBool(&v, it.IsTrue()))
 	fmt.Println(err)
 	// Output:
-	// violation: This value should be true.
+	// violation: "This value should be true."
 }
 
 func ExampleNilBoolProperty() {
@@ -95,7 +95,7 @@ func ExampleNilBoolProperty() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at 'isPublished': This value should be true.
+	// violation at "isPublished": "This value should be true."
 }
 
 func ExampleNumber_int() {
@@ -106,7 +106,7 @@ func ExampleNumber_int() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation: This value should be greater than 5.
+	// violation: "This value should be greater than 5."
 }
 
 func ExampleNumber_float() {
@@ -117,7 +117,7 @@ func ExampleNumber_float() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation: This value should be greater than 6.5.
+	// violation: "This value should be greater than 6.5."
 }
 
 func ExampleNumberProperty_int() {
@@ -132,7 +132,7 @@ func ExampleNumberProperty_int() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at 'count': This value should be greater than 5.
+	// violation at "count": "This value should be greater than 5."
 }
 
 func ExampleNumberProperty_float() {
@@ -147,7 +147,7 @@ func ExampleNumberProperty_float() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at 'amount': This value should be greater than 6.5.
+	// violation at "amount": "This value should be greater than 6.5."
 }
 
 func ExampleNilNumber_int() {
@@ -158,7 +158,7 @@ func ExampleNilNumber_int() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation: This value should be greater than 5.
+	// violation: "This value should be greater than 5."
 }
 
 func ExampleNilNumber_float() {
@@ -169,7 +169,7 @@ func ExampleNilNumber_float() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation: This value should be greater than 6.5.
+	// violation: "This value should be greater than 6.5."
 }
 
 func ExampleNilNumberProperty_int() {
@@ -184,7 +184,7 @@ func ExampleNilNumberProperty_int() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at 'count': This value should be greater than 5.
+	// violation at "count": "This value should be greater than 5."
 }
 
 func ExampleNilNumberProperty_float() {
@@ -199,7 +199,7 @@ func ExampleNilNumberProperty_float() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at 'amount': This value should be greater than 6.5.
+	// violation at "amount": "This value should be greater than 6.5."
 }
 
 func ExampleString() {
@@ -210,7 +210,7 @@ func ExampleString() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation: This value should not be blank.
+	// violation: "This value should not be blank."
 }
 
 func ExampleStringProperty() {
@@ -225,7 +225,7 @@ func ExampleStringProperty() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at 'title': This value should not be blank.
+	// violation at "title": "This value should not be blank."
 }
 
 func ExampleNilString() {
@@ -236,7 +236,7 @@ func ExampleNilString() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation: This value should not be blank.
+	// violation: "This value should not be blank."
 }
 
 func ExampleNilStringProperty() {
@@ -251,7 +251,7 @@ func ExampleNilStringProperty() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at 'title': This value should not be blank.
+	// violation at "title": "This value should not be blank."
 }
 
 func ExampleCountable() {
@@ -262,7 +262,7 @@ func ExampleCountable() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation: This collection should contain 3 elements or more.
+	// violation: "This collection should contain 3 elements or more."
 }
 
 func ExampleCountableProperty() {
@@ -277,7 +277,7 @@ func ExampleCountableProperty() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at 'tags': This collection should contain 3 elements or more.
+	// violation at "tags": "This collection should contain 3 elements or more."
 }
 
 func ExampleTime() {
@@ -289,7 +289,7 @@ func ExampleTime() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation: This value should be earlier than 2006-01-02T15:00:00Z.
+	// violation: "This value should be earlier than 2006-01-02T15:00:00Z."
 }
 
 func ExampleTimeProperty() {
@@ -305,7 +305,7 @@ func ExampleTimeProperty() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at 'createdAt': This value should be earlier than 2006-01-02T15:00:00Z.
+	// violation at "createdAt": "This value should be earlier than 2006-01-02T15:00:00Z."
 }
 
 func ExampleNilTime() {
@@ -317,7 +317,7 @@ func ExampleNilTime() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation: This value should be earlier than 2006-01-02T15:00:00Z.
+	// violation: "This value should be earlier than 2006-01-02T15:00:00Z."
 }
 
 func ExampleNilTimeProperty() {
@@ -333,7 +333,7 @@ func ExampleNilTimeProperty() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at 'createdAt': This value should be earlier than 2006-01-02T15:00:00Z.
+	// violation at "createdAt": "This value should be earlier than 2006-01-02T15:00:00Z."
 }
 
 func ExampleEachString() {
@@ -344,7 +344,7 @@ func ExampleEachString() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at '[0]': This value should not be blank.
+	// violation at "[0]": "This value should not be blank."
 }
 
 func ExampleEachStringProperty() {
@@ -359,7 +359,7 @@ func ExampleEachStringProperty() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at 'tags[0]': This value should not be blank.
+	// violation at "tags[0]": "This value should not be blank."
 }
 
 func ExampleEachNumber() {
@@ -370,7 +370,7 @@ func ExampleEachNumber() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at '[0]': This value should be either positive or zero.
+	// violation at "[0]": "This value should be either positive or zero."
 }
 
 func ExampleEachNumberProperty() {
@@ -385,7 +385,7 @@ func ExampleEachNumberProperty() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at 'metrics[0]': This value should be either positive or zero.
+	// violation at "metrics[0]": "This value should be either positive or zero."
 }
 
 func ExampleEachComparable() {
@@ -396,7 +396,7 @@ func ExampleEachComparable() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at '[2]': The value you selected is not a valid choice.
+	// violation at "[2]": "The value you selected is not a valid choice."
 }
 
 func ExampleEachComparableProperty() {
@@ -411,7 +411,7 @@ func ExampleEachComparableProperty() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at 'labels[2]': The value you selected is not a valid choice.
+	// violation at "labels[2]": "The value you selected is not a valid choice."
 }
 
 func ExampleComparable_string() {
@@ -422,7 +422,7 @@ func ExampleComparable_string() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation: The value you selected is not a valid choice.
+	// violation: "The value you selected is not a valid choice."
 }
 
 func ExampleComparable_int() {
@@ -433,7 +433,7 @@ func ExampleComparable_int() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation: The value you selected is not a valid choice.
+	// violation: "The value you selected is not a valid choice."
 }
 
 func ExampleComparableProperty_string() {
@@ -448,7 +448,7 @@ func ExampleComparableProperty_string() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at 'enum': The value you selected is not a valid choice.
+	// violation at "enum": "The value you selected is not a valid choice."
 }
 
 func ExampleComparableProperty_int() {
@@ -463,7 +463,7 @@ func ExampleComparableProperty_int() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at 'metric': The value you selected is not a valid choice.
+	// violation at "metric": "The value you selected is not a valid choice."
 }
 
 func ExampleNilComparable_string() {
@@ -474,7 +474,7 @@ func ExampleNilComparable_string() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation: The value you selected is not a valid choice.
+	// violation: "The value you selected is not a valid choice."
 }
 
 func ExampleNilComparable_int() {
@@ -485,7 +485,7 @@ func ExampleNilComparable_int() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation: The value you selected is not a valid choice.
+	// violation: "The value you selected is not a valid choice."
 }
 
 func ExampleNilComparableProperty_string() {
@@ -500,7 +500,7 @@ func ExampleNilComparableProperty_string() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at 'enum': The value you selected is not a valid choice.
+	// violation at "enum": "The value you selected is not a valid choice."
 }
 
 func ExampleNilComparableProperty_int() {
@@ -515,7 +515,7 @@ func ExampleNilComparableProperty_int() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at 'metric': The value you selected is not a valid choice.
+	// violation at "metric": "The value you selected is not a valid choice."
 }
 
 func ExampleComparables() {
@@ -526,7 +526,7 @@ func ExampleComparables() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation: This collection should contain only unique elements.
+	// violation: "This collection should contain only unique elements."
 }
 
 func ExampleComparablesProperty() {
@@ -541,7 +541,7 @@ func ExampleComparablesProperty() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation at 'keywords': This collection should contain only unique elements.
+	// violation at "keywords": "This collection should contain only unique elements."
 }
 
 func ExampleCheck() {
@@ -549,7 +549,7 @@ func ExampleCheck() {
 	err := validator.Validate(context.Background(), validation.Check(v > 321))
 	fmt.Println(err)
 	// Output:
-	// violation: This value is not valid.
+	// violation: "This value is not valid."
 }
 
 func ExampleOfStringBy() {
@@ -567,7 +567,7 @@ func ExampleOfStringBy() {
 
 	fmt.Println(err)
 	// Output:
-	// violation: Unexpected value.
+	// violation: "Unexpected value."
 }
 
 func ExampleWhen() {
@@ -599,7 +599,7 @@ func ExampleWhen() {
 
 	fmt.Println(err)
 	// Output:
-	// violation at 'cardNumber': This value is not valid.
+	// violation at "cardNumber": "This value is not valid."
 }
 
 func ExampleWhenArgument_Then() {
@@ -641,7 +641,7 @@ func ExampleSequentially() {
 
 	fmt.Println(err)
 	// Output:
-	// violation: This value should be blank.
+	// violation: "This value should be blank."
 }
 
 func ExampleAtLeastOneOf() {
@@ -674,9 +674,9 @@ func ExampleAtLeastOneOf() {
 
 	// Output:
 	// banner Empty banner is not valid:
-	// violation at 'keywords': This value should not be blank.
-	// violation at 'companies': This value should not be blank.
-	// violation at 'brands': This value should not be blank.
+	// violation at "keywords": "This value should not be blank."
+	// violation at "companies": "This value should not be blank."
+	// violation at "brands": "This value should not be blank."
 }
 
 func ExampleAll() {
@@ -710,8 +710,8 @@ func ExampleAll() {
 		}
 	}
 	// Output:
-	// violation at 'name': This value is too long. It should have 10 characters or less.
-	// violation at 'tags': This collection should contain 3 elements or less.
+	// violation at "name": "This value is too long. It should have 10 characters or less."
+	// violation at "tags": "This collection should contain 3 elements or less."
 }
 
 func ExampleValidator_Validate_basicValidation() {
@@ -726,7 +726,7 @@ func ExampleValidator_Validate_basicValidation() {
 	fmt.Println(err)
 	fmt.Println("errors.Is(err, validation.ErrIsBlank) =", errors.Is(err, validation.ErrIsBlank))
 	// Output:
-	// violation: This value should not be blank.
+	// violation: "This value should not be blank."
 	// errors.Is(err, validation.ErrIsBlank) = true
 }
 
@@ -737,7 +737,7 @@ func ExampleValidator_Validate_singletonValidator() {
 
 	fmt.Println(err)
 	// Output:
-	// violation: This value should not be blank.
+	// violation: "This value should not be blank."
 }
 
 func ExampleValidator_ValidateBool() {
@@ -745,7 +745,7 @@ func ExampleValidator_ValidateBool() {
 	err := validator.ValidateBool(context.Background(), v, it.IsTrue())
 	fmt.Println(err)
 	// Output:
-	// violation: This value should be true.
+	// violation: "This value should be true."
 }
 
 func ExampleValidator_ValidateInt() {
@@ -753,7 +753,7 @@ func ExampleValidator_ValidateInt() {
 	err := validator.ValidateInt(context.Background(), v, it.IsGreaterThan(5))
 	fmt.Println(err)
 	// Output:
-	// violation: This value should be greater than 5.
+	// violation: "This value should be greater than 5."
 }
 
 func ExampleValidator_ValidateFloat() {
@@ -761,7 +761,7 @@ func ExampleValidator_ValidateFloat() {
 	err := validator.ValidateFloat(context.Background(), v, it.IsGreaterThan(6.5))
 	fmt.Println(err)
 	// Output:
-	// violation: This value should be greater than 6.5.
+	// violation: "This value should be greater than 6.5."
 }
 
 func ExampleValidator_ValidateString() {
@@ -769,7 +769,7 @@ func ExampleValidator_ValidateString() {
 
 	fmt.Println(err)
 	// Output:
-	// violation: This value should not be blank.
+	// violation: "This value should not be blank."
 }
 
 func ExampleValidator_ValidateStrings() {
@@ -777,7 +777,7 @@ func ExampleValidator_ValidateStrings() {
 	err := validator.ValidateStrings(context.Background(), v, it.HasUniqueValues[string]())
 	fmt.Println(err)
 	// Output:
-	// violation: This collection should contain only unique elements.
+	// violation: "This collection should contain only unique elements."
 }
 
 func ExampleValidator_ValidateCountable() {
@@ -785,7 +785,7 @@ func ExampleValidator_ValidateCountable() {
 	err := validator.ValidateCountable(context.Background(), len(s), it.HasMinCount(3))
 	fmt.Println(err)
 	// Output:
-	// violation: This collection should contain 3 elements or more.
+	// violation: "This collection should contain 3 elements or more."
 }
 
 func ExampleValidator_ValidateTime() {
@@ -794,7 +794,7 @@ func ExampleValidator_ValidateTime() {
 	err := validator.ValidateTime(context.Background(), t, it.IsEarlierThan(compared))
 	fmt.Println(err)
 	// Output:
-	// violation: This value should be earlier than 2006-01-02T15:00:00Z.
+	// violation: "This value should be earlier than 2006-01-02T15:00:00Z."
 }
 
 func ExampleValidator_ValidateEachString() {
@@ -802,7 +802,7 @@ func ExampleValidator_ValidateEachString() {
 	err := validator.ValidateEachString(context.Background(), v, it.IsNotBlank())
 	fmt.Println(err)
 	// Output:
-	// violation at '[0]': This value should not be blank.
+	// violation at "[0]": "This value should not be blank."
 }
 
 func ExampleValidator_Validate_basicStructValidation() {
@@ -828,10 +828,10 @@ func ExampleValidator_Validate_basicStructValidation() {
 		}
 	}
 	// Output:
-	// violation at 'title': This value should not be blank.
-	// violation at 'keywords': This collection should contain 5 elements or more.
-	// violation at 'keywords': This collection should contain only unique elements.
-	// violation at 'keywords[0]': This value should not be blank.
+	// violation at "title": "This value should not be blank."
+	// violation at "keywords": "This collection should contain 5 elements or more."
+	// violation at "keywords": "This collection should contain only unique elements."
+	// violation at "keywords[0]": "This value should not be blank."
 }
 
 func ExampleValidator_Validate_conditionalValidationOnConstraint() {
@@ -858,7 +858,7 @@ func ExampleValidator_Validate_conditionalValidationOnConstraint() {
 	}
 
 	// Output:
-	// error on note 1: violation at 'text': This value should not be blank.
+	// error on note 1: violation at "text": "This value should not be blank."
 }
 
 func ExampleValidator_Validate_passingPropertyPathViaOptions() {
@@ -900,7 +900,7 @@ func ExampleValidator_Validate_propertyPathBySpecialArgument() {
 	err := validator.Validate(
 		context.Background(),
 		// this is an alias for
-		// validation.String(&s, validation.PropertyName("property"), it.IsNotBlank()),
+		// validation.String(s, it.IsNotBlank()).At(validation.PropertyName("property")),
 		validation.StringProperty("property", s, it.IsNotBlank()),
 	)
 
@@ -978,7 +978,7 @@ func ExampleValidator_WithLanguage() {
 
 	fmt.Println(err)
 	// Output:
-	// violation: Значение не должно быть пустым.
+	// violation: "Значение не должно быть пустым."
 }
 
 func ExampleValidator_Validate_translationsByDefaultLanguage() {
@@ -995,7 +995,7 @@ func ExampleValidator_Validate_translationsByDefaultLanguage() {
 
 	fmt.Println(err)
 	// Output:
-	// violation: Значение не должно быть пустым.
+	// violation: "Значение не должно быть пустым."
 }
 
 func ExampleValidator_Validate_translationsByContextualValidator() {
@@ -1014,7 +1014,7 @@ func ExampleValidator_Validate_translationsByContextualValidator() {
 
 	fmt.Println(err)
 	// Output:
-	// violation: Значение не должно быть пустым.
+	// violation: "Значение не должно быть пустым."
 }
 
 func ExampleValidator_Validate_translationsByContextArgument() {
@@ -1034,7 +1034,7 @@ func ExampleValidator_Validate_translationsByContextArgument() {
 
 	fmt.Println(err)
 	// Output:
-	// violation: Значение не должно быть пустым.
+	// violation: "Значение не должно быть пустым."
 }
 
 func ExampleTranslations() {
@@ -1054,7 +1054,7 @@ func ExampleTranslations() {
 
 	fmt.Println(err)
 	// Output:
-	// violation: Значение не должно быть пустым.
+	// violation: "Значение не должно быть пустым."
 }
 
 func ExampleValidator_Validate_customizingErrorMessage() {
@@ -1067,7 +1067,7 @@ func ExampleValidator_Validate_customizingErrorMessage() {
 
 	fmt.Println(err)
 	// Output:
-	// violation: this value is required
+	// violation: "this value is required"
 }
 
 func ExampleValidator_Validate_translationForCustomMessage() {
@@ -1094,7 +1094,7 @@ func ExampleValidator_Validate_translationForCustomMessage() {
 
 	fmt.Println(err)
 	// Output:
-	// violation: теги должны содержать 1 элемент и более
+	// violation: "теги должны содержать 1 элемент и более"
 }
 
 func ExampleValidator_CreateViolation() {
@@ -1114,7 +1114,7 @@ func ExampleValidator_CreateViolation() {
 
 	fmt.Println(violation.Error())
 	// Output:
-	// violation at 'properties[1]': Client message.
+	// violation at "properties[1]": "Client message."
 }
 
 func ExampleValidator_BuildViolation_buildingViolation() {
@@ -1187,8 +1187,8 @@ func ExampleValidator_BuildViolationList() {
 	fmt.Println("errors.Is(violations, errFirst) =", errors.Is(violations, errFirst))
 	fmt.Println("errors.Is(violations, errSecond) =", errors.Is(violations, errSecond))
 	// Output:
-	// violation at 'properties[0]': Client message with value 1.
-	// violation at 'properties[1]': Client message with value 2.
+	// violation at "properties[0]": "Client message with value 1."
+	// violation at "properties[1]": "Client message with value 2."
 	// errors.Is(violations, errFirst) = true
 	// errors.Is(violations, errSecond) = true
 }
@@ -1203,8 +1203,8 @@ func ExampleViolationList_First() {
 		fmt.Println(violation)
 	}
 	// Output:
-	// violation: foo
-	// violation: bar
+	// violation: "foo"
+	// violation: "bar"
 }
 
 func ExampleViolationList_AppendFromError_addingViolation() {
@@ -1217,7 +1217,7 @@ func ExampleViolationList_AppendFromError_addingViolation() {
 	fmt.Println("violations:", violations)
 	// Output:
 	// append error: <nil>
-	// violations: violation: foo
+	// violations: violation: "foo"
 }
 
 func ExampleViolationList_AppendFromError_addingViolationList() {
@@ -1233,7 +1233,7 @@ func ExampleViolationList_AppendFromError_addingViolationList() {
 	fmt.Println("violations:", violations)
 	// Output:
 	// append error: <nil>
-	// violations: violation: foo; violation: bar
+	// violations: violations: #0: "foo"; #1: "bar"
 }
 
 func ExampleViolationList_AppendFromError_addingError() {
@@ -1264,5 +1264,5 @@ func ExampleStoredConstraint() {
 	)
 	fmt.Println(err)
 	// Output:
-	// violation: value should not be empty
+	// violation: "value should not be empty"
 }

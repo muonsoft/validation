@@ -186,7 +186,7 @@ func TestViolationAssertion_EqualError(t *testing.T) {
 
 	validationtest.Assert(tester, violation).IsViolation().EqualToError("expected")
 
-	tester.AssertOneMessage(t, `failed asserting that violation error is equal to "expected", actual is "violation at 'path': message"`)
+	tester.AssertOneMessage(t, `failed asserting that violation error is equal to "expected", actual is "violation at "path": "message""`)
 }
 
 type Tester struct {
