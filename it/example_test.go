@@ -442,7 +442,7 @@ func ExampleIsDateTime() {
 		),
 	)
 	// Output:
-	// #1 invalid: violation: This value is not a valid datetime.
+	// #1 invalid: violation: "This value is not a valid datetime."
 	// #2 valid RFC3339: <nil>
 	// #3 custom layout: <nil>
 }
@@ -470,7 +470,7 @@ func ExampleIsTime() {
 		),
 	)
 	// Output:
-	// #1 invalid: violation: This value is not a valid time.
+	// #1 invalid: violation: "This value is not a valid time."
 	// #2 valid: <nil>
 	// #3 custom layout: <nil>
 }
@@ -498,7 +498,7 @@ func ExampleIsDate() {
 		),
 	)
 	// Output:
-	// #1 invalid: violation: This value is not a valid date.
+	// #1 invalid: violation: "This value is not a valid date."
 	// #2 valid: <nil>
 	// #3 custom layout: <nil>
 }
