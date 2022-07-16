@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
+	"unicode"
 )
 
 // PropertyPathElement is a part of the PropertyPath.
@@ -67,7 +69,6 @@ func (path *PropertyPath) With(elements ...PropertyPathElement) *PropertyPath {
 	for _, element := range elements {
 		current = &PropertyPath{parent: current, value: element}
 	}
-
 	return current
 }
 
@@ -95,8 +96,9 @@ func (path *PropertyPath) String() string {
 		if element.value.IsIndex() {
 			s = "[" + element.value.String() + "]" + s
 		} else {
-			s = element.value.String() + s
-			if element.parent != nil {
+			name, isBracketed := encodePropertyName(element.value.String())
+			s = name + s
+			if !isBracketed && element.parent != nil {
 				s = "." + s
 			}
 		}
@@ -109,4 +111,36 @@ func (path *PropertyPath) String() string {
 // MarshalJSON will marshal property path value to a JSON string.
 func (path *PropertyPath) MarshalJSON() ([]byte, error) {
 	return json.Marshal(path.String())
+}
+
+func encodePropertyName(name string) (string, bool) {
+	chars := []rune(name)
+	if len(chars) == 0 {
+		return `['']`, false
+	}
+
+	var encoded strings.Builder
+	encoded.Grow(len(chars))
+
+	needBracketing := false
+	if !unicode.IsLetter(chars[0]) {
+		needBracketing = true
+	}
+	for i := 0; i < len(chars); i++ {
+		c := chars[i]
+		if i > 0 && !unicode.IsLetter(c) && !unicode.IsDigit(c) {
+			needBracketing = true
+		}
+		if c == '\'' || c == '\\' {
+			encoded.WriteRune('\\')
+		}
+		encoded.WriteRune(c)
+	}
+
+	s := encoded.String()
+	if needBracketing {
+		return `['` + s + `']`, true
+	}
+
+	return s, false
 }
