@@ -24,7 +24,7 @@ var choiceConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType, comparableType),
 		stringValue:     stringValue(""),
 		constraint:      it.IsOneOf("expected"),
-		assert:          assertHasOneViolation(validation.ErrNoSuchChoice, message.NoSuchChoice),
+		assert:          assertNoError,
 	},
 	{
 		name:            "IsOneOf passes on expected string",
@@ -88,13 +88,13 @@ var choiceConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(intType),
 		intValue:        intValue(0),
 		constraint:      it.IsOneOf(1, 2),
-		assert:          assertHasOneViolation(validation.ErrNoSuchChoice, message.NoSuchChoice),
+		assert:          assertNoError,
 	},
 	{
 		name:            "IsOneOf passes on blank integer when blank is allowed",
 		isApplicableFor: specificValueTypes(intType),
 		intValue:        intValue(0),
-		constraint:      it.IsOneOf(1, 2).WithAllowedBlank(),
-		assert:          assertNoError,
+		constraint:      it.IsOneOf(1, 2).WithoutBlank(),
+		assert:          assertHasOneViolation(validation.ErrNoSuchChoice, message.NoSuchChoice),
 	},
 }
