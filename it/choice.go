@@ -9,8 +9,8 @@ import (
 )
 
 // ChoiceConstraint is used to ensure that the given value corresponds to one of the expected choices.
-// Zero values (zero numbers or empty strings) are also compared with the given choices.
-// In order for a blank value to be valid, use the WithAllowedBlank method.
+// Zero values (zero numbers or empty strings) are considered as valid. Use NotBlankConstraint to check
+// that they are not empty. Also, in order for a blank value to be checked, use the WithoutBlank method.
 type ChoiceConstraint[T comparable] struct {
 	blank             T
 	choices           map[T]bool
@@ -19,13 +19,13 @@ type ChoiceConstraint[T comparable] struct {
 	err               error
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
-	allowBlank        bool
+	disallowBlank     bool
 	isIgnored         bool
 }
 
 // IsOneOf creates a ChoiceConstraint for checking that values are in the expected list of values.
-// Zero values (zero numbers or empty strings) are also compared with the given choices.
-// In order for a blank value to be valid, use the WithAllowedBlank method.
+// Zero values (zero numbers or empty strings) are considered as valid. Use NotBlankConstraint to check
+// that they are not empty. Also, in order for a blank value to be checked, use the WithoutBlank method.
 func IsOneOf[T comparable](values ...T) ChoiceConstraint[T] {
 	choices := make(map[T]bool, len(values))
 	for _, value := range values {
@@ -48,9 +48,9 @@ func IsOneOf[T comparable](values ...T) ChoiceConstraint[T] {
 	}
 }
 
-// WithAllowedBlank makes zero values valid.
-func (c ChoiceConstraint[T]) WithAllowedBlank() ChoiceConstraint[T] {
-	c.allowBlank = true
+// WithoutBlank makes zero values valid.
+func (c ChoiceConstraint[T]) WithoutBlank() ChoiceConstraint[T] {
+	c.disallowBlank = true
 	return c
 }
 
@@ -96,7 +96,7 @@ func (c ChoiceConstraint[T]) ValidateComparable(ctx context.Context, validator *
 	if len(c.choices) == 0 {
 		return validator.CreateConstraintError("ChoiceConstraint", "empty list of choices")
 	}
-	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || c.allowBlank && *value == c.blank {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || !c.disallowBlank && *value == c.blank {
 		return nil
 	}
 	if c.choices[*value] {

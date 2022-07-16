@@ -189,7 +189,7 @@ func (list *ViolationList) String() string {
 
 // Format formats the list of violations according to the fmt.Formatter interface.
 // Verbs '%v', '%s', '%q' formats violation list into a single line string delimited by space.
-// Verb with flag '%+v' formats violation list into a multiple line string.
+// Verb with flag '%+v' formats violation list into a multi-line string.
 func (list *ViolationList) Format(f fmt.State, verb rune) {
 	switch verb {
 	case 'v':
