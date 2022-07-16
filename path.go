@@ -1,7 +1,6 @@
 package validation
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -90,57 +89,66 @@ func (path *PropertyPath) WithIndex(index int) *PropertyPath {
 
 // String is used to format property path to a string.
 func (path *PropertyPath) String() string {
-	s := ""
+	elements := make([]PropertyPathElement, 0, 8)
 	element := path
+	count := 0
 	for element != nil {
-		if element.value.IsIndex() {
-			s = "[" + element.value.String() + "]" + s
+		if s, ok := element.value.(PropertyName); ok {
+			count += len(s)
 		} else {
-			name, isBracketed := encodePropertyName(element.value.String())
-			s = name + s
-			if !isBracketed && element.parent != nil {
-				s = "." + s
-			}
+			count += 2
 		}
+		elements = append(elements, element.value)
 		element = element.parent
 	}
 
-	return s
-}
-
-// MarshalJSON will marshal property path value to a JSON string.
-func (path *PropertyPath) MarshalJSON() ([]byte, error) {
-	return json.Marshal(path.String())
-}
-
-func encodePropertyName(name string) (string, bool) {
-	chars := []rune(name)
-	if len(chars) == 0 {
-		return `['']`, false
+	s := strings.Builder{}
+	s.Grow(count)
+	for i := len(elements) - 1; i >= 0; i-- {
+		name := elements[i].String()
+		if elements[i].IsIndex() {
+			s.WriteString("[" + name + "]")
+		} else if isIdentifier(name) {
+			if i < len(elements)-1 {
+				s.WriteString(".")
+			}
+			s.WriteString(name)
+		} else {
+			s.WriteString("['")
+			writePropertyName(&s, name)
+			s.WriteString("']")
+		}
 	}
 
-	var encoded strings.Builder
-	encoded.Grow(len(chars))
+	return s.String()
+}
 
-	needBracketing := false
-	if !unicode.IsLetter(chars[0]) {
-		needBracketing = true
+// MarshalText will marshal property path value to a string.
+func (path *PropertyPath) MarshalText() (text []byte, err error) {
+	return []byte(path.String()), nil
+}
+
+func isIdentifier(s string) bool {
+	if len(s) == 0 {
+		return false
 	}
-	for i := 0; i < len(chars); i++ {
-		c := chars[i]
+	for i, c := range s {
+		if i == 0 && !unicode.IsLetter(c) {
+			return false
+		}
 		if i > 0 && !unicode.IsLetter(c) && !unicode.IsDigit(c) {
-			needBracketing = true
+			return false
 		}
+	}
+
+	return true
+}
+
+func writePropertyName(s *strings.Builder, name string) {
+	for _, c := range name {
 		if c == '\'' || c == '\\' {
-			encoded.WriteRune('\\')
+			s.WriteRune('\\')
 		}
-		encoded.WriteRune(c)
+		s.WriteRune(c)
 	}
-
-	s := encoded.String()
-	if needBracketing {
-		return `['` + s + `']`, true
-	}
-
-	return s, false
 }

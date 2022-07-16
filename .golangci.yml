@@ -119,6 +119,9 @@ issues:
     - path: validate/web.go
       linters:
         - lll
+    - path: path.go
+      linters:
+        - gocritic
     - path: arguments.go
       linters:
         - unparam
