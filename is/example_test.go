@@ -2,6 +2,7 @@ package is_test
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/muonsoft/validation/is"
 	"github.com/muonsoft/validation/validate"
@@ -152,12 +153,21 @@ func ExampleHTML5Email() {
 }
 
 func ExampleURL() {
-	fmt.Println(is.URL("https://example.com"))                       // valid absolute URL
-	fmt.Println(is.URL("ftp://example.com", "http", "https", "ftp")) // valid URL with custom schema
-	fmt.Println(is.URL("example.com"))                               // invalid URL
-	fmt.Println(is.URL("//example.com", ""))                         // valid relative URL
+	fmt.Println(is.URL("https://example.com"))                                                    // valid absolute URL
+	fmt.Println(is.URL("ftp://example.com", validate.RestrictURLSchemas("http", "https", "ftp"))) // valid URL with custom schema
+	fmt.Println(is.URL("example.com"))                                                            // invalid URL
+	fmt.Println(is.URL("//example.com", validate.RestrictURLSchemas("")))                         // valid relative URL
+	fmt.Println(is.URL("http://example.com", validate.RestrictURLHosts("sample.com")))            // not matching host
+	fmt.Println(                                                                                  // matching by regexp
+		is.URL(
+			"http://sub.example.com",
+			validate.RestrictURLHostByPattern(regexp.MustCompile(`^.*\.example\.com$`)),
+		),
+	)
 	// Output:
 	// true
+	// true
+	// false
 	// true
 	// false
 	// true

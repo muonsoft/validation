@@ -1,3 +1,6 @@
+run:
+  skip-dirs:
+    - var
 linters:
   enable:
     - asciicheck
@@ -119,6 +122,9 @@ issues:
     - path: validate/web.go
       linters:
         - lll
+    - path: path.go
+      linters:
+        - gocritic
     - path: arguments.go
       linters:
         - unparam

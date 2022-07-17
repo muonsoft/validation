@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/url"
 	"regexp"
 	"time"
 
@@ -419,6 +420,90 @@ func ExampleHasUniqueValues() {
 	// violation: "This collection should contain only unique elements."
 }
 
+func ExampleIsDateTime() {
+	fmt.Println(
+		"#1 invalid:",
+		validator.Validate(
+			context.Background(),
+			validation.String(`invalid`, it.IsDateTime()),
+		),
+	)
+	fmt.Println(
+		"#2 valid RFC3339:",
+		validator.Validate(
+			context.Background(),
+			validation.String(`2022-07-12T12:34:56+00:00`, it.IsDateTime()),
+		),
+	)
+	fmt.Println(
+		"#3 custom layout:",
+		validator.Validate(
+			context.Background(),
+			validation.String(`2022-07-12 12:34:56`, it.IsDateTime().WithLayout("2006-01-02 15:04:05")),
+		),
+	)
+	// Output:
+	// #1 invalid: violation: "This value is not a valid datetime."
+	// #2 valid RFC3339: <nil>
+	// #3 custom layout: <nil>
+}
+
+func ExampleIsTime() {
+	fmt.Println(
+		"#1 invalid:",
+		validator.Validate(
+			context.Background(),
+			validation.String(`invalid`, it.IsTime()),
+		),
+	)
+	fmt.Println(
+		"#2 valid:",
+		validator.Validate(
+			context.Background(),
+			validation.String(`12:34:56`, it.IsTime()),
+		),
+	)
+	fmt.Println(
+		"#3 custom layout:",
+		validator.Validate(
+			context.Background(),
+			validation.String(`12:34:56+00:00`, it.IsTime().WithLayout("15:04:05Z07:00")),
+		),
+	)
+	// Output:
+	// #1 invalid: violation: "This value is not a valid time."
+	// #2 valid: <nil>
+	// #3 custom layout: <nil>
+}
+
+func ExampleIsDate() {
+	fmt.Println(
+		"#1 invalid:",
+		validator.Validate(
+			context.Background(),
+			validation.String(`invalid`, it.IsDate()),
+		),
+	)
+	fmt.Println(
+		"#2 valid:",
+		validator.Validate(
+			context.Background(),
+			validation.String(`2022-07-12`, it.IsDate()),
+		),
+	)
+	fmt.Println(
+		"#3 custom layout:",
+		validator.Validate(
+			context.Background(),
+			validation.String(`12 Jul 22 12:34`, it.IsDate().WithLayout("02 Jan 06 15:04")),
+		),
+	)
+	// Output:
+	// #1 invalid: violation: "This value is not a valid date."
+	// #2 valid: <nil>
+	// #3 custom layout: <nil>
+}
+
 func ExampleHasMinCount() {
 	v := []int{1, 2}
 	err := validator.ValidateCountable(context.Background(), len(v), it.HasMinCount(3))
@@ -657,6 +742,70 @@ func ExampleURLConstraint_WithSchemas() {
 	fmt.Println(err)
 	// Output:
 	// <nil>
+}
+
+func ExampleURLConstraint_WithHosts() {
+	fmt.Println(
+		"valid:",
+		validator.Validate(
+			context.Background(),
+			validation.String("https://example.com", it.IsURL().WithHosts("example.com")),
+		),
+	)
+	fmt.Println(
+		"invalid:",
+		validator.Validate(
+			context.Background(),
+			validation.String("https://sample.com", it.IsURL().WithHosts("example.com")),
+		),
+	)
+	// Output:
+	// valid: <nil>
+	// invalid: violation: "This URL is prohibited to use."
+}
+
+func ExampleURLConstraint_WithHostMatches() {
+	fmt.Println(
+		"valid:",
+		validator.Validate(
+			context.Background(),
+			validation.String("https://sub.example.com", it.IsURL().WithHostMatches(regexp.MustCompile(`^.*\.example\.com`))),
+		),
+	)
+	fmt.Println(
+		"invalid:",
+		validator.Validate(
+			context.Background(),
+			validation.String("https://sub.sample.com", it.IsURL().WithHostMatches(regexp.MustCompile(`^.*\.example\.com`))),
+		),
+	)
+	// Output:
+	// valid: <nil>
+	// invalid: violation: "This URL is prohibited to use."
+}
+
+func ExampleURLConstraint_WithRestriction() {
+	fmt.Println(
+		"valid:",
+		validator.Validate(
+			context.Background(),
+			validation.String("https://example.com", it.IsURL().WithRestriction(func(u *url.URL) bool {
+				return u.Host == "example.com"
+			})),
+		),
+	)
+	fmt.Println(
+		"invalid:",
+		validator.Validate(
+			context.Background(),
+			validation.String("https://sample.com", it.IsURL().WithRestriction(func(u *url.URL) bool {
+				return u.Host == "example.com"
+			})),
+		),
+	)
+	// Output:
+	// valid: <nil>
+	// invalid: violation: "This URL is prohibited to use."
 }
 
 func ExampleIsIP_validIP() {

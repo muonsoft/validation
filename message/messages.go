@@ -27,12 +27,15 @@
 package message
 
 const (
+	InvalidDate       = "This value is not a valid date."
+	InvalidDateTime   = "This value is not a valid datetime."
 	InvalidEAN13      = "This value is not a valid EAN-13."
 	InvalidEAN8       = "This value is not a valid EAN-8."
 	InvalidEmail      = "This value is not a valid email address."
 	InvalidHostname   = "This value is not a valid hostname."
 	InvalidIP         = "This is not a valid IP address."
 	InvalidJSON       = "This value should be valid JSON."
+	InvalidTime       = "This value is not a valid time."
 	InvalidUPCA       = "This value is not a valid UPC-A."
 	InvalidUPCE       = "This value is not a valid UPC-E."
 	InvalidURL        = "This value is not a valid URL."
@@ -57,6 +60,7 @@ const (
 	NotUnique         = "This collection should contain only unique elements."
 	NotValid          = "This value is not valid."
 	ProhibitedIP      = "This IP address is prohibited to use."
+	ProhibitedURL     = "This URL is prohibited to use."
 	TooEarly          = "This value should be later than {{ comparedValue }}."
 	TooEarlyOrEqual   = "This value should be later than or equal to {{ comparedValue }}."
 	TooFewElements    = "This collection should contain {{ limit }} element(s) or more."

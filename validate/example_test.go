@@ -2,6 +2,7 @@ package validate_test
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/muonsoft/validation/validate"
 )
@@ -71,16 +72,25 @@ func ExampleUPCE() {
 }
 
 func ExampleURL() {
-	fmt.Println(validate.URL("https://example.com"))                       // valid absolute URL
-	fmt.Println(validate.URL("ftp://example.com", "http", "https", "ftp")) // valid URL with custom schema
-	fmt.Println(validate.URL("example.com"))                               // url without schema
-	fmt.Println(validate.URL("http:// example.com/"))                      // invalid URL
-	fmt.Println(validate.URL("//example.com", ""))                         // valid relative URL
+	fmt.Println(validate.URL("https://example.com"))                                                    // valid absolute URL
+	fmt.Println(validate.URL("ftp://example.com", validate.RestrictURLSchemas("http", "https", "ftp"))) // valid URL with custom schema
+	fmt.Println(validate.URL("example.com"))                                                            // url without schema
+	fmt.Println(validate.URL("http:// example.com/"))                                                   // invalid URL
+	fmt.Println(validate.URL("//example.com", validate.RestrictURLSchemas("")))                         // valid relative URL
+	fmt.Println(validate.URL("http://example.com", validate.RestrictURLHosts("sample.com")))            // not matching host
+	fmt.Println(                                                                                        // matching by regexp
+		validate.URL(
+			"http://sub.example.com",
+			validate.RestrictURLHostByPattern(regexp.MustCompile(`^.*\.example\.com$`)),
+		),
+	)
 	// Output:
 	// <nil>
 	// <nil>
-	// unexpected schema
+	// restricted schema
 	// parse "http:// example.com/": invalid character " " in host name
+	// <nil>
+	// restricted host
 	// <nil>
 }
 
