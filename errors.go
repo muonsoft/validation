@@ -42,6 +42,7 @@ var (
 	ErrNotUnique         = NewError("is not unique", message.NotUnique)
 	ErrNotValid          = NewError("is not valid", message.NotValid)
 	ErrProhibitedIP      = NewError("is prohibited IP", message.ProhibitedIP)
+	ErrProhibitedURL     = NewError("is prohibited URL", message.ProhibitedURL)
 	ErrTooEarly          = NewError("is too early", message.TooEarly)
 	ErrTooEarlyOrEqual   = NewError("is too early or equal", message.TooEarlyOrEqual)
 	ErrTooFewElements    = NewError("too few elements", message.TooFewElements)

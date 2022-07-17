@@ -60,6 +60,7 @@ const (
 	NotUnique         = "This collection should contain only unique elements."
 	NotValid          = "This value is not valid."
 	ProhibitedIP      = "This IP address is prohibited to use."
+	ProhibitedURL     = "This URL is prohibited to use."
 	TooEarly          = "This value should be later than {{ comparedValue }}."
 	TooEarlyOrEqual   = "This value should be later than or equal to {{ comparedValue }}."
 	TooFewElements    = "This collection should contain {{ limit }} element(s) or more."

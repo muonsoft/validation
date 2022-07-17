@@ -47,6 +47,7 @@ func TestAllMessagesTranslated(t *testing.T) {
 		validation.ErrNotUnique,
 		validation.ErrNotValid,
 		validation.ErrProhibitedIP,
+		validation.ErrProhibitedURL,
 		validation.ErrTooEarly,
 		validation.ErrTooEarlyOrEqual,
 		validation.ErrTooFewElements,

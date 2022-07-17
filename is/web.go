@@ -19,12 +19,17 @@ func HTML5Email(value string) bool {
 	return html5EmailRegex.MatchString(value)
 }
 
-// URL is used to check that value is a valid URL string. By default (if no schemas are passed),
-// the function checks only for the http:// and https:// schemas. Use the schemas argument
-// to configure the list of expected schemas. If an empty string is passed as a schema, then
-// URL value may be treated as relative (without schema, e.g. "//example.com").
-func URL(value string, schemas ...string) bool {
-	return validate.URL(value, schemas...) == nil
+// URL is used to validate that value is a valid URL string. You can use a list of restrictions
+// to additionally check for a restricted set of URLs. By default, if no restrictions are passed,
+// the function checks for the http:// and https:// schemas.
+//
+// Use the validate.RestrictURLSchemas option to configure the list of expected schemas. If an empty
+// string is passed as a schema, then URL value may be treated as relative (without schema, e.g. "//example.com").
+//
+// Use the validate.RestrictURLHosts or validate.RestrictURLHostByPattern option to configure
+// the list of allowed hosts.
+func URL(value string, restrictions ...validate.URLRestriction) bool {
+	return validate.URL(value, restrictions...) == nil
 }
 
 // IP checks that a value is a valid IP address (IPv4 or IPv6). You can use a list

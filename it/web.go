@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"net"
+	"net/url"
+	"regexp"
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/is"
@@ -56,13 +58,19 @@ func IsLooseHostname() validation.StringFuncConstraint {
 //
 // This constraint doesn't check the length of the URL. Use LengthConstraint to check the length of the given value.
 type URLConstraint struct {
-	isIgnored              bool
-	supportsRelativeSchema bool
-	schemas                []string
-	groups                 []string
-	err                    error
-	messageTemplate        string
-	messageParameters      validation.TemplateParameterList
+	isIgnored                   bool
+	supportsRelativeSchema      bool
+	schemas                     []string
+	hosts                       []string
+	hostPattern                 *regexp.Regexp
+	restrictions                []validate.URLRestriction
+	groups                      []string
+	invalidErr                  error
+	prohibitedErr               error
+	invalidMessageTemplate      string
+	invalidMessageParameters    validation.TemplateParameterList
+	prohibitedMessageTemplate   string
+	prohibitedMessageParameters validation.TemplateParameterList
 }
 
 // IsURL creates a URLConstraint to validate an URL. By default, constraint checks
@@ -71,9 +79,11 @@ type URLConstraint struct {
 // of the relative schema (without schema, e.g. "//example.com").
 func IsURL() URLConstraint {
 	return URLConstraint{
-		schemas:         []string{"http", "https"},
-		err:             validation.ErrInvalidURL,
-		messageTemplate: validation.ErrInvalidURL.Message(),
+		schemas:                   []string{"http", "https"},
+		invalidErr:                validation.ErrInvalidURL,
+		invalidMessageTemplate:    validation.ErrInvalidURL.Message(),
+		prohibitedErr:             validation.ErrProhibitedURL,
+		prohibitedMessageTemplate: validation.ErrProhibitedURL.Message(),
 	}
 }
 
@@ -92,9 +102,35 @@ func (c URLConstraint) WithSchemas(schemas ...string) URLConstraint {
 	return c
 }
 
+// WithHosts is used to set up a list of accepted hosts. If the list is empty, then any host will be treated as valid.
+func (c URLConstraint) WithHosts(hosts ...string) URLConstraint {
+	c.hosts = hosts
+	return c
+}
+
+// WithHostMatches is used to set up restricted host validation by regexp pattern.
+// If pattern is nil, then validation will be ignored.
+func (c URLConstraint) WithHostMatches(pattern *regexp.Regexp) URLConstraint {
+	c.hostPattern = pattern
+	return c
+}
+
+// WithRestriction is used to additionally check parsed URL by callback function.
+func (c URLConstraint) WithRestriction(isAllowed func(u *url.URL) bool) URLConstraint {
+	c.restrictions = append(c.restrictions, func(u *url.URL) error {
+		if isAllowed(u) {
+			return nil
+		}
+
+		return validate.ErrProhibited
+	})
+
+	return c
+}
+
 // WithError overrides default error for produced violation.
 func (c URLConstraint) WithError(err error) URLConstraint {
-	c.err = err
+	c.invalidErr = err
 	return c
 }
 
@@ -103,8 +139,25 @@ func (c URLConstraint) WithError(err error) URLConstraint {
 //
 //	{{ value }} - the current (invalid) value.
 func (c URLConstraint) WithMessage(template string, parameters ...validation.TemplateParameter) URLConstraint {
-	c.messageTemplate = template
-	c.messageParameters = parameters
+	c.invalidMessageTemplate = template
+	c.invalidMessageParameters = parameters
+	return c
+}
+
+// WithProhibitedError overrides default error for produced violation on a prohibited value.
+func (c URLConstraint) WithProhibitedError(err error) URLConstraint {
+	c.prohibitedErr = err
+	return c
+}
+
+// WithProhibitedMessage sets the violation message template for violation on a prohibited value.
+// You can set custom template parameters for injecting its values into the final message.
+// Also, you can use default parameters:
+//
+//	{{ value }} - the current (invalid) value.
+func (c URLConstraint) WithProhibitedMessage(template string, parameters ...validation.TemplateParameter) URLConstraint {
+	c.prohibitedMessageTemplate = template
+	c.prohibitedMessageParameters = parameters
 	return c
 }
 
@@ -129,18 +182,50 @@ func (c URLConstraint) ValidateString(ctx context.Context, validator *validation
 		return nil
 	}
 
+	if err := validate.URL(*value, c.getRestrictions()...); err != nil {
+		if errors.Is(err, validate.ErrRestrictedHost) || errors.Is(err, validate.ErrProhibited) {
+			return c.newProhibitedViolation(ctx, validator, *value)
+		}
+
+		return c.newInvalidViolation(ctx, validator, *value)
+	}
+
+	return nil
+}
+
+func (c URLConstraint) getRestrictions() []validate.URLRestriction {
 	schemas := c.schemas
 	if c.supportsRelativeSchema {
 		schemas = append(schemas, "")
 	}
-	if is.URL(*value, schemas...) {
-		return nil
-	}
 
-	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
+	restrictions := []validate.URLRestriction{validate.RestrictURLSchemas(schemas...)}
+	if len(c.hosts) > 0 {
+		restrictions = append(restrictions, validate.RestrictURLHosts(c.hosts...))
+	}
+	if c.hostPattern != nil {
+		restrictions = append(restrictions, validate.RestrictURLHostByPattern(c.hostPattern))
+	}
+	restrictions = append(restrictions, c.restrictions...)
+
+	return restrictions
+}
+
+func (c URLConstraint) newInvalidViolation(ctx context.Context, validator *validation.Validator, value string) error {
+	return validator.BuildViolation(ctx, c.invalidErr, c.invalidMessageTemplate).
 		WithParameters(
-			c.messageParameters.Prepend(
-				validation.TemplateParameter{Key: "{{ value }}", Value: *value},
+			c.invalidMessageParameters.Prepend(
+				validation.TemplateParameter{Key: "{{ value }}", Value: value},
+			)...,
+		).
+		Create()
+}
+
+func (c URLConstraint) newProhibitedViolation(ctx context.Context, validator *validation.Validator, value string) error {
+	return validator.BuildViolation(ctx, c.prohibitedErr, c.prohibitedMessageTemplate).
+		WithParameters(
+			c.prohibitedMessageParameters.Prepend(
+				validation.TemplateParameter{Key: "{{ value }}", Value: value},
 			)...,
 		).
 		Create()

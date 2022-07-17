@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/url"
 	"regexp"
 	"time"
 
@@ -741,6 +742,70 @@ func ExampleURLConstraint_WithSchemas() {
 	fmt.Println(err)
 	// Output:
 	// <nil>
+}
+
+func ExampleURLConstraint_WithHosts() {
+	fmt.Println(
+		"valid:",
+		validator.Validate(
+			context.Background(),
+			validation.String("https://example.com", it.IsURL().WithHosts("example.com")),
+		),
+	)
+	fmt.Println(
+		"invalid:",
+		validator.Validate(
+			context.Background(),
+			validation.String("https://sample.com", it.IsURL().WithHosts("example.com")),
+		),
+	)
+	// Output:
+	// valid: <nil>
+	// invalid: violation: "This URL is prohibited to use."
+}
+
+func ExampleURLConstraint_WithHostMatches() {
+	fmt.Println(
+		"valid:",
+		validator.Validate(
+			context.Background(),
+			validation.String("https://sub.example.com", it.IsURL().WithHostMatches(regexp.MustCompile(`^.*\.example\.com`))),
+		),
+	)
+	fmt.Println(
+		"invalid:",
+		validator.Validate(
+			context.Background(),
+			validation.String("https://sub.sample.com", it.IsURL().WithHostMatches(regexp.MustCompile(`^.*\.example\.com`))),
+		),
+	)
+	// Output:
+	// valid: <nil>
+	// invalid: violation: "This URL is prohibited to use."
+}
+
+func ExampleURLConstraint_WithRestriction() {
+	fmt.Println(
+		"valid:",
+		validator.Validate(
+			context.Background(),
+			validation.String("https://example.com", it.IsURL().WithRestriction(func(u *url.URL) bool {
+				return u.Host == "example.com"
+			})),
+		),
+	)
+	fmt.Println(
+		"invalid:",
+		validator.Validate(
+			context.Background(),
+			validation.String("https://sample.com", it.IsURL().WithRestriction(func(u *url.URL) bool {
+				return u.Host == "example.com"
+			})),
+		),
+	)
+	// Output:
+	// valid: <nil>
+	// invalid: violation: "This URL is prohibited to use."
 }
 
 func ExampleIsIP_validIP() {

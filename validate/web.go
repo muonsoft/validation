@@ -8,29 +8,38 @@ import (
 	"strings"
 )
 
-var ErrUnexpectedSchema = errors.New("unexpected schema")
+var (
+	ErrRestrictedSchema = errors.New("restricted schema")
+	ErrRestrictedHost   = errors.New("restricted host")
+)
 
-// URL is used to validate that value is a valid URL string. By default, (if no schemas are passed),
-// the function checks only for the http:// and https:// schemas. Use the schemas' argument
-// to configure the list of expected schemas. If an empty string is passed as a schema, then
-// URL value may be treated as relative (without schema, e.g. "//example.com").
+// URL is used to validate that value is a valid URL string. You can use a list of restrictions
+// to additionally check for a restricted set of URLs. By default, if no restrictions are passed,
+// the function checks for the http:// and https:// schemas.
+//
+// Use the RestrictURLSchemas option to configure the list of expected schemas. If an empty string is passed
+// as a schema, then URL value may be treated as relative (without schema, e.g. "//example.com").
+//
+// Use the RestrictURLHosts or RestrictURLHostByPattern option to configure the list of allowed hosts.
 //
 // If value is not a valid URL the function will return one of the errors:
 //	• parsing error from url.Parse method if value cannot be parsed as a URL;
-//	• ErrUnexpectedSchema if schema is not matching one of the listed schemas;
+//	• ErrRestrictedSchema if schema is not matching one of the listed schemas;
+//	• ErrRestrictedHost if host is not matching one of the listed hosts;
 //	• ErrInvalid if value is not matching the regular expression.
-func URL(value string, schemas ...string) error {
-	if len(schemas) == 0 {
-		schemas = []string{"http", "https"}
+func URL(value string, restrictions ...URLRestriction) error {
+	if len(restrictions) == 0 {
+		restrictions = append(restrictions, RestrictURLSchemas("http", "https"))
 	}
 	u, err := url.Parse(value)
 	if err != nil {
 		return err
 	}
 
-	err = validateSchema(u, schemas)
-	if err != nil {
-		return err
+	for _, check := range restrictions {
+		if err = check(u); err != nil {
+			return err
+		}
 	}
 
 	if !urlRegex.MatchString(value) {
@@ -40,24 +49,43 @@ func URL(value string, schemas ...string) error {
 	return nil
 }
 
-func validateSchema(u *url.URL, schemas []string) error {
-	for _, schema := range schemas {
-		if schema == u.Scheme {
-			return nil
-		}
-	}
+// URLRestriction can be used to limit valid URL values.
+type URLRestriction func(u *url.URL) error
 
-	return ErrUnexpectedSchema
+// RestrictURLSchemas make URL validation accepts only the listed schemas.
+func RestrictURLSchemas(schemas ...string) URLRestriction {
+	return func(u *url.URL) error {
+		for _, schema := range schemas {
+			if schema == u.Scheme {
+				return nil
+			}
+		}
+
+		return ErrRestrictedSchema
+	}
 }
 
-// IPRestriction can be used to limit valid IP address values.
-type IPRestriction func(ip net.IP) bool
+// RestrictURLHosts make URL validation accepts only the listed hosts.
+func RestrictURLHosts(hosts ...string) URLRestriction {
+	return func(u *url.URL) error {
+		for _, host := range hosts {
+			if host == u.Host {
+				return nil
+			}
+		}
 
-// DenyPrivateIP denies using of private IPs according to RFC 1918 (IPv4 addresses)
-// and RFC 4193 (IPv6 addresses).
-func DenyPrivateIP() IPRestriction {
-	return func(ip net.IP) bool {
-		return ip.IsPrivate()
+		return ErrRestrictedHost
+	}
+}
+
+// RestrictURLHostByPattern make URL validation accepts only a value with a host matching by pattern.
+func RestrictURLHostByPattern(pattern *regexp.Regexp) URLRestriction {
+	return func(u *url.URL) error {
+		if pattern.MatchString(u.Host) {
+			return nil
+		}
+
+		return ErrRestrictedHost
 	}
 }
 
@@ -108,6 +136,17 @@ func IPv6(value string, restrictions ...IPRestriction) error {
 	}
 
 	return nil
+}
+
+// IPRestriction can be used to limit valid IP address values.
+type IPRestriction func(ip net.IP) bool
+
+// DenyPrivateIP denies using of private IPs according to RFC 1918 (IPv4 addresses)
+// and RFC 4193 (IPv6 addresses).
+func DenyPrivateIP() IPRestriction {
+	return func(ip net.IP) bool {
+		return ip.IsPrivate()
+	}
 }
 
 func validateIP(value string, restrictions ...IPRestriction) error {

@@ -82,6 +82,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.NotUnique:         catalog.String(message.NotUnique),
 		message.NotValid:          catalog.String(message.NotValid),
 		message.ProhibitedIP:      catalog.String(message.ProhibitedIP),
+		message.ProhibitedURL:     catalog.String(message.ProhibitedURL),
 		message.TooEarly:          catalog.String(message.TooEarly),
 		message.TooEarlyOrEqual:   catalog.String(message.TooEarlyOrEqual),
 		message.TooHigh:           catalog.String(message.TooHigh),

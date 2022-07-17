@@ -2,6 +2,8 @@ package test
 
 import (
 	"net"
+	"net/url"
+	"regexp"
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/it"
@@ -65,6 +67,48 @@ var urlConstraintTestCases = []ConstraintValidationTestCase{
 		assert:          assertNoError,
 	},
 	{
+		name:            "IsURL passes on allowed host",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsURL().WithHosts("example.com"),
+		stringValue:     stringValue("https://example.com"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsURL violation on disallowed host",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsURL().WithHosts("example.com"),
+		stringValue:     stringValue("https://sample.com"),
+		assert:          assertHasOneViolation(validation.ErrProhibitedURL, message.ProhibitedURL),
+	},
+	{
+		name:            "IsURL passes on allowed host pattern",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsURL().WithHostMatches(regexp.MustCompile(`^.*\.example.com$`)),
+		stringValue:     stringValue("https://sub.example.com"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsURL violation on disallowed host pattern",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsURL().WithHostMatches(regexp.MustCompile(`^.*\.example.com$`)),
+		stringValue:     stringValue("https://sample.com"),
+		assert:          assertHasOneViolation(validation.ErrProhibitedURL, message.ProhibitedURL),
+	},
+	{
+		name:            "IsURL passes on not restricted value",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsURL().WithRestriction(func(u *url.URL) bool { return true }),
+		stringValue:     stringValue("https://example.com"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsURL violation on restricted url",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsURL().WithRestriction(func(u *url.URL) bool { return false }),
+		stringValue:     stringValue("https://example.com"),
+		assert:          assertHasOneViolation(validation.ErrProhibitedURL, message.ProhibitedURL),
+	},
+	{
 		name:            "IsURL violation on invalid URL with custom message",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint: it.IsURL().
@@ -75,6 +119,19 @@ var urlConstraintTestCases = []ConstraintValidationTestCase{
 			),
 		stringValue: stringValue("example.com"),
 		assert:      assertHasOneViolation(ErrCustom, `Unexpected URL "example.com" at parameter.`),
+	},
+	{
+		name:            "IsURL violation on disallowed host with custom message",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint: it.IsURL().
+			WithHosts("example.com").
+			WithProhibitedError(ErrCustom).
+			WithProhibitedMessage(
+				`Prohibited URL "{{ value }}" at {{ custom }}.`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		stringValue: stringValue("https://sample.com"),
+		assert:      assertHasOneViolation(ErrCustom, `Prohibited URL "https://sample.com" at parameter.`),
 	},
 	{
 		name:            "IsURL passes when condition is false",

@@ -88,6 +88,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.NotUnique:         catalog.String("Эта коллекция должна содержать только уникальные элементы."),
 		message.NotValid:          catalog.String("Значение недопустимо."),
 		message.ProhibitedIP:      catalog.String("Этот IP-адрес запрещено использовать."),
+		message.ProhibitedURL:     catalog.String("Этот URL-адрес запрещено использовать."),
 		message.TooEarly:          catalog.String("Значение должно быть позже чем {{ comparedValue }}."),
 		message.TooEarlyOrEqual:   catalog.String("Значение должно быть позже или равно {{ comparedValue }}."),
 		message.TooHigh:           catalog.String("Значение должно быть меньше чем {{ comparedValue }}."),
