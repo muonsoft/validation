@@ -56,7 +56,9 @@ type IPRestriction func(ip net.IP) bool
 // DenyPrivateIP denies using of private IPs according to RFC 1918 (IPv4 addresses)
 // and RFC 4193 (IPv6 addresses).
 func DenyPrivateIP() IPRestriction {
-	return isPrivateIP
+	return func(ip net.IP) bool {
+		return ip.IsPrivate()
+	}
 }
 
 // IP validates that a value is a valid IP address (IPv4 or IPv6). You can use a list
@@ -120,28 +122,6 @@ func validateIP(value string, restrictions ...IPRestriction) error {
 	}
 
 	return nil
-}
-
-// isPrivateIP reports whether ip is a private address, according to
-// RFC 1918 (IPv4 addresses) and RFC 4193 (IPv6 addresses).
-//
-// This function is ported from golang v1.17.
-// See https://github.com/golang/go/blob/4c8f48ed4f3db0e3ba376e6b7a261d26b41d8dd0/src/net/ip.go#L133.
-func isPrivateIP(ip net.IP) bool {
-	if ip4 := ip.To4(); ip4 != nil {
-		// Following RFC 1918, Section 3. Private Address Space which says:
-		//   The Internet Assigned Numbers Authority (IANA) has reserved the
-		//   following three blocks of the IP address space for private internets:
-		//     10.0.0.0        -   10.255.255.255  (10/8 prefix)
-		//     172.16.0.0      -   172.31.255.255  (172.16/12 prefix)
-		//     192.168.0.0     -   192.168.255.255 (192.168/16 prefix)
-		return ip4[0] == 10 ||
-			(ip4[0] == 172 && ip4[1]&0xf0 == 16) ||
-			(ip4[0] == 192 && ip4[1] == 168)
-	}
-	// Following RFC 4193, Section 8. IANA Considerations which says:
-	//   The IANA has assigned the FC00::/7 prefix to "Unique Local Unicast".
-	return len(ip) == net.IPv6len && ip[0]&0xfe == 0xfc
 }
 
 const (
