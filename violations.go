@@ -119,8 +119,8 @@ func (list *ViolationList) ForEach(f func(i int, violation Violation) error) err
 	}
 
 	i := 0
-	for violation := list.First(); violation != nil; violation = violation.Next() {
-		err := f(i, violation)
+	for e := list.first; e != nil; e = e.next {
+		err := f(i, e.violation)
 		if err != nil {
 			return err
 		}
@@ -250,7 +250,7 @@ func (list *ViolationList) AppendFromError(err error) error {
 
 // Is used to check that at least one of the violations contains the specific static error.
 func (list *ViolationList) Is(target error) bool {
-	for e := list.First(); e != nil; e = e.next {
+	for e := list.first; e != nil; e = e.next {
 		if e.violation.Is(target) {
 			return true
 		}
@@ -263,7 +263,7 @@ func (list *ViolationList) Is(target error) bool {
 func (list *ViolationList) Filter(errs ...error) *ViolationList {
 	filtered := &ViolationList{}
 
-	for e := list.First(); e != nil; e = e.next {
+	for e := list.first; e != nil; e = e.next {
 		for _, err := range errs {
 			if e.violation.Is(err) {
 				filtered.Append(e.violation)
@@ -289,7 +289,7 @@ func (list *ViolationList) AsSlice() []Violation {
 	violations := make([]Violation, list.len)
 
 	i := 0
-	for e := list.First(); e != nil; e = e.next {
+	for e := list.first; e != nil; e = e.next {
 		violations[i] = e.violation
 		i++
 	}
@@ -303,7 +303,7 @@ func (list *ViolationList) MarshalJSON() ([]byte, error) {
 	b := bytes.Buffer{}
 	b.WriteRune('[')
 	i := 0
-	for e := list.First(); e != nil; e = e.next {
+	for e := list.first; e != nil; e = e.next {
 		data, err := json.Marshal(e.violation)
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal violation at %d: %w", i, err)
