@@ -445,15 +445,19 @@ func (v *internalViolation) MarshalJSON() ([]byte, error) {
 	return json.Marshal(data)
 }
 
-type internalViolationFactory struct {
+// BuiltinViolationFactory used as a default factory for creating a violations.
+// It translates and renders message templates.
+type BuiltinViolationFactory struct {
 	translator Translator
 }
 
-func newViolationFactory(translator Translator) *internalViolationFactory {
-	return &internalViolationFactory{translator: translator}
+// NewViolationFactory creates a new BuiltinViolationFactory for creating a violations.
+func NewViolationFactory(translator Translator) *BuiltinViolationFactory {
+	return &BuiltinViolationFactory{translator: translator}
 }
 
-func (factory *internalViolationFactory) CreateViolation(
+// CreateViolation creates a new instance of Violation.
+func (factory *BuiltinViolationFactory) CreateViolation(
 	err error,
 	messageTemplate string,
 	pluralCount int,

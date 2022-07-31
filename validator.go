@@ -66,7 +66,7 @@ func NewValidator(options ...ValidatorOption) (*Validator, error) {
 		}
 	}
 	if opts.violationFactory == nil {
-		opts.violationFactory = newViolationFactory(opts.translator)
+		opts.violationFactory = NewViolationFactory(opts.translator)
 	}
 
 	validator := &Validator{
