@@ -16,21 +16,22 @@ const DefaultGroup = "default"
 // By using it you can build complex validation rules on a set of objects used in other objects.
 //
 // Example
-//  type Book struct {
-//      Title    string
-//      Author   string
-//      Keywords []string
-//  }
 //
-//  func (b Book) Validate(ctx context.Context, validator *validation.Validator) error {
-//      return validator.Validate(
-//          ctx,
-//          validation.StringProperty("title", &b.Title, it.IsNotBlank()),
-//          validation.StringProperty("author", &b.Author, it.IsNotBlank()),
-//          validation.CountableProperty("keywords", len(b.Keywords), it.HasCountBetween(1, 10)),
-//          validation.EachStringProperty("keywords", b.Keywords, it.IsNotBlank()),
-//      )
-//  }
+//	type Book struct {
+//	    Title    string
+//	    Author   string
+//	    Keywords []string
+//	}
+//
+//	func (b Book) Validate(ctx context.Context, validator *validation.Validator) error {
+//	    return validator.Validate(
+//	        ctx,
+//	        validation.StringProperty("title", &b.Title, it.IsNotBlank()),
+//	        validation.StringProperty("author", &b.Author, it.IsNotBlank()),
+//	        validation.CountableProperty("keywords", len(b.Keywords), it.HasCountBetween(1, 10)),
+//	        validation.EachStringProperty("keywords", b.Keywords, it.IsNotBlank()),
+//	    )
+//	}
 type Validatable interface {
 	Validate(ctx context.Context, validator *Validator) error
 }

@@ -53,8 +53,8 @@ func (c ComparisonConstraint[T]) WithError(err error) ComparisonConstraint[T] {
 // WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message. Also, you can use default parameters:
 //
-//  {{ comparedValue }} - the expected value;
-//  {{ value }} - the current (invalid) value.
+//	{{ comparedValue }} - the expected value;
+//	{{ value }} - the current (invalid) value.
 func (c ComparisonConstraint[T]) WithMessage(
 	template string,
 	parameters ...validation.TemplateParameter,
@@ -213,8 +213,8 @@ func (c NumberComparisonConstraint[T]) WithError(err error) NumberComparisonCons
 // WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message. Also, you can use default parameters:
 //
-//  {{ comparedValue }} - the expected value;
-//  {{ value }} - the current (invalid) value.
+//	{{ comparedValue }} - the expected value;
+//	{{ value }} - the current (invalid) value.
 func (c NumberComparisonConstraint[T]) WithMessage(
 	template string,
 	parameters ...validation.TemplateParameter,
@@ -287,9 +287,9 @@ func (c RangeConstraint[T]) WithError(err error) RangeConstraint[T] {
 // WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message. Also, you can use default parameters:
 //
-//  {{ max }} - the upper limit;
-//  {{ min }} - the lower limit;
-//  {{ value }} - the current (invalid) value.
+//	{{ max }} - the upper limit;
+//	{{ min }} - the lower limit;
+//	{{ value }} - the current (invalid) value.
 func (c RangeConstraint[T]) WithMessage(template string, parameters ...validation.TemplateParameter) RangeConstraint[T] {
 	c.messageTemplate = template
 	c.messageParameters = parameters
@@ -404,8 +404,8 @@ func (c TimeComparisonConstraint) WithError(err error) TimeComparisonConstraint 
 // WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message. Also, you can use default parameters:
 //
-//  {{ comparedValue }} - the expected value;
-//  {{ value }} - the current (invalid) value.
+//	{{ comparedValue }} - the expected value;
+//	{{ value }} - the current (invalid) value.
 //
 // All values are formatted by the layout that can be defined by the WithLayout method.
 // Default layout is time.RFC3339.
@@ -484,9 +484,9 @@ func (c TimeRangeConstraint) WithError(err error) TimeRangeConstraint {
 // WithMessage sets the violation message template. You can set custom template parameters
 // for injecting its values into the final message. Also, you can use default parameters:
 //
-//  {{ max }} - the upper limit;
-//  {{ min }} - the lower limit;
-//  {{ value }} - the current (invalid) value.
+//	{{ max }} - the upper limit;
+//	{{ min }} - the lower limit;
+//	{{ value }} - the current (invalid) value.
 //
 // All values are formatted by the layout that can be defined by the WithLayout method.
 // Default layout is time.RFC3339.

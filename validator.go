@@ -18,7 +18,6 @@ type Validator struct {
 	translator       Translator
 	violationFactory ViolationFactory
 	groups           []string
-	constraints      map[string]interface{}
 }
 
 // Translator is used to translate violation messages. By default, validator uses an implementation from
@@ -33,11 +32,10 @@ type ValidatorOptions struct {
 	translatorOptions []translations.TranslatorOption
 	translator        Translator
 	violationFactory  ViolationFactory
-	constraints       map[string]interface{}
 }
 
 func newValidatorOptions() *ValidatorOptions {
-	return &ValidatorOptions{constraints: map[string]interface{}{}}
+	return &ValidatorOptions{}
 }
 
 // ValidatorOption is a base type for configuration options used to create a new instance of Validator.
@@ -72,7 +70,6 @@ func NewValidator(options ...ValidatorOption) (*Validator, error) {
 	validator := &Validator{
 		translator:       opts.translator,
 		violationFactory: opts.violationFactory,
-		constraints:      opts.constraints,
 	}
 
 	return validator, nil
@@ -114,23 +111,6 @@ func SetTranslator(translator Translator) ValidatorOption {
 func SetViolationFactory(factory ViolationFactory) ValidatorOption {
 	return func(options *ValidatorOptions) error {
 		options.violationFactory = factory
-
-		return nil
-	}
-}
-
-// StoredConstraint option can be used to store a constraint in an internal validator store.
-// It can later be used by the validator.ValidateBy method. This can be useful for passing
-// custom or prepared constraints to Validatable.
-//
-// If the constraint already exists, a ConstraintAlreadyStoredError will be returned.
-func StoredConstraint(key string, constraint interface{}) ValidatorOption {
-	return func(options *ValidatorOptions) error {
-		if _, exists := options.constraints[key]; exists {
-			return &ConstraintAlreadyStoredError{Key: key}
-		}
-
-		options.constraints[key] = constraint
 
 		return nil
 	}
@@ -199,15 +179,6 @@ func (validator *Validator) ValidateEachString(ctx context.Context, values []str
 // ValidateIt is an alias for validating value that implements the Validatable interface.
 func (validator *Validator) ValidateIt(ctx context.Context, validatable Validatable) error {
 	return validator.Validate(ctx, Valid(validatable))
-}
-
-// GetConstraint is used to get the constraint from the internal validator store.
-// If the constraint does not exist, then the validator will return nil.
-// For storing a constraint you should use the StoredConstraint option.
-//
-// Experimental. This feature is experimental and may be changed in future versions.
-func (validator *Validator) GetConstraint(key string) interface{} {
-	return validator.constraints[key]
 }
 
 // WithGroups is used to execute conditional validation based on validation groups. It creates
@@ -358,6 +329,5 @@ func (validator *Validator) copy() *Validator {
 		translator:       validator.translator,
 		violationFactory: validator.violationFactory,
 		groups:           validator.groups,
-		constraints:      validator.constraints,
 	}
 }

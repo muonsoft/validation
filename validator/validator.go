@@ -75,15 +75,6 @@ func ValidateIt(ctx context.Context, validatable validation.Validatable) error {
 	return validator.ValidateIt(ctx, validatable)
 }
 
-// GetConstraint is used to get the constraint from the internal validator store.
-// If the constraint does not exist, then the validator will return nil.
-// For storing a constraint you should use the StoredConstraint option.
-//
-// Experimental. This feature is experimental and may be changed in future versions.
-func GetConstraint(key string) interface{} {
-	return validator.GetConstraint(key)
-}
-
 // WithGroups is used to execute conditional validation based on validation groups. It creates
 // a new context validator with a given set of groups.
 //

@@ -29,13 +29,13 @@ func IsHTML5Email() validation.StringFuncConstraint {
 }
 
 // IsHostname validates that a value is a valid hostname. It checks that:
-//	• each label within a valid hostname may be no more than 63 octets long;
-//	• the total length of the hostname must not exceed 255 characters;
-//	• hostname is fully qualified and include its top-level domain name
-//	  (for instance, example.com is valid but example is not);
-//	• checks for reserved top-level domains according to RFC 2606
-//	  (hostnames containing them are not considered valid:
-//	  .example, .invalid, .localhost, and .test).
+//   - each label within a valid hostname may be no more than 63 octets long;
+//   - the total length of the hostname must not exceed 255 characters;
+//   - hostname is fully qualified and include its top-level domain name
+//     (for instance, example.com is valid but example is not);
+//   - checks for reserved top-level domains according to RFC 2606
+//     (hostnames containing them are not considered valid:
+//     .example, .invalid, .localhost, and .test).
 //
 // If you do not want to check for top-level domains use IsLooseHostname version of constraint.
 func IsHostname() validation.StringFuncConstraint {
@@ -45,8 +45,8 @@ func IsHostname() validation.StringFuncConstraint {
 }
 
 // IsLooseHostname validates that a value is a valid hostname. It checks that:
-//	• each label within a valid hostname may be no more than 63 octets long;
-//	• the total length of the hostname must not exceed 255 characters.
+//   - each label within a valid hostname may be no more than 63 octets long;
+//   - the total length of the hostname must not exceed 255 characters.
 func IsLooseHostname() validation.StringFuncConstraint {
 	return validation.OfStringBy(is.Hostname).
 		WithError(validation.ErrInvalidHostname).

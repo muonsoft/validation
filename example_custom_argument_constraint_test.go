@@ -75,7 +75,7 @@ func ExampleThis_customArgumentConstraintValidator() {
 
 	err := validator.Validate(
 		// you can pass here the context value to the validation context
-		context.WithValue(context.Background(), exampleKey, "value"),
+		context.WithValue(context.Background(), "key", "value"),
 		ValidBrand(&brand, isUnique),
 		// it is full equivalent of
 		// validation.This[*Brand](&brand, isUnique),

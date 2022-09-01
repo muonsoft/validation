@@ -23,10 +23,10 @@ var (
 // Use the RestrictURLHosts or RestrictURLHostByPattern option to configure the list of allowed hosts.
 //
 // If value is not a valid URL the function will return one of the errors:
-//	• parsing error from url.Parse method if value cannot be parsed as a URL;
-//	• ErrRestrictedSchema if schema is not matching one of the listed schemas;
-//	• ErrRestrictedHost if host is not matching one of the listed hosts;
-//	• ErrInvalid if value is not matching the regular expression.
+//   - parsing error from url.Parse method if value cannot be parsed as a URL;
+//   - ErrRestrictedSchema if schema is not matching one of the listed schemas;
+//   - ErrRestrictedHost if host is not matching one of the listed hosts;
+//   - ErrInvalid if value is not matching the regular expression.
 func URL(value string, restrictions ...URLRestriction) error {
 	if len(restrictions) == 0 {
 		restrictions = append(restrictions, RestrictURLSchemas("http", "https"))
@@ -94,8 +94,8 @@ func RestrictURLHostByPattern(pattern *regexp.Regexp) URLRestriction {
 // you can deny using private IP addresses using DenyPrivateIP function.
 //
 // If value is not valid the function will return one of the errors:
-//	• ErrInvalid on invalid IP address;
-//	• ErrProhibited on restricted IP address.
+//   - ErrInvalid on invalid IP address;
+//   - ErrProhibited on restricted IP address.
 func IP(value string, restrictions ...IPRestriction) error {
 	return validateIP(value, restrictions...)
 }
@@ -105,8 +105,8 @@ func IP(value string, restrictions ...IPRestriction) error {
 // you can deny using private IP addresses using DenyPrivateIP function.
 //
 // If value is not valid the function will return one of the errors:
-//	• ErrInvalid on invalid IP address or when using IPv6;
-//	• ErrProhibited on restricted IP address.
+//   - ErrInvalid on invalid IP address or when using IPv6;
+//   - ErrProhibited on restricted IP address.
 func IPv4(value string, restrictions ...IPRestriction) error {
 	err := validateIP(value, restrictions...)
 	if err != nil {
@@ -124,8 +124,8 @@ func IPv4(value string, restrictions ...IPRestriction) error {
 // you can deny using private IP addresses using DenyPrivateIP function.
 //
 // If value is not valid the function will return one of the errors:
-//	• ErrInvalid on invalid IP address or when using IPv4;
-//	• ErrProhibited on restricted IP address.
+//   - ErrInvalid on invalid IP address or when using IPv4;
+//   - ErrProhibited on restricted IP address.
 func IPv6(value string, restrictions ...IPRestriction) error {
 	err := validateIP(value, restrictions...)
 	if err != nil {

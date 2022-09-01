@@ -16,10 +16,10 @@ var (
 // EAN8 checks that string contains valid EAN-8 code.
 //
 // If the value is not valid then one of the errors will be returned:
-//	• ErrOnlyZeros if code contains only zeros;
-//	• ErrInvalidChecksum if check digit is not valid;
-//	• ErrUnexpectedLength if value length has an unexpected size;
-//	• ErrContainsNonDigit if string contains non-digit value.
+//   - ErrOnlyZeros if code contains only zeros;
+//   - ErrInvalidChecksum if check digit is not valid;
+//   - ErrUnexpectedLength if value length has an unexpected size;
+//   - ErrContainsNonDigit if string contains non-digit value.
 //
 // See https://en.wikipedia.org/wiki/EAN-8.
 func EAN8(value string) error {
@@ -29,10 +29,10 @@ func EAN8(value string) error {
 // EAN13 checks that string contains valid EAN-13 code.
 //
 // If the value is not valid then one of the errors will be returned:
-//	• ErrOnlyZeros if code contains only zeros;
-//	• ErrInvalidChecksum if check digit is not valid;
-//	• ErrUnexpectedLength if value length has an unexpected size;
-//	• ErrContainsNonDigit if string contains non-digit value.
+//   - ErrOnlyZeros if code contains only zeros;
+//   - ErrInvalidChecksum if check digit is not valid;
+//   - ErrUnexpectedLength if value length has an unexpected size;
+//   - ErrContainsNonDigit if string contains non-digit value.
 //
 // See https://en.wikipedia.org/wiki/International_Article_Number.
 func EAN13(value string) error {
@@ -42,10 +42,10 @@ func EAN13(value string) error {
 // UPCA checks that string contains valid UPC-A code.
 //
 // If the value is not valid then one of the errors will be returned:
-//	• ErrOnlyZeros if code contains only zeros;
-//	• ErrInvalidChecksum if check digit is not valid;
-//	• ErrUnexpectedLength if value length has an unexpected size;
-//	• ErrContainsNonDigit if string contains non-digit value.
+//   - ErrOnlyZeros if code contains only zeros;
+//   - ErrInvalidChecksum if check digit is not valid;
+//   - ErrUnexpectedLength if value length has an unexpected size;
+//   - ErrContainsNonDigit if string contains non-digit value.
 //
 // See https://en.wikipedia.org/wiki/Universal_Product_Code.
 func UPCA(value string) error {
@@ -55,11 +55,11 @@ func UPCA(value string) error {
 // UPCE checks that string contains valid UPC-E code.
 //
 // If the value is not valid then one of the errors will be returned:
-//	• ErrOnlyZeros if code contains only zeros;
-//	• ErrInvalid if 8-digits code starts with number not equal to 0;
-//	• ErrInvalidChecksum if check digit is not valid;
-//	• ErrUnexpectedLength if value length has an unexpected size;
-//	• ErrContainsNonDigit if string contains non-digit value.
+//   - ErrOnlyZeros if code contains only zeros;
+//   - ErrInvalid if 8-digits code starts with number not equal to 0;
+//   - ErrInvalidChecksum if check digit is not valid;
+//   - ErrUnexpectedLength if value length has an unexpected size;
+//   - ErrContainsNonDigit if string contains non-digit value.
 //
 // See https://en.wikipedia.org/wiki/Universal_Product_Code#UPC-E.
 func UPCE(value string) error {
