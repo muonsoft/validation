@@ -63,7 +63,7 @@ type URLConstraint struct {
 	schemas                     []string
 	hosts                       []string
 	hostPattern                 *regexp.Regexp
-	restrictions                []validate.URLRestriction
+	restrictions                []func(u *url.URL) error
 	groups                      []string
 	invalidErr                  error
 	prohibitedErr               error
@@ -193,13 +193,13 @@ func (c URLConstraint) ValidateString(ctx context.Context, validator *validation
 	return nil
 }
 
-func (c URLConstraint) getRestrictions() []validate.URLRestriction {
+func (c URLConstraint) getRestrictions() []func(u *url.URL) error {
 	schemas := c.schemas
 	if c.supportsRelativeSchema {
 		schemas = append(schemas, "")
 	}
 
-	restrictions := []validate.URLRestriction{validate.RestrictURLSchemas(schemas...)}
+	restrictions := []func(u *url.URL) error{validate.RestrictURLSchemas(schemas...)}
 	if len(c.hosts) > 0 {
 		restrictions = append(restrictions, validate.RestrictURLHosts(c.hosts...))
 	}
@@ -235,8 +235,8 @@ func (c URLConstraint) newProhibitedViolation(ctx context.Context, validator *va
 // and restrict some ranges by additional options.
 type IPConstraint struct {
 	isIgnored    bool
-	validate     func(value string, restrictions ...validate.IPRestriction) error
-	restrictions []validate.IPRestriction
+	validate     func(value string, restrictions ...func(ip net.IP) error) error
+	restrictions []func(ip net.IP) error
 
 	groups []string
 
@@ -264,7 +264,7 @@ func IsIPv6() IPConstraint {
 	return newIPConstraint(validate.IPv6)
 }
 
-func newIPConstraint(validate func(value string, restrictions ...validate.IPRestriction) error) IPConstraint {
+func newIPConstraint(validate func(value string, restrictions ...func(ip net.IP) error) error) IPConstraint {
 	return IPConstraint{
 		validate:                  validate,
 		invalidErr:                validation.ErrInvalidIP,
@@ -283,7 +283,13 @@ func (c IPConstraint) DenyPrivateIP() IPConstraint {
 
 // DenyIP can be used to deny custom range of IP addresses.
 func (c IPConstraint) DenyIP(restrict func(ip net.IP) bool) IPConstraint {
-	c.restrictions = append(c.restrictions, restrict)
+	c.restrictions = append(c.restrictions, func(ip net.IP) error {
+		if restrict(ip) {
+			return validate.ErrProhibited
+		}
+		return nil
+	})
+
 	return c
 }
 

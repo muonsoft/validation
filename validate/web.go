@@ -27,7 +27,7 @@ var (
 //   - ErrRestrictedSchema if schema is not matching one of the listed schemas;
 //   - ErrRestrictedHost if host is not matching one of the listed hosts;
 //   - ErrInvalid if value is not matching the regular expression.
-func URL(value string, restrictions ...URLRestriction) error {
+func URL(value string, restrictions ...func(u *url.URL) error) error {
 	if len(restrictions) == 0 {
 		restrictions = append(restrictions, RestrictURLSchemas("http", "https"))
 	}
@@ -49,11 +49,8 @@ func URL(value string, restrictions ...URLRestriction) error {
 	return nil
 }
 
-// URLRestriction can be used to limit valid URL values.
-type URLRestriction func(u *url.URL) error
-
 // RestrictURLSchemas make URL validation accepts only the listed schemas.
-func RestrictURLSchemas(schemas ...string) URLRestriction {
+func RestrictURLSchemas(schemas ...string) func(u *url.URL) error {
 	return func(u *url.URL) error {
 		for _, schema := range schemas {
 			if schema == u.Scheme {
@@ -66,7 +63,7 @@ func RestrictURLSchemas(schemas ...string) URLRestriction {
 }
 
 // RestrictURLHosts make URL validation accepts only the listed hosts.
-func RestrictURLHosts(hosts ...string) URLRestriction {
+func RestrictURLHosts(hosts ...string) func(u *url.URL) error {
 	return func(u *url.URL) error {
 		for _, host := range hosts {
 			if host == u.Host {
@@ -79,7 +76,7 @@ func RestrictURLHosts(hosts ...string) URLRestriction {
 }
 
 // RestrictURLHostByPattern make URL validation accepts only a value with a host matching by pattern.
-func RestrictURLHostByPattern(pattern *regexp.Regexp) URLRestriction {
+func RestrictURLHostByPattern(pattern *regexp.Regexp) func(u *url.URL) error {
 	return func(u *url.URL) error {
 		if pattern.MatchString(u.Host) {
 			return nil
@@ -96,7 +93,7 @@ func RestrictURLHostByPattern(pattern *regexp.Regexp) URLRestriction {
 // If value is not valid the function will return one of the errors:
 //   - ErrInvalid on invalid IP address;
 //   - ErrProhibited on restricted IP address.
-func IP(value string, restrictions ...IPRestriction) error {
+func IP(value string, restrictions ...func(ip net.IP) error) error {
 	return validateIP(value, restrictions...)
 }
 
@@ -107,7 +104,7 @@ func IP(value string, restrictions ...IPRestriction) error {
 // If value is not valid the function will return one of the errors:
 //   - ErrInvalid on invalid IP address or when using IPv6;
 //   - ErrProhibited on restricted IP address.
-func IPv4(value string, restrictions ...IPRestriction) error {
+func IPv4(value string, restrictions ...func(ip net.IP) error) error {
 	err := validateIP(value, restrictions...)
 	if err != nil {
 		return err
@@ -126,7 +123,7 @@ func IPv4(value string, restrictions ...IPRestriction) error {
 // If value is not valid the function will return one of the errors:
 //   - ErrInvalid on invalid IP address or when using IPv4;
 //   - ErrProhibited on restricted IP address.
-func IPv6(value string, restrictions ...IPRestriction) error {
+func IPv6(value string, restrictions ...func(ip net.IP) error) error {
 	err := validateIP(value, restrictions...)
 	if err != nil {
 		return err
@@ -138,25 +135,26 @@ func IPv6(value string, restrictions ...IPRestriction) error {
 	return nil
 }
 
-// IPRestriction can be used to limit valid IP address values.
-type IPRestriction func(ip net.IP) bool
-
 // DenyPrivateIP denies using of private IPs according to RFC 1918 (IPv4 addresses)
 // and RFC 4193 (IPv6 addresses).
-func DenyPrivateIP() IPRestriction {
-	return func(ip net.IP) bool {
-		return ip.IsPrivate()
+func DenyPrivateIP() func(ip net.IP) error {
+	return func(ip net.IP) error {
+		if ip.IsPrivate() {
+			return ErrProhibited
+		}
+
+		return nil
 	}
 }
 
-func validateIP(value string, restrictions ...IPRestriction) error {
+func validateIP(value string, restrictions ...func(ip net.IP) error) error {
 	ip := net.ParseIP(value)
 	if ip == nil {
 		return ErrInvalid
 	}
-	for _, isProhibited := range restrictions {
-		if isProhibited(ip) {
-			return ErrProhibited
+	for _, check := range restrictions {
+		if err := check(ip); err != nil {
+			return err
 		}
 	}
 

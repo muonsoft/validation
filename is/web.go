@@ -1,6 +1,8 @@
 package is
 
 import (
+	"net"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -28,28 +30,28 @@ func HTML5Email(value string) bool {
 //
 // Use the validate.RestrictURLHosts or validate.RestrictURLHostByPattern option to configure
 // the list of allowed hosts.
-func URL(value string, restrictions ...validate.URLRestriction) bool {
+func URL(value string, restrictions ...func(u *url.URL) error) bool {
 	return validate.URL(value, restrictions...) == nil
 }
 
 // IP checks that a value is a valid IP address (IPv4 or IPv6). You can use a list
 // of restrictions to additionally check for a restricted range of IPs.
 // See validate.IPRestriction for details.
-func IP(value string, restrictions ...validate.IPRestriction) bool {
+func IP(value string, restrictions ...func(ip net.IP) error) bool {
 	return validate.IP(value, restrictions...) == nil
 }
 
 // IPv4 checks that a value is a valid IPv4 address. You can use a list
 // of restrictions to additionally check for a restricted range of IPs.
 // See validate.IPRestriction for details.
-func IPv4(value string, restrictions ...validate.IPRestriction) bool {
+func IPv4(value string, restrictions ...func(ip net.IP) error) bool {
 	return validate.IPv4(value, restrictions...) == nil
 }
 
 // IPv6 checks that a value is a valid IPv6 address. You can use a list
 // of restrictions to additionally check for a restricted range of IPs.
 // See validate.IPRestriction for details.
-func IPv6(value string, restrictions ...validate.IPRestriction) bool {
+func IPv6(value string, restrictions ...func(ip net.IP) error) bool {
 	return validate.IPv6(value, restrictions...) == nil
 }
 
