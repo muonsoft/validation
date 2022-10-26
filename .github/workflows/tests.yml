@@ -29,3 +29,10 @@ jobs:
 
       - name: Run tests
         run: go test -race -v $(go list ./... | grep -v vendor)
+
+      - name: Code Climate Coverage
+        uses: paambaati/codeclimate-action@v3.2.0
+        with:
+          coverageCommand: go test -v $(go list ./...) -coverpkg .,./it,./is,./validate,./validator -coverprofile=cover.out
+          debug: true
+          coverageLocations: cover.out:gcov
