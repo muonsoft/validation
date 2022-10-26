@@ -35,4 +35,5 @@ jobs:
         with:
           coverageCommand: 'go test -v $(go list ./...) -coverpkg .,./it,./is,./validate,./validator -coverprofile=cover.out'
           debug: true
-          coverageLocations: 'cover.out:gcov'
+          coverageLocations: |
+            ${{github.workspace}}/cover.out:gcov
