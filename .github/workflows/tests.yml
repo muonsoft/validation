@@ -32,6 +32,8 @@ jobs:
 
       - name: Code Climate Coverage
         uses: paambaati/codeclimate-action@v3.2.0
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         with:
           coverageCommand: go test -v ./... -coverpkg .,./it,./is,./validate,./validator -coverprofile=c.out
           prefix: "github.com/muonsoft/validation"
