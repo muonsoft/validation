@@ -16,12 +16,22 @@ import (
 
 var validator, _ = validation.NewValidator()
 
+// Instance returns the instance of the singleton validator.
+func Instance() *validation.Validator {
+	return validator
+}
+
 // SetUp can be used to set up a new instance of singleton validator. Make sure you call this function once
 // at the initialization of your application because it totally replaces validator instance.
-func SetUp(options ...validation.ValidatorOption) (err error) {
-	validator, err = validation.NewValidator(options...)
+func SetUp(options ...validation.ValidatorOption) error {
+	v, err := validation.NewValidator(options...)
+	if err != nil {
+		return err
+	}
 
-	return err
+	validator = v
+
+	return nil
 }
 
 // Validate is the main validation method. It accepts validation arguments. executionContext can be
