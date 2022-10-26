@@ -37,4 +37,3 @@ jobs:
         with:
           coverageCommand: go test -v ./... -coverpkg .,./it,./is,./validate,./validator -coverprofile=c.out
           prefix: "github.com/muonsoft/validation"
-          debug: true

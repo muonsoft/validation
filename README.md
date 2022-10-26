@@ -6,20 +6,20 @@
 ![GitHub](https://img.shields.io/github/license/muonsoft/validation)
 [![tests](https://github.com/muonsoft/validation/actions/workflows/tests.yml/badge.svg)](https://github.com/muonsoft/validation/actions/workflows/tests.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/muonsoft/validation)](https://goreportcard.com/report/github.com/muonsoft/validation)
-[![Code Coverage](https://scrutinizer-ci.com/g/muonsoft/validation/badges/coverage.png?b=main)](https://scrutinizer-ci.com/g/muonsoft/validation/?branch=main)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/muonsoft/validation/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/muonsoft/validation/?branch=main)
 [![Maintainability](https://api.codeclimate.com/v1/badges/1385bcb467b6e43bff8d/maintainability)](https://codeclimate.com/github/muonsoft/validation/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/1385bcb467b6e43bff8d/test_coverage)](https://codeclimate.com/github/muonsoft/validation/test_coverage)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/muonsoft/validation/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/muonsoft/validation/?branch=main)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
-The package provides tools for data validation. It is designed to create complex validation rules with abilities to hook
-into the validation process.
+Golang validation framework based on static typing and generics. Designed to create complex validation rules with 
+abilities to hook into the validation process.
 
 This project is inspired by [Symfony Validator component](https://symfony.com/index.php/doc/current/validation.html).
 
 ## Key features
 
 * Flexible and customizable API built in mind to use benefits of static typing and generics
-* Nice and fluent way to describe validation process in code
+* Declarative style of describing a validation process in code
 * Validation of different types: booleans, numbers, strings, slices, maps, and time
 * Validation of custom data types that implements `Validatable` interface
 * Customizable validation errors with translations and pluralization supported out of the box
@@ -34,8 +34,7 @@ Goals before making stable release:
 
 * [x] implementation of static type arguments by generics;
 * [x] mechanism for asynchronous validation (lazy violations by async/await pattern);
-* [ ] implement all common constraints;
-* [ ] stable production usage for at least 6 months.
+* [ ] implement all common constraints.
 
 ## Installation
 
