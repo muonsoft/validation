@@ -157,7 +157,7 @@ func IsGreaterThanOrEqual[T validation.Numeric](value T) NumberComparisonConstra
 }
 
 // IsPositive checks that the value is a positive number. Zero is neither positive nor negative.
-// If you want to allow zero use IsPositiveOrZero comparison.
+// If you want to allow zero use [IsPositiveOrZero] comparison.
 func IsPositive[T validation.Numeric]() NumberComparisonConstraint[T] {
 	return NumberComparisonConstraint[T]{
 		err:             validation.ErrNotPositive,
@@ -169,7 +169,7 @@ func IsPositive[T validation.Numeric]() NumberComparisonConstraint[T] {
 }
 
 // IsPositiveOrZero checks that the value is a positive number or equal to zero.
-// If you don't want to allow zero as a valid value, use IsPositive comparison.
+// If you don't want to allow zero as a valid value, use [IsPositive] comparison.
 func IsPositiveOrZero[T validation.Numeric]() NumberComparisonConstraint[T] {
 	return NumberComparisonConstraint[T]{
 		err:             validation.ErrNotPositiveOrZero,
@@ -181,7 +181,7 @@ func IsPositiveOrZero[T validation.Numeric]() NumberComparisonConstraint[T] {
 }
 
 // IsNegative checks that the value is a negative number. Zero is neither positive nor negative.
-// If you want to allow zero use IsNegativeOrZero comparison.
+// If you want to allow zero use [IsNegativeOrZero] comparison.
 func IsNegative[T validation.Numeric]() NumberComparisonConstraint[T] {
 	return NumberComparisonConstraint[T]{
 		err:             validation.ErrNotNegative,
@@ -193,7 +193,7 @@ func IsNegative[T validation.Numeric]() NumberComparisonConstraint[T] {
 }
 
 // IsNegativeOrZero checks that the value is a negative number or equal to zero.
-// If you don't want to allow zero as a valid value, use IsNegative comparison.
+// If you don't want to allow zero as a valid value, use [IsNegative] comparison.
 func IsNegativeOrZero[T validation.Numeric]() NumberComparisonConstraint[T] {
 	return NumberComparisonConstraint[T]{
 		err:             validation.ErrNotNegativeOrZero,
@@ -407,8 +407,8 @@ func (c TimeComparisonConstraint) WithError(err error) TimeComparisonConstraint 
 //	{{ comparedValue }} - the expected value;
 //	{{ value }} - the current (invalid) value.
 //
-// All values are formatted by the layout that can be defined by the WithLayout method.
-// Default layout is time.RFC3339.
+// All values are formatted by the layout that can be defined by the [TimeComparisonConstraint.WithLayout] method.
+// Default layout is [time.RFC3339].
 func (c TimeComparisonConstraint) WithMessage(
 	template string,
 	parameters ...validation.TemplateParameter,
@@ -488,7 +488,7 @@ func (c TimeRangeConstraint) WithError(err error) TimeRangeConstraint {
 //	{{ min }} - the lower limit;
 //	{{ value }} - the current (invalid) value.
 //
-// All values are formatted by the layout that can be defined by the WithLayout method.
+// All values are formatted by the layout that can be defined by the [TimeRangeConstraint.WithLayout] method.
 // Default layout is time.RFC3339.
 func (c TimeRangeConstraint) WithMessage(template string, parameters ...validation.TemplateParameter) TimeRangeConstraint {
 	c.messageTemplate = template

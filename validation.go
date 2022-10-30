@@ -36,7 +36,7 @@ type Validatable interface {
 	Validate(ctx context.Context, validator *Validator) error
 }
 
-// ValidatableFunc is a functional adapter for the Validatable interface.
+// ValidatableFunc is a functional adapter for the [Validatable] interface.
 type ValidatableFunc func(ctx context.Context, validator *Validator) error
 
 // Validate runs validation process on function.
@@ -44,7 +44,7 @@ func (f ValidatableFunc) Validate(ctx context.Context, validator *Validator) err
 	return f(ctx, validator)
 }
 
-// Filter is used for processing the list of errors to return a single ViolationList.
+// Filter is used for processing the list of errors to return a single [ViolationList].
 // If there is at least one non-violation error it will return it instead.
 func Filter(violations ...error) error {
 	list := &ViolationList{}

@@ -8,8 +8,8 @@ import (
 )
 
 // NotBlankConstraint checks that a value is not blank: an empty string, an empty countable (slice/array/map),
-// an empty generic number, generic comparable, false or nil. Nil behavior is configurable via WithAllowedNil() method.
-// To check that a value is not nil only use NotNilConstraint.
+// an empty generic number, generic comparable, false or nil. Nil behavior is configurable
+// via [NotBlankConstraint.WithAllowedNil]. To check that a value is not nil only use [NotNilConstraint].
 type NotBlankConstraint[T comparable] struct {
 	blank             T
 	isIgnored         bool
@@ -20,17 +20,17 @@ type NotBlankConstraint[T comparable] struct {
 	messageParameters validation.TemplateParameterList
 }
 
-// IsNotBlank creates a NotBlankConstraint for checking that value is not empty.
+// IsNotBlank creates a [NotBlankConstraint] for checking that value is not empty.
 func IsNotBlank() NotBlankConstraint[string] {
 	return IsNotBlankComparable[string]()
 }
 
-// IsNotBlankNumber creates a NotBlankConstraint for checking that numeric value is not empty.
+// IsNotBlankNumber creates a [NotBlankConstraint] for checking that numeric value is not empty.
 func IsNotBlankNumber[T validation.Numeric]() NotBlankConstraint[T] {
 	return IsNotBlankComparable[T]()
 }
 
-// IsNotBlankComparable creates a NotBlankConstraint for checking that comparable value is not empty.
+// IsNotBlankComparable creates a [NotBlankConstraint] for checking that comparable value is not empty.
 func IsNotBlankComparable[T comparable]() NotBlankConstraint[T] {
 	return NotBlankConstraint[T]{
 		err:             validation.ErrIsBlank,
@@ -157,17 +157,17 @@ type BlankConstraint[T comparable] struct {
 	messageParameters validation.TemplateParameterList
 }
 
-// IsBlank creates a BlankConstraint for checking that value is empty.
+// IsBlank creates a [BlankConstraint] for checking that value is empty.
 func IsBlank() BlankConstraint[string] {
 	return IsBlankComparable[string]()
 }
 
-// IsBlankNumber creates a BlankConstraint for checking that numeric value is nil or zero.
+// IsBlankNumber creates a [BlankConstraint] for checking that numeric value is nil or zero.
 func IsBlankNumber[T validation.Numeric]() BlankConstraint[T] {
 	return IsBlankComparable[T]()
 }
 
-// IsBlankComparable creates a BlankConstraint for checking that comparable value is not empty.
+// IsBlankComparable creates a [BlankConstraint] for checking that comparable value is not empty.
 func IsBlankComparable[T comparable]() BlankConstraint[T] {
 	return BlankConstraint[T]{
 		err:             validation.ErrNotBlank,
@@ -253,7 +253,7 @@ func (c BlankConstraint[T]) newViolation(ctx context.Context, validator *validat
 }
 
 // NotNilConstraint checks that a value in not strictly equal to nil. To check that values in not blank use
-// NotBlankConstraint.
+// [NotBlankConstraint].
 type NotNilConstraint[T comparable] struct {
 	isIgnored         bool
 	groups            []string
@@ -262,17 +262,17 @@ type NotNilConstraint[T comparable] struct {
 	messageParameters validation.TemplateParameterList
 }
 
-// IsNotNil creates a NotNilConstraint to check that a value is not strictly equal to nil.
+// IsNotNil creates a [NotNilConstraint] to check that a value is not strictly equal to nil.
 func IsNotNil() NotNilConstraint[string] {
 	return IsNotNilComparable[string]()
 }
 
-// IsNotNilNumber creates a NotNilConstraint to check that a numeric value is not strictly equal to nil.
+// IsNotNilNumber creates a [NotNilConstraint] to check that a numeric value is not strictly equal to nil.
 func IsNotNilNumber[T validation.Numeric]() NotNilConstraint[T] {
 	return IsNotNilComparable[T]()
 }
 
-// IsNotNilComparable creates a NotNilConstraint to check that a comparable value is not strictly equal to nil.
+// IsNotNilComparable creates a [NotNilConstraint] to check that a comparable value is not strictly equal to nil.
 func IsNotNilComparable[T comparable]() NotNilConstraint[T] {
 	return NotNilConstraint[T]{
 		err:             validation.ErrIsNil,
@@ -342,7 +342,7 @@ func (c NotNilConstraint[T]) newViolation(ctx context.Context, validator *valida
 }
 
 // NilConstraint checks that a value in strictly equal to nil. To check that values in blank use
-// BlankConstraint.
+// [BlankConstraint].
 type NilConstraint[T comparable] struct {
 	isIgnored         bool
 	groups            []string
@@ -351,17 +351,17 @@ type NilConstraint[T comparable] struct {
 	messageParameters validation.TemplateParameterList
 }
 
-// IsNil creates a NilConstraint to check that a value is strictly equal to nil.
+// IsNil creates a [NilConstraint] to check that a value is strictly equal to nil.
 func IsNil() NilConstraint[string] {
 	return IsNilComparable[string]()
 }
 
-// IsNilNumber creates a NilConstraint to check that a numeric value is strictly equal to nil.
+// IsNilNumber creates a [NilConstraint] to check that a numeric value is strictly equal to nil.
 func IsNilNumber[T validation.Numeric]() NilConstraint[T] {
 	return IsNilComparable[T]()
 }
 
-// IsNilComparable creates a NilConstraint to check that a comparable value is strictly equal to nil.
+// IsNilComparable creates a [NilConstraint] to check that a comparable value is strictly equal to nil.
 func IsNilComparable[T comparable]() NilConstraint[T] {
 	return NilConstraint[T]{
 		err:             validation.ErrNotNil,
@@ -440,7 +440,7 @@ type BoolConstraint struct {
 	messageParameters validation.TemplateParameterList
 }
 
-// IsTrue creates a BoolConstraint to check that a value is not strictly equal to true.
+// IsTrue creates a [BoolConstraint] to check that a value is not strictly equal to true.
 func IsTrue() BoolConstraint {
 	return BoolConstraint{
 		expected:        true,
@@ -449,7 +449,7 @@ func IsTrue() BoolConstraint {
 	}
 }
 
-// IsFalse creates a BoolConstraint to check that a value is not strictly equal to false.
+// IsFalse creates a [BoolConstraint] to check that a value is not strictly equal to false.
 func IsFalse() BoolConstraint {
 	return BoolConstraint{
 		expected:        false,

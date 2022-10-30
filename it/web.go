@@ -37,7 +37,7 @@ func IsHTML5Email() validation.StringFuncConstraint {
 //     (hostnames containing them are not considered valid:
 //     .example, .invalid, .localhost, and .test).
 //
-// If you do not want to check for top-level domains use IsLooseHostname version of constraint.
+// If you do not want to check for top-level domains use [IsLooseHostname] version of constraint.
 func IsHostname() validation.StringFuncConstraint {
 	return validation.OfStringBy(is.StrictHostname).
 		WithError(validation.ErrInvalidHostname).
@@ -56,7 +56,7 @@ func IsLooseHostname() validation.StringFuncConstraint {
 // URLConstraint is used to validate URL string. This constraint doesn’t check that the host of the
 // given URL really exists, because the information of the DNS records is not reliable.
 //
-// This constraint doesn't check the length of the URL. Use LengthConstraint to check the length of the given value.
+// This constraint doesn't check the length of the URL. Use [LengthConstraint] to check the length of the given value.
 type URLConstraint struct {
 	isIgnored                   bool
 	supportsRelativeSchema      bool
@@ -73,7 +73,7 @@ type URLConstraint struct {
 	prohibitedMessageParameters validation.TemplateParameterList
 }
 
-// IsURL creates a URLConstraint to validate an URL. By default, constraint checks
+// IsURL creates a [URLConstraint] to validate an URL. By default, constraint checks
 // only for the http:// and https:// schemas. Use the WithSchemas method to configure
 // the list of expected schemas. Also, you can use WithRelativeSchema to enable support
 // of the relative schema (without schema, e.g. "//example.com").

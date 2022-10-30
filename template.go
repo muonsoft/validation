@@ -19,7 +19,7 @@ type TemplateParameter struct {
 // TemplateParameterList is a list of template parameters that can be injection into violation message.
 type TemplateParameterList []TemplateParameter
 
-// Prepend returns TemplateParameterList prepended by given parameters.
+// Prepend returns [TemplateParameterList] prepended by given parameters.
 func (params TemplateParameterList) Prepend(parameters ...TemplateParameter) TemplateParameterList {
 	return append(parameters, params...)
 }

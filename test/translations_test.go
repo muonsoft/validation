@@ -85,7 +85,7 @@ func TestValidator_Validate_WhenDefaultLanguageIsNotLoaded_ExpectError(t *testin
 	v, err := validation.NewValidator(validation.DefaultLanguage(language.Russian))
 
 	assert.Nil(t, v)
-	assert.EqualError(t, err, `failed to set up default translator: default language is not loaded: missing messages for language "ru"`)
+	assert.EqualError(t, err, `set up default translator: default language is not loaded: missing messages for language "ru"`)
 }
 
 func TestValidator_Validate_WhenTranslationLanguageInContextArgument_ExpectTranslationLanguageUsed(t *testing.T) {

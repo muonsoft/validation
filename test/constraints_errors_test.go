@@ -25,5 +25,5 @@ func TestValidator_Validate_WhenInvalidConstraintAtPropertyPath_ExpectErrorWithP
 		),
 	)
 
-	assert.EqualError(t, err, `failed to validate by errConstraint at path "properties[1].error": description`)
+	assert.EqualError(t, err, `validate by errConstraint at path "properties[1].error": description`)
 }

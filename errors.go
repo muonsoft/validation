@@ -57,7 +57,7 @@ var (
 	ErrTooShort          = NewError("is too short", message.TooShort)
 )
 
-// Error is a base type for static validation error used as an underlying error for Violation.
+// Error is a base type for static validation error used as an underlying error for [Violation].
 // It can be used to programmatically test for a specific violation.
 // Error code values are protected by backward compatibility rules, message values are not protected.
 type Error struct {
@@ -78,7 +78,7 @@ func (err *Error) Error() string { return err.code }
 func (err *Error) Message() string { return err.message }
 
 // ConstraintError is used to return critical error from constraint that immediately
-// stops the validation process. It is recommended to use validator.CreateConstraintError() method
+// stops the validation process. It is recommended to use [Validator.CreateConstraintError] method
 // to initiate an error from current validation context.
 type ConstraintError struct {
 	ConstraintName string
@@ -88,7 +88,7 @@ type ConstraintError struct {
 
 func (err *ConstraintError) Error() string {
 	var s strings.Builder
-	s.WriteString("failed to validate by " + err.ConstraintName)
+	s.WriteString("validate by " + err.ConstraintName)
 	if err.Path != nil {
 		s.WriteString(` at path "` + err.Path.String() + `"`)
 	}

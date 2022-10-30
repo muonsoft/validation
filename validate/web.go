@@ -17,16 +17,16 @@ var (
 // to additionally check for a restricted set of URLs. By default, if no restrictions are passed,
 // the function checks for the http:// and https:// schemas.
 //
-// Use the RestrictURLSchemas option to configure the list of expected schemas. If an empty string is passed
+// Use the callable option to configure the list of expected schemas. If an empty string is passed
 // as a schema, then URL value may be treated as relative (without schema, e.g. "//example.com").
 //
-// Use the RestrictURLHosts or RestrictURLHostByPattern option to configure the list of allowed hosts.
+// Use the [RestrictURLHosts] or [RestrictURLHostByPattern] option to configure the list of allowed hosts.
 //
 // If value is not a valid URL the function will return one of the errors:
-//   - parsing error from url.Parse method if value cannot be parsed as a URL;
-//   - ErrRestrictedSchema if schema is not matching one of the listed schemas;
-//   - ErrRestrictedHost if host is not matching one of the listed hosts;
-//   - ErrInvalid if value is not matching the regular expression.
+//   - parsing error from [net/url.Parse] method if value cannot be parsed as a URL;
+//   - [ErrRestrictedSchema] if schema is not matching one of the listed schemas;
+//   - [ErrRestrictedHost] if host is not matching one of the listed hosts;
+//   - [ErrInvalid] if value is not matching the regular expression.
 func URL(value string, restrictions ...func(u *url.URL) error) error {
 	if len(restrictions) == 0 {
 		restrictions = append(restrictions, RestrictURLSchemas("http", "https"))
@@ -49,7 +49,7 @@ func URL(value string, restrictions ...func(u *url.URL) error) error {
 	return nil
 }
 
-// RestrictURLSchemas make URL validation accepts only the listed schemas.
+// RestrictURLSchemas make [URL] validation accepts only the listed schemas.
 func RestrictURLSchemas(schemas ...string) func(u *url.URL) error {
 	return func(u *url.URL) error {
 		for _, schema := range schemas {
@@ -62,7 +62,7 @@ func RestrictURLSchemas(schemas ...string) func(u *url.URL) error {
 	}
 }
 
-// RestrictURLHosts make URL validation accepts only the listed hosts.
+// RestrictURLHosts make [URL] validation accepts only the listed hosts.
 func RestrictURLHosts(hosts ...string) func(u *url.URL) error {
 	return func(u *url.URL) error {
 		for _, host := range hosts {
@@ -75,7 +75,7 @@ func RestrictURLHosts(hosts ...string) func(u *url.URL) error {
 	}
 }
 
-// RestrictURLHostByPattern make URL validation accepts only a value with a host matching by pattern.
+// RestrictURLHostByPattern make [URL] validation accepts only a value with a host matching by pattern.
 func RestrictURLHostByPattern(pattern *regexp.Regexp) func(u *url.URL) error {
 	return func(u *url.URL) error {
 		if pattern.MatchString(u.Host) {
@@ -88,22 +88,22 @@ func RestrictURLHostByPattern(pattern *regexp.Regexp) func(u *url.URL) error {
 
 // IP validates that a value is a valid IP address (IPv4 or IPv6). You can use a list
 // of restrictions to additionally check for a restricted range of IPs. For example,
-// you can deny using private IP addresses using DenyPrivateIP function.
+// you can deny using private IP addresses using [DenyPrivateIP] function.
 //
 // If value is not valid the function will return one of the errors:
-//   - ErrInvalid on invalid IP address;
-//   - ErrProhibited on restricted IP address.
+//   - [ErrInvalid] on invalid IP address;
+//   - [ErrProhibited] on restricted IP address.
 func IP(value string, restrictions ...func(ip net.IP) error) error {
 	return validateIP(value, restrictions...)
 }
 
 // IPv4 validates that a value is a valid IPv4 address. You can use a list
 // of restrictions to additionally check for a restricted range of IPs. For example,
-// you can deny using private IP addresses using DenyPrivateIP function.
+// you can deny using private IP addresses using [DenyPrivateIP] function.
 //
 // If value is not valid the function will return one of the errors:
-//   - ErrInvalid on invalid IP address or when using IPv6;
-//   - ErrProhibited on restricted IP address.
+//   - [ErrInvalid] on invalid IP address or when using IPv6;
+//   - [ErrProhibited] on restricted IP address.
 func IPv4(value string, restrictions ...func(ip net.IP) error) error {
 	err := validateIP(value, restrictions...)
 	if err != nil {
@@ -118,11 +118,11 @@ func IPv4(value string, restrictions ...func(ip net.IP) error) error {
 
 // IPv6 validates that a value is a valid IPv6 address. You can use a list
 // of restrictions to additionally check for a restricted range of IPs. For example,
-// you can deny using private IP addresses using DenyPrivateIP function.
+// you can deny using private IP addresses using [DenyPrivateIP] function.
 //
 // If value is not valid the function will return one of the errors:
-//   - ErrInvalid on invalid IP address or when using IPv4;
-//   - ErrProhibited on restricted IP address.
+//   - [ErrInvalid] on invalid IP address or when using IPv4;
+//   - [ErrProhibited] on restricted IP address.
 func IPv6(value string, restrictions ...func(ip net.IP) error) error {
 	err := validateIP(value, restrictions...)
 	if err != nil {

@@ -10,7 +10,7 @@ func newValidator(t *testing.T, options ...validation.ValidatorOption) *validati
 	t.Helper()
 	v, err := validation.NewValidator(options...)
 	if err != nil {
-		t.Fatal("failed to initialize validator:", err)
+		t.Fatal("initialize validator:", err)
 	}
 	return v
 }
