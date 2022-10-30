@@ -42,25 +42,25 @@ func newCountConstraint(min int, max int, checkMin bool, checkMax bool) CountCon
 	}
 }
 
-// HasMinCount creates a CountConstraint that checks the length of the iterable (slice, array, or map)
+// HasMinCount creates a [CountConstraint] that checks the length of the iterable (slice, array, or map)
 // is greater than the minimum value.
 func HasMinCount(min int) CountConstraint {
 	return newCountConstraint(min, 0, true, false)
 }
 
-// HasMaxCount creates a CountConstraint that checks the length of the iterable (slice, array, or map)
+// HasMaxCount creates a [CountConstraint] that checks the length of the iterable (slice, array, or map)
 // is less than the maximum value.
 func HasMaxCount(max int) CountConstraint {
 	return newCountConstraint(0, max, false, true)
 }
 
-// HasCountBetween creates a CountConstraint that checks the length of the iterable (slice, array, or map)
+// HasCountBetween creates a [CountConstraint] that checks the length of the iterable (slice, array, or map)
 // is between some minimum and maximum value.
 func HasCountBetween(min int, max int) CountConstraint {
 	return newCountConstraint(min, max, true, true)
 }
 
-// HasExactCount creates a CountConstraint that checks the length of the iterable (slice, array, or map)
+// HasExactCount creates a [CountConstraint] that checks the length of the iterable (slice, array, or map)
 // has exact value.
 func HasExactCount(count int) CountConstraint {
 	return newCountConstraint(count, count, true, true)

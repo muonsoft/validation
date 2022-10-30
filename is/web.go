@@ -25,10 +25,11 @@ func HTML5Email(value string) bool {
 // to additionally check for a restricted set of URLs. By default, if no restrictions are passed,
 // the function checks for the http:// and https:// schemas.
 //
-// Use the validate.RestrictURLSchemas option to configure the list of expected schemas. If an empty
-// string is passed as a schema, then URL value may be treated as relative (without schema, e.g. "//example.com").
+// Use the callable option to configure the list of expected schemas. If an empty string
+// is passed as a schema, then URL value may be treated as relative (without schema, e.g. "//example.com").
 //
-// Use the validate.RestrictURLHosts or validate.RestrictURLHostByPattern option to configure
+// Use the [github.com/muonsoft/validation/validate.RestrictURLHosts] or
+// [github.com/muonsoft/validation/validate.RestrictURLHostByPattern] option to configure
 // the list of allowed hosts.
 func URL(value string, restrictions ...func(u *url.URL) error) bool {
 	return validate.URL(value, restrictions...) == nil
@@ -36,21 +37,18 @@ func URL(value string, restrictions ...func(u *url.URL) error) bool {
 
 // IP checks that a value is a valid IP address (IPv4 or IPv6). You can use a list
 // of restrictions to additionally check for a restricted range of IPs.
-// See validate.IPRestriction for details.
 func IP(value string, restrictions ...func(ip net.IP) error) bool {
 	return validate.IP(value, restrictions...) == nil
 }
 
 // IPv4 checks that a value is a valid IPv4 address. You can use a list
 // of restrictions to additionally check for a restricted range of IPs.
-// See validate.IPRestriction for details.
 func IPv4(value string, restrictions ...func(ip net.IP) error) bool {
 	return validate.IPv4(value, restrictions...) == nil
 }
 
 // IPv6 checks that a value is a valid IPv6 address. You can use a list
 // of restrictions to additionally check for a restricted range of IPs.
-// See validate.IPRestriction for details.
 func IPv6(value string, restrictions ...func(ip net.IP) error) bool {
 	return validate.IPv6(value, restrictions...) == nil
 }
@@ -59,7 +57,7 @@ func IPv6(value string, restrictions ...func(ip net.IP) error) bool {
 // within a valid hostname may be no more than 63 octets long. Also, it checks that
 // the total length of the hostname must not exceed 255 characters.
 //
-// See StrictHostname for additional checks.
+// See [StrictHostname] for additional checks.
 func Hostname(value string) bool {
 	return hostnameRegex.MatchString(value) && len(strings.ReplaceAll(value, ".", "")) <= 255
 }

@@ -9,8 +9,9 @@ import (
 )
 
 // ChoiceConstraint is used to ensure that the given value corresponds to one of the expected choices.
-// Zero values (zero numbers or empty strings) are considered as valid. Use NotBlankConstraint to check
-// that they are not empty. Also, in order for a blank value to be checked, use the WithoutBlank method.
+// Zero values (zero numbers or empty strings) are considered as valid. Use [NotBlankConstraint] to check
+// that they are not empty. Also, in order for a blank value to be checked,
+// use the [ChoiceConstraint.WithoutBlank] method.
 type ChoiceConstraint[T comparable] struct {
 	blank             T
 	choices           map[T]bool
@@ -23,9 +24,10 @@ type ChoiceConstraint[T comparable] struct {
 	isIgnored         bool
 }
 
-// IsOneOf creates a ChoiceConstraint for checking that values are in the expected list of values.
-// Zero values (zero numbers or empty strings) are considered as valid. Use NotBlankConstraint to check
-// that they are not empty. Also, in order for a blank value to be checked, use the WithoutBlank method.
+// IsOneOf creates a [ChoiceConstraint] for checking that values are in the expected list of values.
+// Zero values (zero numbers or empty strings) are considered as valid. Use [NotBlankConstraint] to check
+// that they are not empty. Also, in order for a blank value to be checked,
+// use the [ChoiceConstraint.WithoutBlank] method.
 func IsOneOf[T comparable](values ...T) ChoiceConstraint[T] {
 	choices := make(map[T]bool, len(values))
 	for _, value := range values {

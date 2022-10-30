@@ -5,9 +5,9 @@ import (
 	"sync"
 )
 
-// WhenArgument is used to build conditional validation. Use the When function to initiate a conditional check.
-// If the condition is true, then the arguments passed through the Then function will be processed.
-// Otherwise, the arguments passed through the Else function will be processed.
+// WhenArgument is used to build conditional validation. Use the [When] function to initiate a conditional check.
+// If the condition is true, then the arguments passed through the [WhenArgument.Then] function will be processed.
+// Otherwise, the arguments passed through the [WhenArgument.Else] function will be processed.
 type WhenArgument struct {
 	isTrue        bool
 	path          []PropertyPathElement
@@ -16,8 +16,8 @@ type WhenArgument struct {
 }
 
 // When function is used to initiate conditional validation.
-// If the condition is true, then the arguments passed through the Then function will be processed.
-// Otherwise, the arguments passed through the Else function will be processed.
+// If the condition is true, then the arguments passed through the [WhenArgument.Then] function will be processed.
+// Otherwise, the arguments passed through the [WhenArgument.Else] function will be processed.
 func When(isTrue bool) WhenArgument {
 	return WhenArgument{isTrue: isTrue}
 }
@@ -34,7 +34,7 @@ func (arg WhenArgument) Else(arguments ...Argument) WhenArgument {
 	return arg
 }
 
-// At returns a copy of WhenArgument with appended property path suffix.
+// At returns a copy of [WhenArgument] with appended property path suffix.
 func (arg WhenArgument) At(path ...PropertyPathElement) WhenArgument {
 	arg.path = append(arg.path, path...)
 	return arg
@@ -55,10 +55,10 @@ func (arg WhenArgument) validate(ctx context.Context, validator *Validator) (*Vi
 	return unwrapViolationList(err)
 }
 
-// WhenGroupsArgument is used to build conditional validation based on groups. Use the WhenGroups function
+// WhenGroupsArgument is used to build conditional validation based on groups. Use the [WhenGroups] function
 // to initiate a conditional check. If validation group matches to the validator one,
-// then the arguments passed through the Then function will be processed.
-// Otherwise, the arguments passed through the Else function will be processed.
+// then the arguments passed through the [WhenGroupsArgument.Then] function will be processed.
+// Otherwise, the arguments passed through the [WhenGroupsArgument.Else] function will be processed.
 type WhenGroupsArgument struct {
 	groups        []string
 	path          []PropertyPathElement
@@ -67,8 +67,8 @@ type WhenGroupsArgument struct {
 }
 
 // WhenGroups is used to build conditional validation based on groups. If validation group matches to
-// the validator one, then the arguments passed through the Then function will be processed.
-// Otherwise, the arguments passed through the Else function will be processed.
+// the validator one, then the arguments passed through the [WhenGroupsArgument.Then] function will be processed.
+// Otherwise, the arguments passed through the [WhenGroupsArgument.Else] function will be processed.
 func WhenGroups(groups ...string) WhenGroupsArgument {
 	return WhenGroupsArgument{groups: groups}
 }
@@ -85,7 +85,7 @@ func (arg WhenGroupsArgument) Else(arguments ...Argument) WhenGroupsArgument {
 	return arg
 }
 
-// At returns a copy of WhenGroupsArgument with appended property path suffix.
+// At returns a copy of [WhenGroupsArgument] with appended property path suffix.
 func (arg WhenGroupsArgument) At(path ...PropertyPathElement) WhenGroupsArgument {
 	arg.path = append(arg.path, path...)
 	return arg
@@ -118,7 +118,7 @@ func Sequentially(arguments ...Argument) SequentialArgument {
 	return SequentialArgument{arguments: arguments}
 }
 
-// At returns a copy of SequentialArgument with appended property path suffix.
+// At returns a copy of [SequentialArgument] with appended property path suffix.
 func (arg SequentialArgument) At(path ...PropertyPathElement) SequentialArgument {
 	arg.path = append(arg.path, path...)
 	return arg
@@ -169,7 +169,7 @@ func AtLeastOneOf(arguments ...Argument) AtLeastOneOfArgument {
 	return AtLeastOneOfArgument{arguments: arguments}
 }
 
-// At returns a copy of AtLeastOneOfArgument with appended property path suffix.
+// At returns a copy of [AtLeastOneOfArgument] with appended property path suffix.
 func (arg AtLeastOneOfArgument) At(path ...PropertyPathElement) AtLeastOneOfArgument {
 	arg.path = append(arg.path, path...)
 	return arg
@@ -215,13 +215,13 @@ type AllArgument struct {
 	arguments []Argument
 }
 
-// All runs validation for each argument. It works exactly as validator.Validate method.
+// All runs validation for each argument. It works exactly as [Validator.Validate] method.
 // It can be helpful to build complex validation process.
 func All(arguments ...Argument) AllArgument {
 	return AllArgument{arguments: arguments}
 }
 
-// At returns a copy of AllArgument with appended property path suffix.
+// At returns a copy of [AllArgument] with appended property path suffix.
 func (arg AllArgument) At(path ...PropertyPathElement) AllArgument {
 	arg.path = append(arg.path, path...)
 	return arg
@@ -267,7 +267,7 @@ func Async(arguments ...Argument) AsyncArgument {
 	return AsyncArgument{arguments: arguments}
 }
 
-// At returns a copy of AsyncArgument with appended property path suffix.
+// At returns a copy of [AsyncArgument] with appended property path suffix.
 func (arg AsyncArgument) At(path ...PropertyPathElement) AsyncArgument {
 	arg.path = append(arg.path, path...)
 	return arg

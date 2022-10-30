@@ -11,7 +11,7 @@ import (
 )
 
 // LengthConstraint checks that a given string length is between some minimum and maximum value.
-// If you want to check the length of the array, slice or a map use CountConstraint.
+// If you want to check the length of the array, slice or a map use [CountConstraint].
 type LengthConstraint struct {
 	isIgnored              bool
 	checkMin               bool
@@ -45,25 +45,25 @@ func newLengthConstraint(min int, max int, checkMin bool, checkMax bool) LengthC
 	}
 }
 
-// HasMinLength creates a LengthConstraint that checks the length of the string
+// HasMinLength creates a [LengthConstraint] that checks the length of the string
 // is greater than the minimum value.
 func HasMinLength(min int) LengthConstraint {
 	return newLengthConstraint(min, 0, true, false)
 }
 
-// HasMaxLength creates a LengthConstraint that checks the length of the string
+// HasMaxLength creates a [LengthConstraint] that checks the length of the string
 // is less than the maximum value.
 func HasMaxLength(max int) LengthConstraint {
 	return newLengthConstraint(0, max, false, true)
 }
 
-// HasLengthBetween creates a LengthConstraint that checks the length of the string
+// HasLengthBetween creates a [LengthConstraint] that checks the length of the string
 // is between some minimum and maximum value.
 func HasLengthBetween(min int, max int) LengthConstraint {
 	return newLengthConstraint(min, max, true, true)
 }
 
-// HasExactLength creates a LengthConstraint that checks the length of the string
+// HasExactLength creates a [LengthConstraint] that checks the length of the string
 // has exact value.
 func HasExactLength(count int) LengthConstraint {
 	return newLengthConstraint(count, count, true, true)
@@ -197,7 +197,7 @@ type RegexpConstraint struct {
 	regex             *regexp.Regexp
 }
 
-// Matches creates a RegexpConstraint for checking whether a value matches a regular expression.
+// Matches creates a [RegexpConstraint] for checking whether a value matches a regular expression.
 func Matches(regex *regexp.Regexp) RegexpConstraint {
 	return RegexpConstraint{
 		regex:           regex,
@@ -207,7 +207,7 @@ func Matches(regex *regexp.Regexp) RegexpConstraint {
 	}
 }
 
-// DoesNotMatch creates a RegexpConstraint for checking whether a value does not match a regular expression.
+// DoesNotMatch creates a [RegexpConstraint] for checking whether a value does not match a regular expression.
 func DoesNotMatch(regex *regexp.Regexp) RegexpConstraint {
 	return RegexpConstraint{
 		regex:           regex,

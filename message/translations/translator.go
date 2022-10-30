@@ -9,7 +9,7 @@ import (
 	"golang.org/x/text/message/catalog"
 )
 
-// Translator is used as a mechanism for message translations. It is based on the "golang.org/x/text" package.
+// Translator is used as a mechanism for message translations. It is based on the [golang.org/x/text] package.
 type Translator struct {
 	defaultLanguage language.Tag
 	messages        *catalog.Builder
@@ -30,15 +30,15 @@ func DefaultLanguage(tag language.Tag) TranslatorOption {
 //
 // By default, all violation messages are generated in the English language with pluralization capabilities.
 // To use a custom language you have to load translations on translator initialization.
-// Built-in translations are available in the sub-packages of the package "github.com/muonsoft/message/translations".
-// The translation mechanism is provided by the "golang.org/x/text" package (be aware, it has no stable version yet).
+// Built-in translations are available in the sub-packages of the package [github.com/muonsoft/message/translations].
+// The translation mechanism is provided by the [golang.org/x/text] package (be aware, it has no stable version yet).
 func SetTranslations(messages map[language.Tag]map[string]catalog.Message) TranslatorOption {
 	return func(translator *Translator) error {
 		return translator.setMessages(messages)
 	}
 }
 
-// NewTranslator creates an instance of the Translator for violation messages.
+// NewTranslator creates an instance of the [Translator] for violation messages.
 func NewTranslator(options ...TranslatorOption) (*Translator, error) {
 	translator := &Translator{
 		defaultLanguage: language.English,
@@ -90,7 +90,7 @@ func (translator *Translator) Translate(tag language.Tag, message string, plural
 func (translator *Translator) setMessages(messages map[language.Tag]map[string]catalog.Message) error {
 	err := translator.setMessagesToCatalog(messages)
 	if err != nil {
-		return fmt.Errorf("failed to load translations: %w", err)
+		return fmt.Errorf("load translations: %w", err)
 	}
 
 	return nil
@@ -101,7 +101,7 @@ func (translator *Translator) setMessagesToCatalog(messages map[language.Tag]map
 		for key, msg := range tagMessages {
 			err := translator.messages.Set(tag, key, msg)
 			if err != nil {
-				return fmt.Errorf(`failed to set message "%s" for language %s: %w`, key, tag, err)
+				return fmt.Errorf(`set message "%s" for language %s: %w`, key, tag, err)
 			}
 		}
 	}

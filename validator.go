@@ -10,8 +10,8 @@ import (
 	"golang.org/x/text/message/catalog"
 )
 
-// Validator is the root validation service. It can be created by NewValidator constructor.
-// Also, you can use singleton version from the package "github.com/muonsoft/validation/validator".
+// Validator is the root validation service. It can be created by [NewValidator] constructor.
+// Also, you can use singleton version from the package [github.com/muonsoft/validation/validator].
 type Validator struct {
 	propertyPath     *PropertyPath
 	language         language.Tag
@@ -21,13 +21,13 @@ type Validator struct {
 }
 
 // Translator is used to translate violation messages. By default, validator uses an implementation from
-// "github.com/muonsoft/validation/message/translations" package based on "golang.org/x/text" package.
-// You can set up your own implementation by using SetTranslator option.
+// [github.com/muonsoft/validation/message/translations] package based on [golang.org/x/text] package.
+// You can set up your own implementation by using [SetTranslator] option.
 type Translator interface {
 	Translate(tag language.Tag, message string, pluralCount int) string
 }
 
-// ValidatorOptions is a temporary structure for collecting functional options ValidatorOption.
+// ValidatorOptions is a temporary structure for collecting functional options [ValidatorOption].
 type ValidatorOptions struct {
 	translatorOptions []translations.TranslatorOption
 	translator        Translator
@@ -38,11 +38,11 @@ func newValidatorOptions() *ValidatorOptions {
 	return &ValidatorOptions{}
 }
 
-// ValidatorOption is a base type for configuration options used to create a new instance of Validator.
+// ValidatorOption is a base type for configuration options used to create a new instance of [Validator].
 type ValidatorOption func(options *ValidatorOptions) error
 
-// NewValidator is a constructor for creating an instance of Validator.
-// You can configure it by using validator options.
+// NewValidator is a constructor for creating an instance of [Validator].
+// You can configure it by using the [ValidatorOption].
 func NewValidator(options ...ValidatorOption) (*Validator, error) {
 	var err error
 
@@ -60,7 +60,7 @@ func NewValidator(options ...ValidatorOption) (*Validator, error) {
 	if opts.translator == nil {
 		opts.translator, err = translations.NewTranslator(opts.translatorOptions...)
 		if err != nil {
-			return nil, fmt.Errorf("failed to set up default translator: %w", err)
+			return nil, fmt.Errorf("set up default translator: %w", err)
 		}
 	}
 	if opts.violationFactory == nil {
@@ -88,8 +88,8 @@ func DefaultLanguage(tag language.Tag) ValidatorOption {
 //
 // By default, all violation messages are generated in the English language with pluralization capabilities.
 // To use a custom language you have to load translations on validator initialization.
-// Built-in translations are available in the sub-packages of the package "github.com/muonsoft/message/translations".
-// The translation mechanism is provided by the "golang.org/x/text" package (be aware, it has no stable version yet).
+// Built-in translations are available in the sub-packages of the package [github.com/muonsoft/message/translations].
+// The translation mechanism is provided by the [golang.org/x/text] package (be aware, it has no stable version yet).
 func Translations(messages map[language.Tag]map[string]catalog.Message) ValidatorOption {
 	return func(options *ValidatorOptions) error {
 		options.translatorOptions = append(options.translatorOptions, translations.SetTranslations(messages))
@@ -176,7 +176,7 @@ func (validator *Validator) ValidateEachString(ctx context.Context, values []str
 	return validator.Validate(ctx, EachString(values, constraints...))
 }
 
-// ValidateIt is an alias for validating value that implements the Validatable interface.
+// ValidateIt is an alias for validating value that implements the [Validatable] interface.
 func (validator *Validator) ValidateIt(ctx context.Context, validatable Validatable) error {
 	return validator.Validate(ctx, Valid(validatable))
 }
@@ -194,7 +194,7 @@ func (validator *Validator) ValidateIt(ctx context.Context, validatable Validata
 // If you want to use validation groups for your own constraints do not forget to implement
 // this method in your constraint.
 //
-// Be careful, empty groups are considered as the default group. Its value is equal to the DefaultGroup ("default").
+// Be careful, empty groups are considered as the default group. Its value is equal to the [DefaultGroup] ("default").
 func (validator *Validator) WithGroups(groups ...string) *Validator {
 	v := validator.copy()
 	v.groups = groups
@@ -204,8 +204,8 @@ func (validator *Validator) WithGroups(groups ...string) *Validator {
 
 // IsAppliedForGroups compares current validation groups and constraint groups. If one of the validator groups
 // intersects with the constraint groups, the validation process should be applied (returns true).
-// Empty groups are treated as DefaultGroup. To create a new validation with the validation groups
-// use the WithGroups method.
+// Empty groups are treated as [DefaultGroup]. To create a new validator with the validation groups
+// use the [Validator.WithGroups] method.
 func (validator *Validator) IsAppliedForGroups(groups ...string) bool {
 	if len(validator.groups) == 0 {
 		if len(groups) == 0 {
@@ -234,13 +234,14 @@ func (validator *Validator) IsAppliedForGroups(groups ...string) bool {
 	return false
 }
 
-// IsIgnoredForGroups is the reverse condition for applying validation groups to the IsAppliedForGroups method.
-// It is recommended to use this method in every validation method of the constraint.
+// IsIgnoredForGroups is the reverse condition for applying validation groups
+// to the [Validator.IsAppliedForGroups] method. It is recommended to use this method in
+// every validation method of the constraint.
 func (validator *Validator) IsIgnoredForGroups(groups ...string) bool {
 	return !validator.IsAppliedForGroups(groups...)
 }
 
-// CreateConstraintError creates a new ConstraintError, which can be used to stop validation process
+// CreateConstraintError creates a new [ConstraintError], which can be used to stop validation process
 // if constraint is not properly configured.
 func (validator *Validator) CreateConstraintError(constraintName, description string) *ConstraintError {
 	return &ConstraintError{
@@ -255,7 +256,7 @@ func (validator *Validator) CreateConstraintError(constraintName, description st
 //
 // The priority of language selection methods:
 //
-//   - validator.WithLanguage has the highest priority and will override any other options;
+//   - [Validator.WithLanguage] has the highest priority and will override any other options;
 //   - if the validator language is not specified, the validator will try to get the language from the context;
 //   - in all other cases, the default language specified in the translator will be used.
 func (validator *Validator) WithLanguage(tag language.Tag) *Validator {

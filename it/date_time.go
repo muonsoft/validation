@@ -8,7 +8,7 @@ import (
 )
 
 // DateTimeConstraint checks that the string value is a valid date and time value specified by a specific layout.
-// The layout can be redefined using the WithLayout method.
+// The layout can be redefined using the [DateTimeConstraint.WithLayout] method.
 type DateTimeConstraint struct {
 	isIgnored         bool
 	groups            []string
@@ -18,8 +18,8 @@ type DateTimeConstraint struct {
 	messageParameters validation.TemplateParameterList
 }
 
-// IsDateTime checks that the string value is a valid date and time. By default, it uses time.RFC3339 layout.
-// The layout can be redefined using the WithLayout method.
+// IsDateTime checks that the string value is a valid date and time. By default, it uses [time.RFC3339] layout.
+// The layout can be redefined using the [DateTimeConstraint.WithLayout] method.
 func IsDateTime() DateTimeConstraint {
 	return DateTimeConstraint{
 		layout:          time.RFC3339,
@@ -29,7 +29,7 @@ func IsDateTime() DateTimeConstraint {
 }
 
 // IsDate checks that the string value is a valid date. It uses "2006-01-02" layout.
-// The layout can be redefined using the WithLayout method.
+// The layout can be redefined using the [DateTimeConstraint.WithLayout] method.
 func IsDate() DateTimeConstraint {
 	return DateTimeConstraint{
 		layout:          "2006-01-02",

@@ -9,7 +9,7 @@ import (
 	"unicode"
 )
 
-// PropertyPathElement is a part of the PropertyPath.
+// PropertyPathElement is a part of the [PropertyPath].
 type PropertyPathElement interface {
 	// IsIndex can be used to determine whether an element is a string (property name) or
 	// an index array.
@@ -17,10 +17,10 @@ type PropertyPathElement interface {
 	fmt.Stringer
 }
 
-// PropertyName holds up property name value under PropertyPath.
+// PropertyName holds up property name value under [PropertyPath].
 type PropertyName string
 
-// IsIndex on PropertyName always returns false.
+// IsIndex on [PropertyName] always returns false.
 func (p PropertyName) IsIndex() bool {
 	return false
 }
@@ -30,10 +30,10 @@ func (p PropertyName) String() string {
 	return string(p)
 }
 
-// ArrayIndex holds up array index value under PropertyPath.
+// ArrayIndex holds up array index value under [PropertyPath].
 type ArrayIndex int
 
-// IsIndex on ArrayIndex always returns true.
+// IsIndex on [ArrayIndex] always returns true.
 func (a ArrayIndex) IsIndex() bool {
 	return true
 }
@@ -48,15 +48,15 @@ func (a ArrayIndex) String() string {
 // is denoted by square brackets. For example, "book.keywords[0]" means that the violation
 // occurred on the first element of array "keywords" in the "book" object.
 //
-// Internally PropertyPath is a linked list. You can create a new path using WithProperty
-// or WithIndex methods. PropertyPath should always be used as a pointer value.
+// Internally [PropertyPath] is a linked list. You can create a new path using [PropertyPath.WithProperty]
+// or [PropertyPath.WithIndex] methods. [PropertyPath] should always be used as a pointer value.
 // Nil value is a valid value that means that the property path is empty.
 type PropertyPath struct {
 	parent *PropertyPath
 	value  PropertyPathElement
 }
 
-// NewPropertyPath creates a PropertyPath from the list of elements. If the list is empty nil will be returned.
+// NewPropertyPath creates a [PropertyPath] from the list of elements. If the list is empty nil will be returned.
 // Nil value is a valid value that means that the property path is empty.
 func NewPropertyPath(elements ...PropertyPathElement) *PropertyPath {
 	var path *PropertyPath
@@ -64,7 +64,7 @@ func NewPropertyPath(elements ...PropertyPathElement) *PropertyPath {
 	return path.With(elements...)
 }
 
-// With returns new PropertyPath with appended elements to the end of the list.
+// With returns new [PropertyPath] with appended elements to the end of the list.
 func (path *PropertyPath) With(elements ...PropertyPathElement) *PropertyPath {
 	current := path
 	for _, element := range elements {
@@ -73,7 +73,7 @@ func (path *PropertyPath) With(elements ...PropertyPathElement) *PropertyPath {
 	return current
 }
 
-// WithProperty returns new PropertyPath with appended PropertyName to the end of the list.
+// WithProperty returns new [PropertyPath] with appended [PropertyName] to the end of the list.
 func (path *PropertyPath) WithProperty(name string) *PropertyPath {
 	return &PropertyPath{
 		parent: path,
@@ -81,7 +81,7 @@ func (path *PropertyPath) WithProperty(name string) *PropertyPath {
 	}
 }
 
-// WithIndex returns new PropertyPath with appended ArrayIndex to the end of the list.
+// WithIndex returns new [PropertyPath] with appended [ArrayIndex] to the end of the list.
 func (path *PropertyPath) WithIndex(index int) *PropertyPath {
 	return &PropertyPath{
 		parent: path,
@@ -89,7 +89,7 @@ func (path *PropertyPath) WithIndex(index int) *PropertyPath {
 	}
 }
 
-// Elements returns property path as a slice of PropertyPathElement.
+// Elements returns property path as a slice of [PropertyPathElement].
 // It returns nil if property path is nil (empty).
 func (path *PropertyPath) Elements() []PropertyPathElement {
 	if path == nil || path.value == nil {
@@ -159,7 +159,7 @@ func (path *PropertyPath) MarshalText() (text []byte, err error) {
 	return []byte(path.String()), nil
 }
 
-// UnmarshalText unmarshal string representation of property path into PropertyPath.
+// UnmarshalText unmarshal string representation of property path into [PropertyPath].
 func (path *PropertyPath) UnmarshalText(text []byte) error {
 	parser := pathParser{}
 	p, err := parser.Parse(string(text))

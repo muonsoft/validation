@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestingT is an interface wrapper around *testing.T.
+// TestingT is an interface wrapper around [testing.T].
 type TestingT interface {
 	Helper()
 	Error(args ...interface{})
@@ -35,14 +35,14 @@ type Assertion struct {
 	err error
 }
 
-// Assert creates a new Assertion for the error.
+// Assert creates a new [Assertion] for the error.
 func Assert(t TestingT, err error) *Assertion {
 	t.Helper()
 
 	return &Assertion{t: t, err: err}
 }
 
-// IsViolation checks that err implements validation.Violation and returns ViolationAssertion
+// IsViolation checks that err implements [github.com/muonsoft/validation.Violation] and returns [ViolationAssertion]
 // for attributes assertions.
 func (a *Assertion) IsViolation() *ViolationAssertion {
 	a.t.Helper()
@@ -57,8 +57,8 @@ func (a *Assertion) IsViolation() *ViolationAssertion {
 	return newViolationAssertion(a.t, violation)
 }
 
-// IsViolationList checks that err implements validation.IsViolationList and returns ViolationListAssertion
-// for attributes assertions.
+// IsViolationList checks that err implements [github.com/muonsoft/validation.IsViolationList] and
+// returns [ViolationListAssertion] for attributes assertions.
 func (a *Assertion) IsViolationList() *ViolationListAssertion {
 	a.t.Helper()
 
@@ -117,7 +117,7 @@ func (a *ViolationListAssertion) WithLen(length int) *ViolationListAssertion {
 }
 
 // WithOneViolation checks that the violation list contains exactly one violation and returns
-// a ViolationAssertion to test it.
+// a [ViolationAssertion] to test it.
 func (a *ViolationListAssertion) WithOneViolation() *ViolationAssertion {
 	if a == nil {
 		return nil
@@ -136,7 +136,7 @@ func (a *ViolationListAssertion) WithOneViolation() *ViolationAssertion {
 }
 
 // HasViolationAt checks that the violation list contains element at specific index and returns
-// a ViolationAssertion to test it.
+// a [ViolationAssertion] to test it.
 func (a *ViolationListAssertion) HasViolationAt(index int) *ViolationAssertion {
 	if a == nil {
 		return nil

@@ -129,7 +129,7 @@ var regexConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "Matches error on nil regex",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.Matches(nil),
-		assert:          assertError(`failed to validate by RegexpConstraint: nil regex`),
+		assert:          assertError(`validate by RegexpConstraint: nil regex`),
 	},
 	{
 		name:            "Matches passes on nil",

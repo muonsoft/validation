@@ -11,7 +11,7 @@ var choiceConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "IsOneOf error on empty list",
 		isApplicableFor: specificValueTypes(stringType, comparableType),
 		constraint:      it.IsOneOf[string](),
-		assert:          assertError(`failed to validate by ChoiceConstraint: empty list of choices`),
+		assert:          assertError(`validate by ChoiceConstraint: empty list of choices`),
 	},
 	{
 		name:            "IsOneOf passes on nil",

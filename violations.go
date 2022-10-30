@@ -14,12 +14,12 @@ import (
 
 // Violation is the abstraction for validator errors. You can use your own implementations on the application
 // side to use it for your needs. In order for the validator to generate application violations,
-// it is necessary to implement the ViolationFactory interface and inject it into the validator.
-// You can do this by using the SetViolationFactory option in the NewValidator constructor.
+// it is necessary to implement the [ViolationFactory] interface and inject it into the validator.
+// You can do this by using the [SetViolationFactory] option in the [NewValidator] constructor.
 type Violation interface {
 	error
 	// Unwrap returns underlying static error. This error can be used as a unique, short, and semantic code
-	// that can be used to test for specific violation by errors.Is from standard library.
+	// that can be used to test for specific violation by [errors.Is] from standard library.
 	Unwrap() error
 
 	// Is can be used to check that the violation contains one of the specific static errors.
@@ -27,7 +27,7 @@ type Violation interface {
 
 	// Message is a translated message with injected values from constraint. It can be used to show
 	// a description of a violation to the end-user. Possible values for build-in constraints
-	// are defined in the "github.com/muonsoft/validation/message" package and can be changed at any time,
+	// are defined in the [github.com/muonsoft/validation/message] package and can be changed at any time,
 	// even in patch versions.
 	Message() string
 
@@ -39,14 +39,14 @@ type Violation interface {
 	Parameters() []TemplateParameter
 
 	// PropertyPath is a path that points to the violated property.
-	// See PropertyPath type description for more info.
+	// See [PropertyPath] type description for more info.
 	PropertyPath() *PropertyPath
 }
 
 // ViolationFactory is the abstraction that can be used to create custom violations on the application side.
-// Use the SetViolationFactory option on the NewValidator constructor to inject your own factory into the validator.
+// Use the [SetViolationFactory] option on the [NewValidator] constructor to inject your own factory into the validator.
 type ViolationFactory interface {
-	// CreateViolation creates a new instance of Violation.
+	// CreateViolation creates a new instance of [Violation].
 	CreateViolation(
 		err error,
 		messageTemplate string,
@@ -57,7 +57,7 @@ type ViolationFactory interface {
 	) Violation
 }
 
-// NewViolationFunc is an adapter that allows you to use ordinary functions as a ViolationFactory.
+// NewViolationFunc is an adapter that allows you to use ordinary functions as a [ViolationFactory].
 type NewViolationFunc func(
 	err error,
 	messageTemplate string,
@@ -67,7 +67,7 @@ type NewViolationFunc func(
 	lang language.Tag,
 ) Violation
 
-// CreateViolation creates a new instance of a Violation.
+// CreateViolation creates a new instance of a [Violation].
 func (f NewViolationFunc) CreateViolation(
 	err error,
 	messageTemplate string,
@@ -87,13 +87,13 @@ type ViolationList struct {
 }
 
 // ViolationListElement points to violation build by validator. It also implements
-// Violation and can be used as a proxy to underlying violation.
+// [Violation] and can be used as a proxy to underlying violation.
 type ViolationListElement struct {
 	next      *ViolationListElement
 	violation Violation
 }
 
-// NewViolationList creates a new ViolationList, that can be immediately populated with
+// NewViolationList creates a new [ViolationList], that can be immediately populated with
 // variadic arguments of violations.
 func NewViolationList(violations ...Violation) *ViolationList {
 	list := &ViolationList{}
@@ -111,7 +111,7 @@ func (list *ViolationList) Len() int {
 	return list.len
 }
 
-// ForEach can be used to iterate over ViolationList by a callback function. If callback returns
+// ForEach can be used to iterate over [ViolationList] by a callback function. If callback returns
 // any error, then it will be returned as a result of ForEach function.
 func (list *ViolationList) ForEach(f func(i int, violation Violation) error) error {
 	if list == nil {
@@ -187,7 +187,7 @@ func (list *ViolationList) String() string {
 	return list.toString(" ")
 }
 
-// Format formats the list of violations according to the fmt.Formatter interface.
+// Format formats the list of violations according to the [fmt.Formatter] interface.
 // Verbs '%v', '%s', '%q' formats violation list into a single line string delimited by space.
 // Verb with flag '%+v' formats violation list into a multi-line string.
 func (list *ViolationList) Format(f fmt.State, verb rune) {
@@ -234,7 +234,7 @@ func (list *ViolationList) toString(delimiter string) string {
 }
 
 // AppendFromError appends a single violation or a slice of violations into the end of a given slice.
-// If an error does not implement the Violation or ViolationList interface, it will return an error itself.
+// If an error does not implement the [Violation] or [ViolationList] interface, it will return an error itself.
 // Otherwise nil will be returned.
 func (list *ViolationList) AppendFromError(err error) error {
 	if violation, ok := UnwrapViolation(err); ok {
@@ -284,7 +284,7 @@ func (list *ViolationList) AsError() error {
 	return list
 }
 
-// AsSlice converts underlying linked list into slice of Violation.
+// AsSlice converts underlying linked list into slice of [Violation].
 func (list *ViolationList) AsSlice() []Violation {
 	violations := make([]Violation, list.len)
 
@@ -298,7 +298,7 @@ func (list *ViolationList) AsSlice() []Violation {
 }
 
 // MarshalJSON marshals the linked list into JSON. Usually, you should use
-// json.Marshal function for marshaling purposes.
+// [json.Marshal] function for marshaling purposes.
 func (list *ViolationList) MarshalJSON() ([]byte, error) {
 	b := bytes.Buffer{}
 	b.WriteRune('[')
@@ -306,7 +306,7 @@ func (list *ViolationList) MarshalJSON() ([]byte, error) {
 	for e := list.first; e != nil; e = e.next {
 		data, err := json.Marshal(e.violation)
 		if err != nil {
-			return nil, fmt.Errorf("failed to marshal violation at %d: %w", i, err)
+			return nil, fmt.Errorf("marshal violation at %d: %w", i, err)
 		}
 		b.Write(data)
 		if e.next != nil {
@@ -330,7 +330,7 @@ func (element *ViolationListElement) Violation() Violation {
 }
 
 // Unwrap returns underlying static error. This error can be used as a unique, short, and semantic code
-// that can be used to test for specific violation by errors.Is from standard library.
+// that can be used to test for specific violation by [errors.Is] from standard library.
 func (element *ViolationListElement) Unwrap() error {
 	return element.violation.Unwrap()
 }
@@ -360,21 +360,21 @@ func (element *ViolationListElement) PropertyPath() *PropertyPath {
 	return element.violation.PropertyPath()
 }
 
-// IsViolation can be used to verify that the error implements the Violation interface.
+// IsViolation can be used to verify that the error implements the [Violation] interface.
 func IsViolation(err error) bool {
 	var violation Violation
 
 	return errors.As(err, &violation)
 }
 
-// IsViolationList can be used to verify that the error implements the ViolationList.
+// IsViolationList can be used to verify that the error implements the [ViolationList].
 func IsViolationList(err error) bool {
 	var violations *ViolationList
 
 	return errors.As(err, &violations)
 }
 
-// UnwrapViolation is a short function to unwrap Violation from the error.
+// UnwrapViolation is a short function to unwrap [Violation] from the error.
 func UnwrapViolation(err error) (Violation, bool) {
 	var violation Violation
 
@@ -383,7 +383,7 @@ func UnwrapViolation(err error) (Violation, bool) {
 	return violation, as
 }
 
-// UnwrapViolationList is a short function to unwrap ViolationList from the error.
+// UnwrapViolationList is a short function to unwrap [ViolationList] from the error.
 func UnwrapViolationList(err error) (*ViolationList, bool) {
 	var violations *ViolationList
 
@@ -451,12 +451,12 @@ type BuiltinViolationFactory struct {
 	translator Translator
 }
 
-// NewViolationFactory creates a new BuiltinViolationFactory for creating a violations.
+// NewViolationFactory creates a new [BuiltinViolationFactory] for creating a violations.
 func NewViolationFactory(translator Translator) *BuiltinViolationFactory {
 	return &BuiltinViolationFactory{translator: translator}
 }
 
-// CreateViolation creates a new instance of Violation.
+// CreateViolation creates a new instance of [Violation].
 func (factory *BuiltinViolationFactory) CreateViolation(
 	err error,
 	messageTemplate string,
@@ -482,7 +482,7 @@ func (factory *BuiltinViolationFactory) CreateViolation(
 	}
 }
 
-// ViolationBuilder used to build an instance of a Violation.
+// ViolationBuilder used to build an instance of a [Violation].
 type ViolationBuilder struct {
 	err             error
 	messageTemplate string
@@ -494,12 +494,12 @@ type ViolationBuilder struct {
 	violationFactory ViolationFactory
 }
 
-// NewViolationBuilder creates a new ViolationBuilder.
+// NewViolationBuilder creates a new [ViolationBuilder].
 func NewViolationBuilder(factory ViolationFactory) *ViolationBuilder {
 	return &ViolationBuilder{violationFactory: factory}
 }
 
-// BuildViolation creates a new ViolationBuilder for composing Violation object fluently.
+// BuildViolation creates a new [ViolationBuilder] for composing [Violation] object fluently.
 func (b *ViolationBuilder) BuildViolation(err error, message string) *ViolationBuilder {
 	return &ViolationBuilder{
 		err:              err,
@@ -565,7 +565,7 @@ func (b *ViolationBuilder) WithLanguage(tag language.Tag) *ViolationBuilder {
 }
 
 // Create creates a new violation with given parameters and returns it.
-// Violation is created by calling the CreateViolation method of the ViolationFactory.
+// Violation is created by calling the [ViolationFactory.CreateViolation].
 func (b *ViolationBuilder) Create() Violation {
 	return b.violationFactory.CreateViolation(
 		b.err,
@@ -577,7 +577,7 @@ func (b *ViolationBuilder) Create() Violation {
 	)
 }
 
-// ViolationListBuilder is used to build a ViolationList by fluent interface.
+// ViolationListBuilder is used to build a [ViolationList] by fluent interface.
 type ViolationListBuilder struct {
 	violations       *ViolationList
 	violationFactory ViolationFactory
@@ -586,8 +586,8 @@ type ViolationListBuilder struct {
 	language     language.Tag
 }
 
-// ViolationListElementBuilder is used to build Violation that will be added into ViolationList
-// of the ViolationListBuilder.
+// ViolationListElementBuilder is used to build [Violation] that will be added into [ViolationList]
+// of the [ViolationListBuilder].
 type ViolationListElementBuilder struct {
 	listBuilder *ViolationListBuilder
 
@@ -598,12 +598,12 @@ type ViolationListElementBuilder struct {
 	propertyPath    *PropertyPath
 }
 
-// NewViolationListBuilder creates a new ViolationListBuilder.
+// NewViolationListBuilder creates a new [ViolationListBuilder].
 func NewViolationListBuilder(factory ViolationFactory) *ViolationListBuilder {
 	return &ViolationListBuilder{violationFactory: factory, violations: NewViolationList()}
 }
 
-// BuildViolation initiates a builder for violation that will be added into ViolationList.
+// BuildViolation initiates a builder for violation that will be added into [ViolationList].
 func (b *ViolationListBuilder) BuildViolation(err error, message string) *ViolationListElementBuilder {
 	return &ViolationListElementBuilder{
 		listBuilder:     b,
@@ -647,7 +647,7 @@ func (b *ViolationListBuilder) AtIndex(index int) *ViolationListBuilder {
 	return b
 }
 
-// Create returns a ViolationList with built violations.
+// Create returns a [ViolationList] with built violations.
 func (b *ViolationListBuilder) Create() *ViolationList {
 	return b.violations
 }
@@ -720,8 +720,8 @@ func (b *ViolationListElementBuilder) WithPluralCount(pluralCount int) *Violatio
 	return b
 }
 
-// Add creates a Violation and appends it into the end of the ViolationList.
-// It returns a ViolationListBuilder to continue process of creating a ViolationList.
+// Add creates a [Violation] and appends it into the end of the [ViolationList].
+// It returns a [ViolationListBuilder] to continue process of creating a [ViolationList].
 func (b *ViolationListElementBuilder) Add() *ViolationListBuilder {
 	return b.listBuilder.add(b.err, b.messageTemplate, b.pluralCount, b.parameters, b.propertyPath)
 }
