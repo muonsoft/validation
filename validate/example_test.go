@@ -135,3 +135,17 @@ func ExampleIPv6() {
 	// <nil>
 	// prohibited
 }
+
+func ExampleULID() {
+	fmt.Println(validate.ULID("01ARZ3NDEKTSV4RRFFQ69G5FAV"))
+	fmt.Println(validate.ULID("01ARZ3NDEKTSV4RRFFQ69G5FA"))
+	fmt.Println(validate.ULID("01ARZ3NDEKTSV4RRFFQ69G5FAVA"))
+	fmt.Println(validate.ULID("01ARZ3NDEKTSV4RRFFQ69G5FAO"))
+	fmt.Println(validate.ULID("81ARZ3NDEKTSV4RRFFQ69G5FAV"))
+	// Output:
+	// <nil>
+	// too short
+	// too long
+	// invalid characters
+	// too large
+}

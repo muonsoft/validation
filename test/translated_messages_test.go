@@ -23,6 +23,7 @@ func TestAllMessagesTranslated(t *testing.T) {
 		validation.ErrInvalidIP,
 		validation.ErrInvalidJSON,
 		validation.ErrInvalidTime,
+		validation.ErrInvalidULID,
 		validation.ErrInvalidUPCA,
 		validation.ErrInvalidUPCE,
 		validation.ErrInvalidURL,
