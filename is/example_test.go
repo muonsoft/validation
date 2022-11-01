@@ -238,3 +238,17 @@ func ExampleStrictHostname() {
 	// false
 	// false
 }
+
+func ExampleULID() {
+	fmt.Println(is.ULID("01ARZ3NDEKTSV4RRFFQ69G5FAV"))
+	fmt.Println(is.ULID("01ARZ3NDEKTSV4RRFFQ69G5FA"))   // too short
+	fmt.Println(is.ULID("01ARZ3NDEKTSV4RRFFQ69G5FAVA")) // too long
+	fmt.Println(is.ULID("01ARZ3NDEKTSV4RRFFQ69G5FAO"))  // invalid characters
+	fmt.Println(is.ULID("81ARZ3NDEKTSV4RRFFQ69G5FAV"))  // too large
+	// Output:
+	// true
+	// false
+	// false
+	// false
+	// false
+}

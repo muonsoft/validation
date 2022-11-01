@@ -36,6 +36,7 @@ const (
 	InvalidIP         = "This is not a valid IP address."
 	InvalidJSON       = "This value should be valid JSON."
 	InvalidTime       = "This value is not a valid time."
+	InvalidULID       = "This is not a valid ULID."
 	InvalidUPCA       = "This value is not a valid UPC-A."
 	InvalidUPCE       = "This value is not a valid UPC-E."
 	InvalidURL        = "This value is not a valid URL."
