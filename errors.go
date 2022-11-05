@@ -22,6 +22,7 @@ var (
 	ErrInvalidUPCA       = NewError("invalid UPC-A", message.InvalidUPCA)
 	ErrInvalidUPCE       = NewError("invalid UPC-E", message.InvalidUPCE)
 	ErrInvalidURL        = NewError("invalid URL", message.InvalidURL)
+	ErrInvalidUUID       = NewError("invalid UUID", message.InvalidUUID)
 	ErrIsBlank           = NewError("is blank", message.IsBlank)
 	ErrIsEqual           = NewError("is equal", message.IsEqual)
 	ErrIsNil             = NewError("is nil", message.IsNil)

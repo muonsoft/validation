@@ -59,6 +59,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.InvalidUPCA:     catalog.String(message.InvalidUPCA),
 		message.InvalidUPCE:     catalog.String(message.InvalidUPCE),
 		message.InvalidURL:      catalog.String(message.InvalidURL),
+		message.InvalidUUID:     catalog.String(message.InvalidUUID),
 		message.NotExactLength: plural.Selectf(1, "",
 			plural.One, "This value should have exactly {{ limit }} character.",
 			plural.Other, "This value should have exactly {{ limit }} characters."),

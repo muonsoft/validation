@@ -40,6 +40,7 @@ const (
 	InvalidUPCA       = "This value is not a valid UPC-A."
 	InvalidUPCE       = "This value is not a valid UPC-E."
 	InvalidURL        = "This value is not a valid URL."
+	InvalidUUID       = "This is not a valid UUID."
 	IsBlank           = "This value should not be blank."
 	IsEqual           = "This value should not be equal to {{ comparedValue }}."
 	IsNil             = "This value should not be nil."
