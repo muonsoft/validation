@@ -62,6 +62,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.InvalidUPCA:     catalog.String("Значение не является допустимым UPC-A."),
 		message.InvalidUPCE:     catalog.String("Значение не является допустимым UPC-E."),
 		message.InvalidURL:      catalog.String("Значение не является допустимым URL."),
+		message.InvalidUUID:     catalog.String("Значение не соответствует формату UUID."),
 		message.NotExactLength: plural.Selectf(1, "",
 			plural.One, "Значение должно быть равно {{ limit }} символу.",
 			plural.Few, "Значение должно быть равно {{ limit }} символам.",

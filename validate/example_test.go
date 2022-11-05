@@ -149,3 +149,23 @@ func ExampleULID() {
 	// invalid characters
 	// too large
 }
+
+func ExampleUUID() {
+	fmt.Println(validate.UUID("83eab6fd-230b-44fe-b52f-463387bd8788"))                                      // v4
+	fmt.Println(validate.UUID("83eab6fd-230b-44fe-b52f-463387bd8788", validate.AllowUUIDVersions(4)))       // v4
+	fmt.Println(validate.UUID("00000000-0000-0000-0000-000000000000"))                                      // nil UUID
+	fmt.Println(validate.UUID("00000000-0000-0000-0000-000000000000", validate.DenyNilUUID()))              // deny nil UUID
+	fmt.Println(validate.UUID("x3eab6fd-230b-44fe-b52f-463387bd8788"))                                      // invalid
+	fmt.Println(validate.UUID("216fff40-98d9-f1e3-a5e2-0800200c9a66"))                                      // invalid version
+	fmt.Println(validate.UUID("216fff4098d911e3a5e20800200c9a66"))                                          // non-canonical
+	fmt.Println(validate.UUID("216fff4098d911e3a5e20800200c9a66", validate.AllowNonCanonicalUUIDFormats())) // non-canonical
+	// Output:
+	// <nil>
+	// <nil>
+	// <nil>
+	// is nil
+	// invalid
+	// invalid version
+	// too short
+	// <nil>
+}

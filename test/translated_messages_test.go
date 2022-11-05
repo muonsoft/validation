@@ -27,6 +27,7 @@ func TestAllMessagesTranslated(t *testing.T) {
 		validation.ErrInvalidUPCA,
 		validation.ErrInvalidUPCE,
 		validation.ErrInvalidURL,
+		validation.ErrInvalidUUID,
 		validation.ErrIsBlank,
 		validation.ErrIsEqual,
 		validation.ErrIsNil,
