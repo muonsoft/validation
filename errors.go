@@ -28,6 +28,8 @@ var (
 	ErrIsNil             = NewError("is nil", message.IsNil)
 	ErrNoSuchChoice      = NewError("no such choice", message.NoSuchChoice)
 	ErrNotBlank          = NewError("is not blank", message.NotBlank)
+	ErrNotDivisible      = NewError("is not divisible", message.NotDivisible)
+	ErrNotDivisibleCount = NewError("not divisible count", message.NotDivisibleCount)
 	ErrNotEqual          = NewError("is not equal", message.NotEqual)
 	ErrNotExactCount     = NewError("not exact count", message.NotExactCount)
 	ErrNotExactLength    = NewError("not exact length", message.NotExactLength)

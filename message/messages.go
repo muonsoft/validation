@@ -46,6 +46,8 @@ const (
 	IsNil             = "This value should not be nil."
 	NoSuchChoice      = "The value you selected is not a valid choice."
 	NotBlank          = "This value should be blank."
+	NotDivisible      = "This value should be a multiple of {{ comparedValue }}."
+	NotDivisibleCount = "The number of elements in this collection should be a multiple of {{ divisibleBy }}."
 	NotEqual          = "This value should be equal to {{ comparedValue }}."
 	NotExactCount     = "This collection should contain exactly {{ limit }} element(s)."
 	NotExactLength    = "This value should have exactly {{ limit }} character(s)."

@@ -143,4 +143,39 @@ var countConstraintTestCases = []ConstraintValidationTestCase{
 			"Unexpected count 0 at parameter, should be exactly 1.",
 		),
 	},
+	{
+		name:            "HasCountDivisibleBy passes on valid collection",
+		isApplicableFor: specificValueTypes(iterableType, countableType),
+		sliceValue:      []string{"a", "b"},
+		mapValue:        map[string]string{"a": "a", "b": "b"},
+		constraint:      it.HasCountDivisibleBy(2),
+		assert:          assertNoError,
+	},
+	{
+		name:            "HasCountDivisibleBy violation on invalid collection",
+		isApplicableFor: specificValueTypes(iterableType, countableType),
+		sliceValue:      []string{"a", "b"},
+		mapValue:        map[string]string{"a": "a", "b": "b"},
+		constraint:      it.HasCountDivisibleBy(3),
+		assert: assertHasOneViolation(
+			validation.ErrNotDivisibleCount,
+			"The number of elements in this collection should be a multiple of 3.",
+		),
+	},
+	{
+		name:            "HasCountDivisibleBy violation with custom message",
+		isApplicableFor: specificValueTypes(iterableType, countableType),
+		sliceValue:      []string{"a", "b"},
+		mapValue:        map[string]string{"a": "a", "b": "b"},
+		constraint: it.HasCountDivisibleBy(3).
+			WithDivisibleError(ErrCustom).
+			WithDivisibleMessage(
+				"Unexpected count {{ count }} at {{ custom }}, should be divisible by {{ divisibleBy }}.",
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		assert: assertHasOneViolation(
+			ErrCustom,
+			"Unexpected count 2 at parameter, should be divisible by 3.",
+		),
+	},
 }

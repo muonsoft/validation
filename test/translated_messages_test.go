@@ -33,6 +33,8 @@ func TestAllMessagesTranslated(t *testing.T) {
 		validation.ErrIsNil,
 		validation.ErrNoSuchChoice,
 		validation.ErrNotBlank,
+		validation.ErrNotDivisible,
+		validation.ErrNotDivisibleCount,
 		validation.ErrNotEqual,
 		validation.ErrNotExactCount,
 		validation.ErrNotExactLength,

@@ -34,7 +34,9 @@ import (
 
 var Messages = map[language.Tag]map[string]catalog.Message{
 	language.Russian: {
-		message.NotBlank: catalog.String("Значение должно быть пустым."),
+		message.NotBlank:          catalog.String("Значение должно быть пустым."),
+		message.NotDivisible:      catalog.String("Значение должно быть кратно {{ comparedValue }}."),
+		message.NotDivisibleCount: catalog.String("Количество элементов в этой коллекции должно быть кратным {{ divisibleBy }}."),
 		message.NotExactCount: plural.Selectf(1, "",
 			plural.One, "Эта коллекция должна содержать ровно {{ limit }} элемент.",
 			plural.Few, "Эта коллекция должна содержать ровно {{ limit }} элемента.",

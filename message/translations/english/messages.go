@@ -34,7 +34,9 @@ import (
 
 var Messages = map[language.Tag]map[string]catalog.Message{
 	language.English: {
-		message.NotBlank: catalog.String(message.NotBlank),
+		message.NotBlank:          catalog.String(message.NotBlank),
+		message.NotDivisible:      catalog.String(message.NotDivisible),
+		message.NotDivisibleCount: catalog.String(message.NotDivisibleCount),
 		message.NotExactCount: plural.Selectf(1, "",
 			plural.One, "This collection should contain exactly {{ limit }} element.",
 			plural.Other, "This collection should contain exactly {{ limit }} elements."),
