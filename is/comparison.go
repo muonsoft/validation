@@ -1,5 +1,7 @@
 package is
 
+import "math"
+
 // InList returns true if one of the elements of the list is equal to the value.
 func InList[T comparable](value T, list []T) bool {
 	for _, v := range list {
@@ -27,4 +29,17 @@ func Unique[T comparable](values []T) bool {
 	}
 
 	return true
+}
+
+// DivisibleBy checks that a value is divisible by another value (divisor).
+// It checks that the remainder is zero or almost zero with an error of 1e-12.
+func DivisibleBy(divisible, divisor float64) bool {
+	const epsilon = 1e-12
+
+	remainder := math.Mod(divisible, divisor)
+	if remainder < epsilon {
+		return true
+	}
+
+	return math.Abs(remainder-divisor) < epsilon
 }

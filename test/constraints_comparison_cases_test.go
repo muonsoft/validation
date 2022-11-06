@@ -25,6 +25,8 @@ var numberComparisonTestCases = mergeTestCases(
 	isNegativeFloatTestCases,
 	isNegativeOrZeroTestCases,
 	isNegativeOrZeroFloatTestCases,
+	isDivisibleTestCases,
+	isDivisibleByFloatTestCases,
 )
 
 var rangeComparisonTestCases = mergeTestCases(
@@ -542,6 +544,66 @@ var isNegativeOrZeroFloatTestCases = []ConstraintValidationTestCase{
 		floatValue:      floatValue(1),
 		constraint:      it.IsNegativeOrZero[float64](),
 		assert:          assertHasOneViolation(validation.ErrNotNegativeOrZero, "This value should be either negative or zero."),
+	},
+}
+
+var isDivisibleTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsDivisibleBy passes on nil",
+		isApplicableFor: specificValueTypes(intType),
+		constraint:      it.IsDivisibleBy[int](10),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsDivisibleBy passes on zero",
+		isApplicableFor: specificValueTypes(intType),
+		intValue:        intValue(0),
+		constraint:      it.IsDivisibleBy[int](10),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsDivisibleBy passes on divisible value",
+		isApplicableFor: specificValueTypes(intType),
+		intValue:        intValue(20),
+		constraint:      it.IsDivisibleBy[int](10),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsDivisibleBy violation on not divisible value",
+		isApplicableFor: specificValueTypes(intType),
+		intValue:        intValue(5),
+		constraint:      it.IsDivisibleBy[int](10),
+		assert:          assertHasOneViolation(validation.ErrNotDivisible, "This value should be a multiple of 10."),
+	},
+}
+
+var isDivisibleByFloatTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsDivisibleByFloat passes on nil",
+		isApplicableFor: specificValueTypes(floatType),
+		constraint:      it.IsDivisibleByFloat[float64](0.01),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsDivisibleByFloat passes on zero",
+		isApplicableFor: specificValueTypes(floatType),
+		floatValue:      floatValue(0),
+		constraint:      it.IsDivisibleByFloat[float64](0.01),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsDivisibleByFloat passes on divisible value",
+		isApplicableFor: specificValueTypes(floatType),
+		floatValue:      floatValue(5.55),
+		constraint:      it.IsDivisibleByFloat[float64](0.01),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsDivisibleByFloat violation on not divisible value",
+		isApplicableFor: specificValueTypes(floatType),
+		floatValue:      floatValue(5.555),
+		constraint:      it.IsDivisibleByFloat[float64](0.01),
+		assert:          assertHasOneViolation(validation.ErrNotDivisible, "This value should be a multiple of 0.01."),
 	},
 }
 

@@ -204,6 +204,32 @@ func IsNegativeOrZero[T validation.Numeric]() NumberComparisonConstraint[T] {
 	}
 }
 
+// IsDivisibleBy checks that an integer value is divisible by another value (divisor).
+// It checks that the remainder is zero.
+func IsDivisibleBy[
+	T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64,
+](
+	divisor T,
+) NumberComparisonConstraint[T] {
+	return NumberComparisonConstraint[T]{
+		err:             validation.ErrNotDivisible,
+		messageTemplate: validation.ErrNotDivisible.Message(),
+		comparedValue:   fmt.Sprint(divisor),
+		isValid:         func(n T) bool { return n%divisor == 0 },
+	}
+}
+
+// IsDivisibleByFloat checks that a float value is divisible by another value (divisor).
+// It checks that the remainder is zero or almost zero with an error of 1e-12.
+func IsDivisibleByFloat[T ~float32 | ~float64](divisor T) NumberComparisonConstraint[T] {
+	return NumberComparisonConstraint[T]{
+		err:             validation.ErrNotDivisible,
+		messageTemplate: validation.ErrNotDivisible.Message(),
+		comparedValue:   fmt.Sprint(divisor),
+		isValid:         func(n T) bool { return is.DivisibleBy(float64(n), float64(divisor)) },
+	}
+}
+
 // WithError overrides default error for produced violation.
 func (c NumberComparisonConstraint[T]) WithError(err error) NumberComparisonConstraint[T] {
 	c.err = err
