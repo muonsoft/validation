@@ -19,12 +19,18 @@ func (p Product) Validate(ctx context.Context, validator *validation.Validator) 
 	return validator.Validate(
 		ctx,
 		validation.StringProperty("name", p.Name, it.IsNotBlank()),
-		validation.CountableProperty("tags", len(p.Tags), it.HasMinCount(5)),
-		validation.ComparablesProperty[string]("tags", p.Tags, it.HasUniqueValues[string]()),
-		validation.EachStringProperty("tags", p.Tags, it.IsNotBlank()),
-		validation.CountableProperty("components", len(p.Components), it.HasMinCount(1)),
-		// this runs validation on each of the components
-		validation.ValidSliceProperty("components", p.Components),
+		validation.AtProperty(
+			"tags",
+			validation.Countable(len(p.Tags), it.HasMinCount(5)),
+			validation.Comparables[string](p.Tags, it.HasUniqueValues[string]()),
+			validation.EachString(p.Tags, it.IsNotBlank()),
+		),
+		validation.AtProperty(
+			"components",
+			validation.Countable(len(p.Components), it.HasMinCount(1)),
+			// this runs validation on each of the components
+			validation.ValidSlice(p.Components),
+		),
 	)
 }
 

@@ -714,6 +714,39 @@ func ExampleAll() {
 	// violation at "tags": "This collection should contain 3 elements or less."
 }
 
+func ExampleAtProperty() {
+	book := struct {
+		Name string
+		Tags []string
+	}{
+		Name: "Very long book name",
+		Tags: []string{"Fiction", "Thriller", "", "Fiction"},
+	}
+
+	err := validator.Validate(
+		context.Background(),
+		validation.StringProperty("name", book.Name, it.IsNotBlank(), it.HasMaxLength(10)),
+		// grouping property validation with different types of arguments
+		validation.AtProperty(
+			"tags",
+			validation.Countable(len(book.Tags), it.HasMaxCount(3)),
+			validation.Comparables[string](book.Tags, it.HasUniqueValues[string]()),
+			validation.EachString(book.Tags, it.IsNotBlank()),
+		),
+	)
+
+	if violations, ok := validation.UnwrapViolationList(err); ok {
+		for violation := violations.First(); violation != nil; violation = violation.Next() {
+			fmt.Println(violation)
+		}
+	}
+	// Output:
+	// violation at "name": "This value is too long. It should have 10 characters or less."
+	// violation at "tags": "This collection should contain 3 elements or less."
+	// violation at "tags": "This collection should contain only unique elements."
+	// violation at "tags[2]": "This value should not be blank."
+}
+
 func ExampleValidator_Validate_basicValidation() {
 	validator, err := validation.NewValidator()
 	if err != nil {
