@@ -221,6 +221,12 @@ func All(arguments ...Argument) AllArgument {
 	return AllArgument{arguments: arguments}
 }
 
+// AtProperty can be used to group different kind of validations for a specific property.
+// It creates an AllArgument option and executes validation on all the arguments.
+func AtProperty(propertyName string, arguments ...Argument) AllArgument {
+	return All(arguments...).At(PropertyName(propertyName))
+}
+
 // At returns a copy of [AllArgument] with appended property path suffix.
 func (arg AllArgument) At(path ...PropertyPathElement) AllArgument {
 	arg.path = append(arg.path, path...)
