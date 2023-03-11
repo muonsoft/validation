@@ -4,8 +4,8 @@ go 1.18
 
 require (
 	github.com/muonsoft/language v0.3.0
-	github.com/stretchr/testify v1.7.4
-	golang.org/x/text v0.3.6
+	github.com/stretchr/testify v1.8.2
+	golang.org/x/text v0.8.0
 )
 
 require (
