@@ -57,6 +57,13 @@ func (a *Assertion) IsViolation() *ViolationAssertion {
 	return newViolationAssertion(a.t, violations.First().Violation())
 }
 
+// IsViolations is a shorthand for IsViolationList().WithAttributes(violations...).
+func (a *Assertion) IsViolations(violations ...ViolationAttributes) *ViolationListAssertion {
+	a.t.Helper()
+
+	return a.IsViolationList().WithAttributes(violations...)
+}
+
 // IsViolationList checks that err implements [github.com/muonsoft/validation.IsViolationList] and
 // returns [ViolationListAssertion] for attributes assertions.
 func (a *Assertion) IsViolationList() *ViolationListAssertion {
