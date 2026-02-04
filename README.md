@@ -6,8 +6,6 @@
 ![GitHub](https://img.shields.io/github/license/muonsoft/validation)
 [![tests](https://github.com/muonsoft/validation/actions/workflows/tests.yml/badge.svg)](https://github.com/muonsoft/validation/actions/workflows/tests.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/muonsoft/validation)](https://goreportcard.com/report/github.com/muonsoft/validation)
-[![Maintainability](https://api.codeclimate.com/v1/badges/1385bcb467b6e43bff8d/maintainability)](https://codeclimate.com/github/muonsoft/validation/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/1385bcb467b6e43bff8d/test_coverage)](https://codeclimate.com/github/muonsoft/validation/test_coverage)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/muonsoft/validation/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/muonsoft/validation/?branch=main)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
