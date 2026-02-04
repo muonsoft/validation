@@ -496,6 +496,46 @@ func TestUnwrapViolationList_NoError_NoListAndFalse(t *testing.T) {
 	assert.False(t, ok)
 }
 
+func TestUnwrapViolations_ViolationList_UnwrappedList(t *testing.T) {
+	wrapped := validation.NewViolationList(newViolationWithError(t, ErrTest))
+	err := fmt.Errorf("error: %w", wrapped)
+
+	list, ok := validation.UnwrapViolations(err)
+
+	assert.True(t, ok)
+	assert.NotNil(t, list)
+	assert.Equal(t, wrapped, list)
+	assert.Equal(t, 1, list.Len())
+}
+
+func TestUnwrapViolations_SingleViolation_WrappedInList(t *testing.T) {
+	wrapped := newViolationWithError(t, ErrTest)
+	err := fmt.Errorf("error: %w", wrapped)
+
+	list, ok := validation.UnwrapViolations(err)
+
+	assert.True(t, ok)
+	assert.NotNil(t, list)
+	assert.Equal(t, 1, list.Len())
+	assert.Equal(t, wrapped, list.First().Violation())
+}
+
+func TestUnwrapViolations_NoError_NoListAndFalse(t *testing.T) {
+	list, ok := validation.UnwrapViolations(nil)
+
+	assert.Nil(t, list)
+	assert.False(t, ok)
+}
+
+func TestUnwrapViolations_GenericError_NoListAndFalse(t *testing.T) {
+	err := errors.New("generic error")
+
+	list, ok := validation.UnwrapViolations(err)
+
+	assert.Nil(t, list)
+	assert.False(t, ok)
+}
+
 func TestMarshalViolationToJSON(t *testing.T) {
 	validator := newValidator(t)
 
