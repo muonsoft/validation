@@ -84,8 +84,8 @@ type AllowedFileSizeConstraint struct {
 	maxSize int
 }
 
-func FileHasAllowedSize(min, max int) AllowedFileSizeConstraint {
-	return AllowedFileSizeConstraint{minSize: min, maxSize: max}
+func FileHasAllowedSize(vMin, vMax int) AllowedFileSizeConstraint {
+	return AllowedFileSizeConstraint{minSize: vMin, maxSize: vMax}
 }
 
 func (c AllowedFileSizeConstraint) ValidateFile(ctx context.Context, validator *validation.Validator, file *File) error {

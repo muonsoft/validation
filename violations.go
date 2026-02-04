@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"iter"
 	"strconv"
 	"strings"
 
@@ -130,6 +131,23 @@ func (list *ViolationList) ForEach(f func(i int, violation Violation) error) err
 	return nil
 }
 
+// All returns an iterator over all violations in the list as (index, violation) pairs.
+// It can be used in a range loop: for i, v := range list.All() { ... }.
+func (list *ViolationList) All() iter.Seq2[int, Violation] {
+	return func(yield func(int, Violation) bool) {
+		if list == nil {
+			return
+		}
+		i := 0
+		for e := list.first; e != nil; e = e.next {
+			if !yield(i, e.violation) {
+				return
+			}
+			i++
+		}
+	}
+}
+
 // First returns the first element of the linked list.
 func (list *ViolationList) First() *ViolationListElement {
 	return list.first
@@ -237,10 +255,8 @@ func (list *ViolationList) toString(delimiter string) string {
 // If an error does not implement the [Violation] or [ViolationList] interface, it will return an error itself.
 // Otherwise nil will be returned.
 func (list *ViolationList) AppendFromError(err error) error {
-	if violation, ok := UnwrapViolation(err); ok {
-		list.Append(violation)
-	} else if violationList, ok := UnwrapViolationList(err); ok {
-		list.Join(violationList)
+	if violations, ok := UnwrapViolations(err); ok {
+		list.Join(violations)
 	} else if err != nil {
 		return err
 	}
@@ -374,7 +390,31 @@ func IsViolationList(err error) bool {
 	return errors.As(err, &violations)
 }
 
+// UnwrapViolations extracts [ViolationList] from the error. It handles both a single [Violation]
+// and [ViolationList]—in the former case, the violation is wrapped in a new list.
+// Use this function instead of [UnwrapViolation] or [UnwrapViolationList], as it is not always
+// obvious whether err contains a single violation or a list, and using the wrong unwrap can
+// lead to unexpected defects.
+func UnwrapViolations(err error) (*ViolationList, bool) {
+	if err == nil {
+		return nil, false
+	}
+
+	if list, ok := UnwrapViolationList(err); ok {
+		return list, true
+	}
+
+	if violation, ok := UnwrapViolation(err); ok {
+		return NewViolationList(violation), true
+	}
+
+	return nil, false
+}
+
 // UnwrapViolation is a short function to unwrap [Violation] from the error.
+//
+// Deprecated: Use [UnwrapViolations] instead. Using this function can lead to unexpected defects
+// because it is not always obvious whether err contains a single [Violation] or a [ViolationList].
 func UnwrapViolation(err error) (Violation, bool) {
 	var violation Violation
 
@@ -384,6 +424,9 @@ func UnwrapViolation(err error) (Violation, bool) {
 }
 
 // UnwrapViolationList is a short function to unwrap [ViolationList] from the error.
+//
+// Deprecated: Use [UnwrapViolations] instead. Using this function can lead to unexpected defects
+// because it is not always obvious whether err contains a single [Violation] or a [ViolationList].
 func UnwrapViolationList(err error) (*ViolationList, bool) {
 	var violations *ViolationList
 

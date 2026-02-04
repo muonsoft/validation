@@ -30,10 +30,10 @@ type LengthConstraint struct {
 	exactMessageParameters validation.TemplateParameterList
 }
 
-func newLengthConstraint(min int, max int, checkMin bool, checkMax bool) LengthConstraint {
+func newLengthConstraint(vMin int, vMax int, checkMin bool, checkMax bool) LengthConstraint {
 	return LengthConstraint{
-		min:                  min,
-		max:                  max,
+		min:                  vMin,
+		max:                  vMax,
 		checkMin:             checkMin,
 		checkMax:             checkMax,
 		minErr:               validation.ErrTooShort,
@@ -47,20 +47,20 @@ func newLengthConstraint(min int, max int, checkMin bool, checkMax bool) LengthC
 
 // HasMinLength creates a [LengthConstraint] that checks the length of the string
 // is greater than the minimum value.
-func HasMinLength(min int) LengthConstraint {
-	return newLengthConstraint(min, 0, true, false)
+func HasMinLength(vMin int) LengthConstraint {
+	return newLengthConstraint(vMin, 0, true, false)
 }
 
 // HasMaxLength creates a [LengthConstraint] that checks the length of the string
 // is less than the maximum value.
-func HasMaxLength(max int) LengthConstraint {
-	return newLengthConstraint(0, max, false, true)
+func HasMaxLength(vMax int) LengthConstraint {
+	return newLengthConstraint(0, vMax, false, true)
 }
 
 // HasLengthBetween creates a [LengthConstraint] that checks the length of the string
 // is between some minimum and maximum value.
-func HasLengthBetween(min int, max int) LengthConstraint {
-	return newLengthConstraint(min, max, true, true)
+func HasLengthBetween(vMin int, vMax int) LengthConstraint {
+	return newLengthConstraint(vMin, vMax, true, true)
 }
 
 // HasExactLength creates a [LengthConstraint] that checks the length of the string

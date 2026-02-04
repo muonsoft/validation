@@ -76,6 +76,29 @@ func TestViolationListAssertion_WithErrors_WhenInvalidError_ExpectError(t *testi
 	tester.AssertOneMessage(t, `failed asserting that violation at 0 has error "expected", actual is "error"`)
 }
 
+func TestAssertion_IsViolations(t *testing.T) {
+	err := errors.New("error")
+	violation := validator.BuildViolation(context.Background(), err, "message").
+		SetPropertyPath(validation.NewPropertyPath(validation.PropertyName("path"))).
+		Create()
+
+	t.Run("success", func(t *testing.T) {
+		validationtest.Assert(t, validation.NewViolationList(violation)).
+			IsViolations(validationtest.ViolationAttributes{
+				Error:        err,
+				Message:      "message",
+				PropertyPath: "path",
+			})
+	})
+
+	t.Run("failure - invalid error", func(t *testing.T) {
+		tester := &Tester{}
+		validationtest.Assert(tester, validation.NewViolationList(violation)).
+			IsViolations(validationtest.ViolationAttributes{Error: errors.New("expected")})
+		tester.AssertOneMessage(t, `failed asserting that violation at 0 has error "expected", actual is "error"`)
+	})
+}
+
 func TestViolationListAssertion_WithAttributes(t *testing.T) {
 	violation := validator.BuildViolation(context.Background(), errors.New("error"), "message").
 		SetPropertyPath(validation.NewPropertyPath(validation.PropertyName("path"))).

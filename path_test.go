@@ -40,6 +40,69 @@ func TestPropertyPath_Elements(t *testing.T) {
 	assert.Equal(t, want, got)
 }
 
+func TestPropertyPath_All_WhenMultipleElements_ExpectAllIterated(t *testing.T) {
+	want := []validation.PropertyPathElement{
+		validation.PropertyName("top"),
+		validation.ArrayIndex(0),
+		validation.PropertyName("property"),
+	}
+	path := validation.NewPropertyPath(want...)
+
+	indices := make([]int, 0)
+	elements := make([]validation.PropertyPathElement, 0)
+	for i, e := range path.All() {
+		indices = append(indices, i)
+		elements = append(elements, e)
+	}
+
+	assert.Equal(t, []int{0, 1, 2}, indices)
+	assert.Equal(t, want, elements)
+}
+
+func TestPropertyPath_All_WhenEmptyPath_ExpectNoIteration(t *testing.T) {
+	path := validation.NewPropertyPath()
+	iterated := 0
+
+	for range path.All() {
+		iterated++
+	}
+
+	assert.Equal(t, 0, iterated)
+}
+
+func TestPropertyPath_All_WhenNilPath_ExpectNoIteration(t *testing.T) {
+	var path *validation.PropertyPath
+	iterated := 0
+
+	for range path.All() {
+		iterated++
+	}
+
+	assert.Equal(t, 0, iterated)
+}
+
+func TestPropertyPath_All_WhenBreakInLoop_ExpectEarlyExit(t *testing.T) {
+	want := []validation.PropertyPathElement{
+		validation.PropertyName("a"),
+		validation.ArrayIndex(0),
+		validation.PropertyName("b"),
+	}
+	path := validation.NewPropertyPath(want...)
+
+	indices := make([]int, 0)
+	elements := make([]validation.PropertyPathElement, 0)
+	for i, e := range path.All() {
+		indices = append(indices, i)
+		elements = append(elements, e)
+		if i == 1 {
+			break
+		}
+	}
+
+	assert.Equal(t, []int{0, 1}, indices)
+	assert.Equal(t, want[:2], elements)
+}
+
 func TestPropertyPath_String(t *testing.T) {
 	tests := []struct {
 		path *validation.PropertyPath

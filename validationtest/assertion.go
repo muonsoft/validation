@@ -43,18 +43,25 @@ func Assert(t TestingT, err error) *Assertion {
 }
 
 // IsViolation checks that err implements [github.com/muonsoft/validation.Violation] and returns [ViolationAssertion]
-// for attributes assertions.
+// for attributes assertions. Accepts both a single [Violation] and [ViolationList] with exactly one element.
 func (a *Assertion) IsViolation() *ViolationAssertion {
 	a.t.Helper()
 
-	violation, ok := validation.UnwrapViolation(a.err)
-	if !ok {
+	violations, ok := validation.UnwrapViolations(a.err)
+	if !ok || violations.Len() != 1 {
 		assert.Fail(a.t, fmt.Sprintf("failed asserting that err is a Violation\nactual %+v", a.err))
 
 		return nil
 	}
 
-	return newViolationAssertion(a.t, violation)
+	return newViolationAssertion(a.t, violations.First().Violation())
+}
+
+// IsViolations is a shorthand for IsViolationList().WithAttributes(violations...).
+func (a *Assertion) IsViolations(violations ...ViolationAttributes) *ViolationListAssertion {
+	a.t.Helper()
+
+	return a.IsViolationList().WithAttributes(violations...)
 }
 
 // IsViolationList checks that err implements [github.com/muonsoft/validation.IsViolationList] and
@@ -62,7 +69,7 @@ func (a *Assertion) IsViolation() *ViolationAssertion {
 func (a *Assertion) IsViolationList() *ViolationListAssertion {
 	a.t.Helper()
 
-	violations, ok := validation.UnwrapViolationList(a.err)
+	violations, ok := validation.UnwrapViolations(a.err)
 	if !ok {
 		assert.Fail(a.t, fmt.Sprintf("failed asserting that err is a ViolationList\nactual %+v", a.err))
 

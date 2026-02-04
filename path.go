@@ -3,6 +3,7 @@ package validation
 import (
 	"errors"
 	"fmt"
+	"iter"
 	"math"
 	"strconv"
 	"strings"
@@ -108,6 +109,32 @@ func (path *PropertyPath) Elements() []PropertyPathElement {
 	}
 
 	return elements
+}
+
+// All returns an iterator over all elements in the path as (index, element) pairs.
+// It can be used in a range loop: for i, e := range path.All() { ... }.
+func (path *PropertyPath) All() iter.Seq2[int, PropertyPathElement] {
+	return func(yield func(int, PropertyPathElement) bool) {
+		if path == nil || path.value == nil {
+			return
+		}
+		i := 0
+		var recurse func(p *PropertyPath) bool
+		recurse = func(p *PropertyPath) bool {
+			if p == nil || p.value == nil {
+				return true
+			}
+			if p.parent != nil && !recurse(p.parent) {
+				return false
+			}
+			if !yield(i, p.value) {
+				return false
+			}
+			i++
+			return true
+		}
+		recurse(path)
+	}
 }
 
 // Len returns count of property path elements.

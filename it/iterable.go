@@ -45,10 +45,10 @@ func newCountConstraint() CountConstraint {
 	}
 }
 
-func newCountComparison(min int, max int, checkMin bool, checkMax bool) CountConstraint {
+func newCountComparison(vMin int, vMax int, checkMin bool, checkMax bool) CountConstraint {
 	c := newCountConstraint()
-	c.min = min
-	c.max = max
+	c.min = vMin
+	c.max = vMax
 	c.checkMin = checkMin
 	c.checkMax = checkMax
 
@@ -57,20 +57,20 @@ func newCountComparison(min int, max int, checkMin bool, checkMax bool) CountCon
 
 // HasMinCount creates a [CountConstraint] that checks the length of the iterable (slice, array, or map)
 // is greater than the minimum value.
-func HasMinCount(min int) CountConstraint {
-	return newCountComparison(min, 0, true, false)
+func HasMinCount(vMin int) CountConstraint {
+	return newCountComparison(vMin, 0, true, false)
 }
 
 // HasMaxCount creates a [CountConstraint] that checks the length of the iterable (slice, array, or map)
 // is less than the maximum value.
-func HasMaxCount(max int) CountConstraint {
-	return newCountComparison(0, max, false, true)
+func HasMaxCount(vMax int) CountConstraint {
+	return newCountComparison(0, vMax, false, true)
 }
 
 // HasCountBetween creates a [CountConstraint] that checks the length of the iterable (slice, array, or map)
 // is between some minimum and maximum value.
-func HasCountBetween(min int, max int) CountConstraint {
-	return newCountComparison(min, max, true, true)
+func HasCountBetween(vMin int, vMax int) CountConstraint {
+	return newCountComparison(vMin, vMax, true, true)
 }
 
 // HasExactCount creates a [CountConstraint] that checks the length of the iterable (slice, array, or map)

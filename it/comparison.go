@@ -290,10 +290,10 @@ type RangeConstraint[T validation.Numeric] struct {
 }
 
 // IsBetween checks that the number is between specified minimum and maximum numeric values.
-func IsBetween[T validation.Numeric](min, max T) RangeConstraint[T] {
+func IsBetween[T validation.Numeric](vMin, vMax T) RangeConstraint[T] {
 	return RangeConstraint[T]{
-		min:             min,
-		max:             max,
+		min:             vMin,
+		max:             vMax,
 		err:             validation.ErrNotInRange,
 		messageTemplate: validation.ErrNotInRange.Message(),
 	}
@@ -491,13 +491,13 @@ type TimeRangeConstraint struct {
 }
 
 // IsBetweenTime checks that the time is between specified minimum and maximum time values.
-func IsBetweenTime(min, max time.Time) TimeRangeConstraint {
+func IsBetweenTime(vMin, vMax time.Time) TimeRangeConstraint {
 	return TimeRangeConstraint{
 		err:             validation.ErrNotInRange,
 		messageTemplate: validation.ErrNotInRange.Message(),
 		layout:          time.RFC3339,
-		min:             min,
-		max:             max,
+		min:             vMin,
+		max:             vMax,
 	}
 }
 

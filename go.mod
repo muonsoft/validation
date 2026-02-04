@@ -1,11 +1,11 @@
 module github.com/muonsoft/validation
 
-go 1.18
+go 1.24.0
 
 require (
 	github.com/muonsoft/language v0.3.1
-	github.com/stretchr/testify v1.8.2
-	golang.org/x/text v0.8.0
+	github.com/stretchr/testify v1.11.1
+	golang.org/x/text v0.33.0
 )
 
 require (

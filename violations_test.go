@@ -85,6 +85,67 @@ func TestViolationList_ForEach_WhenErrorReturned_ExpectLoopBreak(t *testing.T) {
 	assert.Equal(t, []string{"first"}, iterated)
 }
 
+func TestViolationList_All_WhenMultipleViolations_ExpectAllIterated(t *testing.T) {
+	violations := validation.NewViolationList(
+		newViolationWithError(t, errors.New("first")),
+		newViolationWithError(t, errors.New("second")),
+		newViolationWithError(t, errors.New("third")),
+	)
+	iterated := make([]string, 0)
+	indices := make([]int, 0)
+
+	for i, v := range violations.All() {
+		iterated = append(iterated, v.Unwrap().Error())
+		indices = append(indices, i)
+	}
+
+	assert.Equal(t, []int{0, 1, 2}, indices)
+	assert.Equal(t, []string{"first", "second", "third"}, iterated)
+}
+
+func TestViolationList_All_WhenEmptyList_ExpectNoIteration(t *testing.T) {
+	violations := validation.NewViolationList()
+	iterated := 0
+
+	for range violations.All() {
+		iterated++
+	}
+
+	assert.Equal(t, 0, iterated)
+}
+
+func TestViolationList_All_WhenNilList_ExpectNoIteration(t *testing.T) {
+	var list *validation.ViolationList
+	iterated := 0
+
+	for range list.All() {
+		iterated++
+	}
+
+	assert.Equal(t, 0, iterated)
+}
+
+func TestViolationList_All_WhenBreakInLoop_ExpectEarlyExit(t *testing.T) {
+	violations := validation.NewViolationList(
+		newViolationWithError(t, errors.New("first")),
+		newViolationWithError(t, errors.New("second")),
+		newViolationWithError(t, errors.New("third")),
+	)
+	iterated := make([]string, 0)
+	indices := make([]int, 0)
+
+	for i, v := range violations.All() {
+		iterated = append(iterated, v.Unwrap().Error())
+		indices = append(indices, i)
+		if i == 1 {
+			break
+		}
+	}
+
+	assert.Equal(t, []int{0, 1}, indices)
+	assert.Equal(t, []string{"first", "second"}, iterated)
+}
+
 func TestViolationList_Join(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -432,6 +493,46 @@ func TestUnwrapViolationList_NoError_NoListAndFalse(t *testing.T) {
 	unwrapped, ok := validation.UnwrapViolationList(nil)
 
 	assert.Nil(t, unwrapped)
+	assert.False(t, ok)
+}
+
+func TestUnwrapViolations_ViolationList_UnwrappedList(t *testing.T) {
+	wrapped := validation.NewViolationList(newViolationWithError(t, ErrTest))
+	err := fmt.Errorf("error: %w", wrapped)
+
+	list, ok := validation.UnwrapViolations(err)
+
+	assert.True(t, ok)
+	assert.NotNil(t, list)
+	assert.Equal(t, wrapped, list)
+	assert.Equal(t, 1, list.Len())
+}
+
+func TestUnwrapViolations_SingleViolation_WrappedInList(t *testing.T) {
+	wrapped := newViolationWithError(t, ErrTest)
+	err := fmt.Errorf("error: %w", wrapped)
+
+	list, ok := validation.UnwrapViolations(err)
+
+	assert.True(t, ok)
+	assert.NotNil(t, list)
+	assert.Equal(t, 1, list.Len())
+	assert.Equal(t, wrapped, list.First().Violation())
+}
+
+func TestUnwrapViolations_NoError_NoListAndFalse(t *testing.T) {
+	list, ok := validation.UnwrapViolations(nil)
+
+	assert.Nil(t, list)
+	assert.False(t, ok)
+}
+
+func TestUnwrapViolations_GenericError_NoListAndFalse(t *testing.T) {
+	err := errors.New("generic error")
+
+	list, ok := validation.UnwrapViolations(err)
+
+	assert.Nil(t, list)
 	assert.False(t, ok)
 }
 

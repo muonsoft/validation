@@ -71,6 +71,20 @@ func (c NotBlankConstraint[T]) WithMessage(template string, parameters ...valida
 	return c
 }
 
+func (c NotBlankConstraint[T]) ValidateNil(ctx context.Context, validator *validation.Validator, isNil bool) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) {
+		return nil
+	}
+	if c.allowNil && isNil {
+		return nil
+	}
+	if !isNil {
+		return nil
+	}
+
+	return c.newViolation(ctx, validator)
+}
+
 func (c NotBlankConstraint[T]) ValidateBool(ctx context.Context, validator *validation.Validator, value *bool) error {
 	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) {
 		return nil
@@ -200,6 +214,14 @@ func (c BlankConstraint[T]) WithMessage(template string, parameters ...validatio
 	c.messageTemplate = template
 	c.messageParameters = parameters
 	return c
+}
+
+func (c BlankConstraint[T]) ValidateNil(ctx context.Context, validator *validation.Validator, isNil bool) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || isNil {
+		return nil
+	}
+
+	return c.newViolation(ctx, validator)
 }
 
 func (c BlankConstraint[T]) ValidateBool(ctx context.Context, validator *validation.Validator, value *bool) error {
