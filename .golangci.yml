@@ -156,6 +156,7 @@ linters:
           - errorlint
         path: validationtest/assertion.go
     paths:
+      - var
       - third_party$
       - builtin$
       - examples$
