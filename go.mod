@@ -1,6 +1,6 @@
 module github.com/muonsoft/validation
 
-go 1.18
+go 1.23
 
 require (
 	github.com/muonsoft/language v0.3.1
