@@ -132,7 +132,7 @@ func (list *ViolationList) ForEach(f func(i int, violation Violation) error) err
 }
 
 // All returns an iterator over all violations in the list as (index, violation) pairs.
-// It can be used in a range loop: for i, v := range list.All() { ... }
+// It can be used in a range loop: for i, v := range list.All() { ... }.
 func (list *ViolationList) All() iter.Seq2[int, Violation] {
 	return func(yield func(int, Violation) bool) {
 		if list == nil {
