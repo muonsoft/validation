@@ -106,7 +106,7 @@ func ExampleValidator_ValidateIt_violationWithPayload() {
 		}),
 	)
 
-	if violations, ok := validation.UnwrapViolationList(err); ok {
+	if violations, ok := validation.UnwrapViolations(err); ok {
 		violations.ForEach(func(i int, violation validation.Violation) error {
 			fmt.Println(violation)
 			// unwrap concrete violation from chain

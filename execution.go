@@ -156,6 +156,24 @@ func validateEachComparable[T comparable](values []T, constraints []ComparableCo
 	}
 }
 
+func validateEach[E any](items []E, constraints []Constraint[E]) ValidateFunc {
+	return func(ctx context.Context, validator *Validator) (*ViolationList, error) {
+		violations := NewViolationList()
+
+		for i := range items {
+			v := validator.AtIndex(i)
+			for _, c := range constraints {
+				err := violations.AppendFromError(c.Validate(ctx, v, items[i]))
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+
+		return violations, nil
+	}
+}
+
 func validateIt(value Validatable) ValidateFunc {
 	return func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		err := value.Validate(ctx, validator)

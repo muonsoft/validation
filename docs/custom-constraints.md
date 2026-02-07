@@ -14,4 +14,5 @@ Also, you can combine several types of constraints. See examples for more detail
 
 * [custom static constraint](https://pkg.go.dev/github.com/muonsoft/validation#example-Validator.Validate-CustomConstraint);
 * [custom constraint as a service](https://pkg.go.dev/github.com/muonsoft/validation#example-Validator.GetConstraint-CustomServiceConstraint);
-* [custom constraint with custom argument for domain type](https://pkg.go.dev/github.com/muonsoft/validation#example-NewArgument-CustomArgumentConstraintValidator).
+* [custom constraint with custom argument for domain type](https://pkg.go.dev/github.com/muonsoft/validation#example-NewArgument-CustomArgumentConstraintValidator);
+* [Func as Constraint and Each/EachProperty for slices of any type](https://pkg.go.dev/github.com/muonsoft/validation#example-Func).

@@ -205,6 +205,17 @@ func EachComparableProperty[T comparable](name string, values []T, constraints .
 	return NewArgument(validateEachComparable(values, constraints)).At(PropertyName(name))
 }
 
+// Each validates each element of the slice with the given [Constraint][E] list.
+// Violation paths include the element index (e.g. [0], [1]). Use [EachProperty] to add a property name to the path.
+func Each[E any](items []E, constraints ...Constraint[E]) ValidatorArgument {
+	return NewArgument(validateEach(items, constraints))
+}
+
+// EachProperty is an alias for [Each] that adds the property name to the violation path (e.g. items[0], items[1]).
+func EachProperty[E any](name string, items []E, constraints ...Constraint[E]) ValidatorArgument {
+	return Each(items, constraints...).At(PropertyName(name))
+}
+
 // CheckNoViolations is a special argument that checks err for violations. If err contains [Violation] or [ViolationList]
 // then these violations will be appended into returned violation list from the validator. If err contains an error
 // that does not implement an error interface, then the validation process will be terminated and

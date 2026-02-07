@@ -65,7 +65,7 @@ func ExampleCheckNoViolations() {
 
 	for i, vehicle := range vehicles {
 		err := validator.ValidateIt(context.Background(), vehicle)
-		if violations, ok := validation.UnwrapViolationList(err); ok {
+		if violations, ok := validation.UnwrapViolations(err); ok {
 			fmt.Println("vehicle", i, "is not valid:")
 			for violation := violations.First(); violation != nil; violation = violation.Next() {
 				fmt.Println(violation)

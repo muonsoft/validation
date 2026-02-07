@@ -62,7 +62,7 @@ func ExampleValid_validatableStruct() {
 
 	err := validator.Validate(context.Background(), validation.Valid(p))
 
-	if violations, ok := validation.UnwrapViolationList(err); ok {
+	if violations, ok := validation.UnwrapViolations(err); ok {
 		for violation := violations.First(); violation != nil; violation = violation.Next() {
 			fmt.Println(violation)
 		}

@@ -39,7 +39,7 @@ func ExampleValidator_ValidateIt() {
 
 	for i, person := range persons {
 		err := validator.ValidateIt(context.Background(), person)
-		if violations, ok := validation.UnwrapViolationList(err); ok {
+		if violations, ok := validation.UnwrapViolations(err); ok {
 			fmt.Println("person", i, "is not valid:")
 			for violation := violations.First(); violation != nil; violation = violation.Next() {
 				fmt.Println(violation)

@@ -17,6 +17,16 @@ type Constraint[T any] interface {
 	Validate(ctx context.Context, validator *Validator, v T) error
 }
 
+// Func is a function type that implements [Constraint] for type T.
+// It allows using plain functions (including closures) as constraints without defining a struct,
+// for example with [Each] or [EachProperty].
+type Func[T any] func(ctx context.Context, validator *Validator, v T) error
+
+// Validate calls the underlying function and implements [Constraint][T].
+func (f Func[T]) Validate(ctx context.Context, validator *Validator, v T) error {
+	return f(ctx, validator, v)
+}
+
 // NilConstraint is used for a special cases to check a value for nil.
 type NilConstraint interface {
 	ValidateNil(ctx context.Context, validator *Validator, isNil bool) error

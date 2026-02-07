@@ -48,7 +48,7 @@ func HandleBooks(writer http.ResponseWriter, request *http.Request) {
 
 	err = validator.Validate(request.Context(), validation.Valid(book))
 	if err != nil {
-		violations, ok := validation.UnwrapViolationList(err)
+		violations, ok := validation.UnwrapViolations(err)
 		if ok {
 			response, err := json.Marshal(violations)
 			if err != nil {
