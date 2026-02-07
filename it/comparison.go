@@ -100,6 +100,11 @@ func (c ComparisonConstraint[T]) ValidateComparable(ctx context.Context, validat
 		Create()
 }
 
+// Validate implements [validation.Constraint][T] so the constraint can be used with [validation.Each] and [validation.This].
+func (c ComparisonConstraint[T]) Validate(ctx context.Context, validator *validation.Validator, v T) error {
+	return c.ValidateComparable(ctx, validator, &v)
+}
+
 // NumberComparisonConstraint is used for various numeric comparisons between integer and float values.
 type NumberComparisonConstraint[T validation.Numeric] struct {
 	isIgnored         bool
@@ -278,6 +283,11 @@ func (c NumberComparisonConstraint[T]) ValidateNumber(ctx context.Context, valid
 		Create()
 }
 
+// Validate implements [validation.Constraint][T] so the constraint can be used with [validation.Each] and [validation.This].
+func (c NumberComparisonConstraint[T]) Validate(ctx context.Context, validator *validation.Validator, v T) error {
+	return c.ValidateNumber(ctx, validator, &v)
+}
+
 // RangeConstraint is used to check that a given number value is between some minimum and maximum.
 type RangeConstraint[T validation.Numeric] struct {
 	isIgnored         bool
@@ -355,6 +365,11 @@ func (c RangeConstraint[T]) ValidateNumber(ctx context.Context, validator *valid
 			)...,
 		).
 		Create()
+}
+
+// Validate implements [validation.Constraint][T] so the constraint can be used with [validation.Each] and [validation.This].
+func (c RangeConstraint[T]) Validate(ctx context.Context, validator *validation.Validator, v T) error {
+	return c.ValidateNumber(ctx, validator, &v)
 }
 
 // TimeComparisonConstraint is used to compare time values.
@@ -478,6 +493,11 @@ func (c TimeComparisonConstraint) ValidateTime(ctx context.Context, validator *v
 		Create()
 }
 
+// Validate implements [validation.Constraint][time.Time] so the constraint can be used with [validation.Each] and [validation.This].
+func (c TimeComparisonConstraint) Validate(ctx context.Context, validator *validation.Validator, v time.Time) error {
+	return c.ValidateTime(ctx, validator, &v)
+}
+
 // TimeRangeConstraint is used to check that a given time value is between some minimum and maximum.
 type TimeRangeConstraint struct {
 	isIgnored         bool
@@ -565,6 +585,11 @@ func (c TimeRangeConstraint) newViolation(ctx context.Context, validator *valida
 			)...,
 		).
 		Create()
+}
+
+// Validate implements [validation.Constraint][time.Time] so the constraint can be used with [validation.Each] and [validation.This].
+func (c TimeRangeConstraint) Validate(ctx context.Context, validator *validation.Validator, v time.Time) error {
+	return c.ValidateTime(ctx, validator, &v)
 }
 
 // UniqueConstraint is used to check that all elements of the given collection are unique.

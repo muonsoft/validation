@@ -130,3 +130,8 @@ func (c StringFuncConstraint) ValidateString(ctx context.Context, validator *Val
 		WithParameter("{{ value }}", *value).
 		Create()
 }
+
+// Validate implements [Constraint][string] so the constraint can be used with [Each] and [This].
+func (c StringFuncConstraint) Validate(ctx context.Context, validator *Validator, v string) error {
+	return c.ValidateString(ctx, validator, &v)
+}

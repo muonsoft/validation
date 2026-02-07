@@ -160,6 +160,11 @@ func (c NotBlankConstraint[T]) newViolation(ctx context.Context, validator *vali
 		Create()
 }
 
+// Validate implements [validation.Constraint][T] so the constraint can be used with [validation.Each] and [validation.This].
+func (c NotBlankConstraint[T]) Validate(ctx context.Context, validator *validation.Validator, v T) error {
+	return c.ValidateComparable(ctx, validator, &v)
+}
+
 // BlankConstraint checks that a value is blank: equal to false, nil, zero, an empty string, an empty
 // slice, array, or a map.
 type BlankConstraint[T comparable] struct {
@@ -274,6 +279,11 @@ func (c BlankConstraint[T]) newViolation(ctx context.Context, validator *validat
 		Create()
 }
 
+// Validate implements [validation.Constraint][T] so the constraint can be used with [validation.Each] and [validation.This].
+func (c BlankConstraint[T]) Validate(ctx context.Context, validator *validation.Validator, v T) error {
+	return c.ValidateComparable(ctx, validator, &v)
+}
+
 // NotNilConstraint checks that a value in not strictly equal to nil. To check that values in not blank use
 // [NotBlankConstraint].
 type NotNilConstraint[T comparable] struct {
@@ -361,6 +371,11 @@ func (c NotNilConstraint[T]) newViolation(ctx context.Context, validator *valida
 	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(c.messageParameters...).
 		Create()
+}
+
+// Validate implements [validation.Constraint][T] so the constraint can be used with [validation.Each] and [validation.This].
+func (c NotNilConstraint[T]) Validate(ctx context.Context, validator *validation.Validator, v T) error {
+	return c.ValidateComparable(ctx, validator, &v)
 }
 
 // NilConstraint checks that a value in strictly equal to nil. To check that values in blank use
@@ -452,6 +467,11 @@ func (c NilConstraint[T]) newViolation(ctx context.Context, validator *validatio
 		Create()
 }
 
+// Validate implements [validation.Constraint][T] so the constraint can be used with [validation.Each] and [validation.This].
+func (c NilConstraint[T]) Validate(ctx context.Context, validator *validation.Validator, v T) error {
+	return c.ValidateComparable(ctx, validator, &v)
+}
+
 // BoolConstraint checks that a bool value in strictly equal to expected bool value.
 type BoolConstraint struct {
 	isIgnored         bool
@@ -515,4 +535,9 @@ func (c BoolConstraint) ValidateBool(ctx context.Context, validator *validation.
 	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
 		WithParameters(c.messageParameters...).
 		Create()
+}
+
+// Validate implements [validation.Constraint][bool] so the constraint can be used with [validation.Each] and [validation.This].
+func (c BoolConstraint) Validate(ctx context.Context, validator *validation.Validator, v bool) error {
+	return c.ValidateBool(ctx, validator, &v)
 }

@@ -115,3 +115,8 @@ func (c ChoiceConstraint[T]) ValidateComparable(ctx context.Context, validator *
 		).
 		Create()
 }
+
+// Validate implements [validation.Constraint][T] so the constraint can be used with [validation.Each] and [validation.This].
+func (c ChoiceConstraint[T]) Validate(ctx context.Context, validator *validation.Validator, v T) error {
+	return c.ValidateComparable(ctx, validator, &v)
+}

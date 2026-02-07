@@ -25,13 +25,10 @@ func ExampleFunc() {
 
 // ExampleEach demonstrates validating each element of a slice with [validation.Constraint] list.
 // Violation paths include the element index (e.g. [0], [1]).
+// Constraints from the [it] package implement [validation.Constraint], so you can pass them directly.
 func ExampleEach() {
-	notBlank := validation.Func[string](func(ctx context.Context, v *validation.Validator, s string) error {
-		return v.Validate(ctx, validation.String(s, it.IsNotBlank()))
-	})
-
 	items := []string{"ok", "", "valid"}
-	err := validator.Validate(context.Background(), validation.Each(items, notBlank))
+	err := validator.Validate(context.Background(), validation.Each(items, it.IsNotBlank()))
 
 	if violations, ok := validation.UnwrapViolations(err); ok {
 		for el := violations.First(); el != nil; el = el.Next() {
@@ -45,12 +42,8 @@ func ExampleEach() {
 // ExampleEachProperty demonstrates [validation.EachProperty], which adds a property name to the violation path.
 // Paths look like "tags[0]", "tags[1]" instead of "[0]", "[1]".
 func ExampleEachProperty() {
-	notBlank := validation.Func[string](func(ctx context.Context, v *validation.Validator, s string) error {
-		return v.Validate(ctx, validation.String(s, it.IsNotBlank()))
-	})
-
 	tags := []string{"", ""}
-	err := validator.Validate(context.Background(), validation.EachProperty("tags", tags, notBlank))
+	err := validator.Validate(context.Background(), validation.EachProperty("tags", tags, it.IsNotBlank()))
 
 	if violations, ok := validation.UnwrapViolations(err); ok {
 		for el := violations.First(); el != nil; el = el.Next() {
@@ -60,6 +53,21 @@ func ExampleEachProperty() {
 	// Output:
 	// violation at "tags[0]": "This value should not be blank."
 	// violation at "tags[1]": "This value should not be blank."
+}
+
+// ExampleEach_withItConstraints shows using [validation.Each] with multiple constraints from the [it] package.
+func ExampleEach_withItConstraints() {
+	items := []string{"ab", "abc", "x"}
+	err := validator.Validate(context.Background(), validation.Each(items, it.IsNotBlank(), it.HasMinLength(3)))
+
+	if violations, ok := validation.UnwrapViolations(err); ok {
+		for el := violations.First(); el != nil; el = el.Next() {
+			fmt.Println(el)
+		}
+	}
+	// Output:
+	// violation at "[0]": "This value is too short. It should have 3 characters or more."
+	// violation at "[2]": "This value is too short. It should have 3 characters or more."
 }
 
 // ExampleEach_withCustomType shows using [validation.Each] with a custom element type and [validation.Func].

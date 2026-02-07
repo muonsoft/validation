@@ -101,3 +101,8 @@ func (c DateTimeConstraint) ValidateString(ctx context.Context, validator *valid
 		).
 		WithParameter("{{ value }}", *value).Create()
 }
+
+// Validate implements [validation.Constraint][string] so the constraint can be used with [validation.Each] and [validation.This].
+func (c DateTimeConstraint) Validate(ctx context.Context, validator *validation.Validator, v string) error {
+	return c.ValidateString(ctx, validator, &v)
+}

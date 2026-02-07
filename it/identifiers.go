@@ -120,3 +120,8 @@ func (c UUIDConstraint) ValidateString(ctx context.Context, validator *validatio
 		).
 		Create()
 }
+
+// Validate implements [validation.Constraint][string] so the constraint can be used with [validation.Each] and [validation.This].
+func (c UUIDConstraint) Validate(ctx context.Context, validator *validation.Validator, v string) error {
+	return c.ValidateString(ctx, validator, &v)
+}

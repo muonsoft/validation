@@ -14,10 +14,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var eachStringNotBlankConstraint = validation.Func[string](func(ctx context.Context, v *validation.Validator, s string) error {
-	return v.Validate(ctx, validation.String(s, it.IsNotBlank()))
-})
-
 func TestValidate_WhenArgumentForGivenType_ExpectValidationExecuted(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -39,7 +35,7 @@ func TestValidate_WhenArgumentForGivenType_ExpectValidationExecuted(t *testing.T
 		{"EachString", validation.EachString([]string{""}, it.IsNotBlank())},
 		{"EachNumber", validation.EachNumber[int]([]int{0}, it.IsNotBlankNumber[int]())},
 		{"EachComparable", validation.EachComparable[int]([]int{1}, it.IsOneOf(2))},
-		{"Each", validation.Each([]string{""}, eachStringNotBlankConstraint)},
+		{"Each", validation.Each([]string{""}, it.IsNotBlank())},
 		{"Valid", validation.Valid(mockValidatableString{""})},
 		{"ValidSlice", validation.ValidSlice([]mockValidatableString{{""}})},
 		{"ValidMap", validation.ValidMap(map[string]mockValidatableString{"key": {""}})},
@@ -157,7 +153,7 @@ func TestValidate_WhenPropertyArgument_ExpectValidPathInViolation(t *testing.T) 
 		},
 		{
 			name: "EachProperty",
-			argument: validation.EachProperty("property", []string{""}, eachStringNotBlankConstraint).
+			argument: validation.EachProperty("property", []string{""}, it.IsNotBlank()).
 				At(validation.PropertyName("internal")),
 			expectedPath: "property.internal[0]",
 		},

@@ -14,7 +14,7 @@ import (
 
 func TestEach_WhenInvalidElement_ExpectViolationWithIndexInPath(t *testing.T) {
 	items := []string{"ok", "", "valid"}
-	err := validator.Validate(context.Background(), validation.Each(items, eachStringNotBlankConstraint))
+	err := validator.Validate(context.Background(), validation.Each(items, it.IsNotBlank()))
 
 	validationtest.Assert(t, err).IsViolationList().WithLen(1)
 	validationtest.Assert(t, err).IsViolationList().HasViolationAt(0).WithPropertyPath("[1]")
@@ -22,7 +22,7 @@ func TestEach_WhenInvalidElement_ExpectViolationWithIndexInPath(t *testing.T) {
 
 func TestEach_WhenMultipleInvalidElements_ExpectAllViolationsCollected(t *testing.T) {
 	items := []string{"", ""}
-	err := validator.Validate(context.Background(), validation.Each(items, eachStringNotBlankConstraint))
+	err := validator.Validate(context.Background(), validation.Each(items, it.IsNotBlank()))
 
 	validationtest.Assert(t, err).IsViolationList().WithLen(2)
 	validationtest.Assert(t, err).IsViolationList().HasViolationAt(0).WithPropertyPath("[0]")
@@ -31,28 +31,28 @@ func TestEach_WhenMultipleInvalidElements_ExpectAllViolationsCollected(t *testin
 
 func TestEach_WhenValidElements_ExpectNoViolations(t *testing.T) {
 	items := []string{"a", "b", "c"}
-	err := validator.Validate(context.Background(), validation.Each(items, eachStringNotBlankConstraint))
+	err := validator.Validate(context.Background(), validation.Each(items, it.IsNotBlank()))
 
 	assert.NoError(t, err)
 }
 
 func TestEach_WhenEmptySlice_ExpectNoViolations(t *testing.T) {
 	var items []string
-	err := validator.Validate(context.Background(), validation.Each(items, eachStringNotBlankConstraint))
+	err := validator.Validate(context.Background(), validation.Each(items, it.IsNotBlank()))
 
 	assert.NoError(t, err)
 }
 
 func TestEachProperty_WhenInvalidElement_ExpectPropertyNameInPath(t *testing.T) {
 	items := []string{""}
-	err := validator.Validate(context.Background(), validation.EachProperty("tags", items, eachStringNotBlankConstraint))
+	err := validator.Validate(context.Background(), validation.EachProperty("tags", items, it.IsNotBlank()))
 
 	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithPropertyPath("tags[0]")
 }
 
 func TestEachProperty_WhenMultipleInvalid_ExpectAllViolationsWithPath(t *testing.T) {
 	items := []string{"", ""}
-	err := validator.Validate(context.Background(), validation.EachProperty("items", items, eachStringNotBlankConstraint))
+	err := validator.Validate(context.Background(), validation.EachProperty("items", items, it.IsNotBlank()))
 
 	validationtest.Assert(t, err).IsViolationList().WithLen(2)
 	validationtest.Assert(t, err).IsViolationList().HasViolationAt(0).WithPropertyPath("items[0]")
@@ -69,6 +69,31 @@ func TestFunc_ImplementsConstraint_WhenUsedInEach(t *testing.T) {
 	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithPropertyPath("[0]")
 }
 
+func TestEach_WithItConstraintDirectly_ExpectSameResultAsFuncWrapper(t *testing.T) {
+	items := []string{"ok", "", "valid"}
+	err := validator.Validate(context.Background(), validation.Each(items, it.IsNotBlank()))
+
+	validationtest.Assert(t, err).IsViolationList().WithLen(1)
+	validationtest.Assert(t, err).IsViolationList().HasViolationAt(0).WithPropertyPath("[1]")
+}
+
+func TestEach_WithItHasMinLength_ExpectViolations(t *testing.T) {
+	items := []string{"a", "ab", "abc"}
+	err := validator.Validate(context.Background(), validation.Each(items, it.HasMinLength(3)))
+
+	validationtest.Assert(t, err).IsViolationList().WithLen(2)
+	validationtest.Assert(t, err).IsViolationList().HasViolationAt(0).WithPropertyPath("[0]")
+	validationtest.Assert(t, err).IsViolationList().HasViolationAt(1).WithPropertyPath("[1]")
+}
+
+func TestEach_WithItIsOneOf_ExpectViolations(t *testing.T) {
+	items := []string{"a", "b", "c"}
+	err := validator.Validate(context.Background(), validation.Each(items, it.IsOneOf("a", "b")))
+
+	validationtest.Assert(t, err).IsViolationList().WithLen(1)
+	validationtest.Assert(t, err).IsViolationList().HasViolationAt(0).WithPropertyPath("[2]")
+}
+
 func TestEach_WhenConstraintReturnsFatalError_ExpectErrorPropagated(t *testing.T) {
 	fatalErr := errors.New("fatal")
 	fatalConstraint := validation.Func[string](func(context.Context, *validation.Validator, string) error {
@@ -83,10 +108,10 @@ func TestEach_WhenConstraintReturnsFatalError_ExpectErrorPropagated(t *testing.T
 func TestEach_WhenUsedWithThis_ExpectSameConstraintType(t *testing.T) {
 	// Each accepts Constraint[E], same as This; Func[E] implements Constraint[E]
 	single := ""
-	errSingle := validator.Validate(context.Background(), validation.This(single, eachStringNotBlankConstraint))
+	errSingle := validator.Validate(context.Background(), validation.This(single, it.IsNotBlank()))
 	validationtest.Assert(t, errSingle).IsViolationList().WithOneViolation()
 
 	slice := []string{""}
-	errSlice := validator.Validate(context.Background(), validation.Each(slice, eachStringNotBlankConstraint))
+	errSlice := validator.Validate(context.Background(), validation.Each(slice, it.IsNotBlank()))
 	validationtest.Assert(t, errSlice).IsViolationList().WithOneViolation().WithPropertyPath("[0]")
 }
