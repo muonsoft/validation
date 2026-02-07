@@ -161,11 +161,10 @@ err := validator.Validate(
     ),
 )
 
-if violations, ok := validation.UnwrapViolationList(err); ok {
-    violations.ForEach(func (i int, violation validation.Violation) error {
+if violations, ok := validation.UnwrapViolations(err); ok {
+    for _, violation := range violations.All() {
         fmt.Println("property path:", violation.PropertyPath().String())
-        return nil
-    })
+    }
 }
 // Output:
 // property path: properties[1].tag
@@ -181,11 +180,10 @@ err := validator.
     AtProperty("tag").
     Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
-if violations, ok := validation.UnwrapViolationList(err); ok {
-    violations.ForEach(func (i int, violation validation.Violation) error {
+if violations, ok := validation.UnwrapViolations(err); ok {
+    for _, violation := range violations.All() {
         fmt.Println("property path:", violation.PropertyPath().String())
-        return nil
-    })
+    }
 }
 // Output:
 // property path: properties[1].tag
@@ -219,11 +217,10 @@ err := validator.Validate(
     validation.StringProperty("property", "", it.IsNotBlank()),
 )
 
-if violations, ok := validation.UnwrapViolationList(err); ok {
-    violations.ForEach(func (i int, violation validation.Violation) error {
+if violations, ok := validation.UnwrapViolations(err); ok {
+    for _, violation := range violations.All() {
         fmt.Println("property path:", violation.PropertyPath().String())
-        return nil
-    })
+    }
 }
 // Output:
 // property path: property
@@ -248,11 +245,10 @@ err := validator.Validate(
     validation.EachStringProperty("keywords", document.Keywords, it.IsNotBlank()),
 )
 
-if violations, ok := validation.UnwrapViolationList(err); ok {
-    violations.ForEach(func (i int, violation validation.Violation) error {
+if violations, ok := validation.UnwrapViolations(err); ok {
+    for _, violation := range violations.All() {
         fmt.Println(violation)
-        return nil
-    })
+    }
 }
 // Output:
 // violation at 'title': This value should not be blank.
@@ -318,11 +314,10 @@ func main() {
     
     err := validator.ValidateIt(context.Background(), p)
 
-    if violations, ok := validation.UnwrapViolationList(err); ok {
-        violations.ForEach(func (i int, violation validation.Violation) error {
+    if violations, ok := validation.UnwrapViolations(err); ok {
+        for _, violation := range violations.All() {
             fmt.Println(violation)
-            return nil
-        })
+        }
     }
     // Output:
     // violation at 'name': This value should not be blank.
@@ -344,11 +339,10 @@ err := validator.Validate(
     validation.StringProperty("text", note.Text, it.IsNotBlank().When(note.IsPublic)),
 )
 
-if violations, ok := validation.UnwrapViolationList(err); ok {
-    violations.ForEach(func (i int, violation validation.Violation) error {
+if violations, ok := validation.UnwrapViolations(err); ok {
+    for _, violation := range violations.All() {
         fmt.Println(violation)
-        return nil
-    })
+    }
 }
 // Output:
 // violation at 'text': This value should not be blank.
@@ -387,11 +381,11 @@ if err != nil {
 }
 ```
 
-Also, you can use helper function `validation.UnwrapViolationList()`.
+Also, you can use helper function `validation.UnwrapViolations()`.
 
 ```golang
 err := validator.Validate(/* validation arguments */)
-if violations, ok := validation.UnwrapViolationList(err); ok {
+if violations, ok := validation.UnwrapViolations(err); ok {
     // handle violations
 } else if err != nil {
     // handle internal error
@@ -453,11 +447,10 @@ validator, _ := validation.NewValidator(
 
 err := validator.ValidateString(context.Background(), "", it.IsNotBlank())
 
-if violations, ok := validation.UnwrapViolationList(err); ok {
-    violations.ForEach(func (i int, violation validation.Violation) error {
+if violations, ok := validation.UnwrapViolations(err); ok {
+    for _, violation := range violations.All() {
         fmt.Println(violation.Error())
-        return nil
-    })
+    }
 }
 // Output:
 // violation: Значение не должно быть пустым.
@@ -475,11 +468,10 @@ err := validator.WithLanguage(language.Russian).Validate(
     validation.String("", it.IsNotBlank()),
 )
 
-if violations, ok := validation.UnwrapViolationList(err); ok {
-    violations.ForEach(func (i int, violation validation.Violation) error {
+if violations, ok := validation.UnwrapViolations(err); ok {
+    for _, violation := range violations.All() {
         fmt.Println(violation.Error())
-        return nil
-    })
+    }
 }
 // Output:
 // violation: Значение не должно быть пустым.
@@ -498,11 +490,10 @@ validator, _ := validation.NewValidator(
 ctx := language.WithContext(context.Background(), language.Russian)
 err := validator.ValidateString(ctx, "", it.IsNotBlank())
 
-if violations, ok := validation.UnwrapViolationList(err); ok {
-    violations.ForEach(func (i int, violation validation.Violation) error {
+if violations, ok := validation.UnwrapViolations(err); ok {
+    for _, violation := range violations.All() {
         fmt.Println(violation.Error())
-        return nil
-    })
+    }
 }
 // Output:
 // violation: Значение не должно быть пустым.
@@ -546,11 +537,10 @@ constraint to know what parameters are available.
 ```golang
 err := validator.ValidateString(context.Background(), "", it.IsNotBlank().Message("this value is required"))
 
-if violations, ok := validation.UnwrapViolationList(err); ok {
-    violations.ForEach(func (i int, violation validation.Violation) error {
+if violations, ok := validation.UnwrapViolations(err); ok {
+    for _, violation := range violations.All() {
         fmt.Println(violation.Error())
-        return nil
-    })
+    }
 }
 // Output:
 // violation: this value is required
@@ -581,11 +571,10 @@ err := validator.ValidateIterable(
     it.HasMinCount(1).MinMessage(customMessage),
 )
 
-if violations, ok := validation.UnwrapViolationList(err); ok {
-    violations.ForEach(func (i int, violation validation.Violation) error {
+if violations, ok := validation.UnwrapViolations(err); ok {
+    for _, violation := range violations.All() {
         fmt.Println(violation.Error())
-        return nil
-    })
+    }
 }
 // Output:
 // violation: теги должны содержать 1 элемент и более
