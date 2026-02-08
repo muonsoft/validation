@@ -177,7 +177,7 @@ func validateEach[E any](items []E, constraints []Constraint[E]) ValidateFunc {
 func validateIt(value Validatable) ValidateFunc {
 	return func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		err := value.Validate(ctx, validator)
-		violations, ok := UnwrapViolationList(err)
+		violations, ok := UnwrapViolations(err)
 		if ok {
 			return violations, nil
 		}
