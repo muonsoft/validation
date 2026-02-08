@@ -175,6 +175,16 @@ func ComparablesProperty[T comparable](name string, values []T, constraints ...C
 	return NewArgument(validateComparables(values, constraints)).At(PropertyName(name))
 }
 
+// Slice argument is used to validate a generic slice with [SliceConstraint] list.
+func Slice[T any](value []T, constraints ...SliceConstraint[T]) ValidatorArgument {
+	return NewArgument(validateSliceWithConstraints(value, constraints))
+}
+
+// SliceProperty argument is an alias for [Slice] that automatically adds property name to the current validation context.
+func SliceProperty[T any](name string, value []T, constraints ...SliceConstraint[T]) ValidatorArgument {
+	return Slice(value, constraints...).At(PropertyName(name))
+}
+
 // EachString is used to validate a slice of strings.
 func EachString(values []string, constraints ...StringConstraint) ValidatorArgument {
 	return NewArgument(validateEachString(values, constraints))

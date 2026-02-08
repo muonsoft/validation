@@ -647,6 +647,115 @@ func (c UniqueConstraint[T]) ValidateComparables(ctx context.Context, validator 
 		Create()
 }
 
+// UniqueItemKeyFunc extracts a comparable key from a slice element for uniqueness check.
+type UniqueItemKeyFunc[T any, K comparable] func(item T) (key K)
+
+// SkipUniqueItemFunc determines whether a slice element should be skipped in uniqueness check.
+type SkipUniqueItemFunc[T any] func(item T) bool
+
+// UniqueByConstraint is used to check that all elements of the given slice are unique by key.
+// Use [HasUniqueValuesBy] to create it. The constraint implements [validation.SliceConstraint].
+type UniqueByConstraint[T any, K comparable] struct {
+	isIgnored         bool
+	groups            []string
+	err               error
+	messageTemplate   string
+	messageParameters validation.TemplateParameterList
+	getKey            UniqueItemKeyFunc[T, K]
+	skip              SkipUniqueItemFunc[T]
+	propertyPath      []validation.PropertyPathElement
+}
+
+// HasUniqueValuesBy checks that all elements of the given slice are unique by the key
+// returned by keyFunc. Use with [validation.Slice] or [validation.SliceProperty].
+func HasUniqueValuesBy[T any, K comparable](keyFunc UniqueItemKeyFunc[T, K]) UniqueByConstraint[T, K] {
+	return UniqueByConstraint[T, K]{
+		getKey:          keyFunc,
+		err:             validation.ErrNotUnique,
+		messageTemplate: validation.ErrNotUnique.Message(),
+	}
+}
+
+// WithError overrides default error for produced violation.
+func (c UniqueByConstraint[T, K]) WithError(err error) UniqueByConstraint[T, K] {
+	c.err = err
+	return c
+}
+
+// WithMessage sets the violation message template. You can set custom template parameters
+// for injecting its values into the final message.
+func (c UniqueByConstraint[T, K]) WithMessage(template string, parameters ...validation.TemplateParameter) UniqueByConstraint[T, K] {
+	c.messageTemplate = template
+	c.messageParameters = parameters
+	return c
+}
+
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
+func (c UniqueByConstraint[T, K]) When(condition bool) UniqueByConstraint[T, K] {
+	c.isIgnored = !condition
+	return c
+}
+
+// WhenGroups enables conditional validation of the constraint by using the validation groups.
+func (c UniqueByConstraint[T, K]) WhenGroups(groups ...string) UniqueByConstraint[T, K] {
+	c.groups = groups
+	return c
+}
+
+// SkipWhen sets a function to skip elements that should not participate in the uniqueness check.
+func (c UniqueByConstraint[T, K]) SkipWhen(skip SkipUniqueItemFunc[T]) UniqueByConstraint[T, K] {
+	c.skip = skip
+	return c
+}
+
+// At appends elements to the property path of produced violations (e.g. for nested paths).
+func (c UniqueByConstraint[T, K]) At(propertyPath ...validation.PropertyPathElement) UniqueByConstraint[T, K] {
+	c.propertyPath = propertyPath
+	return c
+}
+
+// ValidateSlice implements [validation.SliceConstraint][T].
+func (c UniqueByConstraint[T, K]) ValidateSlice(ctx context.Context, validator *validation.Validator, items []T) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) {
+		return nil
+	}
+
+	itemsCountByKey := c.collectItemsCountByKey(items)
+
+	builder := validator.BuildViolationList(ctx)
+	for i, item := range items {
+		if c.skip != nil && c.skip(item) {
+			continue
+		}
+		key := c.getKey(item)
+
+		if itemsCountByKey[key] > 1 {
+			builder.BuildViolation(c.err, c.messageTemplate).
+				AtIndex(i).
+				At(c.propertyPath...).
+				WithParameters(c.messageParameters...).
+				Add()
+		}
+	}
+
+	return builder.Create().AsError()
+}
+
+func (c UniqueByConstraint[T, K]) collectItemsCountByKey(items []T) map[K]int {
+	itemsCountByKey := make(map[K]int, len(items))
+	for _, item := range items {
+		if c.skip != nil && c.skip(item) {
+			continue
+		}
+		key := c.getKey(item)
+
+		itemsCountByKey[key]++
+	}
+
+	return itemsCountByKey
+}
+
 func formatComparable[T comparable](value T) string {
 	if s, ok := any(value).(string); ok {
 		return `"` + s + `"`

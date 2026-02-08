@@ -122,6 +122,19 @@ if violations, ok := validation.UnwrapViolations(err); ok {
 // violation at 'keywords[0]': This value should not be blank.
 ```
 
+To check uniqueness by a key (e.g. by struct field), use `validation.Slice` or `validation.SliceProperty` with
+`it.HasUniqueValuesBy(keyFunc)`. Violations will include the element index in the path (e.g. `items[0]`, `items[1]`):
+
+```go
+type Item struct { ID string }
+items := []Item{{ID: "a"}, {ID: "b"}, {ID: "a"}}
+err := validator.Validate(ctx,
+    validation.SliceProperty("items", items, it.HasUniqueValuesBy(func(x Item) string { return x.ID })),
+)
+// violation at 'items[0]': This collection should contain only unique elements.
+// violation at 'items[2]': This collection should contain only unique elements.
+```
+
 The recommended way is to implement the `validation.Validatable` interface for your structures. By using it you can
 build complex validation rules on a set of objects used in other objects.
 
