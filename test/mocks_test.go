@@ -98,3 +98,10 @@ type asyncConstraint func(ctx context.Context, validator *validation.Validator, 
 func (f asyncConstraint) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
 	return f(ctx, validator, value)
 }
+
+// mockFailingSliceConstraint implements validation.SliceConstraint[string] and always returns one violation.
+type mockFailingSliceConstraint struct{}
+
+func (mockFailingSliceConstraint) ValidateSlice(ctx context.Context, validator *validation.Validator, items []string) error {
+	return validator.BuildViolation(ctx, validation.ErrNotValid, "invalid").Create()
+}

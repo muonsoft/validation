@@ -420,6 +420,40 @@ func ExampleHasUniqueValues() {
 	// violation: "This collection should contain only unique elements."
 }
 
+func ExampleHasUniqueValuesBy() {
+	type item struct {
+		ID string
+	}
+	items := []item{{ID: "a"}, {ID: "b"}, {ID: "a"}}
+
+	err := validator.Validate(
+		context.Background(),
+		validation.Slice(items, it.HasUniqueValuesBy(func(x item) string { return x.ID })),
+	)
+
+	fmt.Println(err)
+	// Output:
+	// violations: #0 at "[0]": "This collection should contain only unique elements."; #1 at "[2]": "This collection should contain only unique elements."
+}
+
+func ExampleHasUniqueValuesBy_skipWhen() {
+	type item struct {
+		ID string
+	}
+	// Empty ID items are skipped; only "a" and "b" are checked for uniqueness.
+	items := []item{{ID: ""}, {ID: "a"}, {ID: "b"}, {ID: ""}}
+
+	err := validator.Validate(
+		context.Background(),
+		validation.Slice(items, it.HasUniqueValuesBy(func(x item) string { return x.ID }).
+			SkipWhen(func(x item) bool { return x.ID == "" })),
+	)
+
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
 func ExampleIsDateTime() {
 	fmt.Println(
 		"#1 invalid:",

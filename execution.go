@@ -245,3 +245,18 @@ func validateComparables[T comparable](values []T, constraints []ComparablesCons
 		return violations, nil
 	}
 }
+
+func validateSliceWithConstraints[T any](values []T, constraints []SliceConstraint[T]) ValidateFunc {
+	return func(ctx context.Context, validator *Validator) (*ViolationList, error) {
+		violations := NewViolationList()
+
+		for i := range constraints {
+			err := violations.AppendFromError(constraints[i].ValidateSlice(ctx, validator, values))
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return violations, nil
+	}
+}

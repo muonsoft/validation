@@ -34,6 +34,8 @@ List of common [validation arguments](https://pkg.go.dev/github.com/muonsoft/val
 * `validation.Comparable[T]()` - passes generic comparable value to test against comparable constraints;
 * `validation.NilComparable[T]()` - passes generic comparable pointer value to test against comparable constraints;
 * `validation.Comparables[T]()` - passes generic slice of comparable values (can be used to check for uniqueness of the elements);
+* `validation.Slice[T]()` - passes generic slice to test against [SliceConstraint] list (e.g. uniqueness by key via `it.HasUniqueValuesBy()`);
+* `validation.SliceProperty[T]()` - same as [Slice] with property name in violation path;
 * `validation.Check()` - passes result of any boolean expression;
 * `validation.CheckNoViolations()` - passes `error` to check err for violations, can be used for embedded validation.
 

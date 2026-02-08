@@ -57,6 +57,11 @@ type ComparablesConstraint[T comparable] interface {
 	ValidateComparables(ctx context.Context, validator *Validator, values []T) error
 }
 
+// SliceConstraint is used to build constraints for generic slice validation.
+type SliceConstraint[T any] interface {
+	ValidateSlice(ctx context.Context, validator *Validator, items []T) error
+}
+
 // CountableConstraint is used to build constraints for simpler validation of iterable elements count.
 type CountableConstraint interface {
 	ValidateCountable(ctx context.Context, validator *Validator, count int) error
