@@ -226,13 +226,20 @@ func EachProperty[E any](name string, items []E, constraints ...Constraint[E]) V
 	return Each(items, constraints...).At(PropertyName(name))
 }
 
-// CheckNoViolations is a special argument that checks err for violations. If err contains [Violation] or [ViolationList]
-// then these violations will be appended into returned violation list from the validator. If err contains an error
-// that does not implement an error interface, then the validation process will be terminated and
-// this error will be returned.
-func CheckNoViolations(err error) ValidatorArgument {
+// CheckNoViolations is a special argument that checks errs for violations. If an error contains [Violation] or [ViolationList]
+// then these violations will be appended into returned violation list from the validator. If an error
+// does not implement [Violation] or [ViolationList], then the validation process will be terminated and
+// that error will be returned.
+func CheckNoViolations(errs ...error) ValidatorArgument {
 	return NewArgument(func(ctx context.Context, validator *Validator) (*ViolationList, error) {
-		return unwrapViolationList(err)
+		violations := NewViolationList()
+		for _, err := range errs {
+			fatal := violations.AppendFromError(err)
+			if fatal != nil {
+				return nil, fatal
+			}
+		}
+		return violations, nil
 	})
 }
 
