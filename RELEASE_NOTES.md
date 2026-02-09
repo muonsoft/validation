@@ -7,7 +7,6 @@
 - **Slice validation**: `Slice`, `SliceProperty`, `Each`, and `EachProperty` for validating slices with per-element constraints.
 - **HasUniqueValuesBy**: Constraint to ensure slice elements are unique by a key function.
 - **Validate method on constraints**: Constraints can now be used directly with `Each` and `This`.
-- **AGENTS.md**: Guide for AI agents and contributors.
 
 ### Changed
 
