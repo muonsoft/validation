@@ -97,7 +97,7 @@ func ExampleValidatableFunc_Validate() {
 
 	err := validator.Validate(context.Background(), validation.Valid(store))
 
-	if violations, ok := validation.UnwrapViolationList(err); ok {
+	if violations, ok := validation.UnwrapViolations(err); ok {
 		violations.ForEach(func(i int, violation validation.Violation) error {
 			fmt.Println(violation)
 			return nil

@@ -156,10 +156,28 @@ func validateEachComparable[T comparable](values []T, constraints []ComparableCo
 	}
 }
 
+func validateEach[E any](items []E, constraints []Constraint[E]) ValidateFunc {
+	return func(ctx context.Context, validator *Validator) (*ViolationList, error) {
+		violations := NewViolationList()
+
+		for i := range items {
+			v := validator.AtIndex(i)
+			for _, c := range constraints {
+				err := violations.AppendFromError(c.Validate(ctx, v, items[i]))
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+
+		return violations, nil
+	}
+}
+
 func validateIt(value Validatable) ValidateFunc {
 	return func(ctx context.Context, validator *Validator) (*ViolationList, error) {
 		err := value.Validate(ctx, validator)
-		violations, ok := UnwrapViolationList(err)
+		violations, ok := UnwrapViolations(err)
 		if ok {
 			return violations, nil
 		}
@@ -219,6 +237,21 @@ func validateComparables[T comparable](values []T, constraints []ComparablesCons
 
 		for i := range constraints {
 			err := violations.AppendFromError(constraints[i].ValidateComparables(ctx, validator, values))
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return violations, nil
+	}
+}
+
+func validateSliceWithConstraints[T any](values []T, constraints []SliceConstraint[T]) ValidateFunc {
+	return func(ctx context.Context, validator *Validator) (*ViolationList, error) {
+		violations := NewViolationList()
+
+		for i := range constraints {
+			err := violations.AppendFromError(constraints[i].ValidateSlice(ctx, validator, values))
 			if err != nil {
 				return nil, err
 			}

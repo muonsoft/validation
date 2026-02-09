@@ -664,7 +664,7 @@ func ExampleAtLeastOneOf() {
 				validation.CountableProperty("brands", len(banner.Brands), it.IsNotBlank()),
 			),
 		)
-		if violations, ok := validation.UnwrapViolationList(err); ok {
+		if violations, ok := validation.UnwrapViolations(err); ok {
 			fmt.Println("banner", banner.Name, "is not valid:")
 			for violation := violations.First(); violation != nil; violation = violation.Next() {
 				fmt.Println(violation)
@@ -704,7 +704,7 @@ func ExampleAll() {
 		),
 	)
 
-	if violations, ok := validation.UnwrapViolationList(err); ok {
+	if violations, ok := validation.UnwrapViolations(err); ok {
 		for violation := violations.First(); violation != nil; violation = violation.Next() {
 			fmt.Println(violation)
 		}
@@ -735,7 +735,7 @@ func ExampleAtProperty() {
 		),
 	)
 
-	if violations, ok := validation.UnwrapViolationList(err); ok {
+	if violations, ok := validation.UnwrapViolations(err); ok {
 		for violation := violations.First(); violation != nil; violation = violation.Next() {
 			fmt.Println(violation)
 		}
@@ -855,7 +855,7 @@ func ExampleValidator_Validate_basicStructValidation() {
 		validation.EachStringProperty("keywords", document.Keywords, it.IsNotBlank()),
 	)
 
-	if violations, ok := validation.UnwrapViolationList(err); ok {
+	if violations, ok := validation.UnwrapViolations(err); ok {
 		for violation := violations.First(); violation != nil; violation = violation.Next() {
 			fmt.Println(violation)
 		}
@@ -883,7 +883,7 @@ func ExampleValidator_Validate_conditionalValidationOnConstraint() {
 			validation.StringProperty("name", note.Title, it.IsNotBlank()),
 			validation.StringProperty("text", note.Text, it.IsNotBlank().When(note.IsPublic)),
 		)
-		if violations, ok := validation.UnwrapViolationList(err); ok {
+		if violations, ok := validation.UnwrapViolations(err); ok {
 			for violation := violations.First(); violation != nil; violation = violation.Next() {
 				fmt.Printf("error on note %d: %s", i, violation)
 			}

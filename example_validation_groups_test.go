@@ -48,13 +48,13 @@ func ExampleValidator_WithGroups() {
 	err1 := validator.WithGroups("registration").Validate(context.Background(), validation.Valid(user))
 	err2 := validator.Validate(context.Background(), validation.Valid(user))
 
-	if violations, ok := validation.UnwrapViolationList(err1); ok {
+	if violations, ok := validation.UnwrapViolations(err1); ok {
 		fmt.Println("violations for registration group:")
 		for violation := violations.First(); violation != nil; violation = violation.Next() {
 			fmt.Println(violation)
 		}
 	}
-	if violations, ok := validation.UnwrapViolationList(err2); ok {
+	if violations, ok := validation.UnwrapViolations(err2); ok {
 		fmt.Println("violations for default group:")
 		for violation := violations.First(); violation != nil; violation = violation.Next() {
 			fmt.Println(violation)

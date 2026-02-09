@@ -32,9 +32,11 @@ func TestValidate_WhenArgumentForGivenType_ExpectValidationExecuted(t *testing.T
 		{"Comparable", validation.Comparable[string]("foo", it.IsOneOf("bar"))},
 		{"NilComparable", validation.NilComparable[string](stringValue("foo"), it.IsOneOf("bar"))},
 		{"Comparables", validation.Comparables[string]([]string{"foo", "foo"}, it.HasUniqueValues[string]())},
+		{"Slice", validation.Slice([]string{"a"}, mockFailingSliceConstraint{})},
 		{"EachString", validation.EachString([]string{""}, it.IsNotBlank())},
 		{"EachNumber", validation.EachNumber[int]([]int{0}, it.IsNotBlankNumber[int]())},
 		{"EachComparable", validation.EachComparable[int]([]int{1}, it.IsOneOf(2))},
+		{"Each", validation.Each([]string{""}, it.IsNotBlank())},
 		{"Valid", validation.Valid(mockValidatableString{""})},
 		{"ValidSlice", validation.ValidSlice([]mockValidatableString{{""}})},
 		{"ValidMap", validation.ValidMap(map[string]mockValidatableString{"key": {""}})},
@@ -133,6 +135,12 @@ func TestValidate_WhenPropertyArgument_ExpectValidPathInViolation(t *testing.T) 
 			expectedPath: "property.internal",
 		},
 		{
+			name: "SliceProperty",
+			argument: validation.SliceProperty("property", []string{"a"}, mockFailingSliceConstraint{}).
+				At(validation.PropertyName("internal")),
+			expectedPath: "property.internal",
+		},
+		{
 			name: "EachStringProperty",
 			argument: validation.EachStringProperty("property", []string{""}, it.IsNotBlank()).
 				At(validation.PropertyName("internal")),
@@ -147,6 +155,12 @@ func TestValidate_WhenPropertyArgument_ExpectValidPathInViolation(t *testing.T) 
 		{
 			name: "EachComparableProperty",
 			argument: validation.EachComparableProperty[string]("property", []string{"foo"}, it.IsOneOf("bar")).
+				At(validation.PropertyName("internal")),
+			expectedPath: "property.internal[0]",
+		},
+		{
+			name: "EachProperty",
+			argument: validation.EachProperty("property", []string{""}, it.IsNotBlank()).
 				At(validation.PropertyName("internal")),
 			expectedPath: "property.internal[0]",
 		},
@@ -270,4 +284,93 @@ func TestCheckNoViolations_WhenThereIsAnError_ExpectError(t *testing.T) {
 	)
 
 	assert.EqualError(t, err, "error")
+}
+
+type itemWithID struct {
+	ID string
+}
+
+func TestSlice_HasUniqueValuesBy_WhenUniqueKeys_ExpectNoError(t *testing.T) {
+	items := []itemWithID{{ID: "a"}, {ID: "b"}, {ID: "c"}}
+
+	err := validator.Validate(
+		context.Background(),
+		validation.Slice(items, it.HasUniqueValuesBy(func(x itemWithID) string { return x.ID })),
+	)
+
+	assert.NoError(t, err)
+}
+
+func TestSlice_HasUniqueValuesBy_WhenDuplicateKeys_ExpectViolationsAtIndex(t *testing.T) {
+	items := []itemWithID{{ID: "a"}, {ID: "b"}, {ID: "a"}}
+
+	err := validator.Validate(
+		context.Background(),
+		validation.Slice(items, it.HasUniqueValuesBy(func(x itemWithID) string { return x.ID })),
+	)
+
+	validationtest.Assert(t, err).IsViolationList().WithLen(2).
+		WithErrors(validation.ErrNotUnique, validation.ErrNotUnique)
+	// Both indices 0 and 2 have duplicate key "a"
+	list, _ := validation.UnwrapViolations(err)
+	paths := make([]string, 0, 2)
+	list.ForEach(func(i int, v validation.Violation) error {
+		paths = append(paths, v.PropertyPath().String())
+		return nil
+	})
+	assert.Contains(t, paths, "[0]")
+	assert.Contains(t, paths, "[2]")
+}
+
+func TestSlice_HasUniqueValuesBy_WhenEmptySlice_ExpectNoError(t *testing.T) {
+	items := []itemWithID{}
+
+	err := validator.Validate(
+		context.Background(),
+		validation.Slice(items, it.HasUniqueValuesBy(func(x itemWithID) string { return x.ID })),
+	)
+
+	assert.NoError(t, err)
+}
+
+func TestSlice_HasUniqueValuesBy_WhenNilSlice_ExpectNoError(t *testing.T) {
+	var items []itemWithID
+
+	err := validator.Validate(
+		context.Background(),
+		validation.Slice(items, it.HasUniqueValuesBy(func(x itemWithID) string { return x.ID })),
+	)
+
+	assert.NoError(t, err)
+}
+
+func TestSlice_HasUniqueValuesBy_WhenSkipWhen_ExpectSkippedItemsNotChecked(t *testing.T) {
+	items := []itemWithID{{ID: ""}, {ID: "a"}, {ID: ""}} // empty ID skipped, so only "a" counted once
+
+	err := validator.Validate(
+		context.Background(),
+		validation.Slice(items, it.HasUniqueValuesBy(func(x itemWithID) string { return x.ID }).
+			SkipWhen(func(x itemWithID) bool { return x.ID == "" })),
+	)
+
+	assert.NoError(t, err)
+}
+
+func TestSliceProperty_HasUniqueValuesBy_WhenDuplicateKeys_ExpectPropertyPathWithIndex(t *testing.T) {
+	items := []itemWithID{{ID: "x"}, {ID: "x"}}
+
+	err := validator.Validate(
+		context.Background(),
+		validation.SliceProperty("items", items, it.HasUniqueValuesBy(func(x itemWithID) string { return x.ID })),
+	)
+
+	validationtest.Assert(t, err).IsViolationList().WithLen(2)
+	list, _ := validation.UnwrapViolations(err)
+	paths := make([]string, 0, 2)
+	list.ForEach(func(i int, v validation.Violation) error {
+		paths = append(paths, v.PropertyPath().String())
+		return nil
+	})
+	assert.Contains(t, paths, "items[0]")
+	assert.Contains(t, paths, "items[1]")
 }

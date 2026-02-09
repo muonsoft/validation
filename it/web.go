@@ -193,6 +193,11 @@ func (c URLConstraint) ValidateString(ctx context.Context, validator *validation
 	return nil
 }
 
+// Validate implements [validation.Constraint][string] so the constraint can be used with [validation.Each] and [validation.This].
+func (c URLConstraint) Validate(ctx context.Context, validator *validation.Validator, v string) error {
+	return c.ValidateString(ctx, validator, &v)
+}
+
 func (c URLConstraint) getRestrictions() []func(u *url.URL) error {
 	schemas := c.schemas
 	if c.supportsRelativeSchema {
@@ -372,4 +377,9 @@ func (c IPConstraint) validateIP(ctx context.Context, validator *validation.Vali
 			)...,
 		).
 		Create()
+}
+
+// Validate implements [validation.Constraint][string] so the constraint can be used with [validation.Each] and [validation.This].
+func (c IPConstraint) Validate(ctx context.Context, validator *validation.Validator, v string) error {
+	return c.ValidateString(ctx, validator, &v)
 }

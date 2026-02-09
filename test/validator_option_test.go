@@ -12,13 +12,16 @@ import (
 )
 
 func TestWhenGlobalValidatorWithOverriddenNewViolation_ExpectCustomViolation(t *testing.T) {
-	err := validator.SetUp(validation.SetViolationFactory(mockNewViolationFunc()))
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer validator.SetUp()
+	v := newValidator(t,
+		validation.SetViolationFactory(mockNewViolationFunc()),
+	)
+	validator.SetDefault(v)
+	defer func() {
+		d := newValidator(t)
+		validator.SetDefault(d)
+	}()
 
-	err = validator.Validate(context.Background(), validation.String("", it.IsNotBlank()))
+	err := validator.Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
 	validationtest.Assert(t, err).IsViolationList().Assert(func(tb testing.TB, violations []validation.Violation) {
 		tb.Helper()

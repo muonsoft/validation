@@ -174,16 +174,17 @@ func TestValidator_Validate_WhenTranslatableParameter_ExpectParameterTranslated(
 }
 
 func TestValidate_WhenTranslationsLoadedAfterInit_ExpectTranslationsWorking(t *testing.T) {
-	err := validator.SetUp(
+	v := newValidator(t,
 		validation.DefaultLanguage(language.Russian),
 		validation.Translations(russian.Messages),
 	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer validator.SetUp()
+	validator.SetDefault(v)
+	defer func() {
+		d := newValidator(t)
+		validator.SetDefault(d)
+	}()
 
-	err = validator.Validate(context.Background(), validation.String("", it.IsNotBlank()))
+	err := validator.Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
 	validationtest.Assert(t, err).IsViolationList().WithOneViolation().WithMessage("Значение не должно быть пустым.")
 }

@@ -17,6 +17,16 @@ type Constraint[T any] interface {
 	Validate(ctx context.Context, validator *Validator, v T) error
 }
 
+// Func is a function type that implements [Constraint] for type T.
+// It allows using plain functions (including closures) as constraints without defining a struct,
+// for example with [Each] or [EachProperty].
+type Func[T any] func(ctx context.Context, validator *Validator, v T) error
+
+// Validate calls the underlying function and implements [Constraint][T].
+func (f Func[T]) Validate(ctx context.Context, validator *Validator, v T) error {
+	return f(ctx, validator, v)
+}
+
 // NilConstraint is used for a special cases to check a value for nil.
 type NilConstraint interface {
 	ValidateNil(ctx context.Context, validator *Validator, isNil bool) error
@@ -45,6 +55,11 @@ type ComparableConstraint[T comparable] interface {
 // ComparablesConstraint is used to build constraints for generic comparable values validation.
 type ComparablesConstraint[T comparable] interface {
 	ValidateComparables(ctx context.Context, validator *Validator, values []T) error
+}
+
+// SliceConstraint is used to build constraints for generic slice validation.
+type SliceConstraint[T any] interface {
+	ValidateSlice(ctx context.Context, validator *Validator, items []T) error
 }
 
 // CountableConstraint is used to build constraints for simpler validation of iterable elements count.
@@ -119,4 +134,9 @@ func (c StringFuncConstraint) ValidateString(ctx context.Context, validator *Val
 		).
 		WithParameter("{{ value }}", *value).
 		Create()
+}
+
+// Validate implements [Constraint][string] so the constraint can be used with [Each] and [This].
+func (c StringFuncConstraint) Validate(ctx context.Context, validator *Validator, v string) error {
+	return c.ValidateString(ctx, validator, &v)
 }

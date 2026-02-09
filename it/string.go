@@ -186,6 +186,11 @@ func (c LengthConstraint) newViolation(
 		Create()
 }
 
+// Validate implements [validation.Constraint][string] so the constraint can be used with [validation.Each] and [validation.This].
+func (c LengthConstraint) Validate(ctx context.Context, validator *validation.Validator, v string) error {
+	return c.ValidateString(ctx, validator, &v)
+}
+
 // RegexpConstraint is used to ensure that the given value corresponds to regex pattern.
 type RegexpConstraint struct {
 	isIgnored         bool
@@ -265,6 +270,11 @@ func (c RegexpConstraint) ValidateString(ctx context.Context, validator *validat
 			)...,
 		).
 		Create()
+}
+
+// Validate implements [validation.Constraint][string] so the constraint can be used with [validation.Each] and [validation.This].
+func (c RegexpConstraint) Validate(ctx context.Context, validator *validation.Validator, v string) error {
+	return c.ValidateString(ctx, validator, &v)
 }
 
 // IsJSON validates that a value is a valid JSON.

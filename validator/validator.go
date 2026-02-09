@@ -8,28 +8,49 @@ package validator
 
 import (
 	"context"
+	"sync/atomic"
 	"time"
 
 	"github.com/muonsoft/validation"
 	"golang.org/x/text/language"
 )
 
-var validator, _ = validation.NewValidator()
+var validatorPtr atomic.Pointer[validation.Validator]
+
+func init() {
+	v, _ := validation.NewValidator()
+	validatorPtr.Store(v)
+}
+
+// Default returns the default validator instance.
+func Default() *validation.Validator {
+	return validatorPtr.Load()
+}
+
+// SetDefault sets the default validator. Call it once at application initialization.
+// It completely replaces the current default validator.
+func SetDefault(validator *validation.Validator) {
+	validatorPtr.Store(validator)
+}
 
 // Instance returns the instance of the singleton validator.
+//
+// Deprecated: Use Default() instead. Instance will be removed in stable v1.
 func Instance() *validation.Validator {
-	return validator
+	return Default()
 }
 
 // SetUp can be used to set up a new instance of singleton validator. Make sure you call this function once
 // at the initialization of your application because it totally replaces validator instance.
+//
+// Deprecated: Use SetDefault() instead. SetUp will be removed in stable v1.
 func SetUp(options ...validation.ValidatorOption) error {
 	v, err := validation.NewValidator(options...)
 	if err != nil {
 		return err
 	}
 
-	validator = v
+	validatorPtr.Store(v)
 
 	return nil
 }
@@ -37,52 +58,52 @@ func SetUp(options ...validation.ValidatorOption) error {
 // Validate is the main validation method. It accepts validation arguments. executionContext can be
 // used to tune up the validation process or to pass values of a specific type.
 func Validate(ctx context.Context, arguments ...validation.Argument) error {
-	return validator.Validate(ctx, arguments...)
+	return Default().Validate(ctx, arguments...)
 }
 
 // ValidateBool is an alias for validating a single boolean value.
 func ValidateBool(ctx context.Context, value bool, constraints ...validation.BoolConstraint) error {
-	return validator.ValidateBool(ctx, value, constraints...)
+	return Default().ValidateBool(ctx, value, constraints...)
 }
 
 // ValidateInt is an alias for validating a single integer value.
 func ValidateInt(ctx context.Context, value int, constraints ...validation.NumberConstraint[int]) error {
-	return validator.Validate(ctx, validation.Number(value, constraints...))
+	return Default().Validate(ctx, validation.Number(value, constraints...))
 }
 
 // ValidateFloat is an alias for validating a single float value.
 func ValidateFloat(ctx context.Context, value float64, constraints ...validation.NumberConstraint[float64]) error {
-	return validator.Validate(ctx, validation.Number(value, constraints...))
+	return Default().Validate(ctx, validation.Number(value, constraints...))
 }
 
 // ValidateString is an alias for validating a single string value.
 func ValidateString(ctx context.Context, value string, constraints ...validation.StringConstraint) error {
-	return validator.ValidateString(ctx, value, constraints...)
+	return Default().ValidateString(ctx, value, constraints...)
 }
 
 // ValidateStrings is an alias for validating slice of strings.
 func ValidateStrings(ctx context.Context, values []string, constraints ...validation.ComparablesConstraint[string]) error {
-	return validator.ValidateStrings(ctx, values, constraints...)
+	return Default().ValidateStrings(ctx, values, constraints...)
 }
 
 // ValidateCountable is an alias for validating a single countable value (an array, slice, or map).
 func ValidateCountable(ctx context.Context, count int, constraints ...validation.CountableConstraint) error {
-	return validator.ValidateCountable(ctx, count, constraints...)
+	return Default().ValidateCountable(ctx, count, constraints...)
 }
 
 // ValidateTime is an alias for validating a single time value.
 func ValidateTime(ctx context.Context, value time.Time, constraints ...validation.TimeConstraint) error {
-	return validator.ValidateTime(ctx, value, constraints...)
+	return Default().ValidateTime(ctx, value, constraints...)
 }
 
 // ValidateEachString is an alias for validating each value of a strings slice.
 func ValidateEachString(ctx context.Context, strings []string, constraints ...validation.StringConstraint) error {
-	return validator.ValidateEachString(ctx, strings, constraints...)
+	return Default().ValidateEachString(ctx, strings, constraints...)
 }
 
 // ValidateIt is an alias for validating value that implements the Validatable interface.
 func ValidateIt(ctx context.Context, validatable validation.Validatable) error {
-	return validator.ValidateIt(ctx, validatable)
+	return Default().ValidateIt(ctx, validatable)
 }
 
 // WithGroups is used to execute conditional validation based on validation groups. It creates
@@ -101,41 +122,41 @@ func ValidateIt(ctx context.Context, validatable validation.Validatable) error {
 // Be careful, empty groups are considered as the default group.
 // Its value is equal to the validation.DefaultGroup ("default").
 func WithGroups(groups ...string) *validation.Validator {
-	return validator.WithGroups(groups...)
+	return Default().WithGroups(groups...)
 }
 
 // WithLanguage method creates a new context validator with a given language tag. All created violations
 // will be translated into this language.
 func WithLanguage(tag language.Tag) *validation.Validator {
-	return validator.WithLanguage(tag)
+	return Default().WithLanguage(tag)
 }
 
 // At method creates a new context validator with appended property path.
 func At(path ...validation.PropertyPathElement) *validation.Validator {
-	return validator.At(path...)
+	return Default().At(path...)
 }
 
 // AtProperty method creates a new context validator with appended property name to the property path.
 func AtProperty(name string) *validation.Validator {
-	return validator.AtProperty(name)
+	return Default().AtProperty(name)
 }
 
 // AtIndex method creates a new context validator with appended array index to the property path.
 func AtIndex(index int) *validation.Validator {
-	return validator.AtIndex(index)
+	return Default().AtIndex(index)
 }
 
 // CreateViolation can be used to quickly create a custom violation on the client-side.
 func CreateViolation(ctx context.Context, err error, message string, path ...validation.PropertyPathElement) validation.Violation {
-	return validator.CreateViolation(ctx, err, message, path...)
+	return Default().CreateViolation(ctx, err, message, path...)
 }
 
 // BuildViolation can be used to build a custom violation on the client-side.
 func BuildViolation(ctx context.Context, err error, message string) *validation.ViolationBuilder {
-	return validator.BuildViolation(ctx, err, message)
+	return Default().BuildViolation(ctx, err, message)
 }
 
 // BuildViolationList can be used to build a custom violation list on the client-side.
 func BuildViolationList(ctx context.Context) *validation.ViolationListBuilder {
-	return validator.BuildViolationList(ctx)
+	return Default().BuildViolationList(ctx)
 }

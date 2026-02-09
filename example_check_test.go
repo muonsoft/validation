@@ -50,7 +50,7 @@ func ExampleCheckProperty() {
 			),
 	)
 
-	if violations, ok := validation.UnwrapViolationList(err); ok {
+	if violations, ok := validation.UnwrapViolations(err); ok {
 		for violation := violations.First(); violation != nil; violation = violation.Next() {
 			fmt.Println("violation underlying error:", violation.Unwrap())
 			fmt.Println(violation)

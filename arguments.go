@@ -175,6 +175,16 @@ func ComparablesProperty[T comparable](name string, values []T, constraints ...C
 	return NewArgument(validateComparables(values, constraints)).At(PropertyName(name))
 }
 
+// Slice argument is used to validate a generic slice with [SliceConstraint] list.
+func Slice[T any](value []T, constraints ...SliceConstraint[T]) ValidatorArgument {
+	return NewArgument(validateSliceWithConstraints(value, constraints))
+}
+
+// SliceProperty argument is an alias for [Slice] that automatically adds property name to the current validation context.
+func SliceProperty[T any](name string, value []T, constraints ...SliceConstraint[T]) ValidatorArgument {
+	return Slice(value, constraints...).At(PropertyName(name))
+}
+
 // EachString is used to validate a slice of strings.
 func EachString(values []string, constraints ...StringConstraint) ValidatorArgument {
 	return NewArgument(validateEachString(values, constraints))
@@ -205,13 +215,31 @@ func EachComparableProperty[T comparable](name string, values []T, constraints .
 	return NewArgument(validateEachComparable(values, constraints)).At(PropertyName(name))
 }
 
-// CheckNoViolations is a special argument that checks err for violations. If err contains [Violation] or [ViolationList]
-// then these violations will be appended into returned violation list from the validator. If err contains an error
-// that does not implement an error interface, then the validation process will be terminated and
-// this error will be returned.
-func CheckNoViolations(err error) ValidatorArgument {
+// Each validates each element of the slice with the given [Constraint][E] list.
+// Violation paths include the element index (e.g. [0], [1]). Use [EachProperty] to add a property name to the path.
+func Each[E any](items []E, constraints ...Constraint[E]) ValidatorArgument {
+	return NewArgument(validateEach(items, constraints))
+}
+
+// EachProperty is an alias for [Each] that adds the property name to the violation path (e.g. items[0], items[1]).
+func EachProperty[E any](name string, items []E, constraints ...Constraint[E]) ValidatorArgument {
+	return Each(items, constraints...).At(PropertyName(name))
+}
+
+// CheckNoViolations is a special argument that checks errs for violations. If an error contains [Violation] or [ViolationList]
+// then these violations will be appended into returned violation list from the validator. If an error
+// does not implement [Violation] or [ViolationList], then the validation process will be terminated and
+// that error will be returned.
+func CheckNoViolations(errs ...error) ValidatorArgument {
 	return NewArgument(func(ctx context.Context, validator *Validator) (*ViolationList, error) {
-		return unwrapViolationList(err)
+		violations := NewViolationList()
+		for _, err := range errs {
+			fatal := violations.AppendFromError(err)
+			if fatal != nil {
+				return nil, fatal
+			}
+		}
+		return violations, nil
 	})
 }
 
