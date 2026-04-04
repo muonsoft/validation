@@ -20,7 +20,7 @@ var (
 	ErrCIDRNetmaskOutOfRange = NewError("CIDR netmask out of range", message.CIDRNetmaskOutOfRange)
 	ErrInvalidIP             = NewError("invalid IP address", message.InvalidIP)
 	ErrInvalidJSON           = NewError("invalid JSON", message.InvalidJSON)
-	ErrInvalidLuhn           = NewError("invalid Luhn", message.InvalidLuhn)
+	ErrInvalidLUHN           = NewError("invalid LUHN", message.InvalidLUHN)
 	ErrInvalidTime           = NewError("invalid time", message.InvalidTime)
 	ErrInvalidULID           = NewError("invalid ULID", message.InvalidULID)
 	ErrInvalidUPCA           = NewError("invalid UPC-A", message.InvalidUPCA)

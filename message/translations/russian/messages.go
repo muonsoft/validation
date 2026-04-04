@@ -62,7 +62,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.CIDRNetmaskOutOfRange: catalog.String("Значение маски сети должно быть между {{ min }} и {{ max }}."),
 		message.InvalidIP:             catalog.String("Значение не является допустимым IP адресом."),
 		message.InvalidJSON:           catalog.String("Значение должно быть корректным JSON."),
-		message.InvalidLuhn:           catalog.String("Недействительный номер карты."),
+		message.InvalidLUHN:           catalog.String("Недействительный номер карты."),
 		message.InvalidTime:           catalog.String("Значение времени недопустимо."),
 		message.InvalidULID:           catalog.String("Значение не соответствует формату ULID."),
 		message.InvalidUPCA:           catalog.String("Значение не является допустимым UPC-A."),

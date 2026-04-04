@@ -172,10 +172,10 @@ func ExampleISIN() {
 	// invalid checksum
 }
 
-func ExampleLuhn() {
-	fmt.Println(validate.Luhn("79927398713"))
-	fmt.Println(validate.Luhn("79927398710"))
-	fmt.Println(validate.Luhn("12345a"))
+func ExampleLUHN() {
+	fmt.Println(validate.LUHN("79927398713"))
+	fmt.Println(validate.LUHN("79927398710"))
+	fmt.Println(validate.LUHN("12345a"))
 	// Output:
 	// <nil>
 	// invalid checksum

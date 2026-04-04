@@ -7,7 +7,7 @@ import (
 	"github.com/muonsoft/validation/validate"
 )
 
-func TestLuhn(t *testing.T) {
+func TestLUHN(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -26,9 +26,9 @@ func TestLuhn(t *testing.T) {
 		t.Run(tt.value, func(t *testing.T) {
 			t.Parallel()
 
-			err := validate.Luhn(tt.value)
+			err := validate.LUHN(tt.value)
 			if !errors.Is(err, tt.expectedError) {
-				t.Fatalf("Luhn(%q): got error %v, want %v", tt.value, err, tt.expectedError)
+				t.Fatalf("LUHN(%q): got error %v, want %v", tt.value, err, tt.expectedError)
 			}
 		})
 	}
