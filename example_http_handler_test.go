@@ -78,7 +78,7 @@ func ExampleValidator_Validate_httpHandler() {
 	handler = language.NewMiddleware(handler, language.SupportedLanguages(language.English, language.Russian))
 
 	// creating request with the language-specific header
-	request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{}`))
+	request := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/", strings.NewReader(`{}`))
 	request.Header.Set("Accept-Language", "ru")
 
 	recorder := httptest.NewRecorder()

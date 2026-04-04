@@ -202,6 +202,6 @@ This is a pure Go library with no external services or infrastructure dependenci
 ### Caveats
 
 - `golangci-lint` is installed to `$(go env GOPATH)/bin`. Ensure this is on `PATH` (the VM's `~/.bashrc` exports it).
-- The CI workflow (`.github/workflows/tests.yml`) pins `golangci-lint` at **v2.6.1** and Go at **^1.24**. Match these versions locally.
+- The CI workflow (`.github/workflows/tests.yml`) pins `golangci-lint` at **v2.11.4** and Go at **^1.24**. Match these versions locally.
 - The `.golangci.yml` uses config **version: "2"** (golangci-lint v2 format). Do not use golangci-lint v1.
 - No Makefile, Docker, or docker-compose is used. No services need to be started.
