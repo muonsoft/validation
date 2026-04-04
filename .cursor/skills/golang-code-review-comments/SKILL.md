@@ -48,4 +48,5 @@ Skim the full wiki for the full list. In practice, also watch for:
 - [ ] Exported names use correct initialism casing (CIDR, URL, ID, …).
 - [ ] Godoc on new exported symbols follows comment conventions.
 - [ ] Error handling follows early-return style where it improves clarity.
+- [ ] For code with **non-trivial structure** (parsers, state machines, several error outcomes), **unit tests** cover boundaries and branches — not only integration-style tests.
 - [ ] Full wiki reviewed for non-trivial or controversial changes.
