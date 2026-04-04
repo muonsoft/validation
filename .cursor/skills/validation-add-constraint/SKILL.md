@@ -7,6 +7,8 @@ description: Adds new validation constraints to the Go validation library. Use w
 
 Follow this workflow when adding a new constraint. Mandatory steps: constraint in `it`, message constant, translations (english + russian), tests, examples, godoc. Optional: `validate` and `is` when useful for standalone validation (e.g. string codes, identifiers).
 
+For **exported Go names** (functions, types, errors, message constants), follow **[Code Review Comments](https://go.dev/wiki/CodeReviewComments)** — especially **Initialisms** (e.g. `CIDR`, `URL`, not `Cidr`, `Url`). See the **`golang-code-review-comments`** skill in this repo for a short checklist and link.
+
 ---
 
 ## 1. Message and Error (mandatory)

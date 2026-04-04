@@ -17,7 +17,7 @@ var (
 	ErrInvalidHostname       = NewError("invalid hostname", message.InvalidHostname)
 	ErrInvalidISIN           = NewError("invalid ISIN", message.InvalidISIN)
 	ErrInvalidCIDR           = NewError("invalid CIDR", message.InvalidCIDR)
-	ErrCidrNetmaskOutOfRange = NewError("CIDR netmask out of range", message.CidrNetmaskOutOfRange)
+	ErrCIDRNetmaskOutOfRange = NewError("CIDR netmask out of range", message.CIDRNetmaskOutOfRange)
 	ErrInvalidIP             = NewError("invalid IP address", message.InvalidIP)
 	ErrInvalidJSON           = NewError("invalid JSON", message.InvalidJSON)
 	ErrInvalidLuhn           = NewError("invalid Luhn", message.InvalidLuhn)

@@ -8,17 +8,17 @@ import (
 )
 
 var (
-	// ErrInvalidCidr is returned when the value is not valid CIDR notation (missing slash,
+	// ErrInvalidCIDR is returned when the value is not valid CIDR notation (missing slash,
 	// non-digit prefix, invalid IP, or IP version does not match the configured version).
-	ErrInvalidCidr = errors.New("invalid CIDR")
-	// ErrCidrNetmaskOutOfRange is returned when the prefix length is outside the allowed
+	ErrInvalidCIDR = errors.New("invalid CIDR")
+	// ErrCIDRNetmaskOutOfRange is returned when the prefix length is outside the allowed
 	// [netmaskMin, netmaskMax] range (after capping max to 32 for IPv4 when needed),
 	// matching Symfony\Component\Validator\Constraints\CidrValidator.
-	ErrCidrNetmaskOutOfRange = errors.New("CIDR netmask out of range")
+	ErrCIDRNetmaskOutOfRange = errors.New("CIDR netmask out of range")
 )
 
-// CidrOptions configures [Cidr] validation.
-type CidrOptions struct {
+// CIDROptions configures [CIDR] validation.
+type CIDROptions struct {
 	version    string
 	netmaskMin int
 	netmaskMax int
@@ -30,18 +30,18 @@ const (
 	cidrVersionAll = "all"
 )
 
-func newCidrOptions() CidrOptions {
-	return CidrOptions{
+func newCIDROptions() CIDROptions {
+	return CIDROptions{
 		version:    cidrVersionAll,
 		netmaskMin: 0,
 		netmaskMax: 128,
 	}
 }
 
-// CidrVersion sets which IP versions are accepted: "4" (IPv4 only), "6" (IPv6 only), or "all".
+// CIDRVersion sets which IP versions are accepted: "4" (IPv4 only), "6" (IPv6 only), or "all".
 // The default is "all". Invalid values are ignored (default remains).
-func CidrVersion(version string) func(*CidrOptions) {
-	return func(o *CidrOptions) {
+func CIDRVersion(version string) func(*CIDROptions) {
+	return func(o *CIDROptions) {
 		switch version {
 		case cidrVersion4, cidrVersion6, cidrVersionAll:
 			o.version = version
@@ -49,19 +49,19 @@ func CidrVersion(version string) func(*CidrOptions) {
 	}
 }
 
-// CidrNetmaskRange sets the inclusive allowed range for the CIDR prefix length.
+// CIDRNetmaskRange sets the inclusive allowed range for the CIDR prefix length.
 // Defaults are 0–128 for "all", 0–32 for IPv4-only, 0–128 for IPv6-only (Symfony Cidr defaults).
-func CidrNetmaskRange(netmaskMin, netmaskMax int) func(*CidrOptions) {
-	return func(o *CidrOptions) {
+func CIDRNetmaskRange(netmaskMin, netmaskMax int) func(*CIDROptions) {
+	return func(o *CIDROptions) {
 		o.netmaskMin = netmaskMin
 		o.netmaskMax = netmaskMax
 	}
 }
 
-// CidrViolationNetmaskBounds returns the configured inclusive lower bound and the effective upper bound
+// CIDRViolationNetmaskBounds returns the configured inclusive lower bound and the effective upper bound
 // for the prefix length in Symfony-style out-of-range messages (caps upper bound at 32 for IPv4 when netmaskMax > 32).
-func CidrViolationNetmaskBounds(value string, options ...func(*CidrOptions)) (lo, hi int) {
-	o := newCidrOptions()
+func CIDRViolationNetmaskBounds(value string, options ...func(*CIDROptions)) (lo, hi int) {
+	o := newCIDROptions()
 	for _, opt := range options {
 		opt(&o)
 	}
@@ -77,21 +77,21 @@ func CidrViolationNetmaskBounds(value string, options ...func(*CidrOptions)) (lo
 	return lo, hi
 }
 
-// Cidr validates that value is a valid CIDR notation (IP/prefix), aligned with
+// CIDR validates that value is a valid CIDR notation (IP/prefix), aligned with
 // Symfony\Component\Validator\Constraints\Cidr and CidrValidator.
 //
 // Empty string is valid (use [NotBlank] or similar to reject empty values).
 //
 // Possible errors:
-//   - [ErrInvalidCidr] for malformed notation, invalid IP, or version mismatch;
-//   - [ErrCidrNetmaskOutOfRange] when the prefix is outside the configured netmask range
+//   - [ErrInvalidCIDR] for malformed notation, invalid IP, or version mismatch;
+//   - [ErrCIDRNetmaskOutOfRange] when the prefix is outside the configured netmask range
 //     (for IPv4 addresses, effective max is capped at 32 if netmaskMax > 32, like Symfony).
-func Cidr(value string, options ...func(*CidrOptions)) error {
+func CIDR(value string, options ...func(*CIDROptions)) error {
 	if value == "" {
 		return nil
 	}
 
-	opts := newCidrOptions()
+	opts := newCIDROptions()
 	for _, opt := range options {
 		opt(&opts)
 	}
@@ -107,24 +107,24 @@ func Cidr(value string, options ...func(*CidrOptions)) error {
 
 	ip := net.ParseIP(ipStr)
 	if ip == nil {
-		return ErrInvalidCidr
+		return ErrInvalidCIDR
 	}
 
 	ver := cidrIPVersion(ip)
 	if cidrVersionMismatch(opts.version, ver) {
-		return ErrInvalidCidr
+		return ErrInvalidCIDR
 	}
 
 	return cidrCheckPrefixRange(prefix, ver, opts)
 }
 
-func cidrCheckPrefixRange(prefix, ver int, opts CidrOptions) error {
+func cidrCheckPrefixRange(prefix, ver int, opts CIDROptions) error {
 	maxMask := opts.netmaskMax
 	if ver == 4 && maxMask > 32 {
 		maxMask = 32
 	}
 	if prefix < opts.netmaskMin || prefix > maxMask {
-		return ErrCidrNetmaskOutOfRange
+		return ErrCIDRNetmaskOutOfRange
 	}
 	return nil
 }
@@ -132,18 +132,18 @@ func cidrCheckPrefixRange(prefix, ver int, opts CidrOptions) error {
 func cidrSplitNotation(value string) (ipStr, bitsStr string, err error) {
 	ipStr, bitsStr, ok := strings.Cut(value, "/")
 	if !ok || ipStr == "" || bitsStr == "" {
-		return "", "", ErrInvalidCidr
+		return "", "", ErrInvalidCIDR
 	}
 	return ipStr, bitsStr, nil
 }
 
 func cidrParsePrefix(bitsStr string) (int, error) {
 	if !isDecimalString(bitsStr) {
-		return 0, ErrInvalidCidr
+		return 0, ErrInvalidCIDR
 	}
 	prefix, err := strconv.Atoi(bitsStr)
 	if err != nil {
-		return 0, ErrInvalidCidr
+		return 0, ErrInvalidCIDR
 	}
 	return prefix, nil
 }

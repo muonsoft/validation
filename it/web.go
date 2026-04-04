@@ -385,18 +385,18 @@ func (c IPConstraint) Validate(ctx context.Context, validator *validation.Valida
 	return c.ValidateString(ctx, validator, &v)
 }
 
-// CidrConstraint validates a string as CIDR notation (IP/prefix), aligned with
+// CIDRConstraint validates a string as CIDR notation (IP/prefix), aligned with
 // Symfony\Component\Validator\Constraints\Cidr.
 //
 // By default both IPv4 and IPv6 are accepted, and the prefix length may be 0–128 (for IPv4 addresses
 // the effective maximum is 32, matching Symfony's CidrValidator).
 //
-// Use [CidrConstraint.IPv4Only], [CidrConstraint.IPv6Only], or [CidrConstraint.WithVersion] to restrict
-// the IP version. Use [CidrConstraint.WithNetmaskRange] to set the allowed inclusive prefix range.
-type CidrConstraint struct {
+// Use [CIDRConstraint.IPv4Only], [CIDRConstraint.IPv6Only], or [CIDRConstraint.WithVersion] to restrict
+// the IP version. Use [CIDRConstraint.WithNetmaskRange] to set the allowed inclusive prefix range.
+type CIDRConstraint struct {
 	isIgnored          bool
 	groups             []string
-	options            []func(*validate.CidrOptions)
+	options            []func(*validate.CIDROptions)
 	invalidErr         error
 	outOfRangeErr      error
 	invalidTemplate    string
@@ -405,61 +405,61 @@ type CidrConstraint struct {
 	outOfRangeParams   validation.TemplateParameterList
 }
 
-// IsCidr creates a [CidrConstraint] that accepts IPv4 and IPv6 CIDR notation.
-func IsCidr() CidrConstraint {
-	return CidrConstraint{
+// IsCIDR creates a [CIDRConstraint] that accepts IPv4 and IPv6 CIDR notation.
+func IsCIDR() CIDRConstraint {
+	return CIDRConstraint{
 		invalidErr:         validation.ErrInvalidCIDR,
-		outOfRangeErr:      validation.ErrCidrNetmaskOutOfRange,
+		outOfRangeErr:      validation.ErrCIDRNetmaskOutOfRange,
 		invalidTemplate:    validation.ErrInvalidCIDR.Message(),
-		outOfRangeTemplate: validation.ErrCidrNetmaskOutOfRange.Message(),
+		outOfRangeTemplate: validation.ErrCIDRNetmaskOutOfRange.Message(),
 	}
 }
 
 // IPv4Only restricts validation to IPv4 CIDR only (Symfony Ip::V4).
-func (c CidrConstraint) IPv4Only() CidrConstraint {
-	c.options = append(c.options, validate.CidrVersion("4"))
+func (c CIDRConstraint) IPv4Only() CIDRConstraint {
+	c.options = append(c.options, validate.CIDRVersion("4"))
 	return c
 }
 
 // IPv6Only restricts validation to IPv6 CIDR only (Symfony Ip::V6).
-func (c CidrConstraint) IPv6Only() CidrConstraint {
-	c.options = append(c.options, validate.CidrVersion("6"))
+func (c CIDRConstraint) IPv6Only() CIDRConstraint {
+	c.options = append(c.options, validate.CIDRVersion("6"))
 	return c
 }
 
 // WithVersion sets the accepted IP version: "4", "6", or "all". Invalid values are ignored.
-func (c CidrConstraint) WithVersion(version string) CidrConstraint {
-	c.options = append(c.options, validate.CidrVersion(version))
+func (c CIDRConstraint) WithVersion(version string) CIDRConstraint {
+	c.options = append(c.options, validate.CIDRVersion(version))
 	return c
 }
 
 // WithNetmaskRange sets the inclusive allowed range for the CIDR prefix length (Symfony netmaskMin/netmaskMax).
-func (c CidrConstraint) WithNetmaskRange(netmaskMin, netmaskMax int) CidrConstraint {
-	c.options = append(c.options, validate.CidrNetmaskRange(netmaskMin, netmaskMax))
+func (c CIDRConstraint) WithNetmaskRange(netmaskMin, netmaskMax int) CIDRConstraint {
+	c.options = append(c.options, validate.CIDRNetmaskRange(netmaskMin, netmaskMax))
 	return c
 }
 
 // WithInvalidError overrides the error for invalid CIDR notation or version mismatch.
-func (c CidrConstraint) WithInvalidError(err error) CidrConstraint {
+func (c CIDRConstraint) WithInvalidError(err error) CIDRConstraint {
 	c.invalidErr = err
 	return c
 }
 
 // WithOutOfRangeError overrides the error for a prefix outside the allowed netmask range.
-func (c CidrConstraint) WithOutOfRangeError(err error) CidrConstraint {
+func (c CIDRConstraint) WithOutOfRangeError(err error) CIDRConstraint {
 	c.outOfRangeErr = err
 	return c
 }
 
 // WithInvalidMessage sets the violation message template when the value is not valid CIDR notation.
-func (c CidrConstraint) WithInvalidMessage(template string, parameters ...validation.TemplateParameter) CidrConstraint {
+func (c CIDRConstraint) WithInvalidMessage(template string, parameters ...validation.TemplateParameter) CIDRConstraint {
 	c.invalidTemplate = template
 	c.invalidParams = parameters
 	return c
 }
 
 // WithOutOfRangeMessage sets the violation message template when the prefix is out of range.
-func (c CidrConstraint) WithOutOfRangeMessage(template string, parameters ...validation.TemplateParameter) CidrConstraint {
+func (c CIDRConstraint) WithOutOfRangeMessage(template string, parameters ...validation.TemplateParameter) CIDRConstraint {
 	c.outOfRangeTemplate = template
 	c.outOfRangeParams = parameters
 	return c
@@ -467,29 +467,29 @@ func (c CidrConstraint) WithOutOfRangeMessage(template string, parameters ...val
 
 // When enables conditional validation of this constraint. If the expression evaluates to false,
 // then the constraint will be ignored.
-func (c CidrConstraint) When(condition bool) CidrConstraint {
+func (c CIDRConstraint) When(condition bool) CIDRConstraint {
 	c.isIgnored = !condition
 	return c
 }
 
 // WhenGroups enables conditional validation of the constraint by using the validation groups.
-func (c CidrConstraint) WhenGroups(groups ...string) CidrConstraint {
+func (c CIDRConstraint) WhenGroups(groups ...string) CIDRConstraint {
 	c.groups = groups
 	return c
 }
 
-func (c CidrConstraint) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
+func (c CIDRConstraint) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
 	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || *value == "" {
 		return nil
 	}
 
-	err := validate.Cidr(*value, c.options...)
+	err := validate.CIDR(*value, c.options...)
 	if err == nil {
 		return nil
 	}
 
-	if errors.Is(err, validate.ErrCidrNetmaskOutOfRange) {
-		netmaskLo, netmaskHi := validate.CidrViolationNetmaskBounds(*value, c.options...)
+	if errors.Is(err, validate.ErrCIDRNetmaskOutOfRange) {
+		netmaskLo, netmaskHi := validate.CIDRViolationNetmaskBounds(*value, c.options...)
 		return validator.BuildViolation(ctx, c.outOfRangeErr, c.outOfRangeTemplate).
 			WithParameters(
 				c.outOfRangeParams.Prepend(
@@ -511,6 +511,6 @@ func (c CidrConstraint) ValidateString(ctx context.Context, validator *validatio
 }
 
 // Validate implements [validation.Constraint][string] so the constraint can be used with [validation.Each] and [validation.This].
-func (c CidrConstraint) Validate(ctx context.Context, validator *validation.Validator, v string) error {
+func (c CIDRConstraint) Validate(ctx context.Context, validator *validation.Validator, v string) error {
 	return c.ValidateString(ctx, validator, &v)
 }

@@ -59,7 +59,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.InvalidHostname:       catalog.String("Значение не является корректным именем хоста."),
 		message.InvalidISIN:           catalog.String("Значение не является допустимым международным идентификационным номером ценной бумаги (ISIN)."),
 		message.InvalidCIDR:           catalog.String("Значение не является допустимой записью CIDR."),
-		message.CidrNetmaskOutOfRange: catalog.String("Значение маски сети должно быть между {{ min }} и {{ max }}."),
+		message.CIDRNetmaskOutOfRange: catalog.String("Значение маски сети должно быть между {{ min }} и {{ max }}."),
 		message.InvalidIP:             catalog.String("Значение не является допустимым IP адресом."),
 		message.InvalidJSON:           catalog.String("Значение должно быть корректным JSON."),
 		message.InvalidLuhn:           catalog.String("Недействительный номер карты."),

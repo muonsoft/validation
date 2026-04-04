@@ -35,7 +35,7 @@ const (
 	InvalidHostname       = "This value is not a valid hostname."
 	InvalidISIN           = "This value is not a valid International Securities Identification Number (ISIN)."
 	InvalidCIDR           = "This value is not a valid CIDR notation."
-	CidrNetmaskOutOfRange = "The value of the netmask should be between {{ min }} and {{ max }}."
+	CIDRNetmaskOutOfRange = "The value of the netmask should be between {{ min }} and {{ max }}."
 	InvalidIP             = "This is not a valid IP address."
 	InvalidJSON           = "This value should be valid JSON."
 	InvalidLuhn           = "Invalid card number."
