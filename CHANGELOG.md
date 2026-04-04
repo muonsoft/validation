@@ -7,13 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-
-- **Breaking**: CIDR-related Go identifiers renamed to match [initialism rules](https://go.dev/wiki/CodeReviewComments): `it.IsCIDR`, `CIDRConstraint`, `validate.CIDR`, `CIDROptions`, `CIDRVersion`, `CIDRNetmaskRange`, `CIDRViolationNetmaskBounds`, `is.CIDR`, `ErrInvalidCIDR` / `ErrCIDRNetmaskOutOfRange` in `validate`, `message.CIDRNetmaskOutOfRange` (replaces prior `Cidr`-cased names).
-
 ### Added
 
-- CIDR notation validation: `it.IsCIDR()` with `IPv4Only`, `IPv6Only`, `WithVersion`, `WithNetmaskRange`, and separate invalid vs netmask-range messages; `validate.CIDR`, `validate.CIDRViolationNetmaskBounds`, `is.CIDR`; `validation.ErrInvalidCIDR` / `validation.ErrCIDRNetmaskOutOfRange` and English and Russian translations (behavior aligned with Symfony `Cidr`).
+- CIDR notation validation: `it.IsCIDR()` with `IPv4Only`, `IPv6Only`, `WithVersion`, `WithNetmaskRange`, and separate invalid vs netmask-range messages; `validate.CIDR`, `validate.CIDRViolationNetmaskBounds`, `is.CIDR`; `validation.ErrInvalidCIDR` / `validation.ErrCIDRNetmaskOutOfRange` and English and Russian translations (behavior aligned with Symfony `Cidr`). Exported names use the **CIDR** initialism per [Go Code Review Comments](https://go.dev/wiki/CodeReviewComments).
 - Luhn (mod 10) checksum validation: `it.IsLuhn()`, `validate.Luhn`, `is.Luhn`, with `validation.ErrInvalidLuhn` / `message.InvalidLuhn` and English and Russian translations (behavior aligned with Symfony `Luhn`).
 - ISIN (International Securities Identification Number) validation: `it.IsISIN()`, `validate.ISIN`, `is.ISIN`, with `validation.ErrInvalidISIN` / `message.InvalidISIN` and English and Russian translations (behavior aligned with Symfony `Isin`).
 
