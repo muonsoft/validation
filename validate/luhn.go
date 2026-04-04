@@ -1,6 +1,6 @@
 package validate
 
-// Luhn validates whether the value passes the Luhn (mod 10) checksum.
+// LUHN validates whether the value passes the Luhn (mod 10) checksum.
 // The string must contain only ASCII digits (0–9); spaces and other characters are not stripped,
 // matching Symfony\Component\Validator\Constraints\Luhn.
 //
@@ -11,7 +11,7 @@ package validate
 //   - [ErrInvalidChecksum] when the checksum is invalid or the value is all zeros (checksum 0).
 //
 // See https://en.wikipedia.org/wiki/Luhn_algorithm.
-func Luhn(value string) error {
+func LUHN(value string) error {
 	if value == "" {
 		return nil
 	}

@@ -275,10 +275,10 @@ func ExampleISIN() {
 	// false
 }
 
-func ExampleLuhn() {
-	fmt.Println(is.Luhn("79927398713"))
-	fmt.Println(is.Luhn("79927398710"))
-	fmt.Println(is.Luhn("12345a"))
+func ExampleLUHN() {
+	fmt.Println(is.LUHN("79927398713"))
+	fmt.Println(is.LUHN("79927398710"))
+	fmt.Println(is.LUHN("12345a"))
 	// Output:
 	// true
 	// false

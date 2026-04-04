@@ -78,7 +78,7 @@ func ISIN(value string) error {
 	if !isinPattern.MatchString(s) {
 		return ErrInvalidCharacters
 	}
-	if !isinLuhn(s) {
+	if !isinLUHN(s) {
 		return ErrInvalidChecksum
 	}
 
@@ -96,7 +96,7 @@ func isinCharValue(c byte) int {
 	}
 }
 
-func isinLuhn(s string) bool {
+func isinLUHN(s string) bool {
 	var b strings.Builder
 	b.Grow(24)
 	for i := 0; i < 12; i++ {
