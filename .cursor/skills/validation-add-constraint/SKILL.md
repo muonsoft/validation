@@ -230,6 +230,7 @@ Add when useful for **standalone boolean checks** (e.g. in conditions, or for `O
 - [ ] `it/*.go`: constraint (StringFuncConstraint or custom struct), godoc, empty/nil handling, BuildViolation
 - [ ] `test/constraints_*_cases_test.go`: test cases + merge into `validateTestCases`
 - [ ] `it/example_test.go`: ExampleXxx_valid, ExampleXxx_invalid with `// Output:`
+- [ ] `CHANGELOG.md`: under `[Unreleased]` → `Added` (or other fitting section), user-facing bullet for the new API
 - [ ] Optional: `validate`: function, tests, examples, godoc
 - [ ] Optional: `is`: function, tests, examples, godoc
 - [ ] `go test ./...` and `golangci-lint run`
