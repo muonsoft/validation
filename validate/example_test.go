@@ -136,6 +136,16 @@ func ExampleIPv6() {
 	// prohibited
 }
 
+func ExampleCidr() {
+	fmt.Println(validate.Cidr("192.168.0.0/24"))
+	fmt.Println(validate.Cidr("10.0.0.0/33"))
+	fmt.Println(validate.Cidr("2001:db8::/32", validate.CidrVersion("4")))
+	// Output:
+	// <nil>
+	// CIDR netmask out of range
+	// invalid CIDR
+}
+
 func ExampleULID() {
 	fmt.Println(validate.ULID("01ARZ3NDEKTSV4RRFFQ69G5FAV"))
 	fmt.Println(validate.ULID("01ARZ3NDEKTSV4RRFFQ69G5FA"))

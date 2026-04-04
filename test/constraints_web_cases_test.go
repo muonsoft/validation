@@ -313,6 +313,106 @@ var ipConstraintTestCases = []ConstraintValidationTestCase{
 	},
 }
 
+var cidrConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsCidr passes on nil",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsCidr(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsCidr passes on empty value",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsCidr(),
+		stringValue:     stringValue(""),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsCidr passes on valid IPv4 CIDR",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsCidr(),
+		stringValue:     stringValue("192.168.0.0/24"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsCidr passes on valid IPv6 CIDR",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsCidr(),
+		stringValue:     stringValue("2001:db8::/32"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsCidr violation on missing slash",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsCidr(),
+		stringValue:     stringValue("192.168.0.0"),
+		assert:          assertHasOneViolation(validation.ErrInvalidCIDR, message.InvalidCIDR),
+	},
+	{
+		name:            "IsCidr violation on invalid prefix for IPv4",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsCidr(),
+		stringValue:     stringValue("10.0.0.0/33"),
+		assert: assertHasOneViolation(
+			validation.ErrCidrNetmaskOutOfRange,
+			`The value of the netmask should be between 0 and 32.`,
+		),
+	},
+	{
+		name:            "IsCidr violation on IPv6 when IPv4 only",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsCidr().IPv4Only(),
+		stringValue:     stringValue("2001:db8::/32"),
+		assert:          assertHasOneViolation(validation.ErrInvalidCIDR, message.InvalidCIDR),
+	},
+	{
+		name:            "IsCidr violation on IPv4 when IPv6 only",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsCidr().IPv6Only(),
+		stringValue:     stringValue("10.0.0.0/8"),
+		assert:          assertHasOneViolation(validation.ErrInvalidCIDR, message.InvalidCIDR),
+	},
+	{
+		name:            "IsCidr violation on prefix below WithNetmaskRange",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsCidr().WithNetmaskRange(16, 32),
+		stringValue:     stringValue("10.0.0.0/8"),
+		assert: assertHasOneViolation(
+			validation.ErrCidrNetmaskOutOfRange,
+			`The value of the netmask should be between 16 and 32.`,
+		),
+	},
+	{
+		name:            "IsCidr passes when When(false)",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsCidr().When(false),
+		stringValue:     stringValue("not-cidr"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsCidr passes when groups not match",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsCidr().WhenGroups(testGroup),
+		stringValue:     stringValue("not-cidr"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsCidr violation with custom invalid error and message",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint: it.IsCidr().
+			WithInvalidError(ErrCustom).
+			WithInvalidMessage(
+				`Bad CIDR "{{ value }}" at {{ custom }}.`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "field"},
+			),
+		stringValue: stringValue("192.168.0.0"),
+		assert: assertHasOneViolation(
+			ErrCustom,
+			`Bad CIDR "192.168.0.0" at field.`,
+		),
+	},
+}
+
 var hostnameConstraintTestCases = []ConstraintValidationTestCase{
 	{
 		name:            "IsHostname passes on valid hostname",

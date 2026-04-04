@@ -215,6 +215,16 @@ func ExampleIPv6() {
 	// false
 }
 
+func ExampleCidr() {
+	fmt.Println(is.Cidr("192.168.0.0/24"))
+	fmt.Println(is.Cidr("10.0.0.0/33"))
+	fmt.Println(is.Cidr("2001:db8::/32", validate.CidrVersion("4")))
+	// Output:
+	// true
+	// false
+	// false
+}
+
 func ExampleHostname() {
 	fmt.Println(is.Hostname("example.com"))       // valid
 	fmt.Println(is.Hostname("example.localhost")) // valid

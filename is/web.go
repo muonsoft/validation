@@ -53,6 +53,12 @@ func IPv6(value string, restrictions ...func(ip net.IP) error) bool {
 	return validate.IPv6(value, restrictions...) == nil
 }
 
+// Cidr checks that a value is valid CIDR notation (IP/prefix).
+// See [github.com/muonsoft/validation/validate.Cidr] for options and error semantics.
+func Cidr(value string, options ...func(*validate.CidrOptions)) bool {
+	return validate.Cidr(value, options...) == nil
+}
+
 // Hostname checks that a value is a valid hostname. It checks that each label
 // within a valid hostname may be no more than 63 octets long. Also, it checks that
 // the total length of the hostname must not exceed 255 characters.
