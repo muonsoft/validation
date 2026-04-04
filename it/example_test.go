@@ -918,6 +918,22 @@ func ExampleIsIPv6_invalidIP() {
 	// violation: "This is not a valid IP address."
 }
 
+func ExampleIsCIDR_valid() {
+	v := "192.168.0.0/24"
+	err := validator.Validate(context.Background(), validation.String(v, it.IsCIDR()))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsCIDR_invalid() {
+	v := "192.168.0.0"
+	err := validator.Validate(context.Background(), validation.String(v, it.IsCIDR()))
+	fmt.Println(err)
+	// Output:
+	// violation: "This value is not a valid CIDR notation."
+}
+
 func ExampleIPConstraint_DenyPrivateIP_restrictedPrivateIPv4() {
 	v := "192.168.1.0"
 	err := validator.Validate(context.Background(), validation.String(v, it.IsIP().DenyPrivateIP()))

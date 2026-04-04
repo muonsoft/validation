@@ -7,6 +7,8 @@ description: Adds new validation constraints to the Go validation library. Use w
 
 Follow this workflow when adding a new constraint. Mandatory steps: constraint in `it`, message constant, translations (english + russian), tests, examples, godoc. Optional: `validate` and `is` when useful for standalone validation (e.g. string codes, identifiers).
 
+For **exported Go names** (functions, types, errors, message constants), follow **[Code Review Comments](https://go.dev/wiki/CodeReviewComments)** — especially **Initialisms** (e.g. `CIDR`, `URL`, not `Cidr`, `Url`). See the **`golang-code-review-comments`** skill in this repo for a short checklist and link.
+
 ---
 
 ## 1. Message and Error (mandatory)
@@ -167,6 +169,12 @@ In **`test/constraints_*_cases_test.go`** (create or extend the right file, e.g.
 
 Add the slice to **`validateTestCases`** in **`test/constraints_test.go`** via `mergeTestCases(...)` so the shared test runners pick it up.
 
+### Unit tests in `validate` for structured validation
+
+If the constraint is implemented or configured through **`validate`** (parsers, options, several error kinds, version-specific rules), add **focused unit tests** in **`validate/*_test.go`** in addition to the shared `test/` constraint cases.
+
+For validations that depend on **structure** (splitting strings, numeric ranges, IPv4 vs IPv6 branches, composition of options), aim for **strong coverage**: boundary values (min/max inclusive), each error path, and helper functions used for messages (e.g. bounds for templates). Table-driven subtests work well. Shallow happy-path-only tests are easy to miss regressions for this kind of logic.
+
 ---
 
 ## 5. Examples (mandatory)
@@ -201,7 +209,7 @@ Add when the constraint is useful for **standalone validation** (e.g. string cod
 - **Signature**: `func MyFormat(value string) error` (or with options).
 - **Return**: `nil` if valid; otherwise a sentinel error from `validate` package (e.g. `ErrTooShort`, or custom).
 - **Godoc**: Describe when it returns which error.
-- **Tests**: `validate/*_test.go` table or cases.
+- **Tests**: `validate/*_test.go` table or cases; for non-trivial parsing or options, prefer **broad unit coverage** (see [Tests / Unit tests in validate](#4-tests-mandatory)).
 - **Examples**: `validate/example_test.go` with `ExampleMyFormat` and `// Output:`.
 
 If the `it` constraint needs options, define option types and funcs in `validate` (e.g. `validate.MyOptions`, `validate.AllowXxx()`), and use them from `it` and `is`.

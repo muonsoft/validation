@@ -61,6 +61,7 @@ var validateTestCases = mergeTestCases(
 	hostnameConstraintTestCases,
 	identifierConstraintsTestCases,
 	ipConstraintTestCases,
+	cidrConstraintTestCases,
 	isBetweenTimeTestCases,
 	isBlankComparableConstraintTestCases,
 	isBlankConstraintTestCases,
