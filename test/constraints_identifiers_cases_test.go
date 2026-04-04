@@ -9,6 +9,7 @@ import (
 var identifierConstraintsTestCases = mergeTestCases(
 	ulidConstraintTestCases,
 	uuidConstraintTestCases,
+	isinConstraintTestCases,
 )
 
 var ulidConstraintTestCases = []ConstraintValidationTestCase{
@@ -25,6 +26,84 @@ var ulidConstraintTestCases = []ConstraintValidationTestCase{
 		stringValue:     stringValue("81ARZ3NDEKTSV4RRFFQ69G5FAV"),
 		constraint:      it.IsULID(),
 		assert:          assertHasOneViolation(validation.ErrInvalidULID, message.InvalidULID),
+	},
+}
+
+var isinConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsISIN passes on empty value",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsISIN(),
+		stringValue:     stringValue(""),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsISIN passes on valid value",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("US0378331005"),
+		constraint:      it.IsISIN(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsISIN passes on lowercase letters",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("us0378331005"),
+		constraint:      it.IsISIN(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsISIN violation on wrong length",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("US037833100"),
+		constraint:      it.IsISIN(),
+		assert:          assertHasOneViolation(validation.ErrInvalidISIN, message.InvalidISIN),
+	},
+	{
+		name:            "IsISIN violation on invalid pattern",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("123456789101"),
+		constraint:      it.IsISIN(),
+		assert:          assertHasOneViolation(validation.ErrInvalidISIN, message.InvalidISIN),
+	},
+	{
+		name:            "IsISIN violation on invalid checksum",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("XS2012239364"),
+		constraint:      it.IsISIN(),
+		assert:          assertHasOneViolation(validation.ErrInvalidISIN, message.InvalidISIN),
+	},
+	{
+		name:            "IsISIN violation with given error and message",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint: it.IsISIN().
+			WithError(ErrCustom).
+			WithMessage(
+				`Invalid value "{{ value }}" for {{ custom }}.`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		stringValue: stringValue("invalid-isin"),
+		assert:      assertHasOneViolation(ErrCustom, `Invalid value "invalid-isin" for parameter.`),
+	},
+	{
+		name:            "IsISIN passes when condition is false",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsISIN().When(false),
+		stringValue:     stringValue("bad"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsISIN violation when condition is true",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsISIN().When(true),
+		stringValue:     stringValue("bad"),
+		assert:          assertHasOneViolation(validation.ErrInvalidISIN, message.InvalidISIN),
+	},
+	{
+		name:            "IsISIN passes when groups not match",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsISIN().WhenGroups(testGroup),
+		stringValue:     stringValue("bad"),
+		assert:          assertNoError,
 	},
 }
 

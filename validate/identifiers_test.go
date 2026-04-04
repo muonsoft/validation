@@ -7,6 +7,39 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestISIN(t *testing.T) {
+	tests := []struct {
+		value         string
+		expectedError error
+	}{
+		{value: "US0378331005"},
+		{value: "us0378331005"},
+		{value: "XS2125535901"},
+		{value: "DE000HZ8VA77"},
+		{value: "CH0528261156"},
+		{value: "AU0000XVGZA3"},
+		{value: "GB0002634946"},
+		{value: "", expectedError: validate.ErrTooShort},
+		{value: "US037833100", expectedError: validate.ErrTooShort},
+		{value: "US03783310055", expectedError: validate.ErrTooLong},
+		{value: "123456789101", expectedError: validate.ErrInvalidCharacters},
+		{value: "XS215569667E", expectedError: validate.ErrInvalidCharacters},
+		{value: "XS2012239364", expectedError: validate.ErrInvalidChecksum},
+		{value: "XS2112212144", expectedError: validate.ErrInvalidChecksum},
+	}
+	for _, test := range tests {
+		t.Run(test.value, func(t *testing.T) {
+			err := validate.ISIN(test.value)
+
+			if test.expectedError == nil {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorIs(t, err, test.expectedError)
+			}
+		})
+	}
+}
+
 func TestULID(t *testing.T) {
 	tests := []struct {
 		value         string

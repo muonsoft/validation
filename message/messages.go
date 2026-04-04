@@ -33,6 +33,7 @@ const (
 	InvalidEAN8       = "This value is not a valid EAN-8."
 	InvalidEmail      = "This value is not a valid email address."
 	InvalidHostname   = "This value is not a valid hostname."
+	InvalidISIN       = "This value is not a valid International Securities Identification Number (ISIN)."
 	InvalidIP         = "This is not a valid IP address."
 	InvalidJSON       = "This value should be valid JSON."
 	InvalidTime       = "This value is not a valid time."

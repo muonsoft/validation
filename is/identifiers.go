@@ -8,6 +8,14 @@ func ULID(value string) bool {
 	return validate.ULID(value) == nil
 }
 
+// ISIN validates whether the value is a valid International Securities Identification Number (ISIN).
+// See [github.com/muonsoft/validation/validate.ISIN] for validation rules and possible errors.
+//
+// See https://en.wikipedia.org/wiki/International_Securities_Identification_Number.
+func ISIN(value string) bool {
+	return validate.ISIN(value) == nil
+}
+
 // UUID validates whether a string value is a valid UUID (also known as GUID).
 //
 // By default, it uses strict mode and checks the UUID as specified in RFC 4122.
