@@ -132,6 +132,9 @@ func decodeUPCE(value string) ([]byte, error) {
 		if i >= 8 {
 			return nil, ErrUnexpectedLength
 		}
+		if digit < 0 || digit > 9 {
+			return nil, fmt.Errorf("%w: %q", ErrContainsNonDigit, v)
+		}
 		upce = append(upce, byte(digit))
 		sum += digit
 	}

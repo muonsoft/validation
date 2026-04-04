@@ -39,7 +39,7 @@ func IsOneOf[T comparable](values ...T) ChoiceConstraint[T] {
 		if i > 0 {
 			s.WriteString(", ")
 		}
-		s.WriteString(fmt.Sprint(value))
+		_, _ = fmt.Fprintf(&s, "%v", value)
 	}
 
 	return ChoiceConstraint[T]{
