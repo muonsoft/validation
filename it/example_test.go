@@ -41,6 +41,20 @@ func ExampleIsUPCE() {
 	// violation: "This value is not a valid UPC-E."
 }
 
+func ExampleIsISIN_valid() {
+	err := validator.Validate(context.Background(), validation.String("US0378331005", it.IsISIN()))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsISIN_invalid() {
+	err := validator.Validate(context.Background(), validation.String("XS2012239364", it.IsISIN()))
+	fmt.Println(err)
+	// Output:
+	// violation: "This value is not a valid International Securities Identification Number (ISIN)."
+}
+
 func ExampleIsNotBlank() {
 	fmt.Println(validator.Validate(context.Background(), validation.String("", it.IsNotBlank())))
 	fmt.Println(validator.Validate(context.Background(), validation.Countable(len([]string{}), it.IsNotBlank())))

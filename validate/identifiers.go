@@ -2,6 +2,9 @@ package validate
 
 import (
 	"errors"
+	"regexp"
+	"strconv"
+	"strings"
 
 	"github.com/muonsoft/validation/internal/uuid"
 )
@@ -17,6 +20,9 @@ var (
 )
 
 var ulidChars = newCharSet("0123456789ABCDEFGHJKMNPQRSTVWXYZabcdefghjkmnpqrstvwxyz")
+
+// Same pattern as Symfony Isin::VALIDATION_PATTERN (length is checked separately).
+var isinPattern = regexp.MustCompile(`^[A-Z]{2}[A-Z0-9]{9}[0-9]$`)
 
 // ULID validates whether the value is a valid ULID (Universally Unique Lexicographically Sortable Identifier).
 // See https://github.com/ulid/spec for ULID specifications.
@@ -47,6 +53,87 @@ func ULID(value string) error {
 	}
 
 	return nil
+}
+
+// ISIN validates whether the value is a valid International Securities Identification Number (ISIN).
+// Letters are treated case-insensitively (normalized to upper case for validation), matching
+// Symfony\Component\Validator\Constraints\Isin.
+//
+// Possible errors:
+//   - [ErrTooShort] on values with length less than 12;
+//   - [ErrTooLong] on values with length greater than 12;
+//   - [ErrInvalidCharacters] on values that do not match the ISIN pattern;
+//   - [ErrInvalidChecksum] when the check digit is wrong;
+//
+// See https://en.wikipedia.org/wiki/International_Securities_Identification_Number.
+func ISIN(value string) error {
+	if len(value) < 12 {
+		return ErrTooShort
+	}
+	if len(value) > 12 {
+		return ErrTooLong
+	}
+
+	s := strings.ToUpper(value)
+	if !isinPattern.MatchString(s) {
+		return ErrInvalidCharacters
+	}
+	if !isinLuhn(s) {
+		return ErrInvalidChecksum
+	}
+
+	return nil
+}
+
+func isinCharValue(c byte) int {
+	switch {
+	case c >= '0' && c <= '9':
+		return int(c - '0')
+	case c >= 'A' && c <= 'Z':
+		return int(c - 'A' + 10)
+	default:
+		return -1
+	}
+}
+
+func isinLuhn(s string) bool {
+	var b strings.Builder
+	b.Grow(24)
+	for i := 0; i < 12; i++ {
+		v := isinCharValue(s[i])
+		if v < 0 {
+			return false
+		}
+		b.WriteString(strconv.Itoa(v))
+	}
+
+	return luhnValidDigits(b.String())
+}
+
+// luhnValidDigits implements the same checksum as Symfony's LuhnValidator for a decimal string.
+func luhnValidDigits(digits string) bool {
+	if len(digits) == 0 {
+		return false
+	}
+	for i := 0; i < len(digits); i++ {
+		if digits[i] < '0' || digits[i] > '9' {
+			return false
+		}
+	}
+
+	checkSum := 0
+	length := len(digits)
+	for i := length - 1; i >= 0; i-- {
+		d := int(digits[i] - '0')
+		if (i%2)^(length%2) != 0 {
+			checkSum += d
+		} else {
+			doubled := d * 2
+			checkSum += doubled/10 + doubled%10
+		}
+	}
+
+	return checkSum != 0 && checkSum%10 == 0
 }
 
 // UUID validates whether a string value is a valid UUID (also known as GUID).

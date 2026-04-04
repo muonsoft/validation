@@ -253,6 +253,18 @@ func ExampleULID() {
 	// false
 }
 
+func ExampleISIN() {
+	fmt.Println(is.ISIN("US0378331005"))
+	fmt.Println(is.ISIN("US037833100"))
+	fmt.Println(is.ISIN("123456789101"))
+	fmt.Println(is.ISIN("XS2012239364"))
+	// Output:
+	// true
+	// false
+	// false
+	// false
+}
+
 func ExampleUUID() {
 	fmt.Println(is.UUID("83eab6fd-230b-44fe-b52f-463387bd8788"))                                      // v4
 	fmt.Println(is.UUID("83eab6fd-230b-44fe-b52f-463387bd8788", validate.AllowUUIDVersions(4)))       // v4

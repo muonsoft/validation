@@ -15,6 +15,7 @@ var (
 	ErrInvalidEAN8       = NewError("invalid EAN-8", message.InvalidEAN8)
 	ErrInvalidEmail      = NewError("invalid email", message.InvalidEmail)
 	ErrInvalidHostname   = NewError("invalid hostname", message.InvalidHostname)
+	ErrInvalidISIN       = NewError("invalid ISIN", message.InvalidISIN)
 	ErrInvalidIP         = NewError("invalid IP address", message.InvalidIP)
 	ErrInvalidJSON       = NewError("invalid JSON", message.InvalidJSON)
 	ErrInvalidTime       = NewError("invalid time", message.InvalidTime)

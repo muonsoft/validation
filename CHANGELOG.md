@@ -1,6 +1,17 @@
-# Release Notes
+# Changelog
 
-## v0.19.0
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+- ISIN (International Securities Identification Number) validation: `it.IsISIN()`, `validate.ISIN`, `is.ISIN`, with `validation.ErrInvalidISIN` / `message.InvalidISIN` and English and Russian translations (behavior aligned with Symfony `Isin`).
+
+## [0.19.0] - 2026-02-09
 
 ### Added
 
@@ -15,10 +26,13 @@
 - **Documentation**: README restructured with installation, custom constraints, and property paths; expanded custom constraints guide with interface details and examples.
 - **Skill docs**: SKILLS.md removed; new reference and skill documentation for adding validation constraints.
 
+### Breaking
+
+- Tests using `CheckNoViolations` or validator setup need to be updated to the new signatures and helpers.
+
 ### Fixed
 
 - Correct handling of single violations returned from validatable objects in `validateIt`.
 
-### Breaking Changes
-
-- Tests using `CheckNoViolations` or validator setup need to be updated to the new signatures and helpers.
+[Unreleased]: https://github.com/muonsoft/validation/compare/v0.19.0...HEAD
+[0.19.0]: https://github.com/muonsoft/validation/releases/tag/v0.19.0

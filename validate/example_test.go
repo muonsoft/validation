@@ -150,6 +150,18 @@ func ExampleULID() {
 	// too large
 }
 
+func ExampleISIN() {
+	fmt.Println(validate.ISIN("US0378331005"))
+	fmt.Println(validate.ISIN("US037833100"))
+	fmt.Println(validate.ISIN("123456789101"))
+	fmt.Println(validate.ISIN("XS2012239364"))
+	// Output:
+	// <nil>
+	// too short
+	// invalid characters
+	// invalid checksum
+}
+
 func ExampleUUID() {
 	fmt.Println(validate.UUID("83eab6fd-230b-44fe-b52f-463387bd8788"))                                      // v4
 	fmt.Println(validate.UUID("83eab6fd-230b-44fe-b52f-463387bd8788", validate.AllowUUIDVersions(4)))       // v4

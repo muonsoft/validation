@@ -182,9 +182,25 @@ func (c NumericConstraint) ValidateString(ctx context.Context, validator *valida
 4. Update documentation if adding public APIs
 5. Add examples for new features
 6. Ensure all tests pass in CI
+7. Update **CHANGELOG.md** when the change is user-visible (see [Changelog](#changelog) below)
+
+## Changelog
+
+The project uses **[Keep a Changelog](https://keepachangelog.com/)** in **`CHANGELOG.md`**.
+
+### Rules for agents and contributors
+
+1. **Always edit `CHANGELOG.md`** in the same branch/PR when your work would matter to library users: new or changed public API, new constraints, message or translation changes, behavior changes, deprecations, removals, security fixes, or notable bug fixes.
+2. **Use the `[Unreleased]` section** at the top. Maintainers move entries under a version heading and date when they cut a release.
+3. **Pick the right subsection**: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`. Use `Breaking` only for incompatible changes (or describe breaking impact under `Changed` if you prefer a single list).
+4. **Write for consumers**: short, imperative bullets; mention package or symbol names (`it.IsXxx`, `validate.Xxx`, `validation.ErrXxx`) when helpful. Linking to PRs/issues is optional.
+5. **Do not rewrite published versions**: never change the bullet list under a released version tag except to fix obvious typos or incorrect facts.
+6. **Skip the changelog** only for internal-only changes (refactors, tests, CI, comments) with no user-visible effect.
+7. **Release links**: when adding a new version section, update the comparison links at the bottom of the file (`[Unreleased]: ...compare/vX.Y.Z...HEAD` and `[X.Y.Z]: ...releases/tag/vX.Y.Z`).
 
 ## Resources
 
+- **CHANGELOG.md** - Release history for users and upgraders
 - **README.md** - User-facing documentation
 - **CONTRIBUTING.md** - Contribution guidelines
 - **CODE_OF_CONDUCT.md** - Community standards

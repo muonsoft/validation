@@ -16,6 +16,14 @@ func IsULID() validation.StringFuncConstraint {
 		WithMessage(validation.ErrInvalidULID.Message())
 }
 
+// IsISIN validates whether the value is a valid International Securities Identification Number (ISIN).
+// See https://en.wikipedia.org/wiki/International_Securities_Identification_Number.
+func IsISIN() validation.StringFuncConstraint {
+	return validation.OfStringBy(is.ISIN).
+		WithError(validation.ErrInvalidISIN).
+		WithMessage(validation.ErrInvalidISIN.Message())
+}
+
 // UUIDConstraint validates whether a string value is a valid UUID (also known as GUID).
 //
 // By default, it uses strict mode and checks the UUID as specified in RFC 4122.
