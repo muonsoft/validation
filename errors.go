@@ -18,6 +18,7 @@ var (
 	ErrInvalidISIN       = NewError("invalid ISIN", message.InvalidISIN)
 	ErrInvalidIP         = NewError("invalid IP address", message.InvalidIP)
 	ErrInvalidJSON       = NewError("invalid JSON", message.InvalidJSON)
+	ErrInvalidLuhn       = NewError("invalid Luhn", message.InvalidLuhn)
 	ErrInvalidTime       = NewError("invalid time", message.InvalidTime)
 	ErrInvalidULID       = NewError("invalid ULID", message.InvalidULID)
 	ErrInvalidUPCA       = NewError("invalid UPC-A", message.InvalidUPCA)

@@ -16,6 +16,14 @@ func ISIN(value string) bool {
 	return validate.ISIN(value) == nil
 }
 
+// Luhn validates whether the value passes the Luhn (mod 10) checksum.
+// See [github.com/muonsoft/validation/validate.Luhn] for validation rules and possible errors.
+//
+// See https://en.wikipedia.org/wiki/Luhn_algorithm.
+func Luhn(value string) bool {
+	return validate.Luhn(value) == nil
+}
+
 // UUID validates whether a string value is a valid UUID (also known as GUID).
 //
 // By default, it uses strict mode and checks the UUID as specified in RFC 4122.

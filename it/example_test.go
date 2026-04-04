@@ -55,6 +55,20 @@ func ExampleIsISIN_invalid() {
 	// violation: "This value is not a valid International Securities Identification Number (ISIN)."
 }
 
+func ExampleIsLuhn_valid() {
+	err := validator.Validate(context.Background(), validation.String("79927398713", it.IsLuhn()))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsLuhn_invalid() {
+	err := validator.Validate(context.Background(), validation.String("79927398710", it.IsLuhn()))
+	fmt.Println(err)
+	// Output:
+	// violation: "Invalid card number."
+}
+
 func ExampleIsNotBlank() {
 	fmt.Println(validator.Validate(context.Background(), validation.String("", it.IsNotBlank())))
 	fmt.Println(validator.Validate(context.Background(), validation.Countable(len([]string{}), it.IsNotBlank())))

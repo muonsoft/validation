@@ -24,6 +24,16 @@ func IsISIN() validation.StringFuncConstraint {
 		WithMessage(validation.ErrInvalidISIN.Message())
 }
 
+// IsLuhn validates whether the value passes the Luhn (mod 10) checksum, as in
+// Symfony\Component\Validator\Constraints\Luhn.
+//
+// See https://en.wikipedia.org/wiki/Luhn_algorithm.
+func IsLuhn() validation.StringFuncConstraint {
+	return validation.OfStringBy(is.Luhn).
+		WithError(validation.ErrInvalidLuhn).
+		WithMessage(validation.ErrInvalidLuhn.Message())
+}
+
 // UUIDConstraint validates whether a string value is a valid UUID (also known as GUID).
 //
 // By default, it uses strict mode and checks the UUID as specified in RFC 4122.

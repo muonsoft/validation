@@ -10,6 +10,7 @@ var identifierConstraintsTestCases = mergeTestCases(
 	ulidConstraintTestCases,
 	uuidConstraintTestCases,
 	isinConstraintTestCases,
+	luhnConstraintTestCases,
 )
 
 var ulidConstraintTestCases = []ConstraintValidationTestCase{
@@ -103,6 +104,77 @@ var isinConstraintTestCases = []ConstraintValidationTestCase{
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsISIN().WhenGroups(testGroup),
 		stringValue:     stringValue("bad"),
+		assert:          assertNoError,
+	},
+}
+
+var luhnConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsLuhn passes on empty value",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsLuhn(),
+		stringValue:     stringValue(""),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsLuhn passes on valid value",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("79927398713"),
+		constraint:      it.IsLuhn(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsLuhn violation on invalid checksum",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("79927398710"),
+		constraint:      it.IsLuhn(),
+		assert:          assertHasOneViolation(validation.ErrInvalidLuhn, message.InvalidLuhn),
+	},
+	{
+		name:            "IsLuhn violation on only zeros",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("0000000000000000"),
+		constraint:      it.IsLuhn(),
+		assert:          assertHasOneViolation(validation.ErrInvalidLuhn, message.InvalidLuhn),
+	},
+	{
+		name:            "IsLuhn violation on non-digit",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("12345a"),
+		constraint:      it.IsLuhn(),
+		assert:          assertHasOneViolation(validation.ErrInvalidLuhn, message.InvalidLuhn),
+	},
+	{
+		name:            "IsLuhn violation with given error and message",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint: it.IsLuhn().
+			WithError(ErrCustom).
+			WithMessage(
+				`Invalid value "{{ value }}" for {{ custom }}.`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		stringValue: stringValue("bad"),
+		assert:      assertHasOneViolation(ErrCustom, `Invalid value "bad" for parameter.`),
+	},
+	{
+		name:            "IsLuhn passes when condition is false",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsLuhn().When(false),
+		stringValue:     stringValue("79927398710"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsLuhn violation when condition is true",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsLuhn().When(true),
+		stringValue:     stringValue("79927398710"),
+		assert:          assertHasOneViolation(validation.ErrInvalidLuhn, message.InvalidLuhn),
+	},
+	{
+		name:            "IsLuhn passes when groups not match",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsLuhn().WhenGroups(testGroup),
+		stringValue:     stringValue("79927398710"),
 		assert:          assertNoError,
 	},
 }

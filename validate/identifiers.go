@@ -110,32 +110,6 @@ func isinLuhn(s string) bool {
 	return luhnValidDigits(b.String())
 }
 
-// luhnValidDigits implements the same checksum as Symfony's LuhnValidator for a decimal string.
-func luhnValidDigits(digits string) bool {
-	if len(digits) == 0 {
-		return false
-	}
-	for i := 0; i < len(digits); i++ {
-		if digits[i] < '0' || digits[i] > '9' {
-			return false
-		}
-	}
-
-	checkSum := 0
-	length := len(digits)
-	for i := length - 1; i >= 0; i-- {
-		d := int(digits[i] - '0')
-		if (i%2)^(length%2) != 0 {
-			checkSum += d
-		} else {
-			doubled := d * 2
-			checkSum += doubled/10 + doubled%10
-		}
-	}
-
-	return checkSum != 0 && checkSum%10 == 0
-}
-
 // UUID validates whether a string value is a valid UUID (also known as GUID).
 //
 // By default, it uses strict mode and checks the UUID as specified in RFC 4122.

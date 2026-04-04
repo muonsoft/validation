@@ -162,6 +162,16 @@ func ExampleISIN() {
 	// invalid checksum
 }
 
+func ExampleLuhn() {
+	fmt.Println(validate.Luhn("79927398713"))
+	fmt.Println(validate.Luhn("79927398710"))
+	fmt.Println(validate.Luhn("12345a"))
+	// Output:
+	// <nil>
+	// invalid checksum
+	// contains non-digit
+}
+
 func ExampleUUID() {
 	fmt.Println(validate.UUID("83eab6fd-230b-44fe-b52f-463387bd8788"))                                      // v4
 	fmt.Println(validate.UUID("83eab6fd-230b-44fe-b52f-463387bd8788", validate.AllowUUIDVersions(4)))       // v4

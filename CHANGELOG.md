@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Luhn (mod 10) checksum validation: `it.IsLuhn()`, `validate.Luhn`, `is.Luhn`, with `validation.ErrInvalidLuhn` / `message.InvalidLuhn` and English and Russian translations (behavior aligned with Symfony `Luhn`).
 - ISIN (International Securities Identification Number) validation: `it.IsISIN()`, `validate.ISIN`, `is.ISIN`, with `validation.ErrInvalidISIN` / `message.InvalidISIN` and English and Russian translations (behavior aligned with Symfony `Isin`).
 
 ## [0.19.0] - 2026-02-09

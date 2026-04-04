@@ -36,6 +36,7 @@ const (
 	InvalidISIN       = "This value is not a valid International Securities Identification Number (ISIN)."
 	InvalidIP         = "This is not a valid IP address."
 	InvalidJSON       = "This value should be valid JSON."
+	InvalidLuhn       = "Invalid card number."
 	InvalidTime       = "This value is not a valid time."
 	InvalidULID       = "This is not a valid ULID."
 	InvalidUPCA       = "This value is not a valid UPC-A."

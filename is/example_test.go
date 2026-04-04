@@ -265,6 +265,16 @@ func ExampleISIN() {
 	// false
 }
 
+func ExampleLuhn() {
+	fmt.Println(is.Luhn("79927398713"))
+	fmt.Println(is.Luhn("79927398710"))
+	fmt.Println(is.Luhn("12345a"))
+	// Output:
+	// true
+	// false
+	// false
+}
+
 func ExampleUUID() {
 	fmt.Println(is.UUID("83eab6fd-230b-44fe-b52f-463387bd8788"))                                      // v4
 	fmt.Println(is.UUID("83eab6fd-230b-44fe-b52f-463387bd8788", validate.AllowUUIDVersions(4)))       // v4
