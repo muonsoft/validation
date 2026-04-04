@@ -57,6 +57,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.InvalidEAN8:           catalog.String("Значение не является допустимым EAN-8."),
 		message.InvalidEmail:          catalog.String("Значение адреса электронной почты недопустимо."),
 		message.InvalidHostname:       catalog.String("Значение не является корректным именем хоста."),
+		message.InvalidIBAN:           catalog.String("Значение не является допустимым международным номером банковского счёта (IBAN)."),
 		message.InvalidISIN:           catalog.String("Значение не является допустимым международным идентификационным номером ценной бумаги (ISIN)."),
 		message.InvalidCIDR:           catalog.String("Значение не является допустимой записью CIDR."),
 		message.CIDRNetmaskOutOfRange: catalog.String("Значение маски сети должно быть между {{ min }} и {{ max }}."),

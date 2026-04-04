@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- IBAN validation: `it.IsIBAN()`, `validate.IBAN`, `is.IBAN`, with `validation.ErrInvalidIBAN` / `message.InvalidIBAN` and English and Russian translations (behavior aligned with Symfony `Iban`; country patterns from Symfony 7.2 `IbanValidator`).
 - CIDR notation validation: `it.IsCIDR()` with `IPv4Only`, `IPv6Only`, `WithVersion`, `WithNetmaskRange`, and separate invalid vs netmask-range messages; `validate.CIDR`, `validate.CIDRViolationNetmaskBounds`, `is.CIDR`; `validation.ErrInvalidCIDR` / `validation.ErrCIDRNetmaskOutOfRange` and English and Russian translations (behavior aligned with Symfony `Cidr`). Exported names use the **CIDR** initialism per [Go Code Review Comments](https://go.dev/wiki/CodeReviewComments).
 - LUHN (mod 10 / Luhn) checksum validation: `it.IsLUHN()`, `validate.LUHN`, `is.LUHN`, with `validation.ErrInvalidLUHN` / `message.InvalidLUHN` and English and Russian translations (behavior aligned with Symfony `Luhn`).
 - ISIN (International Securities Identification Number) validation: `it.IsISIN()`, `validate.ISIN`, `is.ISIN`, with `validation.ErrInvalidISIN` / `message.InvalidISIN` and English and Russian translations (behavior aligned with Symfony `Isin`).

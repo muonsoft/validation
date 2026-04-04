@@ -263,6 +263,16 @@ func ExampleULID() {
 	// false
 }
 
+func ExampleIBAN() {
+	fmt.Println(is.IBAN("DE89370400440532013000"))
+	fmt.Println(is.IBAN("DE89370400440532013001"))
+	fmt.Println(is.IBAN("US64SVBX1101057138"))
+	// Output:
+	// true
+	// false
+	// false
+}
+
 func ExampleISIN() {
 	fmt.Println(is.ISIN("US0378331005"))
 	fmt.Println(is.ISIN("US037833100"))
