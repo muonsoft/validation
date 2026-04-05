@@ -9,6 +9,7 @@ import (
 var identifierConstraintsTestCases = mergeTestCases(
 	ulidConstraintTestCases,
 	uuidConstraintTestCases,
+	ibanConstraintTestCases,
 	isinConstraintTestCases,
 	luhnConstraintTestCases,
 )
@@ -27,6 +28,77 @@ var ulidConstraintTestCases = []ConstraintValidationTestCase{
 		stringValue:     stringValue("81ARZ3NDEKTSV4RRFFQ69G5FAV"),
 		constraint:      it.IsULID(),
 		assert:          assertHasOneViolation(validation.ErrInvalidULID, message.InvalidULID),
+	},
+}
+
+var ibanConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsIBAN passes on empty value",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsIBAN(),
+		stringValue:     stringValue(""),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsIBAN passes on valid value",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("DE89370400440532013000"),
+		constraint:      it.IsIBAN(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsIBAN passes on spaced value",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("CH93 0076 2011 6238 5295 7"),
+		constraint:      it.IsIBAN(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsIBAN violation on invalid checksum",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("DE89370400440532013001"),
+		constraint:      it.IsIBAN(),
+		assert:          assertHasOneViolation(validation.ErrInvalidIBAN, message.InvalidIBAN),
+	},
+	{
+		name:            "IsIBAN violation on unsupported country",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("US64SVBX1101057138"),
+		constraint:      it.IsIBAN(),
+		assert:          assertHasOneViolation(validation.ErrInvalidIBAN, message.InvalidIBAN),
+	},
+	{
+		name:            "IsIBAN violation with given error and message",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint: it.IsIBAN().
+			WithError(ErrCustom).
+			WithMessage(
+				`Invalid value "{{ value }}" for {{ custom }}.`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		stringValue: stringValue("bad-iban"),
+		assert:      assertHasOneViolation(ErrCustom, `Invalid value "bad-iban" for parameter.`),
+	},
+	{
+		name:            "IsIBAN passes when condition is false",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsIBAN().When(false),
+		stringValue:     stringValue("bad"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsIBAN violation when condition is true",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsIBAN().When(true),
+		stringValue:     stringValue("bad"),
+		assert:          assertHasOneViolation(validation.ErrInvalidIBAN, message.InvalidIBAN),
+	},
+	{
+		name:            "IsIBAN passes when groups not match",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsIBAN().WhenGroups(testGroup),
+		stringValue:     stringValue("bad"),
+		assert:          assertNoError,
 	},
 }
 

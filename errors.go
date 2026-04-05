@@ -15,6 +15,7 @@ var (
 	ErrInvalidEAN8           = NewError("invalid EAN-8", message.InvalidEAN8)
 	ErrInvalidEmail          = NewError("invalid email", message.InvalidEmail)
 	ErrInvalidHostname       = NewError("invalid hostname", message.InvalidHostname)
+	ErrInvalidIBAN           = NewError("invalid IBAN", message.InvalidIBAN)
 	ErrInvalidISIN           = NewError("invalid ISIN", message.InvalidISIN)
 	ErrInvalidCIDR           = NewError("invalid CIDR", message.InvalidCIDR)
 	ErrCIDRNetmaskOutOfRange = NewError("CIDR netmask out of range", message.CIDRNetmaskOutOfRange)

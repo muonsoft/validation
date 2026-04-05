@@ -41,6 +41,20 @@ func ExampleIsUPCE() {
 	// violation: "This value is not a valid UPC-E."
 }
 
+func ExampleIsIBAN_valid() {
+	err := validator.Validate(context.Background(), validation.String("DE89370400440532013000", it.IsIBAN()))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsIBAN_invalid() {
+	err := validator.Validate(context.Background(), validation.String("DE89370400440532013001", it.IsIBAN()))
+	fmt.Println(err)
+	// Output:
+	// violation: "This is not a valid International Bank Account Number (IBAN)."
+}
+
 func ExampleIsISIN_valid() {
 	err := validator.Validate(context.Background(), validation.String("US0378331005", it.IsISIN()))
 	fmt.Println(err)

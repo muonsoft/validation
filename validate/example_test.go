@@ -160,6 +160,16 @@ func ExampleULID() {
 	// too large
 }
 
+func ExampleIBAN() {
+	fmt.Println(validate.IBAN("DE89370400440532013000"))
+	fmt.Println(validate.IBAN("DE89370400440532013001"))
+	fmt.Println(validate.IBAN("US64SVBX1101057138"))
+	// Output:
+	// <nil>
+	// invalid IBAN
+	// invalid IBAN
+}
+
 func ExampleISIN() {
 	fmt.Println(validate.ISIN("US0378331005"))
 	fmt.Println(validate.ISIN("US037833100"))

@@ -16,6 +16,16 @@ func IsULID() validation.StringFuncConstraint {
 		WithMessage(validation.ErrInvalidULID.Message())
 }
 
+// IsIBAN validates whether the value is a valid International Bank Account Number (IBAN).
+// Behavior is aligned with Symfony\Component\Validator\Constraints\Iban.
+//
+// See https://en.wikipedia.org/wiki/International_Bank_Account_Number.
+func IsIBAN() validation.StringFuncConstraint {
+	return validation.OfStringBy(is.IBAN).
+		WithError(validation.ErrInvalidIBAN).
+		WithMessage(validation.ErrInvalidIBAN.Message())
+}
+
 // IsISIN validates whether the value is a valid International Securities Identification Number (ISIN).
 // See https://en.wikipedia.org/wiki/International_Securities_Identification_Number.
 func IsISIN() validation.StringFuncConstraint {
