@@ -33,6 +33,7 @@ const (
 	InvalidEAN8           = "This value is not a valid EAN-8."
 	InvalidEmail          = "This value is not a valid email address."
 	InvalidHostname       = "This value is not a valid hostname."
+	InvalidIBAN           = "This is not a valid International Bank Account Number (IBAN)."
 	InvalidISIN           = "This value is not a valid International Securities Identification Number (ISIN)."
 	InvalidCIDR           = "This value is not a valid CIDR notation."
 	CIDRNetmaskOutOfRange = "The value of the netmask should be between {{ min }} and {{ max }}."

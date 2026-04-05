@@ -8,6 +8,14 @@ func ULID(value string) bool {
 	return validate.ULID(value) == nil
 }
 
+// IBAN validates whether the value is a valid International Bank Account Number (IBAN).
+// See [github.com/muonsoft/validation/validate.IBAN] for validation rules.
+//
+// See https://en.wikipedia.org/wiki/International_Bank_Account_Number.
+func IBAN(value string) bool {
+	return validate.IBAN(value) == nil
+}
+
 // ISIN validates whether the value is a valid International Securities Identification Number (ISIN).
 // See [github.com/muonsoft/validation/validate.ISIN] for validation rules and possible errors.
 //
