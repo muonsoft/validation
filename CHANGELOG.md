@@ -15,10 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - LUHN (mod 10 / Luhn) checksum validation: `it.IsLUHN()`, `validate.LUHN`, `is.LUHN`, with `validation.ErrInvalidLUHN` / `message.InvalidLUHN` and English and Russian translations (behavior aligned with Symfony `Luhn`).
 - ISIN (International Securities Identification Number) validation: `it.IsISIN()`, `validate.ISIN`, `is.ISIN`, with `validation.ErrInvalidISIN` / `message.InvalidISIN` and English and Russian translations (behavior aligned with Symfony `Isin`).
 
-### Changed
-
-- **NoSuspiciousCharacters** (`it`): constructor renamed from `NoSuspiciousCharacters` to `HasNoSuspiciousCharacters`; constraint type renamed to `HasNoSuspiciousCharactersConstraint` (declarative naming, consistent with `HasMinLength` and similar).
-
 ## [0.19.0] - 2026-02-09
 
 ### Added
