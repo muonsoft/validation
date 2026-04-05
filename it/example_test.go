@@ -965,3 +965,17 @@ func ExampleIPConstraint_DenyIP() {
 	// Output:
 	// violation: "This IP address is prohibited to use."
 }
+
+func ExampleNoSuspiciousCharacters_valid() {
+	err := validator.Validate(context.Background(), validation.String("alice", it.NoSuspiciousCharacters()))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleNoSuspiciousCharacters_invalid() {
+	err := validator.Validate(context.Background(), validation.String("a\u200b", it.NoSuspiciousCharacters()))
+	fmt.Println(err)
+	// Output:
+	// violation: "Using invisible characters is not allowed."
+}

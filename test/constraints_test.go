@@ -83,6 +83,7 @@ var validateTestCases = mergeTestCases(
 	numericConstraintTestCases,
 	rangeComparisonTestCases,
 	regexConstraintTestCases,
+	suspiciousCharactersConstraintTestCases,
 	timeComparisonTestCases,
 	urlConstraintTestCases,
 )

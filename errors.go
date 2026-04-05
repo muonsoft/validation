@@ -63,6 +63,11 @@ var (
 	ErrTooLowOrEqual         = NewError("is too low or equal", message.TooLowOrEqual)
 	ErrTooManyElements       = NewError("too many elements", message.TooManyElements)
 	ErrTooShort              = NewError("is too short", message.TooShort)
+
+	ErrSuspiciousInvisible             = NewError("suspicious invisible characters", message.SuspiciousInvisible)
+	ErrSuspiciousMixedNumbers          = NewError("suspicious mixed numbers", message.SuspiciousMixedNumbers)
+	ErrSuspiciousHiddenOverlay         = NewError("suspicious hidden overlay", message.SuspiciousHiddenOverlay)
+	ErrSuspiciousCharactersRestriction = NewError("suspicious characters restriction", message.SuspiciousCharactersRestriction)
 )
 
 // Error is a base type for static validation error used as an underlying error for [Violation].
