@@ -9,68 +9,68 @@ import (
 
 var suspiciousCharactersConstraintTestCases = []ConstraintValidationTestCase{
 	{
-		name:            "NoSuspiciousCharacters passes on nil",
+		name:            "HasNoSuspiciousCharacters passes on nil",
 		isApplicableFor: specificValueTypes(stringType),
-		constraint:      it.NoSuspiciousCharacters(),
+		constraint:      it.HasNoSuspiciousCharacters(),
 		assert:          assertNoError,
 	},
 	{
-		name:            "NoSuspiciousCharacters passes on empty",
+		name:            "HasNoSuspiciousCharacters passes on empty",
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue(""),
-		constraint:      it.NoSuspiciousCharacters(),
+		constraint:      it.HasNoSuspiciousCharacters(),
 		assert:          assertNoError,
 	},
 	{
-		name:            "NoSuspiciousCharacters passes on ASCII",
+		name:            "HasNoSuspiciousCharacters passes on ASCII",
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("symfony"),
-		constraint:      it.NoSuspiciousCharacters(),
+		constraint:      it.HasNoSuspiciousCharacters(),
 		assert:          assertNoError,
 	},
 	{
-		name:            "NoSuspiciousCharacters violation on zero-width space",
+		name:            "HasNoSuspiciousCharacters violation on zero-width space",
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("a\u200b"),
-		constraint:      it.NoSuspiciousCharacters(),
+		constraint:      it.HasNoSuspiciousCharacters(),
 		assert:          assertHasOneViolation(validation.ErrSuspiciousInvisible, message.SuspiciousInvisible),
 	},
 	{
-		name:            "NoSuspiciousCharacters violation on mixed decimal digits",
+		name:            "HasNoSuspiciousCharacters violation on mixed decimal digits",
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("8৪"),
-		constraint:      it.NoSuspiciousCharacters(),
+		constraint:      it.HasNoSuspiciousCharacters(),
 		assert:          assertHasOneViolation(validation.ErrSuspiciousMixedNumbers, message.SuspiciousMixedNumbers),
 	},
 	{
-		name:            "NoSuspiciousCharacters violation on hidden overlay",
+		name:            "HasNoSuspiciousCharacters violation on hidden overlay",
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("i\u0307"),
-		constraint:      it.NoSuspiciousCharacters(),
+		constraint:      it.HasNoSuspiciousCharacters(),
 		assert:          assertHasOneViolation(validation.ErrSuspiciousHiddenOverlay, message.SuspiciousHiddenOverlay),
 	},
 	{
-		name:            "NoSuspiciousCharacters single-script restriction",
+		name:            "HasNoSuspiciousCharacters single-script restriction",
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("a\u0430"),
-		constraint: it.NoSuspiciousCharacters().
+		constraint: it.HasNoSuspiciousCharacters().
 			WithSuspiciousRestriction(validate.SuspiciousRestrictionSingleScript),
 		assert: assertHasOneViolation(validation.ErrSuspiciousCharactersRestriction, message.SuspiciousCharactersRestriction),
 	},
 	{
-		name:            "NoSuspiciousCharacters locale restriction",
+		name:            "HasNoSuspiciousCharacters locale restriction",
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("πει"),
-		constraint: it.NoSuspiciousCharacters().
+		constraint: it.HasNoSuspiciousCharacters().
 			WithSuspiciousRestriction(validate.SuspiciousRestrictionLocales).
 			WithSuspiciousLocales("en"),
 		assert: assertHasOneViolation(validation.ErrSuspiciousCharactersRestriction, message.SuspiciousCharactersRestriction),
 	},
 	{
-		name:            "NoSuspiciousCharacters When false ignores violation",
+		name:            "HasNoSuspiciousCharacters When false ignores violation",
 		isApplicableFor: specificValueTypes(stringType),
 		stringValue:     stringValue("a\u200b"),
-		constraint:      it.NoSuspiciousCharacters().When(false),
+		constraint:      it.HasNoSuspiciousCharacters().When(false),
 		assert:          assertNoError,
 	},
 }

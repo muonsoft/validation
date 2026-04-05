@@ -9,6 +9,16 @@ Follow this workflow when adding a new constraint. Mandatory steps: constraint i
 
 For **exported Go names** (functions, types, errors, message constants), follow **[Code Review Comments](https://go.dev/wiki/CodeReviewComments)** — especially **Initialisms** (e.g. `CIDR`, `URL`, not `Cidr`, `Url`). See the **`golang-code-review-comments`** skill in this repo for a short checklist and link.
 
+### Naming: `it` package constructors (declarative style)
+
+Constraint entry points in **`it`** should read as **declarative requirements** on the value, aligned with existing APIs:
+
+- Prefer **`Has…`** for “this value must have / satisfy property X” (e.g. `HasMinLength`, `HasNoSuspiciousCharacters`).
+- Prefer **`Is…`** for type or format predicates (e.g. `IsEmail`, `IsUUID`, `IsNotBlank`).
+- Prefer **`Not…`** for explicit negation of another constraint’s wording when that matches Symfony or existing library names (e.g. `NotBlank`).
+
+When a Symfony constraint name is `NoXxx` or `NotXxx`, map it to Go as **`HasNoXxx`** (or keep **`NotXxx`** if the library already uses that pattern for the same idea) so call sites look like natural rules: `validation.String(v, it.HasNoSuspiciousCharacters())`, not `it.NoSuspiciousCharacters()`.
+
 ---
 
 ## 1. Message and Error (mandatory)
@@ -84,7 +94,9 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 
 ## 3. Constraint in package `it` (mandatory)
 
-Choose the right file: `it/string.go`, `it/identifiers.go`, `it/web.go`, `it/comparison.go`, `it/basic.go`, `it/iterable.go`, `it/date_time.go`, `it/choice.go`, `it/barcodes.go`.
+Choose the right file: `it/string.go`, `it/identifiers.go`, `it/web.go`, `it/comparison.go`, `it/basic.go`, `it/iterable.go`, `it/date_time.go`, `it/choice.go`, `it/barcodes.go`, `it/suspicious.go`.
+
+Follow **[Naming: `it` package constructors](#naming-it-package-constructors-declarative-style)** for the exported constructor name.
 
 ### 3.1 Simple string constraint (func(string) bool)
 

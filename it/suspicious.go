@@ -8,7 +8,7 @@ import (
 	"github.com/muonsoft/validation/validate"
 )
 
-// NoSuspiciousCharactersConstraint rejects strings that look like common Unicode spoofing
+// HasNoSuspiciousCharactersConstraint requires that the string has no common Unicode spoofing patterns
 // (invisible/format controls, mixed-script decimal digits, risky combining sequences, optional script/locale rules).
 // Empty and nil strings are ignored; combine with [IsNotBlank] for required fields.
 //
@@ -16,7 +16,7 @@ import (
 // edge cases may differ from ICU.
 //
 // [NoSuspiciousCharacters]: https://symfony.com/doc/current/reference/constraints/NoSuspiciousCharacters.html
-type NoSuspiciousCharactersConstraint struct {
+type HasNoSuspiciousCharactersConstraint struct {
 	isIgnored bool
 	groups    []string
 
@@ -38,11 +38,11 @@ type NoSuspiciousCharactersConstraint struct {
 	restrictionParams     validation.TemplateParameterList
 }
 
-// NoSuspiciousCharacters creates a constraint with default checks (invisible, mixed numbers, hidden overlay)
-// and no locale/script restriction. Use [NoSuspiciousCharactersConstraint.WithChecks],
-// [NoSuspiciousCharactersConstraint.WithSuspiciousRestriction], and [NoSuspiciousCharactersConstraint.WithSuspiciousLocales] to customize.
-func NoSuspiciousCharacters() NoSuspiciousCharactersConstraint {
-	return NoSuspiciousCharactersConstraint{
+// HasNoSuspiciousCharacters creates a constraint with default checks (invisible, mixed numbers, hidden overlay)
+// and no locale/script restriction. Use [HasNoSuspiciousCharactersConstraint.WithChecks],
+// [HasNoSuspiciousCharactersConstraint.WithSuspiciousRestriction], and [HasNoSuspiciousCharactersConstraint.WithSuspiciousLocales] to customize.
+func HasNoSuspiciousCharacters() HasNoSuspiciousCharactersConstraint {
+	return HasNoSuspiciousCharactersConstraint{
 		checks:                validate.DefaultSuspiciousChecks,
 		restriction:           validate.SuspiciousRestrictionNone,
 		invisibleErr:          validation.ErrSuspiciousInvisible,
@@ -58,90 +58,90 @@ func NoSuspiciousCharacters() NoSuspiciousCharactersConstraint {
 
 // WithChecks sets the check bitmask ([validate.CheckSuspiciousInvisible], [validate.CheckSuspiciousMixedNumbers],
 // [validate.CheckSuspiciousHiddenOverlay]). Use 0 to disable all checks (only restriction rules still apply if set).
-func (c NoSuspiciousCharactersConstraint) WithChecks(checks uint) NoSuspiciousCharactersConstraint {
+func (c HasNoSuspiciousCharactersConstraint) WithChecks(checks uint) HasNoSuspiciousCharactersConstraint {
 	c.checks = checks
 	return c
 }
 
 // WithSuspiciousRestriction sets script/locale restriction mode ([validate.SuspiciousRestrictionLocales],
 // [validate.SuspiciousRestrictionSingleScript], or [validate.SuspiciousRestrictionNone]).
-func (c NoSuspiciousCharactersConstraint) WithSuspiciousRestriction(r validate.SuspiciousRestriction) NoSuspiciousCharactersConstraint {
+func (c HasNoSuspiciousCharactersConstraint) WithSuspiciousRestriction(r validate.SuspiciousRestriction) HasNoSuspiciousCharactersConstraint {
 	c.restriction = r
 	return c
 }
 
 // WithSuspiciousLocales sets BCP 47 tags for [validate.SuspiciousRestrictionLocales] (e.g. "en", "ru-RU").
-func (c NoSuspiciousCharactersConstraint) WithSuspiciousLocales(locales ...string) NoSuspiciousCharactersConstraint {
+func (c HasNoSuspiciousCharactersConstraint) WithSuspiciousLocales(locales ...string) HasNoSuspiciousCharactersConstraint {
 	c.locales = append([]string(nil), locales...)
 	return c
 }
 
 // WithInvisibleError overrides the error for invisible/format-control detection.
-func (c NoSuspiciousCharactersConstraint) WithInvisibleError(err error) NoSuspiciousCharactersConstraint {
+func (c HasNoSuspiciousCharactersConstraint) WithInvisibleError(err error) HasNoSuspiciousCharactersConstraint {
 	c.invisibleErr = err
 	return c
 }
 
 // WithInvisibleMessage sets the violation template for invisible/format-control detection.
-func (c NoSuspiciousCharactersConstraint) WithInvisibleMessage(template string, parameters ...validation.TemplateParameter) NoSuspiciousCharactersConstraint {
+func (c HasNoSuspiciousCharactersConstraint) WithInvisibleMessage(template string, parameters ...validation.TemplateParameter) HasNoSuspiciousCharactersConstraint {
 	c.invisibleTemplate = template
 	c.invisibleParams = parameters
 	return c
 }
 
 // WithMixedNumbersError overrides the error for mixed decimal digit scripts.
-func (c NoSuspiciousCharactersConstraint) WithMixedNumbersError(err error) NoSuspiciousCharactersConstraint {
+func (c HasNoSuspiciousCharactersConstraint) WithMixedNumbersError(err error) HasNoSuspiciousCharactersConstraint {
 	c.mixedNumbersErr = err
 	return c
 }
 
 // WithMixedNumbersMessage sets the violation template for mixed decimal digit scripts.
-func (c NoSuspiciousCharactersConstraint) WithMixedNumbersMessage(template string, parameters ...validation.TemplateParameter) NoSuspiciousCharactersConstraint {
+func (c HasNoSuspiciousCharactersConstraint) WithMixedNumbersMessage(template string, parameters ...validation.TemplateParameter) HasNoSuspiciousCharactersConstraint {
 	c.mixedNumbersTemplate = template
 	c.mixedNumbersParams = parameters
 	return c
 }
 
 // WithHiddenOverlayError overrides the error for hidden combining overlay sequences.
-func (c NoSuspiciousCharactersConstraint) WithHiddenOverlayError(err error) NoSuspiciousCharactersConstraint {
+func (c HasNoSuspiciousCharactersConstraint) WithHiddenOverlayError(err error) HasNoSuspiciousCharactersConstraint {
 	c.hiddenOverlayErr = err
 	return c
 }
 
 // WithHiddenOverlayMessage sets the violation template for hidden overlay sequences.
-func (c NoSuspiciousCharactersConstraint) WithHiddenOverlayMessage(template string, parameters ...validation.TemplateParameter) NoSuspiciousCharactersConstraint {
+func (c HasNoSuspiciousCharactersConstraint) WithHiddenOverlayMessage(template string, parameters ...validation.TemplateParameter) HasNoSuspiciousCharactersConstraint {
 	c.hiddenOverlayTemplate = template
 	c.hiddenOverlayParams = parameters
 	return c
 }
 
 // WithRestrictionError overrides the error for locale/script restriction failures.
-func (c NoSuspiciousCharactersConstraint) WithRestrictionError(err error) NoSuspiciousCharactersConstraint {
+func (c HasNoSuspiciousCharactersConstraint) WithRestrictionError(err error) HasNoSuspiciousCharactersConstraint {
 	c.restrictionErr = err
 	return c
 }
 
 // WithRestrictionMessage sets the violation template for locale/script restriction failures.
-func (c NoSuspiciousCharactersConstraint) WithRestrictionMessage(template string, parameters ...validation.TemplateParameter) NoSuspiciousCharactersConstraint {
+func (c HasNoSuspiciousCharactersConstraint) WithRestrictionMessage(template string, parameters ...validation.TemplateParameter) HasNoSuspiciousCharactersConstraint {
 	c.restrictionTemplate = template
 	c.restrictionParams = parameters
 	return c
 }
 
 // When enables conditional validation of this constraint.
-func (c NoSuspiciousCharactersConstraint) When(condition bool) NoSuspiciousCharactersConstraint {
+func (c HasNoSuspiciousCharactersConstraint) When(condition bool) HasNoSuspiciousCharactersConstraint {
 	c.isIgnored = !condition
 	return c
 }
 
 // WhenGroups enables conditional validation by validation groups.
-func (c NoSuspiciousCharactersConstraint) WhenGroups(groups ...string) NoSuspiciousCharactersConstraint {
+func (c HasNoSuspiciousCharactersConstraint) WhenGroups(groups ...string) HasNoSuspiciousCharactersConstraint {
 	c.groups = groups
 	return c
 }
 
 // ValidateString implements [validation.StringConstraint].
-func (c NoSuspiciousCharactersConstraint) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
+func (c HasNoSuspiciousCharactersConstraint) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
 	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || *value == "" {
 		return nil
 	}
@@ -166,7 +166,7 @@ func (c NoSuspiciousCharactersConstraint) ValidateString(ctx context.Context, va
 		Create()
 }
 
-func (c NoSuspiciousCharactersConstraint) templateForSuspiciousValidateError(err error) (string, validation.TemplateParameterList, error) {
+func (c HasNoSuspiciousCharactersConstraint) templateForSuspiciousValidateError(err error) (string, validation.TemplateParameterList, error) {
 	if errors.Is(err, validate.ErrSuspiciousInvisible) {
 		return c.invisibleTemplate, c.invisibleParams, c.invisibleErr
 	}

@@ -980,15 +980,15 @@ func ExampleIPConstraint_DenyIP() {
 	// violation: "This IP address is prohibited to use."
 }
 
-func ExampleNoSuspiciousCharacters_valid() {
-	err := validator.Validate(context.Background(), validation.String("alice", it.NoSuspiciousCharacters()))
+func ExampleHasNoSuspiciousCharacters_valid() {
+	err := validator.Validate(context.Background(), validation.String("alice", it.HasNoSuspiciousCharacters()))
 	fmt.Println(err)
 	// Output:
 	// <nil>
 }
 
-func ExampleNoSuspiciousCharacters_invalid() {
-	err := validator.Validate(context.Background(), validation.String("a\u200b", it.NoSuspiciousCharacters()))
+func ExampleHasNoSuspiciousCharacters_invalid() {
+	err := validator.Validate(context.Background(), validation.String("a\u200b", it.HasNoSuspiciousCharacters()))
 	fmt.Println(err)
 	// Output:
 	// violation: "Using invisible characters is not allowed."
