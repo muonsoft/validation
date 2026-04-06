@@ -524,6 +524,23 @@ func ExampleHasUniqueValuesBy_skipWhen() {
 	// <nil>
 }
 
+func ExampleHasUniqueValuesBy_skipEmptyKeys() {
+	type item struct {
+		ID string
+	}
+	// Elements with empty key are excluded from the uniqueness check.
+	items := []item{{ID: ""}, {ID: "a"}, {ID: "b"}, {ID: ""}}
+
+	err := validator.Validate(
+		context.Background(),
+		validation.Slice(items, it.HasUniqueValuesBy(func(x item) string { return x.ID }).SkipEmptyKeys()),
+	)
+
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
 func ExampleIsDateTime() {
 	fmt.Println(
 		"#1 invalid:",

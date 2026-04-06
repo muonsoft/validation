@@ -663,6 +663,7 @@ type UniqueByConstraint[T any, K comparable] struct {
 	messageParameters validation.TemplateParameterList
 	getKey            UniqueItemKeyFunc[T, K]
 	skip              SkipUniqueItemFunc[T]
+	skipEmptyKeys     bool
 	propertyPath      []validation.PropertyPathElement
 }
 
@@ -709,6 +710,13 @@ func (c UniqueByConstraint[T, K]) SkipWhen(skip SkipUniqueItemFunc[T]) UniqueByC
 	return c
 }
 
+// SkipEmptyKeys makes the constraint ignore elements whose key is the zero value for K.
+// Such elements are excluded from the uniqueness check and do not cause violations.
+func (c UniqueByConstraint[T, K]) SkipEmptyKeys() UniqueByConstraint[T, K] {
+	c.skipEmptyKeys = true
+	return c
+}
+
 // At appends elements to the property path of produced violations (e.g. for nested paths).
 func (c UniqueByConstraint[T, K]) At(propertyPath ...validation.PropertyPathElement) UniqueByConstraint[T, K] {
 	c.propertyPath = propertyPath
@@ -724,11 +732,15 @@ func (c UniqueByConstraint[T, K]) ValidateSlice(ctx context.Context, validator *
 	itemsCountByKey := c.collectItemsCountByKey(items)
 
 	builder := validator.BuildViolationList(ctx)
+	var zeroKey K
 	for i, item := range items {
 		if c.skip != nil && c.skip(item) {
 			continue
 		}
 		key := c.getKey(item)
+		if c.skipEmptyKeys && key == zeroKey {
+			continue
+		}
 
 		if itemsCountByKey[key] > 1 {
 			builder.BuildViolation(c.err, c.messageTemplate).
@@ -744,11 +756,15 @@ func (c UniqueByConstraint[T, K]) ValidateSlice(ctx context.Context, validator *
 
 func (c UniqueByConstraint[T, K]) collectItemsCountByKey(items []T) map[K]int {
 	itemsCountByKey := make(map[K]int, len(items))
+	var zeroKey K
 	for _, item := range items {
 		if c.skip != nil && c.skip(item) {
 			continue
 		}
 		key := c.getKey(item)
+		if c.skipEmptyKeys && key == zeroKey {
+			continue
+		}
 
 		itemsCountByKey[key]++
 	}
