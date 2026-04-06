@@ -7,6 +7,36 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestISSN(t *testing.T) {
+	tests := []struct {
+		value         string
+		expectedError error
+	}{
+		{value: "0317-8471"},
+		{value: "03178471"},
+		{value: "2434-561X"},
+		{value: "2434-561x"},
+		{value: "", expectedError: validate.ErrTooShort},
+		{value: "0317-847", expectedError: validate.ErrTooShort},
+		{value: "031784712", expectedError: validate.ErrTooLong},
+		{value: "1234-567890", expectedError: validate.ErrTooLong},
+		{value: "123-45678", expectedError: validate.ErrInvalidCharacters},
+		{value: "1234-567y", expectedError: validate.ErrInvalidCharacters},
+		{value: "0317-8470", expectedError: validate.ErrInvalidChecksum},
+	}
+	for _, test := range tests {
+		t.Run(test.value, func(t *testing.T) {
+			err := validate.ISSN(test.value)
+
+			if test.expectedError == nil {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorIs(t, err, test.expectedError)
+			}
+		})
+	}
+}
+
 func TestISIN(t *testing.T) {
 	tests := []struct {
 		value         string

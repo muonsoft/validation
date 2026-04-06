@@ -83,6 +83,20 @@ func ExampleIsISIN_invalid() {
 	// violation: "This value is not a valid International Securities Identification Number (ISIN)."
 }
 
+func ExampleIsISSN_valid() {
+	err := validator.Validate(context.Background(), validation.String("0317-8471", it.IsISSN()))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsISSN_invalid() {
+	err := validator.Validate(context.Background(), validation.String("0317-8470", it.IsISSN()))
+	fmt.Println(err)
+	// Output:
+	// violation: "This value is not a valid ISSN."
+}
+
 func ExampleIsLUHN_valid() {
 	err := validator.Validate(context.Background(), validation.String("79927398713", it.IsLUHN()))
 	fmt.Println(err)

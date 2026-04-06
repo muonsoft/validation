@@ -34,6 +34,16 @@ func IsISIN() validation.StringFuncConstraint {
 		WithMessage(validation.ErrInvalidISIN.Message())
 }
 
+// IsISSN validates whether the value is a valid International Standard Serial Number (ISSN).
+// Behavior is aligned with Symfony\Component\Validator\Constraints\Issn.
+//
+// See ISO 3297 and https://www.issn.org/understanding-the-issn/what-is-an-issn/.
+func IsISSN() validation.StringFuncConstraint {
+	return validation.OfStringBy(is.ISSN).
+		WithError(validation.ErrInvalidISSN).
+		WithMessage(validation.ErrInvalidISSN.Message())
+}
+
 // IsLUHN validates whether the value passes the Luhn (mod 10) checksum, as in
 // Symfony\Component\Validator\Constraints\Luhn.
 //

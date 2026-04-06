@@ -37,6 +37,7 @@ const (
 	InvalidBIC               = "This is not a valid Business Identifier Code (BIC)."
 	BICNotAssociatedWithIBAN = "This Business Identifier Code (BIC) is not associated with IBAN {{ iban }}."
 	InvalidISIN              = "This value is not a valid International Securities Identification Number (ISIN)."
+	InvalidISSN              = "This value is not a valid ISSN."
 	InvalidCIDR              = "This value is not a valid CIDR notation."
 	CIDRNetmaskOutOfRange    = "The value of the netmask should be between {{ min }} and {{ max }}."
 	InvalidIP                = "This is not a valid IP address."

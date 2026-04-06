@@ -32,6 +32,14 @@ func ISIN(value string) bool {
 	return validate.ISIN(value) == nil
 }
 
+// ISSN validates whether the value is a valid International Standard Serial Number (ISSN).
+// See [github.com/muonsoft/validation/validate.ISSN] for validation rules and possible errors.
+//
+// See https://www.issn.org/understanding-the-issn/what-is-an-issn/.
+func ISSN(value string) bool {
+	return validate.ISSN(value) == nil
+}
+
 // LUHN validates whether the value passes the Luhn (mod 10) checksum.
 // See [github.com/muonsoft/validation/validate.LUHN] for validation rules and possible errors.
 //

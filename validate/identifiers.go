@@ -24,6 +24,9 @@ var ulidChars = newCharSet("0123456789ABCDEFGHJKMNPQRSTVWXYZabcdefghjkmnpqrstvwx
 // Same pattern as Symfony Isin::VALIDATION_PATTERN (length is checked separately).
 var isinPattern = regexp.MustCompile(`^[A-Z]{2}[A-Z0-9]{9}[0-9]$`)
 
+// Same pattern as Symfony Issn::PATTERN (optional hyphen between the two groups).
+var issnPattern = regexp.MustCompile(`^[0-9]{4}-?[0-9]{3}[0-9Xx]$`)
+
 // ULID validates whether the value is a valid ULID (Universally Unique Lexicographically Sortable Identifier).
 // See https://github.com/ulid/spec for ULID specifications.
 //
@@ -82,6 +85,58 @@ func ISIN(value string) error {
 		return ErrInvalidChecksum
 	}
 
+	return nil
+}
+
+// ISSN validates whether the value is a valid International Standard Serial Number (ISSN).
+// The check digit uses the ISO 3297 mod 11 algorithm (weights 8…2 on the first seven digits).
+// An optional hyphen is allowed between the two four-character groups, matching
+// Symfony\Component\Validator\Constraints\Issn.
+//
+// Possible errors:
+//   - [ErrTooShort] when fewer than eight digits/check characters remain after removing hyphens;
+//   - [ErrTooLong] when more than eight remain;
+//   - [ErrInvalidCharacters] when the format is not NNNN-NNNC (with optional hyphen) or digits are invalid;
+//   - [ErrInvalidChecksum] when the check character is wrong;
+//
+// See https://www.issn.org/understanding-the-issn/what-is-an-issn/ and ISO 3297.
+func ISSN(value string) error {
+	if issnPattern.MatchString(value) {
+		return issnValidateBody(strings.ToUpper(strings.ReplaceAll(value, "-", "")))
+	}
+	s := strings.ReplaceAll(value, "-", "")
+	switch {
+	case len(s) < 8:
+		return ErrTooShort
+	case len(s) > 8:
+		return ErrTooLong
+	default:
+		return ErrInvalidCharacters
+	}
+}
+
+func issnValidateBody(canonical string) error {
+	var sum int
+	for i := 0; i < 7; i++ {
+		c := canonical[i]
+		if c < '0' || c > '9' {
+			return ErrInvalidCharacters
+		}
+		sum += int(c-'0') * (8 - i)
+	}
+	check := 11 - (sum % 11)
+	if check == 11 {
+		check = 0
+	}
+	var expected byte
+	if check < 10 {
+		expected = byte('0' + check)
+	} else {
+		expected = 'X'
+	}
+	if canonical[7] != expected {
+		return ErrInvalidChecksum
+	}
 	return nil
 }
 
