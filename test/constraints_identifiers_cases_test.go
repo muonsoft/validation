@@ -171,6 +171,19 @@ var bicConstraintTestCases = []ConstraintValidationTestCase{
 		assert:          assertNoError,
 	},
 	{
+		name:            "IsBIC violation with custom IBAN mismatch error and message",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("DEUTDEFF"),
+		constraint: it.IsBIC().
+			WithIBAN("GB29NWBK60161331926819").
+			WithIBANError(ErrCustom).
+			WithIBANMessage(`BIC "{{ value }}" is not linked to {{ iban }}.`),
+		assert: assertHasOneViolation(
+			ErrCustom,
+			`BIC "DEUTDEFF" is not linked to GB29NWBK60161331926819.`,
+		),
+	},
+	{
 		name:            "IsBIC violation with given error and message",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint: it.IsBIC().
