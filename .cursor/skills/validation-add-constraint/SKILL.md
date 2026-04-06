@@ -19,6 +19,8 @@ Constraint entry points in **`it`** should read as **declarative requirements** 
 
 When a Symfony constraint name is `NoXxx` or `NotXxx`, map it to Go as **`HasNoXxx`** (or keep **`NotXxx`** if the library already uses that pattern for the same idea) so call sites look like natural rules: `validation.String(v, it.HasNoSuspiciousCharacters())`, not `it.NoSuspiciousCharacters()`.
 
+For constraints backed by a **bitmask** of checks in `validate`, expose options on **`it`** as **separate methods** (e.g. `CheckInvisible`, `WithoutMixedNumbers`) so IDEs list discoverable configuration; implement them with `|=` / `&^=` on the mask internally. Do **not** require callers to import `validate` just to choose checks. A boolean `is` helper is optional—omit it if it adds little over `validate.Xxx(...) == nil`.
+
 ---
 
 ## 1. Message and Error (mandatory)

@@ -73,4 +73,18 @@ var suspiciousCharactersConstraintTestCases = []ConstraintValidationTestCase{
 		constraint:      it.HasNoSuspiciousCharacters().When(false),
 		assert:          assertNoError,
 	},
+	{
+		name:            "HasNoSuspiciousCharacters CheckMixedNumbers only ignores invisible",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("a\u200b"),
+		constraint:      it.HasNoSuspiciousCharacters().CheckMixedNumbers(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "HasNoSuspiciousCharacters WithoutMixedNumbers allows mixed digits",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("8৪"),
+		constraint:      it.HasNoSuspiciousCharacters().WithoutMixedNumbers(),
+		assert:          assertNoError,
+	},
 }

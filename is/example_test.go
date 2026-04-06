@@ -314,11 +314,3 @@ func ExampleUUID() {
 	// false
 	// true
 }
-
-func ExampleNoSuspiciousCharacters() {
-	fmt.Println(is.NoSuspiciousCharacters("ok"))
-	fmt.Println(is.NoSuspiciousCharacters("a\u200b"))
-	// Output:
-	// true
-	// false
-}

@@ -15,12 +15,19 @@ import (
 // Behavior is inspired by Symfony’s [NoSuspiciousCharacters] (ICU Spoofchecker) but implemented without CGO;
 // edge cases may differ from ICU.
 //
+// Configure which checks run with [HasNoSuspiciousCharactersConstraint.CheckInvisible],
+// [HasNoSuspiciousCharactersConstraint.CheckMixedNumbers], [HasNoSuspiciousCharactersConstraint.CheckHiddenOverlay]
+// and the matching Without* methods (bitmask-based internally). If none of these are called, all standard checks run
+// (same as Symfony default).
+//
 // [NoSuspiciousCharacters]: https://symfony.com/doc/current/reference/constraints/NoSuspiciousCharacters.html
 type HasNoSuspiciousCharactersConstraint struct {
 	isIgnored bool
 	groups    []string
 
-	checks      uint
+	checks    uint
+	checksSet bool
+
 	restriction validate.SuspiciousRestriction
 	locales     []string
 
@@ -39,11 +46,10 @@ type HasNoSuspiciousCharactersConstraint struct {
 }
 
 // HasNoSuspiciousCharacters creates a constraint with default checks (invisible, mixed numbers, hidden overlay)
-// and no locale/script restriction. Use [HasNoSuspiciousCharactersConstraint.WithChecks],
-// [HasNoSuspiciousCharactersConstraint.WithSuspiciousRestriction], and [HasNoSuspiciousCharactersConstraint.WithSuspiciousLocales] to customize.
+// and no locale/script restriction. Use Check* / Without* methods to customize the check bitmask, and
+// [HasNoSuspiciousCharactersConstraint.WithSuspiciousRestriction] / [HasNoSuspiciousCharactersConstraint.WithSuspiciousLocales] for script rules.
 func HasNoSuspiciousCharacters() HasNoSuspiciousCharactersConstraint {
 	return HasNoSuspiciousCharactersConstraint{
-		checks:                validate.DefaultSuspiciousChecks,
 		restriction:           validate.SuspiciousRestrictionNone,
 		invisibleErr:          validation.ErrSuspiciousInvisible,
 		invisibleTemplate:     validation.ErrSuspiciousInvisible.Message(),
@@ -56,10 +62,61 @@ func HasNoSuspiciousCharacters() HasNoSuspiciousCharactersConstraint {
 	}
 }
 
-// WithChecks sets the check bitmask ([validate.CheckSuspiciousInvisible], [validate.CheckSuspiciousMixedNumbers],
-// [validate.CheckSuspiciousHiddenOverlay]). Use 0 to disable all checks (only restriction rules still apply if set).
-func (c HasNoSuspiciousCharactersConstraint) WithChecks(checks uint) HasNoSuspiciousCharactersConstraint {
-	c.checks = checks
+func (c HasNoSuspiciousCharactersConstraint) startExplicitChecks() HasNoSuspiciousCharactersConstraint {
+	if !c.checksSet {
+		c.checks = 0
+		c.checksSet = true
+	}
+	return c
+}
+
+func (c HasNoSuspiciousCharactersConstraint) startFromDefaultChecks() HasNoSuspiciousCharactersConstraint {
+	if !c.checksSet {
+		c.checks = validate.DefaultSuspiciousChecks
+		c.checksSet = true
+	}
+	return c
+}
+
+// CheckInvisible enables detection of invisible and format-control characters (bit [validate.CheckSuspiciousInvisible]).
+func (c HasNoSuspiciousCharactersConstraint) CheckInvisible() HasNoSuspiciousCharactersConstraint {
+	c = c.startExplicitChecks()
+	c.checks |= validate.CheckSuspiciousInvisible
+	return c
+}
+
+// CheckMixedNumbers enables detection of mixed decimal digit scripts (bit [validate.CheckSuspiciousMixedNumbers]).
+func (c HasNoSuspiciousCharactersConstraint) CheckMixedNumbers() HasNoSuspiciousCharactersConstraint {
+	c = c.startExplicitChecks()
+	c.checks |= validate.CheckSuspiciousMixedNumbers
+	return c
+}
+
+// CheckHiddenOverlay enables detection of risky combining overlay sequences (bit [validate.CheckSuspiciousHiddenOverlay]).
+func (c HasNoSuspiciousCharactersConstraint) CheckHiddenOverlay() HasNoSuspiciousCharactersConstraint {
+	c = c.startExplicitChecks()
+	c.checks |= validate.CheckSuspiciousHiddenOverlay
+	return c
+}
+
+// WithoutInvisible turns off invisible/format-control detection (clears [validate.CheckSuspiciousInvisible] in the mask).
+func (c HasNoSuspiciousCharactersConstraint) WithoutInvisible() HasNoSuspiciousCharactersConstraint {
+	c = c.startFromDefaultChecks()
+	c.checks &^= validate.CheckSuspiciousInvisible
+	return c
+}
+
+// WithoutMixedNumbers turns off mixed decimal digit script detection (clears [validate.CheckSuspiciousMixedNumbers] in the mask).
+func (c HasNoSuspiciousCharactersConstraint) WithoutMixedNumbers() HasNoSuspiciousCharactersConstraint {
+	c = c.startFromDefaultChecks()
+	c.checks &^= validate.CheckSuspiciousMixedNumbers
+	return c
+}
+
+// WithoutHiddenOverlay turns off hidden overlay detection (clears [validate.CheckSuspiciousHiddenOverlay] in the mask).
+func (c HasNoSuspiciousCharactersConstraint) WithoutHiddenOverlay() HasNoSuspiciousCharactersConstraint {
+	c = c.startFromDefaultChecks()
+	c.checks &^= validate.CheckSuspiciousHiddenOverlay
 	return c
 }
 
@@ -145,10 +202,11 @@ func (c HasNoSuspiciousCharactersConstraint) ValidateString(ctx context.Context,
 	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || *value == "" {
 		return nil
 	}
-	opts := []validate.NoSuspiciousCharactersOption{
-		validate.WithSuspiciousChecks(c.checks),
-		validate.WithSuspiciousRestriction(c.restriction),
+	var opts []validate.NoSuspiciousCharactersOption
+	if c.checksSet {
+		opts = append(opts, validate.WithSuspiciousChecks(c.checks))
 	}
+	opts = append(opts, validate.WithSuspiciousRestriction(c.restriction))
 	if len(c.locales) > 0 {
 		opts = append(opts, validate.WithSuspiciousLocales(c.locales...))
 	}
