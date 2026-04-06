@@ -52,6 +52,11 @@ func TestNoSuspiciousCharacters_locales(t *testing.T) {
 		NoSuspiciousCharacters("πει", WithSuspiciousRestriction(SuspiciousRestrictionLocales), WithSuspiciousLocales("en")),
 		ErrSuspiciousRestriction,
 	)
+	assert.NoError(t, NoSuspiciousCharacters("かな", WithSuspiciousRestriction(SuspiciousRestrictionLocales), WithSuspiciousLocales("ja-Hira")))
+	assert.ErrorIs(t,
+		NoSuspiciousCharacters("٤٥", WithSuspiciousRestriction(SuspiciousRestrictionLocales), WithSuspiciousLocales("en")),
+		ErrSuspiciousRestriction,
+	)
 }
 
 func TestNoSuspiciousCharacters_whitespaceOnlyValid(t *testing.T) {
@@ -138,6 +143,8 @@ func TestUnicodeRangeTablesForISO15924(t *testing.T) {
 	assert.Nil(t, unicodeRangeTablesForISO15924("Zzzz"))
 	require.NotEmpty(t, unicodeRangeTablesForISO15924("Latn"))
 	require.NotEmpty(t, unicodeRangeTablesForISO15924("Jpan"))
+	require.NotEmpty(t, unicodeRangeTablesForISO15924("Hira"))
+	require.NotEmpty(t, unicodeRangeTablesForISO15924("Kana"))
 	// Unknown ISO code: if it matches a unicode.Scripts key, return one table.
 	if rt := unicodeRangeTablesForISO15924("Thai"); len(rt) != 1 {
 		t.Fatalf("Thai: got %d tables", len(rt))

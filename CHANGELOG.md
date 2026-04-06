@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - LUHN (mod 10 / Luhn) checksum validation: `it.IsLUHN()`, `validate.LUHN`, `is.LUHN`, with `validation.ErrInvalidLUHN` / `message.InvalidLUHN` and English and Russian translations (behavior aligned with Symfony `Luhn`).
 - ISIN (International Securities Identification Number) validation: `it.IsISIN()`, `validate.ISIN`, `is.ISIN`, with `validation.ErrInvalidISIN` / `message.InvalidISIN` and English and Russian translations (behavior aligned with Symfony `Isin`).
 
+### Fixed
+
+- **NoSuspiciousCharacters** locale restriction: decimal digits (**Unicode Nd**) with a non-Common script (e.g. Arabic-Indic digits) are now validated against allowed scripts, not skipped.
+- **NoSuspiciousCharacters** locale mapping: script subtags **Hira**, **Kana**, **Hang**, and **Bopo** map to **Hiragana**, **Katakana**, **Hangul**, and **Bopomofo** (e.g. `ja-Hira` with hiragana text).
+
 ## [0.19.0] - 2026-02-09
 
 ### Added

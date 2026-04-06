@@ -244,6 +244,11 @@ var iso15924ToUnicodeScripts = map[string][]string{
 	"Hani": {"Han"},
 	"Jpan": {"Hiragana", "Katakana", "Han"},
 	"Kore": {"Hangul", "Han"},
+	// BCP 47 / ISO 15924 script subtag aliases (e.g. ja-Hira, ja-Kana).
+	"Hira": {"Hiragana"},
+	"Kana": {"Katakana"},
+	"Hang": {"Hangul"},
+	"Bopo": {"Bopomofo"},
 }
 
 func unicodeRangeTablesForISO15924(code string) []*unicode.RangeTable {
@@ -350,6 +355,9 @@ func needsScriptCheck(r rune) bool {
 		return true
 	}
 	if unicode.IsMark(r) {
+		return true
+	}
+	if unicode.Is(unicode.Nd, r) {
 		return true
 	}
 	if unicode.Is(unicode.Nl, r) || unicode.Is(unicode.No, r) {
