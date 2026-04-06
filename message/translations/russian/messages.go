@@ -61,6 +61,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.InvalidBIC:               catalog.String("Значение не является допустимым банковским идентификатором (BIC)."),
 		message.BICNotAssociatedWithIBAN: catalog.String("Этот банковский идентификатор (BIC) не соответствует IBAN {{ iban }}."),
 		message.InvalidISIN:              catalog.String("Значение не является допустимым международным идентификационным номером ценной бумаги (ISIN)."),
+		message.InvalidISSN:              catalog.String("Значение не является допустимым ISSN."),
 		message.InvalidCIDR:              catalog.String("Значение не является допустимой записью CIDR."),
 		message.CIDRNetmaskOutOfRange:    catalog.String("Значение маски сети должно быть между {{ min }} и {{ max }}."),
 		message.InvalidIP:                catalog.String("Значение не является допустимым IP адресом."),

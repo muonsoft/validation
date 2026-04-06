@@ -19,6 +19,7 @@ var (
 	ErrInvalidBIC             = NewError("invalid BIC", message.InvalidBIC)
 	ErrBICIBANCountryMismatch = NewError("BIC IBAN country mismatch", message.BICNotAssociatedWithIBAN)
 	ErrInvalidISIN            = NewError("invalid ISIN", message.InvalidISIN)
+	ErrInvalidISSN            = NewError("invalid ISSN", message.InvalidISSN)
 	ErrInvalidCIDR            = NewError("invalid CIDR", message.InvalidCIDR)
 	ErrCIDRNetmaskOutOfRange  = NewError("CIDR netmask out of range", message.CIDRNetmaskOutOfRange)
 	ErrInvalidIP              = NewError("invalid IP address", message.InvalidIP)

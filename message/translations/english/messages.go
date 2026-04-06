@@ -58,6 +58,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.InvalidBIC:               catalog.String(message.InvalidBIC),
 		message.BICNotAssociatedWithIBAN: catalog.String(message.BICNotAssociatedWithIBAN),
 		message.InvalidISIN:              catalog.String(message.InvalidISIN),
+		message.InvalidISSN:              catalog.String(message.InvalidISSN),
 		message.InvalidCIDR:              catalog.String(message.InvalidCIDR),
 		message.CIDRNetmaskOutOfRange:    catalog.String(message.CIDRNetmaskOutOfRange),
 		message.InvalidIP:                catalog.String(message.InvalidIP),

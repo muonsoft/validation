@@ -192,6 +192,18 @@ func ExampleISIN() {
 	// invalid checksum
 }
 
+func ExampleISSN() {
+	fmt.Println(validate.ISSN("0317-8471"))
+	fmt.Println(validate.ISSN("0317-847"))
+	fmt.Println(validate.ISSN("123-45678"))
+	fmt.Println(validate.ISSN("0317-8470"))
+	// Output:
+	// <nil>
+	// too short
+	// invalid characters
+	// invalid checksum
+}
+
 func ExampleLUHN() {
 	fmt.Println(validate.LUHN("79927398713"))
 	fmt.Println(validate.LUHN("79927398710"))

@@ -295,6 +295,20 @@ func ExampleISIN() {
 	// false
 }
 
+func ExampleISSN() {
+	fmt.Println(is.ISSN("0317-8471"))
+	fmt.Println(is.ISSN("03178471"))
+	fmt.Println(is.ISSN("2434-561X"))
+	fmt.Println(is.ISSN("0317-8470"))
+	fmt.Println(is.ISSN("123-45678"))
+	// Output:
+	// true
+	// true
+	// true
+	// false
+	// false
+}
+
 func ExampleLUHN() {
 	fmt.Println(is.LUHN("79927398713"))
 	fmt.Println(is.LUHN("79927398710"))
