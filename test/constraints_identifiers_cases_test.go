@@ -10,6 +10,7 @@ var identifierConstraintsTestCases = mergeTestCases(
 	ulidConstraintTestCases,
 	uuidConstraintTestCases,
 	ibanConstraintTestCases,
+	bicConstraintTestCases,
 	isinConstraintTestCases,
 	luhnConstraintTestCases,
 )
@@ -97,6 +98,121 @@ var ibanConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "IsIBAN passes when groups not match",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsIBAN().WhenGroups(testGroup),
+		stringValue:     stringValue("bad"),
+		assert:          assertNoError,
+	},
+}
+
+var bicConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsBIC passes on empty value",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsBIC(),
+		stringValue:     stringValue(""),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsBIC passes on valid 8-char BIC",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("DEUTDEFF"),
+		constraint:      it.IsBIC(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsBIC passes when spaces stripped",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("DEUT DE FF"),
+		constraint:      it.IsBIC(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsBIC passes with CaseInsensitive on lowercase",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("deutdeff"),
+		constraint:      it.IsBIC().CaseInsensitive(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsBIC violation on strict lowercase",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("deutdeff"),
+		constraint:      it.IsBIC(),
+		assert:          assertHasOneViolation(validation.ErrInvalidBIC, message.InvalidBIC),
+	},
+	{
+		name:            "IsBIC violation on wrong length",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("DEUTDEF"),
+		constraint:      it.IsBIC(),
+		assert:          assertHasOneViolation(validation.ErrInvalidBIC, message.InvalidBIC),
+	},
+	{
+		name:            "IsBIC violation on unknown country",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("DEUTZZFF"),
+		constraint:      it.IsBIC(),
+		assert:          assertHasOneViolation(validation.ErrInvalidBIC, message.InvalidBIC),
+	},
+	{
+		name:            "IsBIC violation on IBAN country mismatch",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("DEUTDEFF"),
+		constraint:      it.IsBIC().WithIBAN("GB29NWBK60161331926819"),
+		assert: assertHasOneViolation(
+			validation.ErrBICIBANCountryMismatch,
+			"This Business Identifier Code (BIC) is not associated with IBAN GB29NWBK60161331926819.",
+		),
+	},
+	{
+		name:            "IsBIC passes when IBAN country matches",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("DEUTDEFF"),
+		constraint:      it.IsBIC().WithIBAN("DE89370400440532013000"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsBIC violation with custom IBAN mismatch error and message",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("DEUTDEFF"),
+		constraint: it.IsBIC().
+			WithIBAN("GB29NWBK60161331926819").
+			WithIBANError(ErrCustom).
+			WithIBANMessage(`BIC "{{ value }}" is not linked to {{ iban }}.`),
+		assert: assertHasOneViolation(
+			ErrCustom,
+			`BIC "DEUTDEFF" is not linked to GB29NWBK60161331926819.`,
+		),
+	},
+	{
+		name:            "IsBIC violation with given error and message",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint: it.IsBIC().
+			WithError(ErrCustom).
+			WithMessage(
+				`Invalid value "{{ value }}" for {{ custom }}.`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		stringValue: stringValue("bad-bic"),
+		assert:      assertHasOneViolation(ErrCustom, `Invalid value "bad-bic" for parameter.`),
+	},
+	{
+		name:            "IsBIC passes when condition is false",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsBIC().When(false),
+		stringValue:     stringValue("bad"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsBIC violation when condition is true",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsBIC().When(true),
+		stringValue:     stringValue("bad"),
+		assert:          assertHasOneViolation(validation.ErrInvalidBIC, message.InvalidBIC),
+	},
+	{
+		name:            "IsBIC passes when groups not match",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsBIC().WhenGroups(testGroup),
 		stringValue:     stringValue("bad"),
 		assert:          assertNoError,
 	},

@@ -170,6 +170,16 @@ func ExampleIBAN() {
 	// invalid IBAN
 }
 
+func ExampleBIC() {
+	fmt.Println(validate.BIC("DEUTDEFF"))
+	fmt.Println(validate.BIC("DEUTDEF"))
+	fmt.Println(validate.BIC("deutdeff", validate.BICCaseInsensitive()))
+	// Output:
+	// <nil>
+	// invalid BIC
+	// <nil>
+}
+
 func ExampleISIN() {
 	fmt.Println(validate.ISIN("US0378331005"))
 	fmt.Println(validate.ISIN("US037833100"))
