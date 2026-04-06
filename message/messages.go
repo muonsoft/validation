@@ -82,4 +82,10 @@ const (
 	TooLowOrEqual         = "This value should be greater than or equal to {{ comparedValue }}."
 	TooManyElements       = "This collection should contain {{ limit }} element(s) or less."
 	TooShort              = "This value is too short. It should have {{ limit }} character(s) or more."
+
+	// NoSuspiciousCharacters (Symfony Validator wording).
+	SuspiciousInvisible             = "Using invisible characters is not allowed."
+	SuspiciousMixedNumbers          = "Mixing numbers from different scripts is not allowed."
+	SuspiciousHiddenOverlay         = "Using hidden overlay characters is not allowed."
+	SuspiciousCharactersRestriction = "This value contains characters that are not allowed by the current restriction level."
 )

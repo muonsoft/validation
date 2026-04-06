@@ -10,9 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - IBAN validation: `it.IsIBAN()`, `validate.IBAN`, `is.IBAN`, with `validation.ErrInvalidIBAN` / `message.InvalidIBAN` and English and Russian translations (behavior aligned with Symfony `Iban`; country patterns from Symfony 7.2 `IbanValidator`).
+- **NoSuspiciousCharacters** (spoofing / homoglyph checks): `it.HasNoSuspiciousCharacters()` with `CheckInvisible` / `CheckMixedNumbers` / `CheckHiddenOverlay`, `WithoutInvisible` / `WithoutMixedNumbers` / `WithoutHiddenOverlay` (bitmask-based), locale and single-script restrictions; `validate.NoSuspiciousCharacters`; errors `validation.ErrSuspiciousInvisible`, `ErrSuspiciousMixedNumbers`, `ErrSuspiciousHiddenOverlay`, `ErrSuspiciousCharactersRestriction` and English/Russian messages (behavior inspired by Symfony `NoSuspiciousCharacters`, implemented without CGO; may differ from ICU in edge cases).
 - CIDR notation validation: `it.IsCIDR()` with `IPv4Only`, `IPv6Only`, `WithVersion`, `WithNetmaskRange`, and separate invalid vs netmask-range messages; `validate.CIDR`, `validate.CIDRViolationNetmaskBounds`, `is.CIDR`; `validation.ErrInvalidCIDR` / `validation.ErrCIDRNetmaskOutOfRange` and English and Russian translations (behavior aligned with Symfony `Cidr`). Exported names use the **CIDR** initialism per [Go Code Review Comments](https://go.dev/wiki/CodeReviewComments).
 - LUHN (mod 10 / Luhn) checksum validation: `it.IsLUHN()`, `validate.LUHN`, `is.LUHN`, with `validation.ErrInvalidLUHN` / `message.InvalidLUHN` and English and Russian translations (behavior aligned with Symfony `Luhn`).
 - ISIN (International Securities Identification Number) validation: `it.IsISIN()`, `validate.ISIN`, `is.ISIN`, with `validation.ErrInvalidISIN` / `message.InvalidISIN` and English and Russian translations (behavior aligned with Symfony `Isin`).
+
+### Fixed
+
+- **NoSuspiciousCharacters** locale restriction: decimal digits (**Unicode Nd**) with a non-Common script (e.g. Arabic-Indic digits) are now validated against allowed scripts, not skipped.
+- **NoSuspiciousCharacters** locale mapping: script subtags **Hira**, **Kana**, **Hang**, and **Bopo** map to **Hiragana**, **Katakana**, **Hangul**, and **Bopomofo** (e.g. `ja-Hira` with hiragana text).
 
 ## [0.19.0] - 2026-02-09
 

@@ -211,3 +211,13 @@ func ExampleUUID() {
 	// too short
 	// <nil>
 }
+
+func ExampleNoSuspiciousCharacters() {
+	fmt.Println(validate.NoSuspiciousCharacters("ok"))
+	fmt.Println(validate.NoSuspiciousCharacters("8৪"))
+	fmt.Println(validate.NoSuspiciousCharacters("8৪", validate.WithSuspiciousChecks(0)))
+	// Output:
+	// <nil>
+	// suspicious mixed digit scripts
+	// <nil>
+}
