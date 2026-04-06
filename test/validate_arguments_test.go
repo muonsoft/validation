@@ -356,6 +356,28 @@ func TestSlice_HasUniqueValuesBy_WhenSkipWhen_ExpectSkippedItemsNotChecked(t *te
 	assert.NoError(t, err)
 }
 
+func TestSlice_HasUniqueValuesBy_WhenSkipEmptyKeys_ExpectEmptyKeysIgnored(t *testing.T) {
+	items := []itemWithID{{ID: ""}, {ID: "a"}, {ID: "b"}, {ID: ""}} // empty keys skipped, "a" and "b" unique
+
+	err := validator.Validate(
+		context.Background(),
+		validation.Slice(items, it.HasUniqueValuesBy(func(x itemWithID) string { return x.ID }).SkipEmptyKeys()),
+	)
+
+	assert.NoError(t, err)
+}
+
+func TestSlice_HasUniqueValuesBy_WhenSkipEmptyKeys_AndDuplicateNonEmptyKeys_ExpectViolations(t *testing.T) {
+	items := []itemWithID{{ID: ""}, {ID: "a"}, {ID: "a"}, {ID: ""}}
+
+	err := validator.Validate(
+		context.Background(),
+		validation.Slice(items, it.HasUniqueValuesBy(func(x itemWithID) string { return x.ID }).SkipEmptyKeys()),
+	)
+
+	validationtest.Assert(t, err).IsViolationList().WithLen(2).WithErrors(validation.ErrNotUnique, validation.ErrNotUnique)
+}
+
 func TestSliceProperty_HasUniqueValuesBy_WhenDuplicateKeys_ExpectPropertyPathWithIndex(t *testing.T) {
 	items := []itemWithID{{ID: "x"}, {ID: "x"}}
 
