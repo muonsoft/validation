@@ -55,6 +55,20 @@ func ExampleIsIBAN_invalid() {
 	// violation: "This is not a valid International Bank Account Number (IBAN)."
 }
 
+func ExampleIsBIC_valid() {
+	err := validator.Validate(context.Background(), validation.String("DEUTDEFF", it.IsBIC()))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsBIC_invalid() {
+	err := validator.Validate(context.Background(), validation.String("deutdeff", it.IsBIC()))
+	fmt.Println(err)
+	// Output:
+	// violation: "This is not a valid Business Identifier Code (BIC)."
+}
+
 func ExampleIsISIN_valid() {
 	err := validator.Validate(context.Background(), validation.String("US0378331005", it.IsISIN()))
 	fmt.Println(err)

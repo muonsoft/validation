@@ -16,6 +16,14 @@ func IBAN(value string) bool {
 	return validate.IBAN(value) == nil
 }
 
+// BIC validates whether the value is a valid Business Identifier Code (BIC / SWIFT).
+// See [github.com/muonsoft/validation/validate.BIC] for validation rules and options.
+//
+// See https://en.wikipedia.org/wiki/ISO_9362.
+func BIC(value string, options ...func(*validate.BICOptions)) bool {
+	return validate.BIC(value, options...) == nil
+}
+
 // ISIN validates whether the value is a valid International Securities Identification Number (ISIN).
 // See [github.com/muonsoft/validation/validate.ISIN] for validation rules and possible errors.
 //

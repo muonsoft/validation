@@ -273,6 +273,16 @@ func ExampleIBAN() {
 	// false
 }
 
+func ExampleBIC() {
+	fmt.Println(is.BIC("DEUTDEFF"))
+	fmt.Println(is.BIC("DEUTDEF"))
+	fmt.Println(is.BIC("deutdeff", validate.BICCaseInsensitive()))
+	// Output:
+	// true
+	// false
+	// true
+}
+
 func ExampleISIN() {
 	fmt.Println(is.ISIN("US0378331005"))
 	fmt.Println(is.ISIN("US037833100"))
