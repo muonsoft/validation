@@ -309,6 +309,16 @@ func ExampleISSN() {
 	// false
 }
 
+func ExampleISBN() {
+	fmt.Println(is.ISBN("978-0451225245"))
+	fmt.Println(is.ISBN("978272344228"))
+	fmt.Println(is.ISBN("1234567890"))
+	// Output:
+	// true
+	// false
+	// false
+}
+
 func ExampleLUHN() {
 	fmt.Println(is.LUHN("79927398713"))
 	fmt.Println(is.LUHN("79927398710"))
