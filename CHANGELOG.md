@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- ISBN validation: `it.IsISBN()` with `Only10` / `Only13`, `validate.ISBN` with `validate.ISBNOnly10` / `validate.ISBNOnly13`, `is.ISBN`; `validation.ErrInvalidISBN`, `ErrInvalidISBN10`, `ErrInvalidISBN13` / `message.InvalidISBN`, `InvalidISBN10`, `InvalidISBN13` and English and Russian translations (behavior aligned with Symfony `Isbn`).
 - ISSN (International Standard Serial Number) validation: `it.IsISSN()`, `validate.ISSN`, `is.ISSN`, with `validation.ErrInvalidISSN` / `message.InvalidISSN` and English and Russian translations (ISO 3297 mod 11 check digit; optional hyphen; behavior aligned with Symfony `Issn`).
 - BIC / SWIFT validation: `it.IsBIC()` with `CaseInsensitive` and `WithIBAN` (and `WithIBANError` / `WithIBANMessage`), `validate.BIC` with `validate.BICCaseInsensitive` and `validate.BICWithIBAN`, `is.BIC`; `validation.ErrInvalidBIC`, `validation.ErrBICIBANCountryMismatch`, `message.InvalidBIC`, `message.BICNotAssociatedWithIBAN` and English and Russian translations (behavior aligned with Symfony `Bic` / `BicValidator`; country/territory check via `golang.org/x/text/language` regions plus Symfony’s BIC-to-IBAN territory map).
 - IBAN validation: `it.IsIBAN()`, `validate.IBAN`, `is.IBAN`, with `validation.ErrInvalidIBAN` / `message.InvalidIBAN` and English and Russian translations (behavior aligned with Symfony `Iban`; country patterns from Symfony 7.2 `IbanValidator`).

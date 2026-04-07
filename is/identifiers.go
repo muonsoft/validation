@@ -40,6 +40,14 @@ func ISSN(value string) bool {
 	return validate.ISSN(value) == nil
 }
 
+// ISBN validates whether the value is a valid ISBN-10 or ISBN-13.
+// See [github.com/muonsoft/validation/validate.ISBN] for options and possible errors.
+//
+// See https://en.wikipedia.org/wiki/ISBN.
+func ISBN(value string, options ...func(*validate.ISBNOptions)) bool {
+	return validate.ISBN(value, options...) == nil
+}
+
 // LUHN validates whether the value passes the Luhn (mod 10) checksum.
 // See [github.com/muonsoft/validation/validate.LUHN] for validation rules and possible errors.
 //

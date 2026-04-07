@@ -97,6 +97,20 @@ func ExampleIsISSN_invalid() {
 	// violation: "This value is not a valid ISSN."
 }
 
+func ExampleIsISBN_valid() {
+	err := validator.Validate(context.Background(), validation.String("978-0451225245", it.IsISBN()))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsISBN_invalid() {
+	err := validator.Validate(context.Background(), validation.String("978272344228", it.IsISBN()))
+	fmt.Println(err)
+	// Output:
+	// violation: "This value is neither a valid ISBN-10 nor a valid ISBN-13."
+}
+
 func ExampleIsLUHN_valid() {
 	err := validator.Validate(context.Background(), validation.String("79927398713", it.IsLUHN()))
 	fmt.Println(err)
