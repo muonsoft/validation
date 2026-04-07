@@ -225,6 +225,16 @@ func ExampleCIDR() {
 	// false
 }
 
+func ExampleMACAddress() {
+	fmt.Println(is.MACAddress("00:1a:2b:3c:4d:5e"))
+	fmt.Println(is.MACAddress("bad"))
+	fmt.Println(is.MACAddress("ff:ff:ff:ff:ff:ff", validate.MacAddressType(validate.MacAddressTypeBroadcast)))
+	// Output:
+	// true
+	// false
+	// true
+}
+
 func ExampleHostname() {
 	fmt.Println(is.Hostname("example.com"))       // valid
 	fmt.Println(is.Hostname("example.localhost")) // valid

@@ -59,6 +59,12 @@ func CIDR(value string, options ...func(*validate.CIDROptions)) bool {
 	return validate.CIDR(value, options...) == nil
 }
 
+// MACAddress checks that a value is a valid 48-bit MAC address with optional Symfony-compatible
+// type filtering. See [github.com/muonsoft/validation/validate.MacAddress] for options.
+func MACAddress(value string, options ...func(*validate.MacAddressOptions)) bool {
+	return validate.MacAddress(value, options...) == nil
+}
+
 // Hostname checks that a value is a valid hostname. It checks that each label
 // within a valid hostname may be no more than 63 octets long. Also, it checks that
 // the total length of the hostname must not exceed 255 characters.

@@ -514,3 +514,82 @@ func (c CIDRConstraint) ValidateString(ctx context.Context, validator *validatio
 func (c CIDRConstraint) Validate(ctx context.Context, validator *validation.Validator, v string) error {
 	return c.ValidateString(ctx, validator, &v)
 }
+
+// MacAddressConstraint validates a string as a 48-bit MAC address, aligned with
+// Symfony\Component\Validator\Constraints\MacAddress.
+//
+// Accepted input forms are those supported by [net.ParseMAC] for a 6-octet address (colon, hyphen,
+// or dot separators). Use [MacAddressConstraint.WithType] to filter by unicast/multicast, local/universal,
+// and broadcast, using the same type names as Symfony (see [validate.MacAddressTypeAll] and related constants).
+type MacAddressConstraint struct {
+	isIgnored         bool
+	groups            []string
+	options           []func(*validate.MacAddressOptions)
+	err               error
+	messageTemplate   string
+	messageParameters validation.TemplateParameterList
+}
+
+// IsMacAddress creates a [MacAddressConstraint] with default type [validate.MacAddressTypeAll].
+func IsMacAddress() MacAddressConstraint {
+	return MacAddressConstraint{
+		err:             validation.ErrInvalidMAC,
+		messageTemplate: validation.ErrInvalidMAC.Message(),
+	}
+}
+
+// WithType sets the Symfony-compatible MAC class filter (default [validate.MacAddressTypeAll]).
+func (c MacAddressConstraint) WithType(macType string) MacAddressConstraint {
+	c.options = append(c.options, validate.MacAddressType(macType))
+	return c
+}
+
+// WithError overrides the default error for produced violations.
+func (c MacAddressConstraint) WithError(err error) MacAddressConstraint {
+	c.err = err
+	return c
+}
+
+// WithMessage sets the violation message template. You can set custom template parameters
+// for injecting its values into the final message. Also, you can use default parameters:
+//
+//	{{ value }} - the current (invalid) value.
+func (c MacAddressConstraint) WithMessage(template string, parameters ...validation.TemplateParameter) MacAddressConstraint {
+	c.messageTemplate = template
+	c.messageParameters = parameters
+	return c
+}
+
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
+func (c MacAddressConstraint) When(condition bool) MacAddressConstraint {
+	c.isIgnored = !condition
+	return c
+}
+
+// WhenGroups enables conditional validation of the constraint by using the validation groups.
+func (c MacAddressConstraint) WhenGroups(groups ...string) MacAddressConstraint {
+	c.groups = groups
+	return c
+}
+
+func (c MacAddressConstraint) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || *value == "" {
+		return nil
+	}
+	if validate.MacAddress(*value, c.options...) == nil {
+		return nil
+	}
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
+		WithParameters(
+			c.messageParameters.Prepend(
+				validation.TemplateParameter{Key: "{{ value }}", Value: *value},
+			)...,
+		).
+		Create()
+}
+
+// Validate implements [validation.Constraint][string] so the constraint can be used with [validation.Each] and [validation.This].
+func (c MacAddressConstraint) Validate(ctx context.Context, validator *validation.Validator, v string) error {
+	return c.ValidateString(ctx, validator, &v)
+}

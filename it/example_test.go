@@ -993,6 +993,22 @@ func ExampleIsCIDR_invalid() {
 	// violation: "This value is not a valid CIDR notation."
 }
 
+func ExampleIsMacAddress_valid() {
+	v := "00:1a:2b:3c:4d:5e"
+	err := validator.Validate(context.Background(), validation.String(v, it.IsMacAddress()))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsMacAddress_invalid() {
+	v := "not-a-mac"
+	err := validator.Validate(context.Background(), validation.String(v, it.IsMacAddress()))
+	fmt.Println(err)
+	// Output:
+	// violation: "This value is not a valid MAC address."
+}
+
 func ExampleIPConstraint_DenyPrivateIP_restrictedPrivateIPv4() {
 	v := "192.168.1.0"
 	err := validator.Validate(context.Background(), validation.String(v, it.IsIP().DenyPrivateIP()))
