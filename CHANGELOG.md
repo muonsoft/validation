@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Unreleased](https://github.com/muonsoft/validation/compare/v0.19.0...HEAD)
 
 ### Added
 
@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ISIN (International Securities Identification Number) validation: `it.IsISIN()`, `validate.ISIN`, `is.ISIN`, with `validation.ErrInvalidISIN` / `message.InvalidISIN` and English and Russian translations (behavior aligned with Symfony `Isin`).
 - **HasUniqueValuesBy**: `SkipEmptyKeys()` on `it.UniqueByConstraint` skips elements whose key equals the zero value for `K`, so they are not counted toward uniqueness (e.g. optional IDs).
 
-## [0.19.0] - 2026-02-09
+## [0.19.0](https://github.com/muonsoft/validation/releases/tag/v0.19.0) - 2026-02-09
 
 ### Added
 
@@ -42,6 +42,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Correct handling of single violations returned from validatable objects in `validateIt`.
-
-[Unreleased]: https://github.com/muonsoft/validation/compare/v0.19.0...HEAD
-[0.19.0]: https://github.com/muonsoft/validation/releases/tag/v0.19.0
