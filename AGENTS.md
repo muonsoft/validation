@@ -5,6 +5,7 @@ This document provides guidance for AI coding agents working with this Go valida
 ## Project Overview
 
 This is a comprehensive Go validation library that provides:
+
 - Declarative validation using struct tags
 - Chainable validation constraints via `it` package
 - Conditional checks via `is` package
@@ -16,14 +17,14 @@ This is a comprehensive Go validation library that provides:
 
 ### Core Components
 
-- **`validation.go`** - Main validation entry points and `Validatable` interface
-- **`validator.go`** - Core validation logic and execution
-- **`constraints.go`** - Constraint interface and execution
-- **`it/`** - Constraint builders for assertions (e.g., `it.IsEmail()`, `it.MinLength()`)
-- **`is/`** - Boolean check functions (e.g., `is.Email()`, `is.URL()`)
-- **`validate/`** - Standalone validation functions
-- **`violations.go`** - Validation error handling
-- **`message/`** - Message templating and translation system
+- `**validation.go**` - Main validation entry points and `Validatable` interface
+- `**validator.go**` - Core validation logic and execution
+- `**constraints.go**` - Constraint interface and execution
+- `**it/**` - Constraint builders for assertions (e.g., `it.IsEmail()`, `it.MinLength()`)
+- `**is/**` - Boolean check functions (e.g., `is.Email()`, `is.URL()`)
+- `**validate/**` - Standalone validation functions
+- `**violations.go**` - Validation error handling
+- `**message/**` - Message templating and translation system
 
 ### Validation Flow
 
@@ -39,19 +40,16 @@ This is a comprehensive Go validation library that provides:
 When adding new validation constraints:
 
 1. **Add boolean check to `is/` package** (if needed)
-   - Pure functions returning `bool`
-   - No error handling, just true/false
-   
+  - Pure functions returning `bool`
+  - No error handling, just true/false
 2. **Add constraint builder to `it/` package**
-   - Returns a `validation.Constraint`
-   - Uses corresponding `is/` function
-   - Defines violation message template
-
+  - Returns a `validation.Constraint`
+  - Uses corresponding `is/` function
+  - Defines violation message template
 3. **Add tests in `test/constraints_*_cases_test.go`**
-   - Use table-driven tests
-   - Test both valid and invalid cases
-   - Include edge cases
-
+  - Use table-driven tests
+  - Test both valid and invalid cases
+  - Include edge cases
 4. **Add examples** in relevant `example_*_test.go` files
 
 ### Writing Tests
@@ -77,6 +75,13 @@ func TestConstraintName(t *testing.T) {
 }
 ```
 
+**Black-box tests next to package code** (`is/`, `it/`, `validate/`, root `validation` package, etc.):
+
+- Prefer **black-box testing**: put tests in `*_test.go` files that declare `**package foo_test`** (the package name must end with the `_test` suffix), and import `**github.com/muonsoft/validation/foo**` to exercise only the **exported** API.
+- Use `**package foo`** in the same directory only when the test must call **unexported** identifiers (unusual); keep those cases minimal and justified.
+
+Integration-style constraint suites stay in `**test/`** as today (`test/constraints_*_cases_test.go`).
+
 ### Message Templates
 
 When defining new constraints, use message templates:
@@ -89,31 +94,30 @@ validation.NewError(
 ```
 
 Add translations in:
+
 - `message/translations/english/messages.go`
 - `message/translations/russian/messages.go`
 
 ## Code Style Guidelines
 
 1. **Naming Conventions**
-   - Use clear, descriptive names
-   - Constraint builders: `it.IsXxx()`, `it.HasXxx()`, `it.Xxx()`
-   - Check functions: `is.Xxx()`
-
+  - Use clear, descriptive names
+  - Constraint builders: `it.IsXxx()`, `it.HasXxx()`, `it.Xxx()`
+  - Check functions: `is.Xxx()`
 2. **Documentation**
-   - All exported functions must have godoc comments
-   - Include examples in `example_*_test.go` files
-   - Use `// Output:` comments for testable examples
-
+  - All exported functions must have godoc comments
+  - Include examples in `example_*_test.go` files
+  - Use `// Output:` comments for testable examples
 3. **Error Handling**
-   - Use `violations.go` types for validation errors
-   - Preserve constraint paths for nested validations
-   - Provide clear, actionable error messages
-
+  - Use `violations.go` types for validation errors
+  - Preserve constraint paths for nested validations
+  - Provide clear, actionable error messages
 4. **Testing**
-   - Aim for high test coverage
-   - Use table-driven tests
-   - Test edge cases and error conditions
-   - Include benchmarks for performance-critical code
+  - Aim for high test coverage
+  - Use table-driven tests
+  - Test edge cases and error conditions
+  - Include benchmarks for performance-critical code
+  - For unit tests in `is/`, `it/`, `validate/`, etc., use `**package foo_test`** black-box tests (see [Writing Tests](#writing-tests))
 
 ## File Organization
 
@@ -122,7 +126,7 @@ When adding new functionality:
 - **Constraints** → `it/` package
 - **Check functions** → `is/` package  
 - **Standalone validators** → `validate/` package
-- **Tests** → `test/` directory
+- **Tests** → shared constraint suites in `test/`; package unit tests in `*_test.go` with `package foo_test` where applicable
 - **Examples** → `example_*_test.go` in root
 - **Messages** → `message/translations/`
 
@@ -186,7 +190,7 @@ func (c NumericConstraint) ValidateString(ctx context.Context, validator *valida
 
 ## Changelog
 
-The project uses **[Keep a Changelog](https://keepachangelog.com/)** in **`CHANGELOG.md`**.
+The project uses **[Keep a Changelog](https://keepachangelog.com/)** in `**CHANGELOG.md`**.
 
 ### Rules for agents and contributors
 
@@ -221,3 +225,4 @@ This is a pure Go library with no external services or infrastructure dependenci
 - The CI workflow (`.github/workflows/tests.yml`) pins `golangci-lint` at **v2.11.4** and Go at **^1.24**. Match these versions locally.
 - The `.golangci.yml` uses config **version: "2"** (golangci-lint v2 format). Do not use golangci-lint v1.
 - No Makefile, Docker, or docker-compose is used. No services need to be started.
+

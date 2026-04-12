@@ -67,6 +67,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.InvalidIP:                catalog.String(message.InvalidIP),
 		message.InvalidJSON:              catalog.String(message.InvalidJSON),
 		message.InvalidLUHN:              catalog.String(message.InvalidLUHN),
+		message.InvalidMAC:               catalog.String(message.InvalidMAC),
 		message.InvalidTime:              catalog.String(message.InvalidTime),
 		message.InvalidULID:              catalog.String(message.InvalidULID),
 		message.InvalidUPCA:              catalog.String(message.InvalidUPCA),

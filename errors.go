@@ -28,6 +28,7 @@ var (
 	ErrInvalidIP              = NewError("invalid IP address", message.InvalidIP)
 	ErrInvalidJSON            = NewError("invalid JSON", message.InvalidJSON)
 	ErrInvalidLUHN            = NewError("invalid LUHN", message.InvalidLUHN)
+	ErrInvalidMAC             = NewError("invalid MAC address", message.InvalidMAC)
 	ErrInvalidTime            = NewError("invalid time", message.InvalidTime)
 	ErrInvalidULID            = NewError("invalid ULID", message.InvalidULID)
 	ErrInvalidUPCA            = NewError("invalid UPC-A", message.InvalidUPCA)

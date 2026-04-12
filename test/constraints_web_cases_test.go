@@ -8,6 +8,7 @@ import (
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/it"
 	"github.com/muonsoft/validation/message"
+	"github.com/muonsoft/validation/validate"
 )
 
 var urlConstraintTestCases = []ConstraintValidationTestCase{
@@ -409,6 +410,107 @@ var cidrConstraintTestCases = []ConstraintValidationTestCase{
 		assert: assertHasOneViolation(
 			ErrCustom,
 			`Bad CIDR "192.168.0.0" at field.`,
+		),
+	},
+}
+
+var macAddressConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsMacAddress passes on nil",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsMacAddress(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsMacAddress passes on empty value",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsMacAddress(),
+		stringValue:     stringValue(""),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsMacAddress passes on colon form",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsMacAddress(),
+		stringValue:     stringValue("00:1a:2b:3c:4d:5e"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsMacAddress passes on hyphen form",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsMacAddress(),
+		stringValue:     stringValue("00-1a-2b-3c-4d-5e"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsMacAddress passes on dot form",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsMacAddress(),
+		stringValue:     stringValue("001a.2b3c.4d5e"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsMacAddress violation on invalid",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsMacAddress(),
+		stringValue:     stringValue("not-mac"),
+		assert:          assertHasOneViolation(validation.ErrInvalidMAC, message.InvalidMAC),
+	},
+	{
+		name:            "IsMacAddress violation on EUI-64 length",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsMacAddress(),
+		stringValue:     stringValue("02:00:5e:10:00:00:00:01"),
+		assert:          assertHasOneViolation(validation.ErrInvalidMAC, message.InvalidMAC),
+	},
+	{
+		name:            "IsMacAddress WithType broadcast only passes broadcast",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsMacAddress().WithType(validate.MacAddressTypeBroadcast),
+		stringValue:     stringValue("ff:ff:ff:ff:ff:ff"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsMacAddress WithType broadcast rejects unicast",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsMacAddress().WithType(validate.MacAddressTypeBroadcast),
+		stringValue:     stringValue("00:1a:2b:3c:4d:5e"),
+		assert:          assertHasOneViolation(validation.ErrInvalidMAC, message.InvalidMAC),
+	},
+	{
+		name:            "IsMacAddress WithType all_no_broadcast rejects broadcast",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsMacAddress().WithType(validate.MacAddressTypeAllNoBroadcast),
+		stringValue:     stringValue("ff:ff:ff:ff:ff:ff"),
+		assert:          assertHasOneViolation(validation.ErrInvalidMAC, message.InvalidMAC),
+	},
+	{
+		name:            "IsMacAddress passes when When(false)",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsMacAddress().When(false),
+		stringValue:     stringValue("bad"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsMacAddress passes when groups not match",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsMacAddress().WhenGroups(testGroup),
+		stringValue:     stringValue("bad"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsMacAddress violation with custom error and message",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint: it.IsMacAddress().
+			WithError(ErrCustom).
+			WithMessage(
+				`Bad MAC "{{ value }}" at {{ custom }}.`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "field"},
+			),
+		stringValue: stringValue("xx"),
+		assert: assertHasOneViolation(
+			ErrCustom,
+			`Bad MAC "xx" at field.`,
 		),
 	},
 }

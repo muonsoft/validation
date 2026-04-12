@@ -185,7 +185,7 @@ Add the slice to **`validateTestCases`** in **`test/constraints_test.go`** via `
 
 ### Unit tests in `validate` for structured validation
 
-If the constraint is implemented or configured through **`validate`** (parsers, options, several error kinds, version-specific rules), add **focused unit tests** in **`validate/*_test.go`** in addition to the shared `test/` constraint cases.
+If the constraint is implemented or configured through **`validate`** (parsers, options, several error kinds, version-specific rules), add **focused unit tests** in **`validate/*_test.go`** in addition to the shared `test/` constraint cases. Use **`package validate_test`** (black-box) so tests only call the exported API unless unexported helpers must be covered.
 
 For validations that depend on **structure** (splitting strings, numeric ranges, IPv4 vs IPv6 branches, composition of options), aim for **strong coverage**: boundary values (min/max inclusive), each error path, and helper functions used for messages (e.g. bounds for templates). Table-driven subtests work well. Shallow happy-path-only tests are easy to miss regressions for this kind of logic.
 
@@ -223,7 +223,7 @@ Add when the constraint is useful for **standalone validation** (e.g. string cod
 - **Signature**: `func MyFormat(value string) error` (or with options).
 - **Return**: `nil` if valid; otherwise a sentinel error from `validate` package (e.g. `ErrTooShort`, or custom).
 - **Godoc**: Describe when it returns which error.
-- **Tests**: `validate/*_test.go` table or cases; for non-trivial parsing or options, prefer **broad unit coverage** (see [Tests / Unit tests in validate](#4-tests-mandatory)).
+- **Tests**: `validate/*_test.go` with `package validate_test` and table-driven cases; for non-trivial parsing or options, prefer **broad unit coverage** (see [Tests / Unit tests in validate](#4-tests-mandatory)).
 - **Examples**: `validate/example_test.go` with `ExampleMyFormat` and `// Output:`.
 
 If the `it` constraint needs options, define option types and funcs in `validate` (e.g. `validate.MyOptions`, `validate.AllowXxx()`), and use them from `it` and `is`.
