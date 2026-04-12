@@ -539,8 +539,16 @@ func IsMacAddress() MacAddressConstraint {
 }
 
 // WithType sets the Symfony-compatible MAC class filter (default [validate.MacAddressTypeAll]).
-func (c MacAddressConstraint) WithType(macType string) MacAddressConstraint {
-	c.options = append(c.options, validate.MacAddressType(macType))
+//
+// Allowed values are [validate.MacAddressTypeAll], [validate.MacAddressTypeAllNoBroadcast],
+// [validate.MacAddressTypeLocalAll], [validate.MacAddressTypeLocalNoBroadcast],
+// [validate.MacAddressTypeLocalUnicast], [validate.MacAddressTypeLocalMulticast],
+// [validate.MacAddressTypeLocalMulticastNoBroadcast], [validate.MacAddressTypeUniversalAll],
+// [validate.MacAddressTypeUniversalUnicast], [validate.MacAddressTypeUniversalMulticast],
+// [validate.MacAddressTypeUnicastAll], [validate.MacAddressTypeMulticastAll],
+// [validate.MacAddressTypeMulticastNoBroadcast], and [validate.MacAddressTypeBroadcast].
+func (c MacAddressConstraint) WithType(macType validate.MacAddressType) MacAddressConstraint {
+	c.options = append(c.options, validate.WithMacAddressType(macType))
 	return c
 }
 

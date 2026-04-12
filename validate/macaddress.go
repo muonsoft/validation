@@ -7,38 +7,41 @@ import (
 )
 
 // ErrInvalidMAC is returned when the value is not a valid 48-bit MAC address for the
-// configured checks, or when an unknown Symfony type name was set via [MacAddressType].
+// configured checks, or when an unknown Symfony type name was set via [WithMacAddressType].
 var ErrInvalidMAC = errors.New("invalid MAC address")
 
-// MAC address type strings match Symfony\Component\Validator\Constraints\MacAddress.
+// MacAddressType represents Symfony\Component\Validator\Constraints\MacAddress "type".
+type MacAddressType string
+
+// MAC address type values match Symfony\Component\Validator\Constraints\MacAddress.
 const (
-	MacAddressTypeAll                       = "all"
-	MacAddressTypeAllNoBroadcast            = "all_no_broadcast"
-	MacAddressTypeLocalAll                  = "local_all"
-	MacAddressTypeLocalNoBroadcast          = "local_no_broadcast"
-	MacAddressTypeLocalUnicast              = "local_unicast"
-	MacAddressTypeLocalMulticast            = "local_multicast"
-	MacAddressTypeLocalMulticastNoBroadcast = "local_multicast_no_broadcast"
-	MacAddressTypeUniversalAll              = "universal_all"
-	MacAddressTypeUniversalUnicast          = "universal_unicast"
-	MacAddressTypeUniversalMulticast        = "universal_multicast"
-	MacAddressTypeUnicastAll                = "unicast_all"
-	MacAddressTypeMulticastAll              = "multicast_all"
-	MacAddressTypeMulticastNoBroadcast      = "multicast_no_broadcast"
-	MacAddressTypeBroadcast                 = "broadcast"
+	MacAddressTypeAll                       MacAddressType = "all"
+	MacAddressTypeAllNoBroadcast            MacAddressType = "all_no_broadcast"
+	MacAddressTypeLocalAll                  MacAddressType = "local_all"
+	MacAddressTypeLocalNoBroadcast          MacAddressType = "local_no_broadcast"
+	MacAddressTypeLocalUnicast              MacAddressType = "local_unicast"
+	MacAddressTypeLocalMulticast            MacAddressType = "local_multicast"
+	MacAddressTypeLocalMulticastNoBroadcast MacAddressType = "local_multicast_no_broadcast"
+	MacAddressTypeUniversalAll              MacAddressType = "universal_all"
+	MacAddressTypeUniversalUnicast          MacAddressType = "universal_unicast"
+	MacAddressTypeUniversalMulticast        MacAddressType = "universal_multicast"
+	MacAddressTypeUnicastAll                MacAddressType = "unicast_all"
+	MacAddressTypeMulticastAll              MacAddressType = "multicast_all"
+	MacAddressTypeMulticastNoBroadcast      MacAddressType = "multicast_no_broadcast"
+	MacAddressTypeBroadcast                 MacAddressType = "broadcast"
 )
 
 // MacAddressOptions configures [MacAddress] validation (Symfony MacAddress "type").
 type MacAddressOptions struct {
-	Type string
+	Type MacAddressType
 }
 
 func newMacAddressOptions() *MacAddressOptions {
 	return &MacAddressOptions{Type: MacAddressTypeAll}
 }
 
-// MacAddressType sets the Symfony-compatible MAC class filter (default [MacAddressTypeAll]).
-func MacAddressType(t string) func(*MacAddressOptions) {
+// WithMacAddressType sets the Symfony-compatible MAC class filter (default [MacAddressTypeAll]).
+func WithMacAddressType(t MacAddressType) func(*MacAddressOptions) {
 	return func(o *MacAddressOptions) {
 		o.Type = t
 	}
@@ -49,7 +52,7 @@ func MacAddressType(t string) func(*MacAddressOptions) {
 // on the first octet’s I/G and U/L bits and on the broadcast address ff:ff:ff:ff:ff:ff.
 //
 // Returns [ErrInvalidMAC] when the string is not a 48-bit MAC, when it is not parseable, or
-// when an unknown type name was set via [MacAddressType].
+// when an unknown type name was set via [WithMacAddressType].
 func MacAddress(value string, options ...func(*MacAddressOptions)) error {
 	opts := newMacAddressOptions()
 	for _, opt := range options {
@@ -88,7 +91,7 @@ func macAddressClassOf(hw net.HardwareAddr) macAddressClass {
 }
 
 // macAddressTypePredicates maps Symfony MacAddress "type" to a predicate on [macAddressClass].
-var macAddressTypePredicates = map[string]func(macAddressClass) bool{
+var macAddressTypePredicates = map[MacAddressType]func(macAddressClass) bool{
 	MacAddressTypeAll: func(c macAddressClass) bool {
 		return true
 	},
@@ -133,7 +136,7 @@ var macAddressTypePredicates = map[string]func(macAddressClass) bool{
 	},
 }
 
-func macAddressMatchesType(hw net.HardwareAddr, typ string) bool {
+func macAddressMatchesType(hw net.HardwareAddr, typ MacAddressType) bool {
 	pred, ok := macAddressTypePredicates[typ]
 	if !ok {
 		return false

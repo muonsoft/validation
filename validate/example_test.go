@@ -149,7 +149,7 @@ func ExampleCIDR() {
 func ExampleMacAddress() {
 	fmt.Println(validate.MacAddress("00:1a:2b:3c:4d:5e"))
 	fmt.Println(validate.MacAddress("not-mac"))
-	fmt.Println(validate.MacAddress("ff:ff:ff:ff:ff:ff", validate.MacAddressType(validate.MacAddressTypeAllNoBroadcast)))
+	fmt.Println(validate.MacAddress("ff:ff:ff:ff:ff:ff", validate.WithMacAddressType(validate.MacAddressTypeAllNoBroadcast)))
 	// Output:
 	// <nil>
 	// invalid MAC address

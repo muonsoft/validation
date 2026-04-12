@@ -1,8 +1,10 @@
-package validate
+package validate_test
 
 import (
 	"errors"
 	"testing"
+
+	"github.com/muonsoft/validation/validate"
 )
 
 func TestMacAddress(t *testing.T) {
@@ -11,7 +13,7 @@ func TestMacAddress(t *testing.T) {
 	tests := []struct {
 		name    string
 		value   string
-		opts    []func(*MacAddressOptions)
+		opts    []func(*validate.MacAddressOptions)
 		wantErr bool
 	}{
 		{name: "colon", value: "00:1a:2b:3c:4d:5e"},
@@ -32,63 +34,63 @@ func TestMacAddress(t *testing.T) {
 		{
 			name:    "broadcast fails all_no_broadcast",
 			value:   "ff:ff:ff:ff:ff:ff",
-			opts:    []func(*MacAddressOptions){MacAddressType(MacAddressTypeAllNoBroadcast)},
+			opts:    []func(*validate.MacAddressOptions){validate.WithMacAddressType(validate.MacAddressTypeAllNoBroadcast)},
 			wantErr: true,
 		},
 		{
 			name:  "broadcast type",
 			value: "ff:ff:ff:ff:ff:ff",
-			opts:  []func(*MacAddressOptions){MacAddressType(MacAddressTypeBroadcast)},
+			opts:  []func(*validate.MacAddressOptions){validate.WithMacAddressType(validate.MacAddressTypeBroadcast)},
 		},
 		{
 			name:    "unicast fails broadcast type",
 			value:   "00:1a:2b:3c:4d:5e",
-			opts:    []func(*MacAddressOptions){MacAddressType(MacAddressTypeBroadcast)},
+			opts:    []func(*validate.MacAddressOptions){validate.WithMacAddressType(validate.MacAddressTypeBroadcast)},
 			wantErr: true,
 		},
 		{
 			name:  "local unicast",
 			value: "02:00:00:00:00:01",
-			opts:  []func(*MacAddressOptions){MacAddressType(MacAddressTypeLocalUnicast)},
+			opts:  []func(*validate.MacAddressOptions){validate.WithMacAddressType(validate.MacAddressTypeLocalUnicast)},
 		},
 		{
 			name:    "universal unicast rejects local",
 			value:   "02:00:00:00:00:01",
-			opts:    []func(*MacAddressOptions){MacAddressType(MacAddressTypeUniversalUnicast)},
+			opts:    []func(*validate.MacAddressOptions){validate.WithMacAddressType(validate.MacAddressTypeUniversalUnicast)},
 			wantErr: true,
 		},
 		{
 			name:  "universal unicast",
 			value: "00:1a:2b:3c:4d:5e",
-			opts:  []func(*MacAddressOptions){MacAddressType(MacAddressTypeUniversalUnicast)},
+			opts:  []func(*validate.MacAddressOptions){validate.WithMacAddressType(validate.MacAddressTypeUniversalUnicast)},
 		},
 		{
 			name:    "local all rejects universal",
 			value:   "00:1a:2b:3c:4d:5e",
-			opts:    []func(*MacAddressOptions){MacAddressType(MacAddressTypeLocalAll)},
+			opts:    []func(*validate.MacAddressOptions){validate.WithMacAddressType(validate.MacAddressTypeLocalAll)},
 			wantErr: true,
 		},
 		{
 			name:  "multicast all",
 			value: "01:00:5e:00:00:01",
-			opts:  []func(*MacAddressOptions){MacAddressType(MacAddressTypeMulticastAll)},
+			opts:  []func(*validate.MacAddressOptions){validate.WithMacAddressType(validate.MacAddressTypeMulticastAll)},
 		},
 		{
 			name:    "unicast all rejects multicast",
 			value:   "01:00:5e:00:00:01",
-			opts:    []func(*MacAddressOptions){MacAddressType(MacAddressTypeUnicastAll)},
+			opts:    []func(*validate.MacAddressOptions){validate.WithMacAddressType(validate.MacAddressTypeUnicastAll)},
 			wantErr: true,
 		},
 		{
 			name:    "multicast no broadcast rejects broadcast",
 			value:   "ff:ff:ff:ff:ff:ff",
-			opts:    []func(*MacAddressOptions){MacAddressType(MacAddressTypeMulticastNoBroadcast)},
+			opts:    []func(*validate.MacAddressOptions){validate.WithMacAddressType(validate.MacAddressTypeMulticastNoBroadcast)},
 			wantErr: true,
 		},
 		{
 			name:    "unknown type",
 			value:   "00:1a:2b:3c:4d:5e",
-			opts:    []func(*MacAddressOptions){MacAddressType("bogus")},
+			opts:    []func(*validate.MacAddressOptions){validate.WithMacAddressType("bogus")},
 			wantErr: true,
 		},
 	}
@@ -96,13 +98,13 @@ func TestMacAddress(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			err := MacAddress(tt.value, tt.opts...)
+			err := validate.MacAddress(tt.value, tt.opts...)
 			if tt.wantErr {
 				if err == nil {
 					t.Fatalf("MacAddress(%q): want error", tt.value)
 				}
-				if !errors.Is(err, ErrInvalidMAC) {
-					t.Fatalf("MacAddress(%q): got %v, want %v", tt.value, err, ErrInvalidMAC)
+				if !errors.Is(err, validate.ErrInvalidMAC) {
+					t.Fatalf("MacAddress(%q): got %v, want %v", tt.value, err, validate.ErrInvalidMAC)
 				}
 			} else if err != nil {
 				t.Fatalf("MacAddress(%q): %v", tt.value, err)

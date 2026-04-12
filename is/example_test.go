@@ -228,7 +228,7 @@ func ExampleCIDR() {
 func ExampleMACAddress() {
 	fmt.Println(is.MACAddress("00:1a:2b:3c:4d:5e"))
 	fmt.Println(is.MACAddress("bad"))
-	fmt.Println(is.MACAddress("ff:ff:ff:ff:ff:ff", validate.MacAddressType(validate.MacAddressTypeBroadcast)))
+	fmt.Println(is.MACAddress("ff:ff:ff:ff:ff:ff", validate.WithMacAddressType(validate.MacAddressTypeBroadcast)))
 	// Output:
 	// true
 	// false
