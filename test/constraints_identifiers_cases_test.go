@@ -12,6 +12,7 @@ var identifierConstraintsTestCases = mergeTestCases(
 	ibanConstraintTestCases,
 	bicConstraintTestCases,
 	isinConstraintTestCases,
+	isbnConstraintTestCases,
 	issnConstraintTestCases,
 	luhnConstraintTestCases,
 )
@@ -292,6 +293,91 @@ var isinConstraintTestCases = []ConstraintValidationTestCase{
 		name:            "IsISIN passes when groups not match",
 		isApplicableFor: specificValueTypes(stringType),
 		constraint:      it.IsISIN().WhenGroups(testGroup),
+		stringValue:     stringValue("bad"),
+		assert:          assertNoError,
+	},
+}
+
+var isbnConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsISBN passes on empty value",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsISBN(),
+		stringValue:     stringValue(""),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsISBN passes on valid ISBN-10",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("0-45122-5244"),
+		constraint:      it.IsISBN(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsISBN passes on valid ISBN-13",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("978-0451225245"),
+		constraint:      it.IsISBN(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsISBN violation on neither format",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("978272344228"),
+		constraint:      it.IsISBN(),
+		assert:          assertHasOneViolation(validation.ErrInvalidISBN, message.InvalidISBN),
+	},
+	{
+		name:            "IsISBN Only10 passes",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("0321812700"),
+		constraint:      it.IsISBN().Only10(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsISBN Only10 violation uses ISBN-10 message",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("1234567890"),
+		constraint:      it.IsISBN().Only10(),
+		assert:          assertHasOneViolation(validation.ErrInvalidISBN10, message.InvalidISBN10),
+	},
+	{
+		name:            "IsISBN Only13 violation uses ISBN-13 message",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("2723442284"),
+		constraint:      it.IsISBN().Only13(),
+		assert:          assertHasOneViolation(validation.ErrInvalidISBN13, message.InvalidISBN13),
+	},
+	{
+		name:            "IsISBN violation with given error and message",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint: it.IsISBN().
+			WithError(ErrCustom).
+			WithMessage(
+				`Invalid value "{{ value }}" for {{ custom }}.`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		stringValue: stringValue("bad-isbn"),
+		assert:      assertHasOneViolation(ErrCustom, `Invalid value "bad-isbn" for parameter.`),
+	},
+	{
+		name:            "IsISBN passes when condition is false",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsISBN().When(false),
+		stringValue:     stringValue("bad"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsISBN violation when condition is true",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsISBN().When(true),
+		stringValue:     stringValue("bad"),
+		assert:          assertHasOneViolation(validation.ErrInvalidISBN, message.InvalidISBN),
+	},
+	{
+		name:            "IsISBN passes when groups not match",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsISBN().WhenGroups(testGroup),
 		stringValue:     stringValue("bad"),
 		assert:          assertNoError,
 	},

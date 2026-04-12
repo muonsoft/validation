@@ -214,6 +214,16 @@ func ExampleISSN() {
 	// invalid checksum
 }
 
+func ExampleISBN() {
+	fmt.Println(validate.ISBN("978-0451225245"))
+	fmt.Println(validate.ISBN("978272344228"))
+	fmt.Println(validate.ISBN("1234567890", validate.ISBNOnly10()))
+	// Output:
+	// <nil>
+	// ISBN type not recognized
+	// ISBN checksum failed
+}
+
 func ExampleLUHN() {
 	fmt.Println(validate.LUHN("79927398713"))
 	fmt.Println(validate.LUHN("79927398710"))
