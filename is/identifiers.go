@@ -56,6 +56,14 @@ func LUHN(value string) bool {
 	return validate.LUHN(value) == nil
 }
 
+// Currency validates whether the value is a recognized ISO 4217 alphabetic currency code.
+// See [github.com/muonsoft/validation/validate.Currency] for rules and possible errors.
+//
+// See https://www.iso.org/iso-4217-currency-codes.html.
+func Currency(value string) bool {
+	return validate.Currency(value) == nil
+}
+
 // UUID validates whether a string value is a valid UUID (also known as GUID).
 //
 // By default, it uses strict mode and checks the UUID as specified in RFC 4122.

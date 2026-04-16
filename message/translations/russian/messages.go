@@ -65,6 +65,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.InvalidISBN:              catalog.String("Значение не является допустимым ISBN-10 или ISBN-13."),
 		message.InvalidISBN10:            catalog.String("Значение не является допустимым ISBN-10."),
 		message.InvalidISBN13:            catalog.String("Значение не является допустимым ISBN-13."),
+		message.InvalidCurrency:          catalog.String("Значение не является допустимым кодом валюты."),
 		message.InvalidCIDR:              catalog.String("Значение не является допустимой записью CIDR."),
 		message.CIDRNetmaskOutOfRange:    catalog.String("Значение маски сети должно быть между {{ min }} и {{ max }}."),
 		message.InvalidIP:                catalog.String("Значение не является допустимым IP адресом."),

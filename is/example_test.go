@@ -283,6 +283,16 @@ func ExampleIBAN() {
 	// false
 }
 
+func ExampleCurrency() {
+	fmt.Println(is.Currency("EUR"))
+	fmt.Println(is.Currency("ZZZ"))
+	fmt.Println(is.Currency("EU"))
+	// Output:
+	// true
+	// false
+	// false
+}
+
 func ExampleBIC() {
 	fmt.Println(is.BIC("DEUTDEFF"))
 	fmt.Println(is.BIC("DEUTDEF"))

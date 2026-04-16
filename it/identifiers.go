@@ -54,6 +54,17 @@ func IsLUHN() validation.StringFuncConstraint {
 		WithMessage(validation.ErrInvalidLUHN.Message())
 }
 
+// IsCurrency validates whether the value is a recognized ISO 4217 alphabetic currency code,
+// as in Symfony\Component\Validator\Constraints\Currency.
+// Recognition follows [golang.org/x/text/currency.ParseISO] (CLDR currency data).
+//
+// See https://www.iso.org/iso-4217-currency-codes.html.
+func IsCurrency() validation.StringFuncConstraint {
+	return validation.OfStringBy(is.Currency).
+		WithError(validation.ErrInvalidCurrency).
+		WithMessage(validation.ErrInvalidCurrency.Message())
+}
+
 // UUIDConstraint validates whether a string value is a valid UUID (also known as GUID).
 //
 // By default, it uses strict mode and checks the UUID as specified in RFC 4122.

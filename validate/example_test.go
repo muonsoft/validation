@@ -180,6 +180,16 @@ func ExampleIBAN() {
 	// invalid IBAN
 }
 
+func ExampleCurrency() {
+	fmt.Println(validate.Currency("EUR"))
+	fmt.Println(validate.Currency("ZZZ"))
+	fmt.Println(validate.Currency("EU"))
+	// Output:
+	// <nil>
+	// invalid currency
+	// invalid currency
+}
+
 func ExampleBIC() {
 	fmt.Println(validate.BIC("DEUTDEFF"))
 	fmt.Println(validate.BIC("DEUTDEF"))

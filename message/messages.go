@@ -41,6 +41,7 @@ const (
 	InvalidISBN              = "This value is neither a valid ISBN-10 nor a valid ISBN-13."
 	InvalidISBN10            = "This value is not a valid ISBN-10."
 	InvalidISBN13            = "This value is not a valid ISBN-13."
+	InvalidCurrency          = "This value is not a valid currency."
 	InvalidCIDR              = "This value is not a valid CIDR notation."
 	CIDRNetmaskOutOfRange    = "The value of the netmask should be between {{ min }} and {{ max }}."
 	InvalidIP                = "This is not a valid IP address."
