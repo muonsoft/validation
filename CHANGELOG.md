@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- ISO 4217 currency code validation: `it.IsCurrency()`, `validate.Currency`, `is.Currency`, with `validation.ErrInvalidCurrency` / `message.InvalidCurrency` and English and Russian translations (behavior aligned with Symfony `Currency`; recognized codes from `golang.org/x/text/currency.ParseISO`).
 - ISBN validation: `it.IsISBN()` with `Only10` / `Only13`, `validate.ISBN` with `validate.ISBNOnly10` / `validate.ISBNOnly13`, `is.ISBN`; `validation.ErrInvalidISBN`, `ErrInvalidISBN10`, `ErrInvalidISBN13` / `message.InvalidISBN`, `InvalidISBN10`, `InvalidISBN13` and English and Russian translations (behavior aligned with Symfony `Isbn`).
 - MAC address validation: `it.IsMacAddress()` with `WithType` (Symfony `MacAddress` type names: `validate.MacAddressTypeAll`, `MacAddressTypeBroadcast`, etc.), `validate.MacAddress` with `validate.WithMacAddressType`, `is.MACAddress`; `validation.ErrInvalidMAC` / `message.InvalidMAC` and English and Russian translations. Only 48-bit (6-octet) addresses accepted via [net.ParseMAC] (colon, hyphen, dot forms); EUI-64 and longer forms are rejected.
 - ISSN (International Standard Serial Number) validation: `it.IsISSN()`, `validate.ISSN`, `is.ISSN`, with `validation.ErrInvalidISSN` / `message.InvalidISSN` and English and Russian translations (ISO 3297 mod 11 check digit; optional hyphen; behavior aligned with Symfony `Issn`).

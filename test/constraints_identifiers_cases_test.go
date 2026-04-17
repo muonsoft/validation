@@ -9,6 +9,7 @@ import (
 var identifierConstraintsTestCases = mergeTestCases(
 	ulidConstraintTestCases,
 	uuidConstraintTestCases,
+	currencyConstraintTestCases,
 	ibanConstraintTestCases,
 	bicConstraintTestCases,
 	isinConstraintTestCases,
@@ -16,6 +17,77 @@ var identifierConstraintsTestCases = mergeTestCases(
 	issnConstraintTestCases,
 	luhnConstraintTestCases,
 )
+
+var currencyConstraintTestCases = []ConstraintValidationTestCase{
+	{
+		name:            "IsCurrency passes on empty value",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsCurrency(),
+		stringValue:     stringValue(""),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsCurrency passes on valid ISO code",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("EUR"),
+		constraint:      it.IsCurrency(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsCurrency passes on lowercase code",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("usd"),
+		constraint:      it.IsCurrency(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsCurrency violation on unknown code",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("ZZZ"),
+		constraint:      it.IsCurrency(),
+		assert:          assertHasOneViolation(validation.ErrInvalidCurrency, message.InvalidCurrency),
+	},
+	{
+		name:            "IsCurrency violation on wrong length",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("EU"),
+		constraint:      it.IsCurrency(),
+		assert:          assertHasOneViolation(validation.ErrInvalidCurrency, message.InvalidCurrency),
+	},
+	{
+		name:            "IsCurrency violation with custom error and message",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint: it.IsCurrency().
+			WithError(ErrCustom).
+			WithMessage(
+				`Invalid value "{{ value }}" for {{ custom }}.`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		stringValue: stringValue("UUU"),
+		assert:      assertHasOneViolation(ErrCustom, `Invalid value "UUU" for parameter.`),
+	},
+	{
+		name:            "IsCurrency passes when condition is false",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsCurrency().When(false),
+		stringValue:     stringValue("ZZZ"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsCurrency violation when condition is true",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsCurrency().When(true),
+		stringValue:     stringValue("ZZZ"),
+		assert:          assertHasOneViolation(validation.ErrInvalidCurrency, message.InvalidCurrency),
+	},
+	{
+		name:            "IsCurrency passes when groups not match",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsCurrency().WhenGroups(testGroup),
+		stringValue:     stringValue("ZZZ"),
+		assert:          assertNoError,
+	},
+}
 
 var ulidConstraintTestCases = []ConstraintValidationTestCase{
 	{

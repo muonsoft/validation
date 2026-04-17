@@ -55,6 +55,20 @@ func ExampleIsIBAN_invalid() {
 	// violation: "This is not a valid International Bank Account Number (IBAN)."
 }
 
+func ExampleIsCurrency_valid() {
+	err := validator.Validate(context.Background(), validation.String("CHF", it.IsCurrency()))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsCurrency_invalid() {
+	err := validator.Validate(context.Background(), validation.String("ZZZ", it.IsCurrency()))
+	fmt.Println(err)
+	// Output:
+	// violation: "This value is not a valid currency."
+}
+
 func ExampleIsBIC_valid() {
 	err := validator.Validate(context.Background(), validation.String("DEUTDEFF", it.IsBIC()))
 	fmt.Println(err)

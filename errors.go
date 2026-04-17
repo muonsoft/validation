@@ -23,6 +23,7 @@ var (
 	ErrInvalidISBN            = NewError("invalid ISBN", message.InvalidISBN)
 	ErrInvalidISBN10          = NewError("invalid ISBN-10", message.InvalidISBN10)
 	ErrInvalidISBN13          = NewError("invalid ISBN-13", message.InvalidISBN13)
+	ErrInvalidCurrency        = NewError("invalid currency", message.InvalidCurrency)
 	ErrInvalidCIDR            = NewError("invalid CIDR", message.InvalidCIDR)
 	ErrCIDRNetmaskOutOfRange  = NewError("CIDR netmask out of range", message.CIDRNetmaskOutOfRange)
 	ErrInvalidIP              = NewError("invalid IP address", message.InvalidIP)
