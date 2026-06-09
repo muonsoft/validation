@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/muonsoft/validation"
+	"github.com/muonsoft/validation/validate"
 )
 
 // DateTimeConstraint checks that the string value is a valid date and time value specified by a specific layout.
@@ -104,5 +105,88 @@ func (c DateTimeConstraint) ValidateString(ctx context.Context, validator *valid
 
 // Validate implements [validation.Constraint][string] so the constraint can be used with [validation.Each] and [validation.This].
 func (c DateTimeConstraint) Validate(ctx context.Context, validator *validation.Validator, v string) error {
+	return c.ValidateString(ctx, validator, &v)
+}
+
+// TimezoneConstraint validates whether the string value is a known IANA timezone identifier,
+// as in Symfony\Component\Validator\Constraints\Timezone.
+// Use [TimezoneConstraint.WithZone] to restrict identifiers to a geographical region.
+type TimezoneConstraint struct {
+	isIgnored         bool
+	groups            []string
+	options           []func(*validate.TimezoneOptions)
+	err               error
+	messageTemplate   string
+	messageParameters validation.TemplateParameterList
+}
+
+// IsTimezone validates whether the string value is a known IANA timezone identifier.
+// See [TimezoneConstraint] for configuration options.
+func IsTimezone() TimezoneConstraint {
+	return TimezoneConstraint{
+		err:             validation.ErrInvalidTimezone,
+		messageTemplate: validation.ErrInvalidTimezone.Message(),
+	}
+}
+
+// WithZone restricts valid timezone identifiers to the given geographical region
+// (default accepts any IANA zone). Allowed values are [validate.TimezoneZoneAll],
+// [validate.TimezoneZoneAfrica], [validate.TimezoneZoneAmerica], [validate.TimezoneZoneAntarctica],
+// [validate.TimezoneZoneArctic], [validate.TimezoneZoneAsia], [validate.TimezoneZoneAtlantic],
+// [validate.TimezoneZoneAustralia], [validate.TimezoneZoneEurope], [validate.TimezoneZoneIndian],
+// and [validate.TimezoneZonePacific].
+func (c TimezoneConstraint) WithZone(zone validate.TimezoneZone) TimezoneConstraint {
+	c.options = append(c.options, validate.WithTimezoneZone(zone))
+	return c
+}
+
+// WithError overrides default error for produced violation.
+func (c TimezoneConstraint) WithError(err error) TimezoneConstraint {
+	c.err = err
+	return c
+}
+
+// WithMessage sets the violation message template. You can set custom template parameters
+// for injecting its values into the final message. Also, you can use default parameters:
+//
+//	{{ value }} - the current (invalid) value.
+func (c TimezoneConstraint) WithMessage(template string, parameters ...validation.TemplateParameter) TimezoneConstraint {
+	c.messageTemplate = template
+	c.messageParameters = parameters
+	return c
+}
+
+// When enables conditional validation of this constraint. If the expression evaluates to false,
+// then the constraint will be ignored.
+func (c TimezoneConstraint) When(condition bool) TimezoneConstraint {
+	c.isIgnored = !condition
+	return c
+}
+
+// WhenGroups enables conditional validation of the constraint by using the validation groups.
+func (c TimezoneConstraint) WhenGroups(groups ...string) TimezoneConstraint {
+	c.groups = groups
+	return c
+}
+
+func (c TimezoneConstraint) ValidateString(ctx context.Context, validator *validation.Validator, value *string) error {
+	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || *value == "" {
+		return nil
+	}
+	if validate.Timezone(*value, c.options...) == nil {
+		return nil
+	}
+
+	return validator.BuildViolation(ctx, c.err, c.messageTemplate).
+		WithParameters(
+			c.messageParameters.Prepend(
+				validation.TemplateParameter{Key: "{{ value }}", Value: *value},
+			)...,
+		).
+		Create()
+}
+
+// Validate implements [validation.Constraint][string] so the constraint can be used with [validation.Each] and [validation.This].
+func (c TimezoneConstraint) Validate(ctx context.Context, validator *validation.Validator, v string) error {
 	return c.ValidateString(ctx, validator, &v)
 }

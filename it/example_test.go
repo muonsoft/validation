@@ -653,6 +653,20 @@ func ExampleIsDate() {
 	// #3 custom layout: <nil>
 }
 
+func ExampleIsTimezone_valid() {
+	err := validator.Validate(context.Background(), validation.String("Europe/Berlin", it.IsTimezone()))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsTimezone_invalid() {
+	err := validator.Validate(context.Background(), validation.String("EST", it.IsTimezone()))
+	fmt.Println(err)
+	// Output:
+	// violation: "This value is not a valid timezone."
+}
+
 func ExampleHasMinCount() {
 	v := []int{1, 2}
 	err := validator.ValidateCountable(context.Background(), len(v), it.HasMinCount(3))

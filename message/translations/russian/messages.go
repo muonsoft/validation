@@ -73,6 +73,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.InvalidLUHN:              catalog.String("Недействительный номер карты."),
 		message.InvalidMAC:               catalog.String("Значение не является допустимым MAC-адресом."),
 		message.InvalidTime:              catalog.String("Значение времени недопустимо."),
+		message.InvalidTimezone:          catalog.String("Значение не является допустимым часовым поясом."),
 		message.InvalidULID:              catalog.String("Значение не соответствует формату ULID."),
 		message.InvalidUPCA:              catalog.String("Значение не является допустимым UPC-A."),
 		message.InvalidUPCE:              catalog.String("Значение не является допустимым UPC-E."),

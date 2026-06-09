@@ -70,6 +70,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.InvalidLUHN:              catalog.String(message.InvalidLUHN),
 		message.InvalidMAC:               catalog.String(message.InvalidMAC),
 		message.InvalidTime:              catalog.String(message.InvalidTime),
+		message.InvalidTimezone:          catalog.String(message.InvalidTimezone),
 		message.InvalidULID:              catalog.String(message.InvalidULID),
 		message.InvalidUPCA:              catalog.String(message.InvalidUPCA),
 		message.InvalidUPCE:              catalog.String(message.InvalidUPCE),
