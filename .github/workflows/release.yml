@@ -1,0 +1,197 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version, for example v0.20.0"
+        required: true
+        default: "v0.20.0"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  GOTOOLCHAIN: local
+  RELEASE_VERSION_INPUT: ${{ inputs.version }}
+
+jobs:
+  validate:
+    name: Validate release
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      changelog_version: ${{ steps.version.outputs.changelog_version }}
+      dispatch_sha: ${{ steps.dispatch.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: "1.26"
+          cache: true
+
+      - name: Resolve release version
+        id: version
+        shell: bash
+        env:
+          RELEASE_VERSION_RAW: ${{ env.RELEASE_VERSION_INPUT }}
+        run: |
+          version="$RELEASE_VERSION_RAW"
+          if [[ ! "$version" =~ ^v.+$ ]]; then
+            echo "Invalid release version: $version (expected v-prefix SemVer)" >&2
+            exit 1
+          fi
+          changelog_version="${version#v}"
+          bash scripts/prepare-release.sh "$changelog_version" --semver-only
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "changelog_version=$changelog_version" >> "$GITHUB_OUTPUT"
+
+      - name: Record dispatch SHA
+        id: dispatch
+        run: echo "sha=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify dispatch runs from current main
+        shell: bash
+        env:
+          DISPATCH_SHA: ${{ github.sha }}
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "Release dispatch must run from main (got $GITHUB_REF)" >&2
+            exit 1
+          fi
+          git fetch origin main
+          origin_main=$(git rev-parse origin/main)
+          if [[ "$DISPATCH_SHA" != "$origin_main" ]]; then
+            echo "Dispatch SHA $DISPATCH_SHA is not current origin/main ($origin_main)" >&2
+            exit 1
+          fi
+
+      - name: Validate release scripts
+        run: |
+          bash -n scripts/*.sh
+          bash scripts/prepare-release-test.sh
+
+      - name: Check changelog readiness
+        env:
+          CHANGELOG_VERSION: ${{ steps.version.outputs.changelog_version }}
+        run: bash scripts/prepare-release.sh "$CHANGELOG_VERSION" --check-only
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.13.2
+
+      - name: Full release validation
+        run: bash scripts/test-all.sh
+
+  publish:
+    name: Publish GitHub Release
+    needs: validate
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Finalize changelog on main
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+          CHANGELOG_VERSION: ${{ needs.validate.outputs.changelog_version }}
+          DISPATCH_SHA: ${{ needs.validate.outputs.dispatch_sha }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin main
+          origin_main=$(git rev-parse origin/main)
+          if [[ "$DISPATCH_SHA" != "$origin_main" ]]; then
+            echo "origin/main ($origin_main) moved since dispatch ($DISPATCH_SHA)" >&2
+            exit 1
+          fi
+
+          git checkout main
+          git pull --ff-only origin main
+          bash scripts/prepare-release.sh "$CHANGELOG_VERSION"
+
+          if ! git diff --quiet -- CHANGELOG.md; then
+            git add CHANGELOG.md
+            git commit -m "chore(release): prepare CHANGELOG for ${RELEASE_VERSION}"
+            git push origin main
+          fi
+
+      - name: Resolve release commit SHA
+        id: release_sha
+        shell: bash
+        env:
+          DISPATCH_SHA: ${{ needs.validate.outputs.dispatch_sha }}
+        run: |
+          release_sha=$(git rev-parse HEAD)
+          if [[ "$release_sha" == "$DISPATCH_SHA" ]]; then
+            echo "changelog was already finalized on the validated commit"
+          elif [[ $(git rev-list --count "${DISPATCH_SHA}..HEAD") -eq 1 ]]; then
+            parent_sha=$(git rev-parse HEAD^)
+            changed_files=$(git diff-tree --no-commit-id --name-only -r HEAD)
+            if [[ "$parent_sha" != "$DISPATCH_SHA" || "$changed_files" != "CHANGELOG.md" ]]; then
+              echo "release commit must be a single changelog-only child of $DISPATCH_SHA" >&2
+              exit 1
+            fi
+          else
+            echo "unexpected commits between validated and release state" >&2
+            exit 1
+          fi
+          echo "sha=$release_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Verify finalized changelog
+        env:
+          CHANGELOG_VERSION: ${{ needs.validate.outputs.changelog_version }}
+        run: bash scripts/prepare-release.sh "$CHANGELOG_VERSION" --require-final
+
+      - name: Verify existing tag
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+          RELEASE_SHA: ${{ steps.release_sha.outputs.sha }}
+        run: |
+          git fetch origin --tags --force
+          if git rev-parse --verify "refs/tags/${RELEASE_VERSION}" >/dev/null 2>&1; then
+            existing_sha=$(git rev-parse "refs/tags/${RELEASE_VERSION}^{commit}")
+            if [[ "$existing_sha" != "$RELEASE_SHA" ]]; then
+              echo "tag $RELEASE_VERSION points to $existing_sha, expected $RELEASE_SHA" >&2
+              exit 1
+            fi
+            echo "tag $RELEASE_VERSION already points to the release commit"
+          fi
+
+      - name: Extract release notes
+        shell: bash
+        env:
+          CHANGELOG_VERSION: ${{ needs.validate.outputs.changelog_version }}
+        run: |
+          prefix="## [${CHANGELOG_VERSION}] - "
+          awk -v prefix="$prefix" '
+            index($0, prefix) == 1 { found = 1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+          if [[ ! -s release-notes.md ]]; then
+            echo "validation ${{ needs.validate.outputs.version }}" > release-notes.md
+            echo >> release-notes.md
+            echo "See CHANGELOG.md for details." >> release-notes.md
+          fi
+
+      - name: Publish source-only GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ needs.validate.outputs.version }}
+          target_commitish: ${{ steps.release_sha.outputs.sha }}
+          name: validation ${{ needs.validate.outputs.version }}
+          body_path: release-notes.md
+          prerelease: ${{ contains(needs.validate.outputs.version, '-') }}
