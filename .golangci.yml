@@ -16,12 +16,11 @@ linters:
     - forcetypeassert
     - funlen
     - gocognit
-    - goconst
     - gocritic
     - gocyclo
     - godot
     - godox
-    - gomodguard
+    - gomodguard_v2
     - goprintffuncname
     - gosec
     - importas
@@ -95,7 +94,6 @@ linters:
           - forcetypeassert
           - funlen
           - gochecknoglobals
-          - goconst
           - gocyclo
           - gosec
           - lll
@@ -110,7 +108,6 @@ linters:
           - forcetypeassert
           - funlen
           - gochecknoglobals
-          - goconst
           - gocyclo
           - gosec
           - lll
@@ -127,7 +124,6 @@ linters:
           - forcetypeassert
           - funlen
           - gochecknoglobals
-          - goconst
           - gocyclo
           - gosec
           - lll

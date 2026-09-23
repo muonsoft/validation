@@ -236,4 +236,4 @@ See [ExampleFunc](https://pkg.go.dev/github.com/muonsoft/validation#example-Func
 - [Custom argument for domain type](https://pkg.go.dev/github.com/muonsoft/validation#example-NewArgument-CustomArgumentConstraintValidator) — [This] + [Constraint][*Brand], repository dependency.
 - [Func, Each, EachProperty](https://pkg.go.dev/github.com/muonsoft/validation#example-Func) — function as constraint and validating slices of any type.
 
-For adding new constraints to the library (messages, translations, tests), see [.cursor/skills/validation-add-constraint/SKILL.md](../.cursor/skills/validation-add-constraint/SKILL.md).
+For adding new constraints to the library (messages, translations, tests), see [.agents/skills/validation-add-constraint/SKILL.md](../.agents/skills/validation-add-constraint/SKILL.md).
