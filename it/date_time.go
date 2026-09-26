@@ -108,13 +108,13 @@ func (c DateTimeConstraint) Validate(ctx context.Context, validator *validation.
 	return c.ValidateString(ctx, validator, &v)
 }
 
-// TimezoneConstraint validates whether the string value is a known IANA timezone identifier,
-// as in Symfony\Component\Validator\Constraints\Timezone.
+// TimezoneConstraint validates whether the string value is a known IANA timezone identifier.
+// See [validate.Timezone] for the supported identifiers.
 // Use [TimezoneConstraint.WithZone] to restrict identifiers to a geographical region.
 type TimezoneConstraint struct {
 	isIgnored         bool
 	groups            []string
-	options           []func(*validate.TimezoneOptions)
+	zone              validate.TimezoneZone
 	err               error
 	messageTemplate   string
 	messageParameters validation.TemplateParameterList
@@ -136,7 +136,7 @@ func IsTimezone() TimezoneConstraint {
 // [validate.TimezoneZoneAustralia], [validate.TimezoneZoneEurope], [validate.TimezoneZoneIndian],
 // and [validate.TimezoneZonePacific].
 func (c TimezoneConstraint) WithZone(zone validate.TimezoneZone) TimezoneConstraint {
-	c.options = append(c.options, validate.WithTimezoneZone(zone))
+	c.zone = zone
 	return c
 }
 
@@ -173,7 +173,7 @@ func (c TimezoneConstraint) ValidateString(ctx context.Context, validator *valid
 	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || *value == "" {
 		return nil
 	}
-	if validate.Timezone(*value, c.options...) == nil {
+	if validate.Timezone(*value, validate.WithTimezoneZone(c.zone)) == nil {
 		return nil
 	}
 

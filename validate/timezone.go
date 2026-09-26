@@ -3,7 +3,6 @@ package validate
 import (
 	"errors"
 	"strings"
-	"time"
 )
 
 // ErrInvalidTimezone is returned by [Timezone] when the value is not a valid IANA timezone identifier.
@@ -15,8 +14,7 @@ var ErrInvalidTimezone = errors.New("invalid timezone")
 type TimezoneZone string
 
 const (
-	// TimezoneZoneAll accepts any IANA timezone identifier known to [time.LoadLocation],
-	// excluding implementation-specific names such as "Local".
+	// TimezoneZoneAll accepts all identifiers in the bundled IANA timezone list.
 	TimezoneZoneAll TimezoneZone = ""
 	// TimezoneZoneAfrica restricts identifiers to the Africa region (e.g. "Africa/Nairobi").
 	TimezoneZoneAfrica TimezoneZone = "Africa"
@@ -56,11 +54,11 @@ func WithTimezoneZone(zone TimezoneZone) func(*TimezoneOptions) {
 	}
 }
 
-// Timezone validates whether the value is a known IANA timezone identifier,
-// as in Symfony\Component\Validator\Constraints\Timezone.
+// Timezone validates whether the value is a known IANA timezone identifier.
 //
-// Validation uses [time.LoadLocation] and requires canonical IANA-style identifiers:
-// either exactly "UTC" or a name containing "/" (e.g. "Europe/Berlin", "Etc/GMT+5").
+// Validation uses a bundled list from IANA tzdata 2026c, independent of system
+// timezone files and ZONEINFO. It accepts "UTC" and names containing "/"
+// (e.g. "Europe/Berlin", "Etc/GMT+5"), including legacy aliases such as "US/Eastern".
 // Implementation-specific names such as "Local", bare abbreviations (e.g. "EST"), and
 // unknown identifiers are rejected.
 //
@@ -87,15 +85,6 @@ func Timezone(value string, options ...func(*TimezoneOptions)) error {
 }
 
 func isIANATimezoneIdentifier(value string) bool {
-	switch value {
-	case "Local", "Factory":
-		return false
-	}
-	if _, err := time.LoadLocation(value); err != nil {
-		return false
-	}
-	if value == "UTC" {
-		return true
-	}
-	return strings.Contains(value, "/")
+	_, ok := timezoneIdentifiers[value]
+	return ok
 }
