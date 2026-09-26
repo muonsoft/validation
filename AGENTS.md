@@ -2,6 +2,26 @@
 
 This document provides guidance for AI coding agents working with this Go validation library.
 
+This repository is `github.com/muonsoft/validation`.
+
+## Sources of truth
+
+- **README.md** — public API and usage.
+- **CHANGELOG.md** — Keep a Changelog record of user-visible changes.
+- **docs/release-checklist.md** — release procedure and verification.
+- **`.agents/skills/`** — agent skills (for example `validation-add-constraint`, `golang-code-review-comments`).
+
+## Release policy
+
+- Update `CHANGELOG.md` `[Unreleased]` when behavior or public docs change.
+- Local agents and scripts never create or push release tags. The maintainer-dispatched **Release** workflow is the only path authorized to push its changelog-only commit and create a release tag.
+
+## Work discipline
+
+- Preserve unrelated user changes.
+- Keep changes focused and commits atomic.
+- Run checks proportional to the change (`gofmt`, `go test`, `go test -race`) and `bash scripts/test-all.sh` before publication.
+
 ## Project Overview
 
 This is a comprehensive Go validation library that provides:
@@ -37,7 +57,7 @@ This is a comprehensive Go validation library that provides:
 
 ### Adding New Constraints
 
-When adding new validation constraints:
+When adding new validation constraints, follow **`.agents/skills/validation-add-constraint/SKILL.md`** (and **`golang-code-review-comments`** for exported naming).
 
 1. **Add boolean check to `is/` package** (if needed)
   - Pure functions returning `bool`
@@ -180,13 +200,12 @@ func (c NumericConstraint) ValidateString(ctx context.Context, validator *valida
 
 ## Before Submitting Changes
 
-1. Run tests: `go test ./...`
-2. Run linter: `golangci-lint run`
-3. Check test coverage
-4. Update documentation if adding public APIs
-5. Add examples for new features
-6. Ensure all tests pass in CI
-7. Update **CHANGELOG.md** when the change is user-visible (see [Changelog](#changelog) below)
+1. Run `bash scripts/test-all.sh` (or at minimum `gofmt`, `go vet ./...`, `golangci-lint run`, `go test -race ./...`, `go mod tidy -diff`, `go mod verify`)
+2. Check test coverage when adding substantial logic
+3. Update documentation if adding public APIs
+4. Add examples for new features
+5. Ensure CI would pass (see `.github/workflows/tests.yml`)
+6. Update **CHANGELOG.md** when the change is user-visible (see [Changelog](#changelog) below)
 
 ## Changelog
 
@@ -206,6 +225,7 @@ The project uses **[Keep a Changelog](https://keepachangelog.com/)** in `**CHANG
 
 - **CHANGELOG.md** - Release history for users and upgraders
 - **README.md** - User-facing documentation
+- **docs/release-checklist.md** - Release workflow and verification
 - **CONTRIBUTING.md** - Contribution guidelines
 - **CODE_OF_CONDUCT.md** - Community standards
 - **pkg.go.dev** - Auto-generated API documentation
@@ -214,15 +234,15 @@ The project uses **[Keep a Changelog](https://keepachangelog.com/)** in `**CHANG
 
 This is a pure Go library with no external services or infrastructure dependencies. The entire dev workflow is:
 
-- **Install deps:** `go mod download`
+- **Full gate:** `bash scripts/test-all.sh`
 - **Lint:** `golangci-lint run` (requires `golangci-lint` v2 on `PATH`; installed to `$(go env GOPATH)/bin`)
-- **Test:** `go test -race ./...`
 - **Build:** `go build ./...`
 
 ### Caveats
 
-- `golangci-lint` is installed to `$(go env GOPATH)/bin`. Ensure this is on `PATH` (the VM's `~/.bashrc` exports it).
-- The CI workflow (`.github/workflows/tests.yml`) pins `golangci-lint` at **v2.11.4** and Go at **^1.24**. Match these versions locally.
+- `golangci-lint` is installed to `$(go env GOPATH)/bin` (typically `$HOME/go/bin`). Ensure this is on `PATH`; one-time install: `go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.2`.
+- The CI workflow (`.github/workflows/tests.yml`) uses Go **1.26** with `GOTOOLCHAIN: local`, pins `golangci-lint` at **v2.13.2** (`gomodguard_v2`), and runs gofmt, vet, lint, race tests, `go mod tidy -diff`, and `go mod verify`.
 - The `.golangci.yml` uses config **version: "2"** (golangci-lint v2 format). Do not use golangci-lint v1.
 - No Makefile, Docker, or docker-compose is used. No services need to be started.
+- This is a library, not a runnable server. Verify behavior with `go test -run '^Example' .` (see `example_*_test.go`).
 

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/muonsoft/validation/compare/v0.19.0...HEAD)
 
+### Changed
+
+- CI and local lint use golangci-lint `v2.13.2` (`gomodguard_v2`); `goconst` disabled in `.golangci.yml`.
+
 ### Added
 
 - ISO 4217 currency code validation: `it.IsCurrency()`, `validate.Currency`, `is.Currency`, with `validation.ErrInvalidCurrency` / `message.InvalidCurrency` and English and Russian translations (behavior aligned with Symfony `Currency`; recognized codes from `golang.org/x/text/currency.ParseISO`).
