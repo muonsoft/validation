@@ -9,6 +9,9 @@ import (
 )
 
 var (
+	// ErrInvalidUTF8 indicates that a string contains malformed UTF-8.
+	ErrInvalidUTF8 = NewError("invalid UTF-8", message.InvalidUTF8)
+
 	ErrInvalidDate            = NewError("invalid date", message.InvalidDate)
 	ErrInvalidDateTime        = NewError("invalid datetime", message.InvalidDateTime)
 	ErrInvalidEAN13           = NewError("invalid EAN-13", message.InvalidEAN13)

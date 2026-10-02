@@ -14,6 +14,7 @@ import (
 
 func TestAllMessagesTranslated(t *testing.T) {
 	allErrors := []*validation.Error{
+		validation.ErrInvalidUTF8,
 		validation.ErrInvalidDate,
 		validation.ErrInvalidDateTime,
 		validation.ErrInvalidEAN13,

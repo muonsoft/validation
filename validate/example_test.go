@@ -283,3 +283,11 @@ func ExampleNoSuspiciousCharacters() {
 	// suspicious mixed digit scripts
 	// <nil>
 }
+
+func ExampleUTF8() {
+	fmt.Println(validate.UTF8("日本語"))
+	fmt.Println(validate.UTF8("\xe2\x82"))
+	// Output:
+	// <nil>
+	// invalid UTF-8
+}

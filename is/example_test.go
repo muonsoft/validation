@@ -378,3 +378,13 @@ func ExampleUUID() {
 	// false
 	// true
 }
+
+func ExampleUTF8() {
+	fmt.Println(is.UTF8("Привет 🙂"))
+	fmt.Println(is.UTF8("\xff"))
+	fmt.Println(is.UTF8(""))
+	// Output:
+	// true
+	// false
+	// true
+}

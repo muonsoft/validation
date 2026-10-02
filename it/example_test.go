@@ -1096,3 +1096,18 @@ func ExampleHasNoSuspiciousCharacters_invalid() {
 	// Output:
 	// violation: "Using invisible characters is not allowed."
 }
+
+func ExampleIsUTF8_valid() {
+	err := validator.Validate(context.Background(), validation.String("Привет, 日本語 🙂", it.IsUTF8()))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsUTF8_invalid() {
+	// A truncated UTF-8 sequence, as might occur in an imported file.
+	err := validator.Validate(context.Background(), validation.String("text\xe2\x82", it.IsUTF8()))
+	fmt.Println(err)
+	// Output:
+	// violation: "This value is not valid UTF-8."
+}

@@ -27,6 +27,9 @@
 package message
 
 const (
+	// InvalidUTF8 is the default message for malformed UTF-8 input.
+	InvalidUTF8 = "This value is not valid UTF-8."
+
 	InvalidDate              = "This value is not a valid date."
 	InvalidDateTime          = "This value is not a valid datetime."
 	InvalidEAN13             = "This value is not a valid EAN-13."
