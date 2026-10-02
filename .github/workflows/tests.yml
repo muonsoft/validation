@@ -21,6 +21,14 @@ jobs:
           go-version: "1.26"
           cache: true
 
+      - name: Check IANA timezone identifiers (advisory)
+        continue-on-error: true
+        timeout-minutes: 2
+        run: |
+          if ! bash scripts/check-timezone-data.sh; then
+            echo "::warning title=Timezone data check unavailable::Could not compare bundled timezone identifiers with IANA. This check is advisory; see the step logs."
+          fi
+
       - name: Format check
         run: |
           unformatted=$(gofmt -l .)
