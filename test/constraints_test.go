@@ -82,6 +82,7 @@ var validateTestCases = mergeTestCases(
 	isTrueConstraintTestCases,
 	jsonConstraintTestCases,
 	lengthConstraintTestCases,
+	wordCountConstraintTestCases,
 	numberComparisonTestCases,
 	numericConstraintTestCases,
 	rangeComparisonTestCases,
