@@ -10,6 +10,7 @@ import (
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/it"
+	"github.com/muonsoft/validation/validate"
 	"github.com/muonsoft/validation/validator"
 )
 
@@ -1194,4 +1195,19 @@ func ExampleIsWeek_invalid() {
 	fmt.Println(err)
 	// Output:
 	// violation: "Week 2021-W53 does not exist in its ISO year."
+}
+
+func ExampleIsCardScheme_valid() {
+	err := validator.Validate(context.Background(), validation.String("4111111111111111",
+		it.IsCardScheme(validate.CardSchemeVisa, validate.CardSchemeMastercard), it.IsLUHN()))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsCardScheme_invalid() {
+	err := validator.Validate(context.Background(), validation.String("4111111111111111", it.IsCardScheme(validate.CardSchemeMastercard)))
+	fmt.Println(err)
+	// Output:
+	// violation: "Unsupported card type or invalid card number."
 }
