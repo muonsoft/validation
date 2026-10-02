@@ -50,6 +50,7 @@ type ConstraintValidationTestCase struct {
 }
 
 var validateTestCases = mergeTestCases(
+	utf8ConstraintTestCases,
 	barcodeConstraintsTestCases,
 	choiceConstraintTestCases,
 	comparableComparisonTestCases,

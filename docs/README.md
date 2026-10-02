@@ -10,6 +10,7 @@ Documentation for the validation library.
 | [Usage](usage.md) | Basic concepts, validator setup, validation arguments |
 | [Property Paths and Struct Validation](property-paths-and-structs.md) | Property paths, struct validation, conditional validation, groups |
 | [Violations and Errors](violations-and-errors.md) | Handling violations, error structure, storing in database |
+| [UTF-8 validation](utf8.md) | Reject malformed text at input boundaries; scope and limitations |
 | [Translations](translations.md) | Multi-language support and custom messages |
 | [Custom Constraints](custom-constraints.md) | Creating your own constraints |
 

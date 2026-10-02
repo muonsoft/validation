@@ -116,6 +116,7 @@ See [Usage](docs/usage.md) for validator setup and validation arguments.
 | [Usage](docs/usage.md) | Basic concepts, validator, validation arguments |
 | [Property paths & structs](docs/property-paths-and-structs.md) | Property paths, struct validation, conditional validation, groups |
 | [Violations and errors](docs/violations-and-errors.md) | Handling violations, error structure, storing in database |
+| [UTF-8 validation](docs/utf8.md) | Reject malformed text at input boundaries; scope and limitations |
 | [Translations](docs/translations.md) | Multi-language support and custom messages |
 | [Custom constraints](docs/custom-constraints.md) | Creating your own constraints |
 

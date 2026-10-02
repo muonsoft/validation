@@ -34,6 +34,7 @@ import (
 
 var Messages = map[language.Tag]map[string]catalog.Message{
 	language.Russian: {
+		message.InvalidUTF8:       catalog.String("Значение не является корректной строкой UTF-8."),
 		message.NotBlank:          catalog.String("Значение должно быть пустым."),
 		message.NotDivisible:      catalog.String("Значение должно быть кратно {{ comparedValue }}."),
 		message.NotDivisibleCount: catalog.String("Количество элементов в этой коллекции должно быть кратным {{ divisibleBy }}."),
