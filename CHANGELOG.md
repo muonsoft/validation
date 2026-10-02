@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add ISO week validation with `it.IsWeek()`, `validate.Week`, and `is.Week`, inclusive min/max bounds, calendar-aware week 53 checks, and English/Russian messages. No new dependencies; document empty-value and literal early-year behavior.
+
 - Add `it.HasMinWordCount`, `it.HasMaxWordCount`, and `it.HasWordCountBetween` with Unicode-aware counting, customizable errors/messages, and English/Russian plural forms. No new dependencies; document differences from ICU locale-aware segmentation.
 
 - Add country, language, and locale validation with `it.IsCountry()`, `it.IsLanguage()`, `it.IsLocale()`, and matching `is`/`validate` helpers. Use existing `golang.org/x/text/language` data without new dependencies; include English/Russian messages and documentation of accepted formats, special codes, and application-support limitations.

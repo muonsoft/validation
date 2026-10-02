@@ -50,6 +50,7 @@ type ConstraintValidationTestCase struct {
 }
 
 var validateTestCases = mergeTestCases(
+	weekConstraintTestCases,
 	internationalConstraintTestCases,
 	utf8ConstraintTestCases,
 	barcodeConstraintsTestCases,
