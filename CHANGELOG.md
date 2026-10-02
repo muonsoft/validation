@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add file upload checks with `it.IsFileName`, optional Windows restrictions, `it.HasFileExtension`, `it.IsMIMEType`, and `it.HasContentType`, matching `validate` helpers, replaceable content detection, English/Russian messages, and upload examples. No new dependencies.
+
 - Add `it.HasPasswordStrength`, `validate.PasswordStrength`, and `validate.EstimatePasswordStrength` using Symfony 8.0’s byte-based heuristic, configurable minimum scores and estimators, and English/Russian messages. Empty passwords are evaluated; passwords are not automatically included in violations. No new dependencies.
 
 - Add `it.IsCSSColor`, `validate.CSSColor`, and `is.CSSColor` with 12 selectable Symfony 8.0 color formats, English/Russian messages, and no new dependencies. Document strict legacy function syntax and unsupported modern CSS features.

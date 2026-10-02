@@ -34,6 +34,11 @@ import (
 
 var Messages = map[language.Tag]map[string]catalog.Message{
 	language.English: {
+		message.InvalidFileName:      catalog.String(message.InvalidFileName),
+		message.InvalidFileExtension: catalog.String(message.InvalidFileExtension),
+		message.InvalidMIMEType:      catalog.String(message.InvalidMIMEType),
+		message.InvalidContentType:   catalog.String(message.InvalidContentType),
+
 		message.InvalidCountry:    catalog.String(message.InvalidCountry),
 		message.InvalidLanguage:   catalog.String(message.InvalidLanguage),
 		message.InvalidLocale:     catalog.String(message.InvalidLocale),

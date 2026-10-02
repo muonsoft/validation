@@ -34,6 +34,11 @@ import (
 
 var Messages = map[language.Tag]map[string]catalog.Message{
 	language.Russian: {
+		message.InvalidFileName:      catalog.String("Значение не является допустимым именем файла."),
+		message.InvalidFileExtension: catalog.String("Расширение файла недопустимо."),
+		message.InvalidMIMEType:      catalog.String("MIME-тип некорректен или недопустим."),
+		message.InvalidContentType:   catalog.String("Тип содержимого недопустим."),
+
 		message.InvalidCountry:    catalog.String("Значение не является допустимым кодом страны или территории."),
 		message.InvalidLanguage:   catalog.String("Значение не является допустимым кодом языка."),
 		message.InvalidLocale:     catalog.String("Значение не является допустимым идентификатором локали."),

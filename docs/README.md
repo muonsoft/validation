@@ -11,6 +11,7 @@ Documentation for the validation library.
 | [Property Paths and Struct Validation](property-paths-and-structs.md) | Property paths, struct validation, conditional validation, groups |
 | [Violations and Errors](violations-and-errors.md) | Handling violations, error structure, storing in database |
 | [Country, language & locale](international.md) | Formats, special codes, and application-support limitations |
+| [File uploads](file-uploads.md) | Names, extensions, MIME metadata, content detection, and custom detectors |
 | [UTF-8 validation](utf8.md) | Reject malformed text at input boundaries; scope and limitations |
 | [Translations](translations.md) | Multi-language support and custom messages |
 | [Custom Constraints](custom-constraints.md) | Creating your own constraints |

@@ -9,6 +9,15 @@ import (
 )
 
 var (
+	// ErrInvalidFileName indicates invalid FileName values.
+	ErrInvalidFileName = NewError("invalid file name", message.InvalidFileName)
+	// ErrInvalidFileExtension indicates invalid FileExtension values.
+	ErrInvalidFileExtension = NewError("invalid file extension", message.InvalidFileExtension)
+	// ErrInvalidMIMEType indicates invalid MIMEType values.
+	ErrInvalidMIMEType = NewError("invalid MIME type", message.InvalidMIMEType)
+	// ErrInvalidContentType indicates invalid ContentType values.
+	ErrInvalidContentType = NewError("invalid content type", message.InvalidContentType)
+
 	// ErrInvalidCountry indicates an invalid country value.
 	ErrInvalidCountry = NewError("invalid country", message.InvalidCountry)
 

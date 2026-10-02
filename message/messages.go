@@ -27,6 +27,15 @@
 package message
 
 const (
+	// InvalidFileName is the default message for invalid FileName values.
+	InvalidFileName = "This value is not a valid file name."
+	// InvalidFileExtension is the default message for invalid FileExtension values.
+	InvalidFileExtension = "This file extension is not allowed."
+	// InvalidMIMEType is the default message for invalid MIMEType values.
+	InvalidMIMEType = "This MIME type is invalid or not allowed."
+	// InvalidContentType is the default message for invalid ContentType values.
+	InvalidContentType = "This content type is not allowed."
+
 	// InvalidCountry is the default message for an invalid country value.
 	InvalidCountry = "This value is not a valid country or territory code."
 
