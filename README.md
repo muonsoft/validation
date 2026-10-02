@@ -269,7 +269,7 @@ err := validator.Validate(context.Background(),
 `PasswordStrengthVeryWeak` (0), `PasswordStrengthWeak` (1),
 `PasswordStrengthMedium` (2), `PasswordStrengthStrong` (3), or
 `PasswordStrengthVeryStrong` (4). Minimum scores must be 1–4. Standalone
-`validate.PasswordStrength` and `is.PasswordStrength` accept
+`validate.PasswordStrength` accepts
 `validate.WithMinPasswordStrength` and `validate.WithPasswordStrengthEstimator`.
 
 The estimator follows [Symfony 8.0](https://github.com/symfony/validator/blob/8.0/Constraints/PasswordStrengthValidator.php):
