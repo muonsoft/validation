@@ -312,6 +312,7 @@ No dependencies or network access are required.
 | [Property paths & structs](docs/property-paths-and-structs.md) | Property paths, struct validation, conditional validation, groups |
 | [Violations and errors](docs/violations-and-errors.md) | Handling violations, error structure, storing in database |
 | [Country, language & locale](docs/international.md) | Formats, special codes, and application-support limitations |
+| [File uploads](docs/file-uploads.md) | Names, extensions, MIME metadata, content detection, and custom detectors |
 | [UTF-8 validation](docs/utf8.md) | Reject malformed text at input boundaries; scope and limitations |
 | [Translations](docs/translations.md) | Multi-language support and custom messages |
 | [Custom constraints](docs/custom-constraints.md) | Creating your own constraints |

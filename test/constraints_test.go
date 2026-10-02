@@ -50,6 +50,7 @@ type ConstraintValidationTestCase struct {
 }
 
 var validateTestCases = mergeTestCases(
+	fileConstraintTestCases,
 	passwordStrengthConstraintTestCases,
 	cssColorConstraintTestCases,
 	cardSchemeConstraintTestCases,
