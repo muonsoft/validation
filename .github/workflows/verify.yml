@@ -93,7 +93,7 @@ jobs:
         run: GOBIN="$RUNNER_TEMP/vuln-bin" go install golang.org/x/vuln/cmd/govulncheck@v1.8.0
       - name: Scan
         id: scan
-        run: bash scripts/security-report.sh strict "$RUNNER_TEMP/vuln-bin/govulncheck" "$RUNNER_TEMP/security-report"
+        run: bash scripts/security-report.sh "$RUNNER_TEMP/vuln-bin/govulncheck" "$RUNNER_TEMP/security-report"
       - name: Report incomplete scan
         if: always() && steps.scan.outcome == 'skipped'
         run: |

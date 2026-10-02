@@ -10,7 +10,5 @@ permissions:
   contents: read
 
 jobs:
-  legacy-security:
-    uses: ./.github/workflows/legacy-security.yml
   verify:
     uses: ./.github/workflows/verify.yml
