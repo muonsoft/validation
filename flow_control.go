@@ -80,7 +80,7 @@ func (arg WhenGroupsArgument) Then(arguments ...Argument) WhenGroupsArgument {
 	return arg
 }
 
-// Else function is used to set a sequence of arguments to be processed if the validation group is active.
+// Else sets the arguments to process when none of the configured groups match.
 func (arg WhenGroupsArgument) Else(arguments ...Argument) WhenGroupsArgument {
 	arg.elseArguments = arguments
 	return arg
@@ -209,7 +209,8 @@ func (arg AtLeastOneOfArgument) validate(ctx context.Context, validator *Validat
 	return violations, nil
 }
 
-// AllArgument can be used to interrupt validation process when the first violation is raised.
+// AllArgument validates all its arguments and collects their violations.
+// A non-violation error stops validation.
 type AllArgument struct {
 	isIgnored bool
 	path      []PropertyPathElement

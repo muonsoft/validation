@@ -88,8 +88,8 @@ func DefaultLanguage(tag language.Tag) ValidatorOption {
 //
 // By default, all violation messages are generated in the English language with pluralization capabilities.
 // To use a custom language you have to load translations on validator initialization.
-// Built-in translations are available in the sub-packages of the package [github.com/muonsoft/message/translations].
-// The translation mechanism is provided by the [golang.org/x/text] package (be aware, it has no stable version yet).
+// Built-in translations are available in the sub-packages of the package [github.com/muonsoft/validation/message/translations].
+// The translation mechanism is provided by the [golang.org/x/text] package.
 func Translations(messages map[language.Tag]map[string]catalog.Message) ValidatorOption {
 	return func(options *ValidatorOptions) error {
 		options.translatorOptions = append(options.translatorOptions, translations.SetTranslations(messages))
@@ -181,20 +181,13 @@ func (validator *Validator) ValidateIt(ctx context.Context, validatable Validata
 	return validator.Validate(ctx, Valid(validatable))
 }
 
-// WithGroups is used to execute conditional validation based on validation groups. It creates
-// a new context validator with a given set of groups.
+// WithGroups returns a copy of the validator using the given validation groups.
+// A constraint applies when at least one of its groups matches a validator group.
+// Empty validator and constraint group lists mean [DefaultGroup] ("default").
+// Selecting a named group does not implicitly include the default group.
 //
-// By default, when validating an object all constraints of it will be checked whether or not
-// they pass. In some cases, however, you will need to validate an object against
-// only some specific group of constraints. To do this, you can organize each constraint
-// into one or more validation groups and then apply validation against one group of constraints.
-//
-// Validation groups are working together only with validation groups passed
-// to a constraint by WhenGroups() method. This method is implemented in all built-in constraints.
-// If you want to use validation groups for your own constraints do not forget to implement
-// this method in your constraint.
-//
-// Be careful, empty groups are considered as the default group. Its value is equal to the [DefaultGroup] ("default").
+// Built-in constraints accept groups through WhenGroups. Custom constraints must
+// check [Validator.IsIgnoredForGroups] in their validation methods.
 func (validator *Validator) WithGroups(groups ...string) *Validator {
 	v := validator.copy()
 	v.groups = groups

@@ -2,5 +2,6 @@
 // Use of this source code is governed by a MIT-style
 // license that can be found in the LICENSE file.
 
-// Package validate contains standalone functions that can be used for custom validation process.
+// Package validate provides standalone validation checks returning error.
+// Use package it for constraints with translated violations and property paths.
 package validate

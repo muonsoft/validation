@@ -10,7 +10,8 @@ import (
 	"github.com/muonsoft/validation/is"
 )
 
-// LengthConstraint checks that a given string length is between some minimum and maximum value.
+// LengthConstraint checks string length in Unicode code points (runes), not bytes
+// or user-perceived characters. Bounds are inclusive; nil and empty strings are skipped.
 // If you want to check the length of the array, slice or a map use [CountConstraint].
 type LengthConstraint struct {
 	isIgnored              bool
@@ -46,19 +47,19 @@ func newLengthConstraint(vMin int, vMax int, checkMin bool, checkMax bool) Lengt
 }
 
 // HasMinLength creates a [LengthConstraint] that checks the length of the string
-// is greater than the minimum value.
+// is greater than or equal to the minimum value.
 func HasMinLength(vMin int) LengthConstraint {
 	return newLengthConstraint(vMin, 0, true, false)
 }
 
 // HasMaxLength creates a [LengthConstraint] that checks the length of the string
-// is less than the maximum value.
+// is less than or equal to the maximum value.
 func HasMaxLength(vMax int) LengthConstraint {
 	return newLengthConstraint(0, vMax, false, true)
 }
 
 // HasLengthBetween creates a [LengthConstraint] that checks the length of the string
-// is between some minimum and maximum value.
+// is between the minimum and maximum values, inclusive.
 func HasLengthBetween(vMin int, vMax int) LengthConstraint {
 	return newLengthConstraint(vMin, vMax, true, true)
 }

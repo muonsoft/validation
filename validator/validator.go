@@ -106,21 +106,9 @@ func ValidateIt(ctx context.Context, validatable validation.Validatable) error {
 	return Default().ValidateIt(ctx, validatable)
 }
 
-// WithGroups is used to execute conditional validation based on validation groups. It creates
-// a new context validator with a given set of groups.
-//
-// By default, when validating an object all constraints of it will be checked whether or not
-// they pass. In some cases, however, you will need to validate an object against
-// only some specific group of constraints. To do this, you can organize each constraint
-// into one or more validation groups and then apply validation against one group of constraints.
-//
-// Validation groups are working together only with validation groups passed
-// to a constraint by WhenGroups() method. This method is implemented in all built-in constraints.
-// If you want to use validation groups for your own constraints do not forget to implement
-// this method in your constraint.
-//
-// Be careful, empty groups are considered as the default group.
-// Its value is equal to the validation.DefaultGroup ("default").
+// WithGroups returns a copy of the default validator using the given groups.
+// Empty group lists mean [validation.DefaultGroup]. Named groups do not implicitly
+// include the default group. See [validation.Validator.WithGroups] for matching rules.
 func WithGroups(groups ...string) *validation.Validator {
 	return Default().WithGroups(groups...)
 }
