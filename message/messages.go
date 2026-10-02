@@ -49,6 +49,7 @@ const (
 	InvalidLUHN              = "Invalid card number."
 	InvalidMAC               = "This value is not a valid MAC address."
 	InvalidTime              = "This value is not a valid time."
+	InvalidTimezone          = "This value is not a valid timezone."
 	InvalidULID              = "This is not a valid ULID."
 	InvalidUPCA              = "This value is not a valid UPC-A."
 	InvalidUPCE              = "This value is not a valid UPC-E."

@@ -190,6 +190,16 @@ func ExampleCurrency() {
 	// invalid currency
 }
 
+func ExampleTimezone() {
+	fmt.Println(validate.Timezone("Europe/Berlin"))
+	fmt.Println(validate.Timezone("EST"))
+	fmt.Println(validate.Timezone("America/Chicago", validate.WithTimezoneZone(validate.TimezoneZoneAmerica)))
+	// Output:
+	// <nil>
+	// invalid timezone
+	// <nil>
+}
+
 func ExampleBIC() {
 	fmt.Println(validate.BIC("DEUTDEFF"))
 	fmt.Println(validate.BIC("DEUTDEF"))

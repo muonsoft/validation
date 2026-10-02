@@ -31,6 +31,7 @@ var (
 	ErrInvalidLUHN            = NewError("invalid LUHN", message.InvalidLUHN)
 	ErrInvalidMAC             = NewError("invalid MAC address", message.InvalidMAC)
 	ErrInvalidTime            = NewError("invalid time", message.InvalidTime)
+	ErrInvalidTimezone        = NewError("invalid timezone", message.InvalidTimezone)
 	ErrInvalidULID            = NewError("invalid ULID", message.InvalidULID)
 	ErrInvalidUPCA            = NewError("invalid UPC-A", message.InvalidUPCA)
 	ErrInvalidUPCE            = NewError("invalid UPC-E", message.InvalidUPCE)

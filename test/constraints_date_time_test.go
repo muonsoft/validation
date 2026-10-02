@@ -3,6 +3,8 @@ package test
 import (
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/it"
+	"github.com/muonsoft/validation/message"
+	"github.com/muonsoft/validation/validate"
 )
 
 var dateTimeConstraintTestCases = []ConstraintValidationTestCase{
@@ -111,5 +113,94 @@ var dateTimeConstraintTestCases = []ConstraintValidationTestCase{
 		stringValue:     stringValue("invalid"),
 		constraint:      it.IsTime(),
 		assert:          assertHasOneViolation(validation.ErrInvalidTime, "This value is not a valid time."),
+	},
+	{
+		name:            "IsTimezone passes on empty value",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue(""),
+		constraint:      it.IsTimezone(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsTimezone passes on UTC",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("UTC"),
+		constraint:      it.IsTimezone(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsTimezone passes on valid IANA identifier",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("Europe/Berlin"),
+		constraint:      it.IsTimezone(),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsTimezone violation on unknown identifier",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("Invalid/Zone"),
+		constraint:      it.IsTimezone(),
+		assert:          assertHasOneViolation(validation.ErrInvalidTimezone, message.InvalidTimezone),
+	},
+	{
+		name:            "IsTimezone violation on Local",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("Local"),
+		constraint:      it.IsTimezone(),
+		assert:          assertHasOneViolation(validation.ErrInvalidTimezone, message.InvalidTimezone),
+	},
+	{
+		name:            "IsTimezone violation on abbreviation",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("EST"),
+		constraint:      it.IsTimezone(),
+		assert:          assertHasOneViolation(validation.ErrInvalidTimezone, message.InvalidTimezone),
+	},
+	{
+		name:            "IsTimezone passes with matching zone",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("Europe/Paris"),
+		constraint:      it.IsTimezone().WithZone(validate.TimezoneZoneEurope),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsTimezone violation with non-matching zone",
+		isApplicableFor: specificValueTypes(stringType),
+		stringValue:     stringValue("America/New_York"),
+		constraint:      it.IsTimezone().WithZone(validate.TimezoneZoneEurope),
+		assert:          assertHasOneViolation(validation.ErrInvalidTimezone, message.InvalidTimezone),
+	},
+	{
+		name:            "IsTimezone violation with custom error and message",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint: it.IsTimezone().
+			WithError(ErrCustom).
+			WithMessage(
+				`Invalid timezone "{{ value }}" for {{ custom }}.`,
+				validation.TemplateParameter{Key: "{{ custom }}", Value: "parameter"},
+			),
+		stringValue: stringValue("EST"),
+		assert:      assertHasOneViolation(ErrCustom, `Invalid timezone "EST" for parameter.`),
+	},
+	{
+		name:            "IsTimezone passes when condition is false",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsTimezone().When(false),
+		stringValue:     stringValue("EST"),
+		assert:          assertNoError,
+	},
+	{
+		name:            "IsTimezone violation when condition is true",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsTimezone().When(true),
+		stringValue:     stringValue("EST"),
+		assert:          assertHasOneViolation(validation.ErrInvalidTimezone, message.InvalidTimezone),
+	},
+	{
+		name:            "IsTimezone passes when groups not match",
+		isApplicableFor: specificValueTypes(stringType),
+		constraint:      it.IsTimezone().WhenGroups(testGroup),
+		stringValue:     stringValue("EST"),
+		assert:          assertNoError,
 	},
 }

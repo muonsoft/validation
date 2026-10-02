@@ -24,6 +24,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - LUHN (mod 10 / Luhn) checksum validation: `it.IsLUHN()`, `validate.LUHN`, `is.LUHN`, with `validation.ErrInvalidLUHN` / `message.InvalidLUHN` and English and Russian translations (behavior aligned with Symfony `Luhn`).
 - ISIN (International Securities Identification Number) validation: `it.IsISIN()`, `validate.ISIN`, `is.ISIN`, with `validation.ErrInvalidISIN` / `message.InvalidISIN` and English and Russian translations (behavior aligned with Symfony `Isin`).
 - **HasUniqueValuesBy**: `SkipEmptyKeys()` on `it.UniqueByConstraint` skips elements whose key equals the zero value for `K`, so they are not counted toward uniqueness (e.g. optional IDs).
+- IANA timezone validation: `it.IsTimezone()` with `WithZone` (`validate.TimezoneZoneAfrica`, `TimezoneZoneEurope`, etc.), `validate.Timezone` with `validate.WithTimezoneZone`, `is.Timezone`; `validation.ErrInvalidTimezone` / `message.InvalidTimezone` and English and Russian translations. Uses a bundled IANA tzdata 2026c identifier list; accepts `UTC` and names containing `/`, including legacy aliases.
+
+### Fixed
+
+- Reject malformed timezone identifiers and system-specific paths in `validate.Timezone`, `is.Timezone`, and `it.IsTimezone`, independently of system timezone files and `ZONEINFO`.
+- Keep `it.TimezoneConstraint.WithZone` copies independent when deriving multiple constraints from a shared template.
 
 ## [0.19.0](https://github.com/muonsoft/validation/releases/tag/v0.19.0) - 2026-02-09
 

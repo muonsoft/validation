@@ -293,6 +293,16 @@ func ExampleCurrency() {
 	// false
 }
 
+func ExampleTimezone() {
+	fmt.Println(is.Timezone("Europe/Berlin"))
+	fmt.Println(is.Timezone("EST"))
+	fmt.Println(is.Timezone("America/Chicago", validate.WithTimezoneZone(validate.TimezoneZoneAmerica)))
+	// Output:
+	// true
+	// false
+	// true
+}
+
 func ExampleBIC() {
 	fmt.Println(is.BIC("DEUTDEFF"))
 	fmt.Println(is.BIC("DEUTDEF"))
