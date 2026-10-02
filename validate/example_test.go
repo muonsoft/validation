@@ -291,3 +291,27 @@ func ExampleUTF8() {
 	// <nil>
 	// invalid UTF-8
 }
+
+func ExampleCountry() {
+	fmt.Println(validate.Country("de"))
+	fmt.Println(validate.Country("EU"))
+	// Output:
+	// <nil>
+	// invalid country
+}
+
+func ExampleLanguage() {
+	fmt.Println(validate.Language("eng"))
+	fmt.Println(validate.Language("en-US"))
+	// Output:
+	// <nil>
+	// invalid language
+}
+
+func ExampleLocale() {
+	fmt.Println(validate.Locale("zh_Hant_TW"))
+	fmt.Println(validate.Locale("en--US"))
+	// Output:
+	// <nil>
+	// invalid locale
+}

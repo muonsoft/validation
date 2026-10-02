@@ -9,6 +9,15 @@ import (
 )
 
 var (
+	// ErrInvalidCountry indicates an invalid country value.
+	ErrInvalidCountry = NewError("invalid country", message.InvalidCountry)
+
+	// ErrInvalidLanguage indicates an invalid language value.
+	ErrInvalidLanguage = NewError("invalid language", message.InvalidLanguage)
+
+	// ErrInvalidLocale indicates an invalid locale value.
+	ErrInvalidLocale = NewError("invalid locale", message.InvalidLocale)
+
 	// ErrInvalidUTF8 indicates that a string contains malformed UTF-8.
 	ErrInvalidUTF8 = NewError("invalid UTF-8", message.InvalidUTF8)
 

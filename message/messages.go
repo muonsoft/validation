@@ -27,6 +27,15 @@
 package message
 
 const (
+	// InvalidCountry is the default message for an invalid country value.
+	InvalidCountry = "This value is not a valid country or territory code."
+
+	// InvalidLanguage is the default message for an invalid language value.
+	InvalidLanguage = "This value is not a valid language code."
+
+	// InvalidLocale is the default message for an invalid locale value.
+	InvalidLocale = "This value is not a valid locale identifier."
+
 	// InvalidUTF8 is the default message for malformed UTF-8 input.
 	InvalidUTF8 = "This value is not valid UTF-8."
 

@@ -214,3 +214,47 @@ func TestValidate_WhenTranslatorIsOverriddenAndTranslationsPasses_ExpectError(t 
 	assert.Nil(t, validator)
 	assert.EqualError(t, err, "translation options denied when using custom translator")
 }
+
+func TestInternationalTranslations(t *testing.T) {
+	v := newValidator(t, validation.Translations(russian.Messages))
+	cases := []struct {
+		name           string
+		value          string
+		constraint     validation.StringFuncConstraint
+		expectedError  error
+		englishMessage string
+		russianMessage string
+	}{
+		{
+			"Country", "EU", it.IsCountry(), validation.ErrInvalidCountry,
+			"This value is not a valid country or territory code.",
+			"Значение не является допустимым кодом страны или территории.",
+		},
+		{
+			"Language", "en-US", it.IsLanguage(), validation.ErrInvalidLanguage,
+			"This value is not a valid language code.",
+			"Значение не является допустимым кодом языка.",
+		},
+		{
+			"Locale", "en--US", it.IsLocale(), validation.ErrInvalidLocale,
+			"This value is not a valid locale identifier.",
+			"Значение не является допустимым идентификатором локали.",
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			for _, translation := range []struct {
+				tag     language.Tag
+				message string
+			}{
+				{language.English, tc.englishMessage},
+				{language.Russian, tc.russianMessage},
+			} {
+				err := v.WithLanguage(translation.tag).Validate(context.Background(),
+					validation.StringProperty("value", tc.value, tc.constraint))
+				validationtest.Assert(t, err).IsViolationList().WithOneViolation().
+					WithError(tc.expectedError).WithMessage(translation.message)
+			}
+		})
+	}
+}

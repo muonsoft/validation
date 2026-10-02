@@ -34,6 +34,9 @@ import (
 
 var Messages = map[language.Tag]map[string]catalog.Message{
 	language.Russian: {
+		message.InvalidCountry:    catalog.String("Значение не является допустимым кодом страны или территории."),
+		message.InvalidLanguage:   catalog.String("Значение не является допустимым кодом языка."),
+		message.InvalidLocale:     catalog.String("Значение не является допустимым идентификатором локали."),
 		message.InvalidUTF8:       catalog.String("Значение не является корректной строкой UTF-8."),
 		message.NotBlank:          catalog.String("Значение должно быть пустым."),
 		message.NotDivisible:      catalog.String("Значение должно быть кратно {{ comparedValue }}."),
