@@ -102,6 +102,8 @@ const (
 	TooLow                   = "This value should be greater than {{ comparedValue }}."
 	TooLowOrEqual            = "This value should be greater than or equal to {{ comparedValue }}."
 	TooManyElements          = "This collection should contain {{ limit }} element(s) or less."
+	TooFewWords              = "This value should contain at least {{ limit }} word(s)."
+	TooManyWords             = "This value should contain at most {{ limit }} word(s)."
 	TooShort                 = "This value is too short. It should have {{ limit }} character(s) or more."
 
 	// NoSuspiciousCharacters (Symfony Validator wording).

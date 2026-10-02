@@ -84,6 +84,8 @@ var (
 	ErrTooLow                 = NewError("is too low", message.TooLow)
 	ErrTooLowOrEqual          = NewError("is too low or equal", message.TooLowOrEqual)
 	ErrTooManyElements        = NewError("too many elements", message.TooManyElements)
+	ErrTooFewWords            = NewError("too few words", message.TooFewWords)
+	ErrTooManyWords           = NewError("too many words", message.TooManyWords)
 	ErrTooShort               = NewError("is too short", message.TooShort)
 
 	ErrSuspiciousInvisible             = NewError("suspicious invisible characters", message.SuspiciousInvisible)

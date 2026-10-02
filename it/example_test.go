@@ -1153,3 +1153,31 @@ func ExampleIsLocale_invalid() {
 	// Output:
 	// violation: "This value is not a valid locale identifier."
 }
+
+func ExampleHasMinWordCount() {
+	err := validator.Validate(context.Background(), validation.String("Hello", it.HasMinWordCount(2)))
+	fmt.Println(err)
+	// Output:
+	// violation: "This value should contain at least 2 words."
+}
+
+func ExampleHasMaxWordCount() {
+	err := validator.Validate(context.Background(), validation.String("Hello world", it.HasMaxWordCount(1)))
+	fmt.Println(err)
+	// Output:
+	// violation: "This value should contain at most 1 word."
+}
+
+func ExampleHasWordCountBetween_valid() {
+	err := validator.Validate(context.Background(), validation.String("Привет, мир!", it.HasWordCountBetween(2, 5)))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleHasWordCountBetween_invalid() {
+	err := validator.Validate(context.Background(), validation.String("Hello", it.HasWordCountBetween(2, 5)))
+	fmt.Println(err)
+	// Output:
+	// violation: "This value should contain at least 2 words."
+}
