@@ -1,0 +1,108 @@
+name: Shared verification
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    env:
+      GOTOOLCHAIN: local
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: "1.26.6"
+          cache: true
+
+      - name: Check IANA timezone identifiers (advisory)
+        continue-on-error: true
+        timeout-minutes: 2
+        run: |
+          if ! bash scripts/check-timezone-data.sh; then
+            echo "::warning title=Timezone data check unavailable::Could not compare bundled timezone identifiers with IANA. This check is advisory; see the step logs."
+          fi
+
+      - name: Format check
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "gofmt needed for:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.13.2
+
+      - name: Run tests
+        run: go test -race -v ./...
+
+      - name: Module tidy check
+        run: go mod tidy -diff
+
+      - name: Module verify
+        run: go mod verify
+
+      - name: Release script contracts
+        run: |
+          for script in scripts/*.sh; do bash -n "$script"; done
+          bash scripts/prepare-release-test.sh
+          python3 scripts/release-candidate-test.py
+          python3 scripts/security-report-test.py
+
+  minimum:
+    name: Minimum supported Go
+    runs-on: ubuntu-24.04
+    env:
+      GOTOOLCHAIN: local
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Verify public module on supported minimum
+        run: |
+          go version
+          go build ./...
+          go test ./...
+          go test -race ./...
+
+  security:
+    name: Security
+    runs-on: ubuntu-24.04
+    env:
+      GOTOOLCHAIN: local
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.26.6'
+      - name: Install pinned scanner
+        run: GOBIN="$RUNNER_TEMP/vuln-bin" go install golang.org/x/vuln/cmd/govulncheck@v1.8.0
+      - name: Scan
+        id: scan
+        run: bash scripts/security-report.sh "$RUNNER_TEMP/vuln-bin/govulncheck" "$RUNNER_TEMP/security-report"
+      - name: Report incomplete scan
+        if: always() && steps.scan.outcome == 'skipped'
+        run: |
+          mkdir -p "$RUNNER_TEMP/security-report"
+          echo '## Security scan incomplete: checkout, setup or scanner installation failed. See job logs; no clean result is available.' | tee "$RUNNER_TEMP/security-report/summary.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload security report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security
+          path: ${{ runner.temp }}/security-report
+          if-no-files-found: error

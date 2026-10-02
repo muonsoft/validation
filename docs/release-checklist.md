@@ -8,7 +8,7 @@ workflow-verified release commit.
 ## Preflight
 
 - [ ] Work is merged to `main` and the branch is not moving during publication.
-- [ ] Normal CI is green.
+- [ ] Required quality, minimum-Go and Security checks are green.
 - [ ] `CHANGELOG.md` has either a non-empty exact planned version section or non-empty
       `[Unreleased]` section.
 - [ ] README and public docs are current.
@@ -78,3 +78,68 @@ a second local tag or move the published tag.
 - If a release or tag was published incorrectly, follow repository governance,
   document a retraction, and publish a corrective version. Do not rewrite public
   history or silently move a consumed tag.
+
+## Shared CI contract
+
+Normal CI and Release call `.github/workflows/verify.yml` at the caller's
+revision. Required checks are the existing quality gate, `Minimum supported Go`
+(build/tests on the `go.mod` minimum), and `Security` (govulncheck v1.8.0, analysis
+Go 1.26.6). Security fails on both reachable findings and scanner/setup errors.
+
+The security check retains a GitHub Summary and an artifact with scanner output
+and the effective toolchain. It distinguishes findings from scanner/setup errors;
+an incomplete scan is never treated as clean. CI and releases do not scan old Go
+versions. A minimum-toolchain security audit can be performed manually when needed.
+
+The minimum Go directive promises build/API compatibility, not a vulnerability-free
+old standard library. Consumers should use a maintained, patched Go toolchain.
+A clean modern scan does not establish safety on the minimum version. Findings
+still need review; raising the support floor is a separate compatibility decision.
+A two-component Go directive selects that family's available patch; a
+three-component directive pins the specified minimum patch.
+
+Project-specific checks remain required, including Squirrel's database, nested
+modules, differential/API and dependency gates where present. Modern tooling and
+`go mod tidy -diff` do not run in the old minimum-Go compatibility lane.
+
+The publish job prepares from the immutable validated SHA and checks ancestry,
+changed files, nonempty finalized notes and tag identity **before** pushing anything.
+It rechecks the branch and uses a normal non-force push of that exact commit.
+Branch movement rejects publication; no pull/rebase incorporates unverified work.
+A subsequent unrelated branch commit does not change the already selected release
+SHA. Repository release concurrency does not lock human pushes.
+
+After publication, the `consumer` job resolves the exact version in a temporary
+external module, with workspace use disabled and an isolated module cache, and
+compiles the public imports listed in `scripts/release-consumer-imports.txt`.
+The cache is outside the consumer source directory and writable for cleanup. Download retries are bounded to accommodate proxy propagation;
+a failed smoke check does not delete or move the published tag. Because bot pushes
+need not trigger push workflows, this check is an explicit dependent job.
+
+## Recovery and rollout
+
+If the changelog commit was pushed but publication failed, inspect the tag/release
+first and start a **fresh dispatch** on the current release branch with the same
+version. Re-running the old event still has its old SHA and can fail the freshness
+check. Existing same-commit tags may be reconciled; conflicting tags stop the flow.
+The version input has no prefilled default to avoid reusing a previous release.
+
+Before merging this CI change, review branch protection required-check names:
+reusable workflow jobs have new check names. Configure rules to require the new
+quality, minimum and Security lanes. Remove the obsolete vulnerability matrix
+contexts only when their replacements are selected. Do not disable existing
+protections without their replacements. Confirm the release bot can push its changelog commit.
+No local validation can establish those hosted repository settings.
+
+Local release regression checks:
+
+```bash
+bash scripts/prepare-release-test.sh
+python3 scripts/release-candidate-test.py
+python3 scripts/security-report-test.py
+```
+
+The tests reject heading-only/planned/finalized empty notes, duplicate versions,
+non-changelog or multiple child commits, merges and dirty tracked files; validation
+modes do not rewrite the changelog. Hosted publication itself still needs a real
+maintainer-authorized run after the workflow is merged.
