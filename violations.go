@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"iter"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -180,15 +181,14 @@ func (list *ViolationList) Join(violations *ViolationList) {
 		return
 	}
 
-	if list.first == nil {
-		list.first = violations.first
-		list.last = violations.last
-	} else {
-		list.last.next = violations.first
-		list.last = violations.last
+	// Snapshot the last node so joining a list to itself terminates as well.
+	last := violations.last
+	for element := violations.first; element != nil; element = element.next {
+		list.Append(element.violation)
+		if element == last {
+			break
+		}
 	}
-
-	list.len += violations.len
 }
 
 // Error returns a formatted list of violations as a string.
@@ -392,22 +392,64 @@ func IsViolationList(err error) bool {
 
 // UnwrapViolations extracts [ViolationList] from the error. It handles both a single [Violation]
 // and [ViolationList]—in the former case, the violation is wrapped in a new list.
+// Joined errors are collected in order; if any branch is not a violation, it returns nil, false.
 // Use this function instead of [UnwrapViolation] or [UnwrapViolationList], as it is not always
 // obvious whether err contains a single violation or a list, and using the wrong unwrap can
 // lead to unexpected defects.
+//
+//nolint:errorlint // Inspect each branch directly rather than finding only the first wrapped violation.
 func UnwrapViolations(err error) (*ViolationList, bool) {
-	if err == nil {
-		return nil, false
+	switch e := err.(type) {
+	case *ViolationList:
+		return e, true
+	case Violation:
+		return NewViolationList(e), true
 	}
-
-	if list, ok := UnwrapViolationList(err); ok {
+	if list, ok := unwrapCustomViolations(err); ok {
 		return list, true
 	}
+	return unwrapViolationBranches(err)
+}
 
-	if violation, ok := UnwrapViolation(err); ok {
+// unwrapViolationBranches preserves all siblings and rejects a tree containing fatal errors.
+//
+//nolint:errorlint // Traversal must visit each immediate child, not search through its descendants.
+func unwrapViolationBranches(err error) (*ViolationList, bool) {
+	switch e := err.(type) {
+	case interface{ Unwrap() error }:
+		return UnwrapViolations(e.Unwrap())
+	case interface{ Unwrap() []error }:
+		list := NewViolationList()
+		for _, child := range e.Unwrap() {
+			if child == nil {
+				continue
+			}
+			violations, ok := UnwrapViolations(child)
+			if !ok {
+				return nil, false
+			}
+			list.Join(violations)
+		}
+		return list, true
+	default:
+		return nil, false
+	}
+}
+
+// Preserve custom As behavior without errors.As traversing and hiding joined siblings.
+func unwrapCustomViolations(err error) (*ViolationList, bool) {
+	custom, ok := err.(interface{ As(any) bool })
+	if !ok {
+		return nil, false
+	}
+	var list *ViolationList
+	if custom.As(&list) {
+		return list, true
+	}
+	var violation Violation
+	if custom.As(&violation) {
 		return NewViolationList(violation), true
 	}
-
 	return nil, false
 }
 
@@ -510,6 +552,7 @@ func (factory *BuiltinViolationFactory) CreateViolation(
 ) Violation {
 	message := factory.translator.Translate(lang, messageTemplate, pluralCount)
 
+	parameters = slices.Clone(parameters)
 	for i := range parameters {
 		if parameters[i].NeedsTranslation {
 			parameters[i].Value = factory.translator.Translate(lang, parameters[i].Value, 0)

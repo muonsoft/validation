@@ -51,6 +51,7 @@ func CIDRVersion(version string) func(*CIDROptions) {
 
 // CIDRNetmaskRange sets the inclusive allowed range for the CIDR prefix length.
 // Defaults are 0–128 for "all", 0–32 for IPv4-only, 0–128 for IPv6-only (Symfony Cidr defaults).
+// The maximum is capped at the address size: 32 for IPv4 and 128 for IPv6.
 func CIDRNetmaskRange(netmaskMin, netmaskMax int) func(*CIDROptions) {
 	return func(o *CIDROptions) {
 		o.netmaskMin = netmaskMin
@@ -59,14 +60,14 @@ func CIDRNetmaskRange(netmaskMin, netmaskMax int) func(*CIDROptions) {
 }
 
 // CIDRViolationNetmaskBounds returns the configured inclusive lower bound and the effective upper bound
-// for the prefix length in Symfony-style out-of-range messages (caps upper bound at 32 for IPv4 when netmaskMax > 32).
+// for the prefix length in Symfony-style out-of-range messages (caps the upper bound at 32 for IPv4 and 128 for IPv6).
 func CIDRViolationNetmaskBounds(value string, options ...func(*CIDROptions)) (lo, hi int) {
 	o := newCIDROptions()
 	for _, opt := range options {
 		opt(&o)
 	}
 	lo = o.netmaskMin
-	hi = o.netmaskMax
+	hi = min(o.netmaskMax, 128)
 	ipStr, _, ok := strings.Cut(value, "/")
 	if !ok {
 		return lo, hi
@@ -85,7 +86,7 @@ func CIDRViolationNetmaskBounds(value string, options ...func(*CIDROptions)) (lo
 // Possible errors:
 //   - [ErrInvalidCIDR] for malformed notation, invalid IP, or version mismatch;
 //   - [ErrCIDRNetmaskOutOfRange] when the prefix is outside the configured netmask range
-//     (for IPv4 addresses, effective max is capped at 32 if netmaskMax > 32, like Symfony).
+//     (the effective maximum is capped at 32 for IPv4 and 128 for IPv6).
 func CIDR(value string, options ...func(*CIDROptions)) error {
 	if value == "" {
 		return nil
@@ -119,7 +120,7 @@ func CIDR(value string, options ...func(*CIDROptions)) error {
 }
 
 func cidrCheckPrefixRange(prefix, ver int, opts CIDROptions) error {
-	maxMask := opts.netmaskMax
+	maxMask := min(opts.netmaskMax, 128)
 	if ver == 4 && maxMask > 32 {
 		maxMask = 32
 	}

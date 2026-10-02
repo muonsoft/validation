@@ -2,6 +2,7 @@ package validation
 
 import (
 	"context"
+	"slices"
 	"time"
 )
 
@@ -293,7 +294,7 @@ type ValidatorArgument struct {
 
 // At returns a copy of [ValidatorArgument] with appended property path suffix.
 func (arg ValidatorArgument) At(path ...PropertyPathElement) ValidatorArgument {
-	arg.path = append(arg.path, path...)
+	arg.path = append(slices.Clip(arg.path), path...)
 	return arg
 }
 
@@ -324,7 +325,7 @@ type Checker struct {
 
 // At returns a copy of [Checker] with appended property path suffix.
 func (c Checker) At(path ...PropertyPathElement) Checker {
-	c.path = append(c.path, path...)
+	c.path = append(slices.Clip(c.path), path...)
 	return c
 }
 

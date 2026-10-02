@@ -2,6 +2,7 @@ package it
 
 import (
 	"context"
+	"slices"
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/is"
@@ -98,7 +99,7 @@ func IsUUID() UUIDConstraint {
 
 // NotNil used to treat nil UUID ("00000000-0000-0000-0000-000000000000") value as invalid.
 func (c UUIDConstraint) NotNil() UUIDConstraint {
-	c.options = append(c.options, validate.DenyNilUUID())
+	c.options = append(slices.Clip(c.options), validate.DenyNilUUID())
 	return c
 }
 
@@ -112,7 +113,7 @@ func (c UUIDConstraint) NotNil() UUIDConstraint {
 //   - "{6ba7b8109dad11d180b400c04fd430c8}",
 //   - "urn:uuid:6ba7b8109dad11d180b400c04fd430c8".
 func (c UUIDConstraint) NonCanonical() UUIDConstraint {
-	c.options = append(c.options, validate.AllowNonCanonicalUUIDFormats())
+	c.options = append(slices.Clip(c.options), validate.AllowNonCanonicalUUIDFormats())
 	return c
 }
 
@@ -120,7 +121,7 @@ func (c UUIDConstraint) NonCanonical() UUIDConstraint {
 // By default, the UUID will be checked for compliance with the default
 // registered versions: 1, 2, 3, 4, 5, 6 or 7.
 func (c UUIDConstraint) WithVersions(versions ...byte) UUIDConstraint {
-	c.options = append(c.options, validate.AllowUUIDVersions(versions...))
+	c.options = append(slices.Clip(c.options), validate.AllowUUIDVersions(versions...))
 	return c
 }
 

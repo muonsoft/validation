@@ -15,6 +15,14 @@ func TestDivisibleBy(t *testing.T) {
 		want      bool
 	}{
 		{-7, 1, true},
+		{-5, 2, false},
+		{-5, -2, false},
+		{5, -2, false},
+		{-6, 2, true},
+		{-6, -2, true},
+		{-10.12, 0.01, true},
+		{10.12, -0.01, true},
+		{1, 0, false},
 		{0, 3.1415, true},
 		{42, 42, true},
 		{42, 21, true},
