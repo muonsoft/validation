@@ -60,6 +60,7 @@ const (
 	InvalidJSON              = "This value should be valid JSON."
 	InvalidLUHN              = "Invalid card number."
 	InvalidMAC               = "This value is not a valid MAC address."
+	InvalidCSSColor          = "This value is not a valid CSS color."
 	InvalidCardScheme        = "Unsupported card type or invalid card number."
 	InvalidWeekFormat        = "This value is not a valid ISO week in YYYY-Www format."
 	InvalidWeekNumber        = "Week {{ value }} does not exist in its ISO year."

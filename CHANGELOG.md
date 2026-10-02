@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add `it.IsCSSColor`, `validate.CSSColor`, and `is.CSSColor` with 12 selectable Symfony 8.0 color formats, English/Russian messages, and no new dependencies. Document strict legacy function syntax and unsupported modern CSS features.
+
 - Add `it.IsCardScheme`, `validate.CardScheme`, and `is.CardScheme` with explicit selection of 12 payment card schemes, Symfony 8.0 prefix/length rules, and English/Russian messages. Checksum validation remains separate via `it.IsLUHN`; no new dependencies.
 
 - Add ISO week validation with `it.IsWeek()`, `validate.Week`, and `is.Week`, inclusive min/max bounds, calendar-aware week 53 checks, and English/Russian messages. No new dependencies; document empty-value and literal early-year behavior.

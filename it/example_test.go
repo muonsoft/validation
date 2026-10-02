@@ -1211,3 +1211,17 @@ func ExampleIsCardScheme_invalid() {
 	// Output:
 	// violation: "Unsupported card type or invalid card number."
 }
+
+func ExampleIsCSSColor_valid() {
+	err := validator.Validate(context.Background(), validation.String("#AbCd", it.IsCSSColor()))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsCSSColor_invalid() {
+	err := validator.Validate(context.Background(), validation.String("red", it.IsCSSColor(validate.CSSColorRGB, validate.CSSColorRGBA)))
+	fmt.Println(err)
+	// Output:
+	// violation: "This value is not a valid CSS color."
+}
