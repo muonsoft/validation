@@ -68,6 +68,9 @@ func NewPropertyPath(elements ...PropertyPathElement) *PropertyPath {
 // With returns new [PropertyPath] with appended elements to the end of the list.
 func (path *PropertyPath) With(elements ...PropertyPathElement) *PropertyPath {
 	current := path
+	if current != nil && current.value == nil {
+		current = nil
+	}
 	for _, element := range elements {
 		current = &PropertyPath{parent: current, value: element}
 	}
@@ -76,18 +79,12 @@ func (path *PropertyPath) With(elements ...PropertyPathElement) *PropertyPath {
 
 // WithProperty returns new [PropertyPath] with appended [PropertyName] to the end of the list.
 func (path *PropertyPath) WithProperty(name string) *PropertyPath {
-	return &PropertyPath{
-		parent: path,
-		value:  PropertyName(name),
-	}
+	return path.With(PropertyName(name))
 }
 
 // WithIndex returns new [PropertyPath] with appended [ArrayIndex] to the end of the list.
 func (path *PropertyPath) WithIndex(index int) *PropertyPath {
-	return &PropertyPath{
-		parent: path,
-		value:  ArrayIndex(index),
-	}
+	return path.With(ArrayIndex(index))
 }
 
 // Elements returns property path as a slice of [PropertyPathElement].
@@ -102,7 +99,7 @@ func (path *PropertyPath) Elements() []PropertyPathElement {
 
 	i := length - 1
 	element := path
-	for element != nil {
+	for element != nil && element.value != nil {
 		elements[i] = element.value
 		element = element.parent
 		i--
@@ -141,7 +138,7 @@ func (path *PropertyPath) All() iter.Seq2[int, PropertyPathElement] {
 func (path *PropertyPath) Len() int {
 	length := 0
 	element := path
-	for element != nil {
+	for element != nil && element.value != nil {
 		length++
 		element = element.parent
 	}
@@ -190,8 +187,12 @@ func (path *PropertyPath) MarshalText() (text []byte, err error) {
 func (path *PropertyPath) UnmarshalText(text []byte) error {
 	parser := pathParser{}
 	p, err := parser.Parse(string(text))
-	if p == nil || err != nil {
+	if err != nil {
 		return err
+	}
+	if p == nil {
+		*path = PropertyPath{}
+		return nil
 	}
 
 	*path = *p
@@ -405,7 +406,11 @@ func (parser *pathParser) handleOther(c rune) error {
 	switch parser.state {
 	case beginIndexState, indexState:
 		return parser.newCharError(c, "unexpected array index character")
-	case initialState, beginIdentifierState, identifierState:
+	case identifierState:
+		if !isIdentifierChar(c) {
+			return parser.newCharError(c, "unexpected identifier char")
+		}
+	case initialState, beginIdentifierState:
 		if !isFirstIdentifierChar(c) {
 			return parser.newCharError(c, "unexpected identifier char")
 		}

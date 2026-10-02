@@ -2,6 +2,7 @@ package it
 
 import (
 	"context"
+	"slices"
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/validate"
@@ -55,14 +56,14 @@ func IsISBN() ISBNConstraint {
 // Only10 restricts validation to ISBN-10 (Symfony Isbn::ISBN_10).
 func (c ISBNConstraint) Only10() ISBNConstraint {
 	c.mode = isbnMode10
-	c.options = append(c.options, validate.ISBNOnly10())
+	c.options = append(slices.Clip(c.options), validate.ISBNOnly10())
 	return c
 }
 
 // Only13 restricts validation to ISBN-13 (Symfony Isbn::ISBN_13).
 func (c ISBNConstraint) Only13() ISBNConstraint {
 	c.mode = isbnMode13
-	c.options = append(c.options, validate.ISBNOnly13())
+	c.options = append(slices.Clip(c.options), validate.ISBNOnly13())
 	return c
 }
 

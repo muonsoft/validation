@@ -107,6 +107,7 @@ func (c ComparisonConstraint[T]) Validate(ctx context.Context, validator *valida
 
 // NumberComparisonConstraint is used for various numeric comparisons between integer and float values.
 type NumberComparisonConstraint[T validation.Numeric] struct {
+	invalidDivisor    bool
 	isIgnored         bool
 	value             T
 	groups            []string
@@ -211,6 +212,7 @@ func IsNegativeOrZero[T validation.Numeric]() NumberComparisonConstraint[T] {
 
 // IsDivisibleBy checks that an integer value is divisible by another value (divisor).
 // It checks that the remainder is zero.
+// A zero divisor produces a constraint configuration error.
 func IsDivisibleBy[
 	T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64,
 ](
@@ -220,17 +222,20 @@ func IsDivisibleBy[
 		err:             validation.ErrNotDivisible,
 		messageTemplate: validation.ErrNotDivisible.Message(),
 		comparedValue:   fmt.Sprint(divisor),
+		invalidDivisor:  divisor == 0,
 		isValid:         func(n T) bool { return n%divisor == 0 },
 	}
 }
 
 // IsDivisibleByFloat checks that a float value is divisible by another value (divisor).
 // It checks that the remainder is zero or almost zero with an error of 1e-12.
+// A zero divisor produces a constraint configuration error.
 func IsDivisibleByFloat[T ~float32 | ~float64](divisor T) NumberComparisonConstraint[T] {
 	return NumberComparisonConstraint[T]{
 		err:             validation.ErrNotDivisible,
 		messageTemplate: validation.ErrNotDivisible.Message(),
 		comparedValue:   fmt.Sprint(divisor),
+		invalidDivisor:  divisor == 0,
 		isValid:         func(n T) bool { return is.DivisibleBy(float64(n), float64(divisor)) },
 	}
 }
@@ -269,6 +274,9 @@ func (c NumberComparisonConstraint[T]) WhenGroups(groups ...string) NumberCompar
 }
 
 func (c NumberComparisonConstraint[T]) ValidateNumber(ctx context.Context, validator *validation.Validator, value *T) error {
+	if c.invalidDivisor {
+		return validator.CreateConstraintError("NumberComparisonConstraint", "divisor must not be zero")
+	}
 	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) || value == nil || c.isValid(*value) {
 		return nil
 	}

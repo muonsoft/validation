@@ -97,11 +97,11 @@ func TestCIDRViolationNetmaskBounds(t *testing.T) {
 			wantHi: 128,
 		},
 		{
-			name:   "ipv6 preserves large configured max",
+			name:   "ipv6 caps large configured max",
 			value:  "2001:db8::/64",
 			opts:   []func(*CIDROptions){CIDRNetmaskRange(0, 200)},
 			wantLo: 0,
-			wantHi: 200,
+			wantHi: 128,
 		},
 		{
 			name:   "no slash returns configured bounds without parsing ip",

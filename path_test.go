@@ -501,3 +501,33 @@ func (a *PropertyPathAssertion) bracketPath(path validation.PropertyPath) string
 
 	return s.String()
 }
+
+func TestPropertyPath_UnicodeDigitRoundTrip(t *testing.T) {
+	for _, name := range []string{"a١", "поле٢", "a９"} {
+		path := validation.NewPropertyPath(validation.PropertyName(name), validation.ArrayIndex(1))
+		encoded, err := path.MarshalText()
+		require.NoError(t, err)
+		var decoded validation.PropertyPath
+		require.NoError(t, decoded.UnmarshalText(encoded))
+		require.Equal(t, path.Elements(), decoded.Elements())
+	}
+}
+
+func TestPropertyPath_UnmarshalEmptyClearsAndSupportsAppending(t *testing.T) {
+	for _, text := range [][]byte{nil, {}, []byte("")} {
+		path := validation.NewPropertyPath(validation.PropertyName("old"))
+		require.NoError(t, path.UnmarshalText(text))
+		require.Empty(t, path.String())
+		require.Zero(t, path.Len())
+		require.Empty(t, path.Elements())
+		for range path.All() {
+			t.Fatal("empty path yielded an element")
+		}
+		require.Equal(t, "next", path.WithProperty("next").String())
+		require.Equal(t, "[0]", path.WithIndex(0).String())
+		require.NoError(t, path.UnmarshalText([]byte("new")))
+		require.Equal(t, "new", path.String())
+		require.Error(t, path.UnmarshalText([]byte("[")))
+		require.Equal(t, "new", path.String(), "failed parse must preserve the receiver")
+	}
+}

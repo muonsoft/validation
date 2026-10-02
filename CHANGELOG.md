@@ -42,6 +42,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Prevent goroutine leaks in `validation.Async` after fatal errors.
+- Keep `ViolationList.Join` inputs independent and handle repeated or self joins without cycles; preserve every branch of joined errors without swallowing fatal errors.
+- Keep derived argument paths and URL, IP, CIDR, UUID, ISBN, and MAC address constraint options independent.
+- Copy translated message parameters before rendering to preserve reusable rules across languages and concurrent validations.
+- Correct floating-point divisibility for negative operands and report zero divisors as constraint configuration errors.
+- Enforce hostname length including separators and reject reserved top-level domains regardless of case.
+- Cap IPv6 CIDR prefixes and reported bounds at 128 bits even with a larger configured maximum.
+- Round-trip property names containing Unicode digits and clear existing property paths when unmarshaling empty text.
+
 - Reject malformed timezone identifiers and system-specific paths in `validate.Timezone`, `is.Timezone`, and `it.IsTimezone`, independently of system timezone files and `ZONEINFO`.
 - Keep `it.TimezoneConstraint.WithZone` copies independent when deriving multiple constraints from a shared template.
 

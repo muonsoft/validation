@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/url"
 	"regexp"
+	"slices"
 
 	"github.com/muonsoft/validation"
 	"github.com/muonsoft/validation/is"
@@ -118,7 +119,7 @@ func (c URLConstraint) WithHostMatches(pattern *regexp.Regexp) URLConstraint {
 
 // WithRestriction is used to additionally check parsed URL by callback function.
 func (c URLConstraint) WithRestriction(isAllowed func(u *url.URL) bool) URLConstraint {
-	c.restrictions = append(c.restrictions, func(u *url.URL) error {
+	c.restrictions = append(slices.Clip(c.restrictions), func(u *url.URL) error {
 		if isAllowed(u) {
 			return nil
 		}
@@ -202,7 +203,7 @@ func (c URLConstraint) Validate(ctx context.Context, validator *validation.Valid
 func (c URLConstraint) getRestrictions() []func(u *url.URL) error {
 	schemas := c.schemas
 	if c.supportsRelativeSchema {
-		schemas = append(schemas, "")
+		schemas = append(slices.Clip(schemas), "")
 	}
 
 	restrictions := []func(u *url.URL) error{validate.RestrictURLSchemas(schemas...)}
@@ -283,13 +284,13 @@ func newIPConstraint(validate func(value string, restrictions ...func(ip net.IP)
 // DenyPrivateIP denies using of private IPs according to RFC 1918 (IPv4 addresses)
 // and RFC 4193 (IPv6 addresses).
 func (c IPConstraint) DenyPrivateIP() IPConstraint {
-	c.restrictions = append(c.restrictions, validate.DenyPrivateIP())
+	c.restrictions = append(slices.Clip(c.restrictions), validate.DenyPrivateIP())
 	return c
 }
 
 // DenyIP can be used to deny custom range of IP addresses.
 func (c IPConstraint) DenyIP(restrict func(ip net.IP) bool) IPConstraint {
-	c.restrictions = append(c.restrictions, func(ip net.IP) error {
+	c.restrictions = append(slices.Clip(c.restrictions), func(ip net.IP) error {
 		if restrict(ip) {
 			return validate.ErrProhibited
 		}
@@ -417,25 +418,25 @@ func IsCIDR() CIDRConstraint {
 
 // IPv4Only restricts validation to IPv4 CIDR only (Symfony Ip::V4).
 func (c CIDRConstraint) IPv4Only() CIDRConstraint {
-	c.options = append(c.options, validate.CIDRVersion("4"))
+	c.options = append(slices.Clip(c.options), validate.CIDRVersion("4"))
 	return c
 }
 
 // IPv6Only restricts validation to IPv6 CIDR only (Symfony Ip::V6).
 func (c CIDRConstraint) IPv6Only() CIDRConstraint {
-	c.options = append(c.options, validate.CIDRVersion("6"))
+	c.options = append(slices.Clip(c.options), validate.CIDRVersion("6"))
 	return c
 }
 
 // WithVersion sets the accepted IP version: "4", "6", or "all". Invalid values are ignored.
 func (c CIDRConstraint) WithVersion(version string) CIDRConstraint {
-	c.options = append(c.options, validate.CIDRVersion(version))
+	c.options = append(slices.Clip(c.options), validate.CIDRVersion(version))
 	return c
 }
 
 // WithNetmaskRange sets the inclusive allowed range for the CIDR prefix length (Symfony netmaskMin/netmaskMax).
 func (c CIDRConstraint) WithNetmaskRange(netmaskMin, netmaskMax int) CIDRConstraint {
-	c.options = append(c.options, validate.CIDRNetmaskRange(netmaskMin, netmaskMax))
+	c.options = append(slices.Clip(c.options), validate.CIDRNetmaskRange(netmaskMin, netmaskMax))
 	return c
 }
 
@@ -548,7 +549,7 @@ func IsMacAddress() MacAddressConstraint {
 // [validate.MacAddressTypeUnicastAll], [validate.MacAddressTypeMulticastAll],
 // [validate.MacAddressTypeMulticastNoBroadcast], and [validate.MacAddressTypeBroadcast].
 func (c MacAddressConstraint) WithType(macType validate.MacAddressType) MacAddressConstraint {
-	c.options = append(c.options, validate.WithMacAddressType(macType))
+	c.options = append(slices.Clip(c.options), validate.WithMacAddressType(macType))
 	return c
 }
 

@@ -81,6 +81,7 @@ func HasExactCount(count int) CountConstraint {
 
 // HasCountDivisibleBy creates a [CountConstraint] that checks the length of the iterable (slice, array, or map)
 // is divisible by the specific value.
+// A zero divisor produces a constraint configuration error.
 func HasCountDivisibleBy(divisor int) CountConstraint {
 	c := newCountConstraint()
 	c.checkDivisible = true
@@ -182,8 +183,8 @@ func (c CountConstraint) ValidateCountable(ctx context.Context, validator *valid
 	if c.isIgnored || validator.IsIgnoredForGroups(c.groups...) {
 		return nil
 	}
-	if c.checkDivisible && count%c.divisibleBy != 0 {
-		return c.newNotDivisibleViolation(ctx, validator, count)
+	if err := c.validateDivisibility(ctx, validator, count); err != nil {
+		return err
 	}
 	if c.checkMax && count > c.max {
 		return c.newViolation(ctx, validator, count, c.max, c.maxErr, c.maxMessageTemplate, c.maxMessageParameters)
@@ -192,6 +193,19 @@ func (c CountConstraint) ValidateCountable(ctx context.Context, validator *valid
 		return c.newViolation(ctx, validator, count, c.min, c.minErr, c.minMessageTemplate, c.minMessageParameters)
 	}
 
+	return nil
+}
+
+func (c CountConstraint) validateDivisibility(ctx context.Context, validator *validation.Validator, count int) error {
+	if !c.checkDivisible {
+		return nil
+	}
+	if c.divisibleBy == 0 {
+		return validator.CreateConstraintError("CountConstraint", "divisor must not be zero")
+	}
+	if count%c.divisibleBy != 0 {
+		return c.newNotDivisibleViolation(ctx, validator, count)
+	}
 	return nil
 }
 

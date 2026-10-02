@@ -36,10 +36,10 @@ func Unique[T comparable](values []T) bool {
 func DivisibleBy(divisible, divisor float64) bool {
 	const epsilon = 1e-12
 
-	remainder := math.Mod(divisible, divisor)
+	remainder := math.Abs(math.Mod(divisible, divisor))
 	if remainder < epsilon {
 		return true
 	}
 
-	return math.Abs(remainder-divisor) < epsilon
+	return math.Abs(remainder-math.Abs(divisor)) < epsilon
 }

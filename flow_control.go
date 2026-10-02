@@ -2,6 +2,7 @@ package validation
 
 import (
 	"context"
+	"slices"
 	"sync"
 )
 
@@ -36,7 +37,7 @@ func (arg WhenArgument) Else(arguments ...Argument) WhenArgument {
 
 // At returns a copy of [WhenArgument] with appended property path suffix.
 func (arg WhenArgument) At(path ...PropertyPathElement) WhenArgument {
-	arg.path = append(arg.path, path...)
+	arg.path = append(slices.Clip(arg.path), path...)
 	return arg
 }
 
@@ -87,7 +88,7 @@ func (arg WhenGroupsArgument) Else(arguments ...Argument) WhenGroupsArgument {
 
 // At returns a copy of [WhenGroupsArgument] with appended property path suffix.
 func (arg WhenGroupsArgument) At(path ...PropertyPathElement) WhenGroupsArgument {
-	arg.path = append(arg.path, path...)
+	arg.path = append(slices.Clip(arg.path), path...)
 	return arg
 }
 
@@ -120,7 +121,7 @@ func Sequentially(arguments ...Argument) SequentialArgument {
 
 // At returns a copy of [SequentialArgument] with appended property path suffix.
 func (arg SequentialArgument) At(path ...PropertyPathElement) SequentialArgument {
-	arg.path = append(arg.path, path...)
+	arg.path = append(slices.Clip(arg.path), path...)
 	return arg
 }
 
@@ -171,7 +172,7 @@ func AtLeastOneOf(arguments ...Argument) AtLeastOneOfArgument {
 
 // At returns a copy of [AtLeastOneOfArgument] with appended property path suffix.
 func (arg AtLeastOneOfArgument) At(path ...PropertyPathElement) AtLeastOneOfArgument {
-	arg.path = append(arg.path, path...)
+	arg.path = append(slices.Clip(arg.path), path...)
 	return arg
 }
 
@@ -229,7 +230,7 @@ func AtProperty(propertyName string, arguments ...Argument) AllArgument {
 
 // At returns a copy of [AllArgument] with appended property path suffix.
 func (arg AllArgument) At(path ...PropertyPathElement) AllArgument {
-	arg.path = append(arg.path, path...)
+	arg.path = append(slices.Clip(arg.path), path...)
 	return arg
 }
 
@@ -275,7 +276,7 @@ func Async(arguments ...Argument) AsyncArgument {
 
 // At returns a copy of [AsyncArgument] with appended property path suffix.
 func (arg AsyncArgument) At(path ...PropertyPathElement) AsyncArgument {
-	arg.path = append(arg.path, path...)
+	arg.path = append(slices.Clip(arg.path), path...)
 	return arg
 }
 
@@ -300,7 +301,8 @@ func (arg AsyncArgument) validate(ctx context.Context, validator *Validator) (*V
 
 	waiter := &sync.WaitGroup{}
 	waiter.Add(len(arg.arguments))
-	errs := make(chan error)
+	// Each worker can finish sending even after a fatal error stops the receiver.
+	errs := make(chan error, len(arg.arguments))
 	for _, argument := range arg.arguments {
 		go func(argument Argument) {
 			defer waiter.Done()

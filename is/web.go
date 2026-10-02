@@ -71,7 +71,7 @@ func MACAddress(value string, options ...func(*validate.MacAddressOptions)) bool
 //
 // See [StrictHostname] for additional checks.
 func Hostname(value string) bool {
-	return hostnameRegex.MatchString(value) && len(strings.ReplaceAll(value, ".", "")) <= 255
+	return hostnameRegex.MatchString(value) && len(value) <= 255
 }
 
 // StrictHostname checks that a value is a valid hostname. Beside checks from Hostname function
@@ -93,7 +93,7 @@ func StrictHostname(value string) bool {
 
 	tld := domains[len(domains)-1]
 	for _, reservedTLD := range reservedTopLevelDomains {
-		if tld == reservedTLD {
+		if strings.EqualFold(tld, reservedTLD) {
 			return false
 		}
 	}
