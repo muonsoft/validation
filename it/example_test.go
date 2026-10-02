@@ -1181,3 +1181,17 @@ func ExampleHasWordCountBetween_invalid() {
 	// Output:
 	// violation: "This value should contain at least 2 words."
 }
+
+func ExampleIsWeek_valid() {
+	err := validator.Validate(context.Background(), validation.String("2020-W53", it.IsWeek().WithMin("2020-W01").WithMax("2021-W01")))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsWeek_invalid() {
+	err := validator.Validate(context.Background(), validation.String("2021-W53", it.IsWeek()))
+	fmt.Println(err)
+	// Output:
+	// violation: "Week 2021-W53 does not exist in its ISO year."
+}
