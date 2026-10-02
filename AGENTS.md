@@ -26,7 +26,7 @@ This repository is `github.com/muonsoft/validation`.
 
 This is a comprehensive Go validation library that provides:
 
-- Declarative validation using struct tags
+- Declarative validation using typed arguments and constraints in Go code
 - Chainable validation constraints via `it` package
 - Conditional checks via `is` package
 - Custom error messages and translations
@@ -37,19 +37,21 @@ This is a comprehensive Go validation library that provides:
 
 ### Core Components
 
-- `**validation.go**` - Main validation entry points and `Validatable` interface
-- `**validator.go**` - Core validation logic and execution
-- `**constraints.go**` - Constraint interface and execution
-- `**it/**` - Constraint builders for assertions (e.g., `it.IsEmail()`, `it.MinLength()`)
-- `**is/**` - Boolean check functions (e.g., `is.Email()`, `is.URL()`)
-- `**validate/**` - Standalone validation functions
-- `**violations.go**` - Validation error handling
-- `**message/**` - Message templating and translation system
+- `validation.go` - Main validation entry points and `Validatable` interface
+- `validator.go` - Core validation logic and execution
+- `contraint.go` - Typed constraint interfaces and function adapters
+- `it/` - Constraint builders for assertions (e.g., `it.IsEmail()`, `it.HasMinLength()`)
+- `is/` - Boolean check functions (e.g., `is.Email()`, `is.URL()`)
+- `validate/` - Standalone validation functions
+- `violations.go` - Validation error handling
+- `message/` - Message templating and translation system
 
 ### Validation Flow
 
-1. User calls `validation.Validate(value)` or implements `Validatable` interface
-2. Validator discovers constraints from struct tags or `Validate()` methods
+1. User calls `validator.Validate(ctx, arguments...)` or an instance's `Validate` method
+2. Typed arguments execute explicit constraints; `validation.Valid` calls the
+   value's `Validate(ctx context.Context, validator *validation.Validator) error` method.
+   The library does not discover validation rules from struct tags
 3. Constraints execute and collect violations
 4. Violations are formatted using message templates
 
@@ -57,13 +59,14 @@ This is a comprehensive Go validation library that provides:
 
 ### Adding New Constraints
 
-When adding new validation constraints, follow **`.agents/skills/validation-add-constraint/SKILL.md`** (and **`golang-code-review-comments`** for exported naming).
+When adding new validation constraints, follow `.agents/skills/validation-add-constraint/SKILL.md` (and
+`golang-code-review-comments` for exported naming).
 
 1. **Add boolean check to `is/` package** (if needed)
   - Pure functions returning `bool`
   - No error handling, just true/false
 2. **Add constraint builder to `it/` package**
-  - Returns a `validation.Constraint`
+  - Implements the appropriate typed constraint interface (for example, `validation.StringConstraint`)
   - Uses corresponding `is/` function
   - Defines violation message template
 3. **Add tests in `test/constraints_*_cases_test.go`**
@@ -80,8 +83,8 @@ This project uses table-driven tests extensively:
 func TestConstraintName(t *testing.T) {
     cases := []struct {
         name      string
-        value     any
-        constraint validation.Constraint
+        value     string
+        constraint validation.StringConstraint
         wantErr   bool
     }{
         // test cases here
@@ -97,10 +100,10 @@ func TestConstraintName(t *testing.T) {
 
 **Black-box tests next to package code** (`is/`, `it/`, `validate/`, root `validation` package, etc.):
 
-- Prefer **black-box testing**: put tests in `*_test.go` files that declare `**package foo_test`** (the package name must end with the `_test` suffix), and import `**github.com/muonsoft/validation/foo**` to exercise only the **exported** API.
-- Use `**package foo`** in the same directory only when the test must call **unexported** identifiers (unusual); keep those cases minimal and justified.
+- Prefer **black-box testing**: put tests in `*_test.go` files that declare `package foo_test` (the package name must end with the `_test` suffix), and import `github.com/muonsoft/validation/foo` to exercise only the **exported** API.
+- Use `package foo` in the same directory only when the test must call **unexported** identifiers (unusual); keep those cases minimal and justified.
 
-Integration-style constraint suites stay in `**test/`** as today (`test/constraints_*_cases_test.go`).
+Integration-style constraint suites stay in `test/` as today (`test/constraints_*_cases_test.go`).
 
 ### Message Templates
 
@@ -137,7 +140,7 @@ Add translations in:
   - Use table-driven tests
   - Test edge cases and error conditions
   - Include benchmarks for performance-critical code
-  - For unit tests in `is/`, `it/`, `validate/`, etc., use `**package foo_test`** black-box tests (see [Writing Tests](#writing-tests))
+  - For unit tests in `is/`, `it/`, `validate/`, etc., use `package foo_test` black-box tests (see [Writing Tests](#writing-tests))
 
 ## File Organization
 
@@ -160,8 +163,8 @@ type User struct {
     Age   int
 }
 
-func (u User) Validate() error {
-    return validation.ValidateValue(
+func (u User) Validate(ctx context.Context, v *validation.Validator) error {
+    return v.Validate(ctx,
         validation.String(u.Email, it.IsEmail()),
         validation.Number(u.Age, it.IsGreaterThanOrEqual(18)),
     )
@@ -209,7 +212,7 @@ func (c NumericConstraint) ValidateString(ctx context.Context, validator *valida
 
 ## Changelog
 
-The project uses **[Keep a Changelog](https://keepachangelog.com/)** in `**CHANGELOG.md`**.
+The project uses **[Keep a Changelog](https://keepachangelog.com/)** in `CHANGELOG.md`.
 
 ### Rules for agents and contributors
 
@@ -234,14 +237,18 @@ The project uses **[Keep a Changelog](https://keepachangelog.com/)** in `**CHANG
 
 This is a pure Go library with no external services or infrastructure dependencies. The entire dev workflow is:
 
-- **Full gate:** `bash scripts/test-all.sh`
+- **Full gate:** `bash scripts/test-all.sh` (requires Python 3 for documentation checks;
+  install golangci-lint before publication because the script skips lint when absent)
 - **Lint:** `golangci-lint run` (requires `golangci-lint` v2 on `PATH`; installed to `$(go env GOPATH)/bin`)
 - **Build:** `go build ./...`
 
 ### Caveats
 
 - `golangci-lint` is installed to `$(go env GOPATH)/bin` (typically `$HOME/go/bin`). Ensure this is on `PATH`; one-time install: `go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.2`.
-- The CI workflow (`.github/workflows/tests.yml`) uses Go **1.26** with `GOTOOLCHAIN: local`, pins `golangci-lint` at **v2.13.2** (`gomodguard_v2`), and runs gofmt, vet, lint, race tests, `go mod tidy -diff`, and `go mod verify`.
+- The shared CI workflow (`.github/workflows/verify.yml`), called by Tests and Release,
+  uses Go **1.26.6** for quality/security and **1.24.0** from `go.mod` for minimum compatibility
+  with `GOTOOLCHAIN: local`. It pins `golangci-lint` at **v2.13.2** (`gomodguard_v2`)
+  and runs documentation checks, gofmt, vet, lint, race tests, `go mod tidy -diff`, and `go mod verify`.
 - The `.golangci.yml` uses config **version: "2"** (golangci-lint v2 format). Do not use golangci-lint v1.
 - No Makefile, Docker, or docker-compose is used. No services need to be started.
 - This is a library, not a runnable server. Verify behavior with `go test -run '^Example' .` (see `example_*_test.go`).

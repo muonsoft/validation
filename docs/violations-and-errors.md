@@ -1,11 +1,15 @@
 # Working with Violations and Errors
 
-There are two types of errors returned from the validator. One is validation violations and another is internal errors (
-for example, when attempting to apply a constraint on not applicable argument type). The best way to handle validation
-errors is to check for implementing the `validation.ViolationList` struct. You can use the default way to unwrap errors.
+The validator returns violations for invalid input and non-violation errors for
+failures such as an invalid constraint configuration or a repository error in a
+custom constraint. Non-violation errors stop validation.
+
+Use `errors.As` to find a `*validation.ViolationList`, or
+`validation.UnwrapViolations` to handle violations separately from other errors.
+The snippets assume `ctx` and `email` are supplied by your application.
 
 ```go
-err := validator.Validate(/* validation arguments */)
+err := validator.Validate(ctx, validation.String(email, it.IsEmail()))
 
 if err != nil {
     var violations *validation.ViolationList
@@ -20,7 +24,7 @@ if err != nil {
 Also, you can use helper function `validation.UnwrapViolations()`.
 
 ```go
-err := validator.Validate(/* validation arguments */)
+err := validator.Validate(ctx, validation.String(email, it.IsEmail()))
 if violations, ok := validation.UnwrapViolations(err); ok {
     // handle violations
 } else if err != nil {
@@ -39,7 +43,8 @@ The validation error called violation consists of a few parameters.
   the `github.com/muonsoft/validation/message` package and can be changed at any time, even in patch versions.
 * `messageTemplate` - template for rendering message. Alongside `parameters` it can be used to render the message on the
   client-side of the library.
-* `parameters` is the map of the template variables and their values provided by the specific constraint.
+* `parameters` is the list of template keys and values provided by the constraint
+  (`[]validation.TemplateParameter`).
 * `propertyPath` points to the violated property as it described in the [Property paths](property-paths-and-structs.md#processing-property-paths) section.
 
 Thanks to the static error codes provided, you can quickly test the resulting validation error for a specific violation

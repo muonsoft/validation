@@ -2,5 +2,6 @@
 // Use of this source code is governed by a MIT-style
 // license that can be found in the LICENSE file.
 
-// Package is contains standalone functions that can be used for custom validation process.
+// Package is provides standalone validation checks returning bool.
+// Use package validate when you need an error describing why a check failed.
 package is

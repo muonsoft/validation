@@ -29,6 +29,11 @@ jobs:
             echo "::warning title=Timezone data check unavailable::Could not compare bundled timezone identifiers with IANA. This check is advisory; see the step logs."
           fi
 
+      - name: Documentation check
+        run: |
+          python3 -B scripts/check-docs-test.py
+          python3 scripts/check-docs.py
+
       - name: Format check
         run: |
           unformatted=$(gofmt -l .)

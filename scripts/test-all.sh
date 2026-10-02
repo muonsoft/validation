@@ -4,6 +4,10 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
+echo "==> documentation check"
+python3 -B scripts/check-docs-test.py
+python3 scripts/check-docs.py
+
 echo "==> format check"
 unformatted=$(gofmt -l .)
 if [[ -n "$unformatted" ]]; then

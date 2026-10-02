@@ -2,16 +2,25 @@
 
 ## Basic concepts
 
-The validation process is built around functional options and passing values by specific typed arguments. A common way
-to use validation is to call the `validator.Validate` method and pass the argument option with the list of validation
-constraints.
+Pass typed arguments such as `validation.String` to `validator.Validate`, with
+constraints from `it`. The examples below use the `validator` package unless a
+local validator is explicitly constructed. See [Installation](installation.md)
+for imports and the [README](../README.md#basic-example) for a complete program.
+
+| Package | Use |
+|---------|-----|
+| `validation` | Typed arguments, interfaces, errors, and configurable validator instances |
+| `validator` | A default validator and convenience functions |
+| `it` | Composable constraints with messages, conditions, and groups |
+| `validate` | Standalone checks returning `error` |
+| `is` | Standalone checks returning `bool` |
 
 ```go
 err := validator.Validate(context.Background(), validation.String("", it.IsNotBlank()))
 
 fmt.Println(err)
 // Output:
-// violation: This value should not be blank.
+// violation: "This value should not be blank."
 ```
 
 List of common [validation arguments](https://pkg.go.dev/github.com/muonsoft/validation#Argument):
@@ -29,23 +38,25 @@ List of common [validation arguments](https://pkg.go.dev/github.com/muonsoft/val
 * `validation.EachNumber[T]()` - passes slice of generic numbers to test each of the element against numeric constraints;
 * `validation.EachString()` - passes slice of strings to test each of the element against string constraints;
 * `validation.Valid()` - passes `Validatable` value to run embedded validation;
-* `validation.ValidSlice[T]()` - passes slice of `[]Validatable` value to run embedded validation on each of the elements;
-* `validation.ValidMap[T]()` - passes `map[string]Validatable` value to run embedded validation on each of the elements;
+* `validation.ValidSlice[T]()` - passes `[]T` where `T` implements `Validatable` to run embedded validation on each of the elements;
+* `validation.ValidMap[T]()` - passes `map[string]T` where `T` implements `Validatable` to run embedded validation on each of the elements;
 * `validation.Comparable[T]()` - passes generic comparable value to test against comparable constraints;
 * `validation.NilComparable[T]()` - passes generic comparable pointer value to test against comparable constraints;
 * `validation.Comparables[T]()` - passes generic slice of comparable values (can be used to check for uniqueness of the elements);
-* `validation.Slice[T]()` - passes generic slice to test against [SliceConstraint] list (e.g. uniqueness by key via `it.HasUniqueValuesBy()`);
-* `validation.SliceProperty[T]()` - same as [Slice] with property name in violation path;
+* `validation.Slice[T]()` - passes generic slice to test against `SliceConstraint[T]` list (e.g. uniqueness by key via `it.HasUniqueValuesBy()`);
+* `validation.SliceProperty[T]()` - same as `Slice` with property name in violation path;
 * `validation.Check()` - passes result of any boolean expression;
-* `validation.CheckNoViolations()` - passes `error` to check err for violations, can be used for embedded validation.
+* `validation.This[T]()` - passes any value to `Constraint[T]` implementations;
+* `validation.Each[T]()` - validates each slice element with `Constraint[T]` implementations;
+* `validation.CheckNoViolations()` - accepts errors from embedded validation, collects violations, and propagates other errors.
 
-For single value validation, you can use shorthand versions of the validation method:
+These methods combine `Validate(ctx, ...)` with the corresponding typed argument:
 
-* `validator.ValidateBool()` - shorthand for `validator.Bool()`;
+* `validator.ValidateBool()` - shorthand for `validation.Bool()`;
 * `validator.ValidateInt()` - shorthand for `validation.Number[int]()`;
 * `validator.ValidateFloat()` - shorthand for `validation.Number[float64]()`;
 * `validator.ValidateString()` - shorthand for `validation.String()`;
-* `validator.ValidateStrings()` - shorthand for `validation.Comparables[[]string]()`;
+* `validator.ValidateStrings()` - shorthand for `validation.Comparables[string]()`;
 * `validator.ValidateCountable()` - shorthand for `validation.Countable()`;
 * `validator.ValidateTime()` - shorthand for `validation.Time()`;
 * `validator.ValidateEachString()` - shorthand for `validation.EachString()`;
@@ -53,42 +64,67 @@ For single value validation, you can use shorthand versions of the validation me
 
 See usage examples in the [documentation](https://pkg.go.dev/github.com/muonsoft/validation#Validator.Validate).
 
-## How to use the validator
+## Empty and required values
 
-There are two ways to use the validator service. You can build your instance of validator service by
-using `validation.NewValidator()` or use singleton service from package `github.com/muonsoft/validation/validator`.
-
-Example of creating a new instance of the validator service:
+Most string format constraints accept `""` and skip nil pointers. Combine them
+with `it.IsNotBlank()` when a field is required:
 
 ```go
-// import "github.com/muonsoft/validation"
-
-validator, err := validation.NewValidator(
-    validation.DefaultLanguage(language.Russian), // passing default language of translations
-    validation.Translations(russian.Messages),    // setting up custom or built-in translations
-    validation.SetViolationFactory(userViolationFactory), // if you want to override creation of violations
+err := validator.Validate(ctx,
+    validation.StringProperty("email", email, it.IsNotBlank(), it.IsEmail()),
 )
-
-// don't forget to check for errors
-if err != nil {
-    fmt.Println(err)
-}
 ```
 
-If you want to use a singleton service make sure to set up your configuration once during the initialization of your
-application.
+Use `validation.NilString` for `*string` values; `String` accepts a `string`.
+`it.IsNotNil()` requires a non-nil pointer while allowing an empty string.
+`it.IsNotBlank()` rejects nil and empty strings by default; whitespace-only
+strings pass. Normalize with `strings.TrimSpace` before validation if your
+application treats whitespace as empty. `WithAllowedNil()` permits nil without
+permitting an empty string.
+
+Empty-value behavior belongs to each constraint. For example,
+`it.HasPasswordStrength()` evaluates empty strings, and `it.HasMinCount(1)` rejects
+a zero count. Constraints that validate their options may return configuration
+errors even for empty input. Consult the [constraint catalog](constraints.md)
+and each rule's documentation.
+
+Validation normally collects all violations. Adding `IsNotBlank` does not stop
+later rules from running. Use `validation.Sequentially` to stop after an argument
+produces violations. Non-violation errors stop validation; see
+[Violations and errors](violations-and-errors.md).
+
+## Configure a validator
+
+Create an instance with `validation.NewValidator`. For example, to use Russian
+translations by default:
 
 ```go
-// import "github.com/muonsoft/validation/validator"
-
-err := validator.SetUp(
-    validation.DefaultLanguage(language.Russian), // passing default language of translations
-    validation.Translations(russian.Messages),    // setting up custom or built-in translations
-    validation.SetViolationFactory(userViolationFactory), // if you want to override creation of violations
+// Also import "golang.org/x/text/language" and
+// "github.com/muonsoft/validation/message/translations/russian".
+v, err := validation.NewValidator(
+    validation.DefaultLanguage(language.Russian),
+    validation.Translations(russian.Messages),
 )
-
-// don't forget to check for errors
 if err != nil {
-    fmt.Println(err)
+    return err
 }
+return v.Validate(ctx, validation.String("", it.IsNotBlank()))
 ```
+
+The `return` statements above assume an enclosing function returning `error`.
+Options also support a custom translator or violation factory; see
+[Translations](translations.md) and [Violations and errors](violations-and-errors.md).
+
+To configure the default validator, create the instance during application
+initialization and install it after checking the constructor error:
+
+```go
+v, err := validation.NewValidator(validation.Translations(russian.Messages))
+if err != nil {
+    return err
+}
+validator.SetDefault(v)
+```
+
+`validator.Default()` returns the current instance. `SetDefault` replaces it;
+call it once during initialization. `SetUp` and `Instance` are deprecated.

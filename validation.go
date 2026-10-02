@@ -26,8 +26,8 @@ const DefaultGroup = "default"
 //	func (b Book) Validate(ctx context.Context, validator *validation.Validator) error {
 //	    return validator.Validate(
 //	        ctx,
-//	        validation.StringProperty("title", &b.Title, it.IsNotBlank()),
-//	        validation.StringProperty("author", &b.Author, it.IsNotBlank()),
+//	        validation.StringProperty("title", b.Title, it.IsNotBlank()),
+//	        validation.StringProperty("author", b.Author, it.IsNotBlank()),
 //	        validation.CountableProperty("keywords", len(b.Keywords), it.HasCountBetween(1, 10)),
 //	        validation.EachStringProperty("keywords", b.Keywords, it.IsNotBlank()),
 //	    )

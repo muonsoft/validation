@@ -18,10 +18,12 @@ workflow-verified release commit.
 
 ## Local validation
 
-Run from the repository root:
+Install the tools listed in [Contributing](../CONTRIBUTING.md), including
+golangci-lint v2.13.2. The local script skips lint if that binary is absent;
+CI always requires lint. Run from the repository root:
 
 ```bash
-bash -n scripts/*.sh
+for script in scripts/*.sh; do bash -n "$script"; done
 bash scripts/prepare-release-test.sh
 bash scripts/prepare-release.sh 0.20.0 --check-only
 bash scripts/test-all.sh
@@ -37,6 +39,7 @@ git tag --list v0.20.0
 3. Confirm the validation job succeeds.
 4. Confirm the publish job creates at most one changelog-only commit on `main`.
 5. Confirm the source-only GitHub Release and its tag point to that release commit.
+6. Confirm the `Verify published module` (`consumer`) job succeeds.
 
 The workflow will stop if it was dispatched from a branch other than current `main`,
 if `main` moves after validation, if the changelog cannot be finalized, or if the tag
@@ -47,12 +50,15 @@ already points to a different commit.
 1. Validates strict SemVer and records the exact dispatch SHA.
 2. Runs changelog script tests and checks that release notes are ready.
 3. Runs lint and the full unit/race/format/module gate.
-4. Rechecks `origin/main`, finalizes the changelog with the UTC release date, and
-   pushes a changelog-only release commit when necessary.
+4. Rechecks `origin/main` and prepares a changelog-only commit with the UTC release
+   date when necessary.
 5. Verifies that the release commit is either the validated SHA or its single
-   changelog-only child.
-6. Extracts release notes and publishes a source-only GitHub Release. GitHub creates
-   the missing tag at the verified release commit.
+   changelog-only child, and checks finalized notes and any existing tag.
+6. Extracts release notes, rechecks branch freshness and commit ancestry, and
+   pushes the verified commit without force.
+7. Publishes a source-only GitHub Release. GitHub creates the missing tag at the
+   verified release commit.
+8. Resolves and compiles the exact published module in a separate consumer job.
 
 ## Post-release verification
 
@@ -74,7 +80,9 @@ a second local tag or move the published tag.
 
 - A validation failure creates neither a changelog commit nor a tag.
 - A failure before GitHub Release publication may leave a valid changelog-only commit;
-  rerun the workflow for the same version after diagnosing the failure.
+  inspect the tag/release, diagnose the failure, and start a **fresh dispatch**
+  from current `main` with the same version. Re-running the old event can fail
+  because it still refers to the old dispatch SHA.
 - If a release or tag was published incorrectly, follow repository governance,
   document a retraction, and publish a corrective version. Do not rewrite public
   history or silently move a consumed tag.
@@ -98,9 +106,8 @@ still need review; raising the support floor is a separate compatibility decisio
 A two-component Go directive selects that family's available patch; a
 three-component directive pins the specified minimum patch.
 
-Project-specific checks remain required, including Squirrel's database, nested
-modules, differential/API and dependency gates where present. Modern tooling and
-`go mod tidy -diff` do not run in the old minimum-Go compatibility lane.
+Release-script regression checks also run in the shared quality job. Modern
+lint tooling and `go mod tidy -diff` do not run in the minimum-Go compatibility lane.
 
 The publish job prepares from the immutable validated SHA and checks ancestry,
 changed files, nonempty finalized notes and tag identity **before** pushing anything.
@@ -116,20 +123,18 @@ The cache is outside the consumer source directory and writable for cleanup. Dow
 a failed smoke check does not delete or move the published tag. Because bot pushes
 need not trigger push workflows, this check is an explicit dependent job.
 
-## Recovery and rollout
+## Recovery and repository settings
 
 If the changelog commit was pushed but publication failed, inspect the tag/release
-first and start a **fresh dispatch** on the current release branch with the same
+first and start a **fresh dispatch** on current `main` with the same
 version. Re-running the old event still has its old SHA and can fail the freshness
 check. Existing same-commit tags may be reconciled; conflicting tags stop the flow.
 The version input has no prefilled default to avoid reusing a previous release.
 
-Before merging this CI change, review branch protection required-check names:
-reusable workflow jobs have new check names. Configure rules to require the new
-quality, minimum and Security lanes. Remove the obsolete vulnerability matrix
-contexts only when their replacements are selected. Do not disable existing
-protections without their replacements. Confirm the release bot can push its changelog commit.
-No local validation can establish those hosted repository settings.
+Branch protection must require the quality, minimum-Go, and Security checks from
+the reusable workflow. When changing workflows, verify the resulting check names
+before replacing required checks. Confirm that the release bot can push its
+changelog-only commit. Local validation cannot establish these hosted settings.
 
 Local release regression checks:
 
@@ -142,4 +147,4 @@ python3 scripts/security-report-test.py
 The tests reject heading-only/planned/finalized empty notes, duplicate versions,
 non-changelog or multiple child commits, merges and dirty tracked files; validation
 modes do not rewrite the changelog. Hosted publication itself still needs a real
-maintainer-authorized run after the workflow is merged.
+maintainer-authorized workflow run.

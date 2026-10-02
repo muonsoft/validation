@@ -1104,14 +1104,14 @@ func ExampleValidator_Validate_customizingErrorMessage() {
 }
 
 func ExampleValidator_Validate_translationForCustomMessage() {
-	const customMessage = "tags should contain more than {{ limit }} element(s)"
+	const customMessage = "tags should contain at least {{ limit }} element(s)"
 	validator, err := validation.NewValidator(
 		validation.Translations(map[language.Tag]map[string]catalog.Message{
 			language.Russian: {
 				customMessage: plural.Selectf(1, "",
 					plural.One, "теги должны содержать {{ limit }} элемент и более",
-					plural.Few, "теги должны содержать более {{ limit }} элемента",
-					plural.Other, "теги должны содержать более {{ limit }} элементов"),
+					plural.Few, "теги должны содержать {{ limit }} элемента и более",
+					plural.Other, "теги должны содержать {{ limit }} элементов и более"),
 			},
 		}),
 	)

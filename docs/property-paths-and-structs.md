@@ -116,10 +116,10 @@ if violations, ok := validation.UnwrapViolations(err); ok {
     }
 }
 // Output:
-// violation at 'title': This value should not be blank.
-// violation at 'keywords': This collection should contain 5 elements or more.
-// violation at 'keywords': This collection should contain only unique elements.
-// violation at 'keywords[0]': This value should not be blank.
+// violation at "title": "This value should not be blank."
+// violation at "keywords": "This collection should contain 5 elements or more."
+// violation at "keywords": "This collection should contain only unique elements."
+// violation at "keywords[0]": "This value should not be blank."
 ```
 
 To check uniqueness by a key (e.g. by struct field), use `validation.Slice` or `validation.SliceProperty` with
@@ -131,8 +131,8 @@ items := []Item{{ID: "a"}, {ID: "b"}, {ID: "a"}}
 err := validator.Validate(ctx,
     validation.SliceProperty("items", items, it.HasUniqueValuesBy(func(x Item) string { return x.ID })),
 )
-// violation at 'items[0]': This collection should contain only unique elements.
-// violation at 'items[2]': This collection should contain only unique elements.
+// violation at "items[0]": "This collection should contain only unique elements."
+// violation at "items[2]": "This collection should contain only unique elements."
 ```
 
 The recommended way is to implement the `validation.Validatable` interface for your structures. By using it you can
@@ -198,12 +198,12 @@ func main() {
         }
     }
     // Output:
-    // violation at 'name': This value should not be blank.
-    // violation at 'tags': This collection should contain 5 elements or more.
-    // violation at 'tags': This collection should contain only unique elements.
-    // violation at 'tags[1]': This value should not be blank.
-    // violation at 'components[0].name': This value should not be blank.
-    // violation at 'components[0].tags': This collection should contain 1 element or more.
+    // violation at "name": "This value should not be blank."
+    // violation at "tags": "This collection should contain 5 elements or more."
+    // violation at "tags": "This collection should contain only unique elements."
+    // violation at "tags[1]": "This value should not be blank."
+    // violation at "components[0].name": "This value should not be blank."
+    // violation at "components[0].tags": "This collection should contain 1 element or more."
 }
 ```
 
@@ -223,19 +223,31 @@ if violations, ok := validation.UnwrapViolations(err); ok {
     }
 }
 // Output:
-// violation at 'text': This value should not be blank.
+// violation at "text": "This value should not be blank."
 ```
 
 ## Conditional validation based on groups
 
-By default, when validating an object all constraints of it will be checked whether or not they pass. In some cases,
-however, you will need to validate an object against only some specific group of constraints. To do this, you can
-organize each constraint into one or more validation groups and then apply validation against one group of constraints.
+Without `WithGroups`, the validator uses `validation.DefaultGroup` (`"default"`).
+Constraints without `WhenGroups` also belong to this group. A constraint runs when
+at least one of its groups matches a validator group; it is skipped otherwise.
+Selecting a named group does not automatically include `"default"`.
 
-Validation groups are working together only with validation groups passed to a constraint by WhenGroups() method. This
-method is implemented in all built-in constraints. If you want to use validation groups for your own constraints do not
-forget to implement this method in your constraint.
+```go
+rule := it.IsNotBlank().WhenGroups("create")
+ctx := context.Background()
 
-Be careful, empty groups are considered as the default group. Its value is equal to the `validation.DefaultGroup`.
+fmt.Println(validator.Validate(ctx, validation.String("", rule)))
+fmt.Println(validator.WithGroups("create").Validate(ctx, validation.String("", rule)))
+// Output:
+// <nil>
+// violation: "This value should not be blank."
+```
 
-See [example](https://pkg.go.dev/github.com/muonsoft/validation#example-Validator.WithGroups).
+Use `WithGroups(validation.DefaultGroup, "create")` to run both default and
+create-specific rules. Empty group lists mean the default group.
+
+Custom constraints must check `validator.IsIgnoredForGroups(groups...)` inside
+their validation method. A `WhenGroups` setter alone does not implement filtering.
+See [Custom constraints](custom-constraints.md) and the
+[executable group examples](../example_validation_groups_test.go).
