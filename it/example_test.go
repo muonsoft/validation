@@ -1111,3 +1111,45 @@ func ExampleIsUTF8_invalid() {
 	// Output:
 	// violation: "This value is not valid UTF-8."
 }
+
+func ExampleIsCountry_valid() {
+	err := validator.Validate(context.Background(), validation.String("de", it.IsCountry()))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsCountry_invalid() {
+	err := validator.Validate(context.Background(), validation.String("EU", it.IsCountry()))
+	fmt.Println(err)
+	// Output:
+	// violation: "This value is not a valid country or territory code."
+}
+
+func ExampleIsLanguage_valid() {
+	err := validator.Validate(context.Background(), validation.String("eng", it.IsLanguage()))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsLanguage_invalid() {
+	err := validator.Validate(context.Background(), validation.String("en-US", it.IsLanguage()))
+	fmt.Println(err)
+	// Output:
+	// violation: "This value is not a valid language code."
+}
+
+func ExampleIsLocale_valid() {
+	err := validator.Validate(context.Background(), validation.String("zh_Hant_TW", it.IsLocale()))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleIsLocale_invalid() {
+	err := validator.Validate(context.Background(), validation.String("en--US", it.IsLocale()))
+	fmt.Println(err)
+	// Output:
+	// violation: "This value is not a valid locale identifier."
+}

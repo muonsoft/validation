@@ -388,3 +388,27 @@ func ExampleUTF8() {
 	// false
 	// true
 }
+
+func ExampleCountry() {
+	fmt.Println(is.Country("de"))
+	fmt.Println(is.Country("EU"))
+	// Output:
+	// true
+	// false
+}
+
+func ExampleLanguage() {
+	fmt.Println(is.Language("eng"))
+	fmt.Println(is.Language("en-US"))
+	// Output:
+	// true
+	// false
+}
+
+func ExampleLocale() {
+	fmt.Println(is.Locale("zh_Hant_TW"))
+	fmt.Println(is.Locale("en--US"))
+	// Output:
+	// true
+	// false
+}
