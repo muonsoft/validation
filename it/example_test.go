@@ -1225,3 +1225,17 @@ func ExampleIsCSSColor_invalid() {
 	// Output:
 	// violation: "This value is not a valid CSS color."
 }
+
+func ExampleHasPasswordStrength_valid() {
+	err := validator.Validate(context.Background(), validation.String("Reasonable-pwd", it.HasPasswordStrength()))
+	fmt.Println(err)
+	// Output:
+	// <nil>
+}
+
+func ExampleHasPasswordStrength_invalid() {
+	err := validator.Validate(context.Background(), validation.String("password", it.HasPasswordStrength().WithMinScore(validate.PasswordStrengthStrong)))
+	fmt.Println(err)
+	// Output:
+	// violation: "The password strength is too low. Please use a stronger password."
+}

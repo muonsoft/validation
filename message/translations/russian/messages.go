@@ -76,6 +76,7 @@ var Messages = map[language.Tag]map[string]catalog.Message{
 		message.InvalidJSON:              catalog.String("Значение должно быть корректным JSON."),
 		message.InvalidLUHN:              catalog.String("Недействительный номер карты."),
 		message.InvalidMAC:               catalog.String("Значение не является допустимым MAC-адресом."),
+		message.PasswordTooWeak:          catalog.String("Пароль слишком слабый. Используйте более надёжный пароль."),
 		message.InvalidCSSColor:          catalog.String("Значение не является допустимым цветом CSS."),
 		message.InvalidCardScheme:        catalog.String("Неподдерживаемый тип карты или неверный номер карты."),
 		message.InvalidWeekFormat:        catalog.String("Значение не является допустимой ISO-неделей в формате YYYY-Www."),
