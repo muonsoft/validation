@@ -139,12 +139,29 @@ section_has_content() {
   awk -v header="$header" '
     $0 == header { in_section = 1; next }
     in_section && /^## \[/ { exit }
-    in_section && /^### / { found = 1; exit }
+    in_section {
+      line = $0
+      gsub(/<!--.*-->/, "", line)
+      if (line ~ /^[[:space:]]*$/ || line ~ /^#/ || line ~ /^\[[^]]+\]:/ || line ~ /^[[:space:]]*[-*+][[:space:]]*$/) next
+      found = 1; exit
+    }
     END { exit(found ? 0 : 1) }
   ' "$changelog"
 }
 
+# Duplicate version sections make extraction and idempotent reruns ambiguous.
+section_count=$(awk -v prefix="## [${version}]" 'index($0, prefix) == 1 { n++ } END { print n+0 }' "$changelog")
+if (( section_count > 1 )); then
+  echo "duplicate changelog sections for ${version}" >&2
+  exit 1
+fi
+
 if is_finalized; then
+  final_header=$(awk -v prefix="$final_prefix" 'index($0, prefix) == 1 { print; exit }' "$changelog")
+  if ! section_has_content "$final_header"; then
+    echo "finalized changelog section is empty" >&2
+    exit 1
+  fi
   echo "changelog section [${version}] is finalized"
   exit 0
 fi

@@ -39,6 +39,34 @@ fixture() {
   echo "$test_root/${name}.md"
 }
 
+test_content_contract() {
+  local file before
+  file=$(fixture content-contract)
+  printf '## [Unreleased]\n\n### Added\n\n' > "$file"
+  if run_prepare "$file" 9.9.9 --check-only >/dev/null 2>&1; then
+    fail "heading-only Unreleased rejected"
+  else pass "heading-only Unreleased rejected"; fi
+  printf '## [9.9.9] — planned\n\n### Fixed\n- \n' > "$file"
+  if run_prepare "$file" 9.9.9 --check-only >/dev/null 2>&1; then
+    fail "empty planned bullet rejected"
+  else pass "empty planned bullet rejected"; fi
+  printf '## [9.9.9] - 2026-01-01\n\n### Added\n' > "$file"
+  if run_prepare "$file" 9.9.9 --require-final >/dev/null 2>&1; then
+    fail "empty finalized section rejected"
+  else pass "empty finalized section rejected"; fi
+  printf '## [9.9.9] - 2026-01-01\n\n### Added\n- Working release\n' > "$file"
+  before=$(cat "$file")
+  if run_prepare "$file" 9.9.9 --check-only >/dev/null &&
+     run_prepare "$file" 9.9.9 --require-final >/dev/null &&
+     [[ "$before" == "$(cat "$file")" ]]; then
+    pass "validation modes are read-only"
+  else fail "validation modes are read-only"; fi
+  printf '\n## [9.9.9] — planned\n\n### Added\n- Duplicate\n' >> "$file"
+  if run_prepare "$file" 9.9.9 --check-only >/dev/null 2>&1; then
+    fail "duplicate version rejected"
+  else pass "duplicate version rejected"; fi
+}
+
 test_invalid_versions() {
   local file
   file=$(fixture invalid)
@@ -174,6 +202,7 @@ test_invalid_date_fails() {
   fi
 }
 
+test_content_contract
 test_invalid_versions
 test_planned_check_and_finalize
 test_finalize_is_idempotent

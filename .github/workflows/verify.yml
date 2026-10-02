@@ -1,0 +1,106 @@
+name: Shared verification
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    env:
+      GOTOOLCHAIN: local
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: "1.26.6"
+          cache: true
+
+      - name: Check IANA timezone identifiers (advisory)
+        continue-on-error: true
+        timeout-minutes: 2
+        run: |
+          if ! bash scripts/check-timezone-data.sh; then
+            echo "::warning title=Timezone data check unavailable::Could not compare bundled timezone identifiers with IANA. This check is advisory; see the step logs."
+          fi
+
+      - name: Format check
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "gofmt needed for:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.13.2
+
+      - name: Run tests
+        run: go test -race -v ./...
+
+      - name: Module tidy check
+        run: go mod tidy -diff
+
+      - name: Module verify
+        run: go mod verify
+
+      - name: Release script contracts
+        run: |
+          for script in scripts/*.sh; do bash -n "$script"; done
+          bash scripts/prepare-release-test.sh
+          python3 scripts/release-candidate-test.py
+
+  minimum:
+    name: Minimum supported Go
+    runs-on: ubuntu-24.04
+    env:
+      GOTOOLCHAIN: local
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Verify public module on supported minimum
+        run: |
+          go version
+          go build ./...
+          go test ./...
+          go test -race ./...
+
+  vulnerability:
+    name: Vulnerabilities (${{ matrix.target }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [minimum, tooling]
+    env:
+      GOTOOLCHAIN: local
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.26.6'
+      - name: Install pinned scanner independently of consumer module
+        run: GOBIN="$RUNNER_TEMP/vuln-bin" go install golang.org/x/vuln/cmd/govulncheck@v1.8.0
+      - uses: actions/setup-go@v7
+        if: matrix.target == 'minimum'
+        with:
+          go-version-file: go.mod
+      - name: Scan with selected analysis toolchain
+        run: |
+          go version
+          "$RUNNER_TEMP/vuln-bin/govulncheck" -version
+          date -u
+          "$RUNNER_TEMP/vuln-bin/govulncheck" ./...

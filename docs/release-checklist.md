@@ -78,3 +78,59 @@ a second local tag or move the published tag.
 - If a release or tag was published incorrectly, follow repository governance,
   document a retraction, and publish a corrective version. Do not rewrite public
   history or silently move a consumed tag.
+
+## Shared CI contract
+
+Normal CI and Release both call `.github/workflows/verify.yml` at the caller's
+revision. Its required jobs cover the existing project gate, minimum Go from
+`go.mod`, and pinned govulncheck v1.8.0 on both minimum and tooling Go. The scanner
+is installed with tooling Go, then executed with the selected analysis toolchain.
+No vulnerability failures are suppressed. Resolving findings or raising the support
+floor is a separate compatibility decision; a newer clean scan cannot replace a
+failed minimum lane. A two-component Go directive selects that release family's
+available patch; a three-component directive pins the specified minimum patch.
+Each job logs the effective toolchain. Tooling remains on the pinned Go 1.26.6 lane.
+
+Project-specific checks remain required, including Squirrel's database, nested
+modules, differential/API and dependency gates where present. Modern tooling and
+`go mod tidy -diff` do not run in the old minimum-Go compatibility lane.
+
+The publish job prepares from the immutable validated SHA and checks ancestry,
+changed files, nonempty finalized notes and tag identity **before** pushing anything.
+It rechecks the branch and uses a normal non-force push of that exact commit.
+Branch movement rejects publication; no pull/rebase incorporates unverified work.
+A subsequent unrelated branch commit does not change the already selected release
+SHA. Repository release concurrency does not lock human pushes.
+
+After publication, the `consumer` job resolves the exact version in a temporary
+external module, with workspace use disabled and an isolated module cache, and
+compiles the public imports listed in `scripts/release-consumer-imports.txt`.
+The cache is outside the consumer source directory and writable for cleanup. Download retries are bounded to accommodate proxy propagation;
+a failed smoke check does not delete or move the published tag. Because bot pushes
+need not trigger push workflows, this check is an explicit dependent job.
+
+## Recovery and rollout
+
+If the changelog commit was pushed but publication failed, inspect the tag/release
+first and start a **fresh dispatch** on the current release branch with the same
+version. Re-running the old event still has its old SHA and can fail the freshness
+check. Existing same-commit tags may be reconciled; conflicting tags stop the flow.
+The version input has no prefilled default to avoid reusing a previous release.
+
+Before merging this CI change, review branch protection required-check names:
+reusable workflow jobs have new check names. Configure rules to require the new
+quality, minimum and both vulnerability lanes; do not disable existing protections
+without their replacements. Confirm the release bot can push its changelog commit.
+No local validation can establish those hosted repository settings.
+
+Local release regression checks:
+
+```bash
+bash scripts/prepare-release-test.sh
+python3 scripts/release-candidate-test.py
+```
+
+The tests reject heading-only/planned/finalized empty notes, duplicate versions,
+non-changelog or multiple child commits, merges and dirty tracked files; validation
+modes do not rewrite the changelog. Hosted publication itself still needs a real
+maintainer-authorized run after the workflow is merged.

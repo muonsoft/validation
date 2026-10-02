@@ -6,7 +6,6 @@ on:
       version:
         description: "Release version, for example v0.20.0"
         required: true
-        default: "v0.20.0"
 
 permissions:
   contents: read
@@ -20,6 +19,9 @@ env:
   RELEASE_VERSION_INPUT: ${{ inputs.version }}
 
 jobs:
+  verify:
+    uses: ./.github/workflows/verify.yml
+
   validate:
     name: Validate release
     runs-on: ubuntu-24.04
@@ -29,11 +31,6 @@ jobs:
       dispatch_sha: ${{ steps.dispatch.outputs.sha }}
     steps:
       - uses: actions/checkout@v7
-
-      - uses: actions/setup-go@v7
-        with:
-          go-version: "1.26"
-          cache: true
 
       - name: Resolve release version
         id: version
@@ -73,7 +70,7 @@ jobs:
 
       - name: Validate release scripts
         run: |
-          bash -n scripts/*.sh
+          for script in scripts/*.sh; do bash -n "$script"; done
           bash scripts/prepare-release-test.sh
 
       - name: Check changelog readiness
@@ -81,18 +78,12 @@ jobs:
           CHANGELOG_VERSION: ${{ steps.version.outputs.changelog_version }}
         run: bash scripts/prepare-release.sh "$CHANGELOG_VERSION" --check-only
 
-      - name: Lint
-        uses: golangci/golangci-lint-action@v9
-        with:
-          version: v2.13.2
-
-      - name: Full release validation
-        run: bash scripts/test-all.sh
-
   publish:
     name: Publish GitHub Release
-    needs: validate
+    needs: [validate, verify]
     runs-on: ubuntu-24.04
+    outputs:
+      release_sha: ${{ steps.release_sha.outputs.sha }}
     permissions:
       contents: write
     steps:
@@ -117,14 +108,12 @@ jobs:
             exit 1
           fi
 
-          git checkout main
-          git pull --ff-only origin main
+          git checkout --detach "$DISPATCH_SHA"
           bash scripts/prepare-release.sh "$CHANGELOG_VERSION"
 
           if ! git diff --quiet -- CHANGELOG.md; then
             git add CHANGELOG.md
             git commit -m "chore(release): prepare CHANGELOG for ${RELEASE_VERSION}"
-            git push origin main
           fi
 
       - name: Resolve release commit SHA
@@ -133,20 +122,8 @@ jobs:
         env:
           DISPATCH_SHA: ${{ needs.validate.outputs.dispatch_sha }}
         run: |
+          bash scripts/verify-release-candidate.sh "$DISPATCH_SHA"
           release_sha=$(git rev-parse HEAD)
-          if [[ "$release_sha" == "$DISPATCH_SHA" ]]; then
-            echo "changelog was already finalized on the validated commit"
-          elif [[ $(git rev-list --count "${DISPATCH_SHA}..HEAD") -eq 1 ]]; then
-            parent_sha=$(git rev-parse HEAD^)
-            changed_files=$(git diff-tree --no-commit-id --name-only -r HEAD)
-            if [[ "$parent_sha" != "$DISPATCH_SHA" || "$changed_files" != "CHANGELOG.md" ]]; then
-              echo "release commit must be a single changelog-only child of $DISPATCH_SHA" >&2
-              exit 1
-            fi
-          else
-            echo "unexpected commits between validated and release state" >&2
-            exit 1
-          fi
           echo "sha=$release_sha" >> "$GITHUB_OUTPUT"
 
       - name: Verify finalized changelog
@@ -181,11 +158,17 @@ jobs:
             found && /^## \[/ { exit }
             found { print }
           ' CHANGELOG.md > release-notes.md
-          if [[ ! -s release-notes.md ]]; then
-            echo "validation ${{ needs.validate.outputs.version }}" > release-notes.md
-            echo >> release-notes.md
-            echo "See CHANGELOG.md for details." >> release-notes.md
-          fi
+          test -s release-notes.md
+
+      - name: Push verified changelog commit
+        shell: bash
+        env:
+          DISPATCH_SHA: ${{ needs.validate.outputs.dispatch_sha }}
+        run: |
+          git fetch origin main
+          test "$(git rev-parse origin/main)" = "$DISPATCH_SHA"
+          bash scripts/verify-release-candidate.sh "$DISPATCH_SHA"
+          git push origin HEAD:refs/heads/main
 
       - name: Publish source-only GitHub Release
         uses: softprops/action-gh-release@v3
@@ -195,3 +178,24 @@ jobs:
           name: validation ${{ needs.validate.outputs.version }}
           body_path: release-notes.md
           prerelease: ${{ contains(needs.validate.outputs.version, '-') }}
+
+  consumer:
+    name: Verify published module
+    needs: [validate, publish]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    env:
+      GOTOOLCHAIN: local
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.publish.outputs.release_sha }}
+          persist-credentials: false
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Resolve and compile exact published version
+        env:
+          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+        run: bash scripts/verify-published-module.sh "$RELEASE_VERSION"
