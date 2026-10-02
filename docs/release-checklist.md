@@ -8,7 +8,7 @@ workflow-verified release commit.
 ## Preflight
 
 - [ ] Work is merged to `main` and the branch is not moving during publication.
-- [ ] Normal CI is green.
+- [ ] Required quality, minimum-Go and Security checks are green; review the legacy diagnostic separately.
 - [ ] `CHANGELOG.md` has either a non-empty exact planned version section or non-empty
       `[Unreleased]` section.
 - [ ] README and public docs are current.
@@ -81,15 +81,27 @@ a second local tag or move the published tag.
 
 ## Shared CI contract
 
-Normal CI and Release both call `.github/workflows/verify.yml` at the caller's
-revision. Its required jobs cover the existing project gate, minimum Go from
-`go.mod`, and pinned govulncheck v1.8.0 on both minimum and tooling Go. The scanner
-is installed with tooling Go, then executed with the selected analysis toolchain.
-No vulnerability failures are suppressed. Resolving findings or raising the support
-floor is a separate compatibility decision; a newer clean scan cannot replace a
-failed minimum lane. A two-component Go directive selects that release family's
-available patch; a three-component directive pins the specified minimum patch.
-Each job logs the effective toolchain. Tooling remains on the pinned Go 1.26.6 lane.
+Normal CI and Release call `.github/workflows/verify.yml` at the caller's
+revision. Required checks are the existing quality gate, `Minimum supported Go`
+(build/tests on the `go.mod` minimum), and `Security` (govulncheck v1.8.0, analysis
+Go 1.26.6). Security fails on both reachable findings and scanner/setup errors.
+
+`legacy-security.yml` runs `Legacy Go security report` independently in CI and
+Release. It installs the same pinned scanner with tooling Go, then scans with the
+minimum Go. Findings produce a warning and an explicit diagnostic report; scanner,
+setup or network errors fail the diagnostic job and report an incomplete/error
+result. Neither outcome is a dependency of publication or a required branch check.
+There is no blanket job-level error suppression. Summaries and artifacts distinguish
+clean scans, findings and operational failures and record the effective toolchain.
+A failed diagnostic can make the overall workflow red even though required checks
+and publication succeed; inspect individual checks rather than the overall badge.
+
+The minimum Go directive promises build/API compatibility, not a vulnerability-free
+old standard library. Consumers should use a maintained, patched Go toolchain.
+A clean modern scan does not establish safety on the minimum version. Findings
+still need review; raising the support floor is a separate compatibility decision.
+A two-component Go directive selects that family's available patch; a
+three-component directive pins the specified minimum patch.
 
 Project-specific checks remain required, including Squirrel's database, nested
 modules, differential/API and dependency gates where present. Modern tooling and
@@ -119,7 +131,8 @@ The version input has no prefilled default to avoid reusing a previous release.
 
 Before merging this CI change, review branch protection required-check names:
 reusable workflow jobs have new check names. Configure rules to require the new
-quality, minimum and both vulnerability lanes; do not disable existing protections
+quality, minimum and Security lanes. Remove the obsolete vulnerability matrix
+contexts only when their replacements are selected; do not require Legacy Go security report; do not disable existing protections
 without their replacements. Confirm the release bot can push its changelog commit.
 No local validation can establish those hosted repository settings.
 
@@ -128,6 +141,7 @@ Local release regression checks:
 ```bash
 bash scripts/prepare-release-test.sh
 python3 scripts/release-candidate-test.py
+python3 scripts/security-report-test.py
 ```
 
 The tests reject heading-only/planned/finalized empty notes, duplicate versions,
