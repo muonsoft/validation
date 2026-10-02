@@ -42,6 +42,7 @@ var (
 	ErrInvalidJSON            = NewError("invalid JSON", message.InvalidJSON)
 	ErrInvalidLUHN            = NewError("invalid LUHN", message.InvalidLUHN)
 	ErrInvalidMAC             = NewError("invalid MAC address", message.InvalidMAC)
+	ErrPasswordTooWeak        = NewError("password strength too low", message.PasswordTooWeak)
 	ErrInvalidCSSColor        = NewError("invalid CSS color", message.InvalidCSSColor)
 	ErrInvalidCardScheme      = NewError("invalid card scheme", message.InvalidCardScheme)
 	ErrInvalidWeekFormat      = NewError("invalid week format", message.InvalidWeekFormat)
