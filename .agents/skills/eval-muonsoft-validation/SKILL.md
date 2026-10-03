@@ -14,10 +14,13 @@ module `github.com/muonsoft/validation`, not a fixed machine path, and read the
 
 ## Prepare and run
 
-1. Require the exact OpenCode `provider/model` requested by the user, a
-   provider-only JSON config using environment credentials, and a new output
-   directory outside the checkout. The intended coding model is DeepSeek Flash
-   4.1. Resolve its ID on the execution environment; never substitute a model.
+1. Require the exact model requested by the user and a new output directory
+   outside the checkout. The intended coding model is DeepSeek V4.1 Flash.
+   On OpenCode V2, omit `--config` to reuse the existing local Console connection;
+   the runner resolves an exact bare model ID through the catalog and recent-model
+   preferences. Do not ask for a separate provider config before checking this.
+   V1 and other providers require a provider-only JSON config with environment
+   credentials. Never substitute a model; select reasoning variants only when requested.
 2. Use `smoke` unless the user selects `full` or particular cases. Smoke runs four
    cases × two variants × one repeat; full runs twelve × two × three.
 3. Run `doctor`: model availability and isolated skill discovery, no inference
@@ -30,9 +33,11 @@ module `github.com/muonsoft/validation`, not a fixed machine path, and read the
 
 Use a dedicated eval environment. The runner installs only the public skill for
 one variant and none for the baseline, using identical task prompts and fresh
-sessions. Workers receive no independent tests or reference solutions. This is
-workflow separation, not an operating-system sandbox; follow the runbook's clean
-profile requirements and inspect logs for contamination.
+sessions. Workers receive no independent tests or reference solutions. V2 requires
+bubblewrap and isolates each worker's filesystem, session database, and build
+cache. V1 provides workflow separation only; follow the runbook's clean-profile
+requirements. Inspect logs for contamination in either mode and exclude any run
+where a worker read hidden tests, references, or another variant's skill.
 
 Do not coach the worker, provide expected answers, edit its solution, or retry an
 attempt invisibly. Cancellation stops further attempts and preserves artifacts.

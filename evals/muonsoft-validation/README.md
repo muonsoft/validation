@@ -1,8 +1,8 @@
 # Manual validation skill evaluations
 
 Codex orchestrates the run and reviews the code. OpenCode is the coding agent;
-the intended model is **DeepSeek Flash 4.1**, identified by an explicit
-`provider/model` ID on the execution environment. No model is chosen implicitly.
+the intended model is **DeepSeek V4.1 Flash**. Supply its exact model ID; V2 can
+resolve its provider from the existing local connection. No model is substituted.
 These evals are not part of CI or the library's normal test script.
 
 Invoke `$eval-muonsoft-validation` from this repository. The
@@ -12,31 +12,76 @@ contains the rubric. It is repository-local; public skill users do not need it.
 ## Prerequisites and isolation
 
 Use a dedicated Linux environment with Python 3.10+, Git, Go 1.24+ with race
-support, and OpenCode. The adapter targets the inspected OpenCode 1.14.19 CLI;
+support, and OpenCode. The adapters target OpenCode 1.14.19 and 2.0.18;
 preflight rejects unsupported skill-discovery output. Keep the existing Git tag
 `v0.19.0` available; fetch it if missing, never create a release tag for evals.
 Go dependencies must be cached or downloadable.
+V2 additionally requires Linux bubblewrap (`bwrap`) and enabled user namespaces.
+Cache the Go module dependencies before starting: the worker's module cache is
+mounted read-only.
+For a controlled comparison, use a dedicated dependency-only module cache, not a
+shared cache containing copies of this repository and its maintainer skills:
+`GOMODCACHE=/tmp/validation-eval-modcache go mod download`. Pass the same
+`GOMODCACHE` to `doctor` and `run`.
 
-Supply a provider-only JSON config containing only `$schema` and `provider`.
+On V2, omit `--config` to reuse the running local OpenCode Console connection
+(`opencode` or `opencode-go`). The runner reads the local model catalog and the
+active credential from SQLite without modifying the user's database. A bare model
+ID must resolve uniquely or match that exact model in recent-model preferences;
+an explicit `provider/model` avoids ambiguity. Select reasoning variants with
+`#variant`; UI variant preferences are not inherited.
+
+Only the selected model definition is copied into the isolated config. Its access
+token and custom headers are passed through environment variables, never saved in
+the config or copied as login storage. An expired OAuth token requires refreshing
+the connection in OpenCode; the runner does not rotate the user's credentials.
+Other providers require `--config`.
+Workers receive an allowlisted runtime environment plus only the credentials
+referenced by that provider configuration. Unrelated API keys and shell startup
+hooks are excluded. The selected provider credentials remain available to the
+OpenCode process; treat raw worker logs as private because shell output can expose
+its environment. Do not publish raw logs without checking for secrets.
+
+Alternatively, supply a provider-only JSON config containing only `$schema` and
+`provider` (V1) or `providers` (native V2).
 Configure the exact model and use `{env:VARIABLE}` for credentials, including
 custom authorization headers. See the [OpenCode configuration guide](https://opencode.ai/docs/config/).
 The runner uses [`opencode run --model ... --format json`](https://opencode.ai/docs/cli/#run)
 in fresh sessions. Authentication must work from the explicit config and
-environment; existing OpenCode login storage is deliberately not inherited.
+environment; existing OpenCode login storage is never copied into eval profiles.
+
+V1 uses `--pure`. V2 starts a private, temporary loopback server for each operation,
+waits for the requested model's asynchronous catalog registration, and connects
+with `--server`. The server is stopped even on timeout or cancellation. This avoids
+both touching the user's background service and mistaking an initially empty V2
+catalog for an unavailable model. Skills are inspected through V2's `/api/skill`.
+The runner sets each child's `PWD` to its actual workspace: V2's run command
+prefers that variable over the process working directory.
+Each V2 operation gets a fresh session database and Go build cache. Its server
+runs inside bubblewrap: only the task workspace and private profile are writable;
+system tools, Go module dependencies, and library snapshots are read-only. The
+checkout, previous attempts, reference solutions, and the real home directory
+are absent from that filesystem. There is no fallback to an unsandboxed V2 worker.
+See the [V2 CLI documentation](https://opencode.ai/v2/docs/cli/commands/).
 
 The runner creates isolated XDG directories, disables external/Claude skills and
 plugins, and installs the treatment skill under the workspace's native
-`.opencode/skills/` directory. Discovery must return exactly the expected skill
-set. `HOME` and user settings are not modified. Do not use provider setups that
+`.opencode/skills/` directory. Discovery must return exactly the expected user-skill
+set. V2's built-in `opencode` and `report` skills are recorded and accepted only
+at their built-in paths; tool permissions deny loading them in both variants.
+`HOME` and user settings are not modified. V2's `OPENCODE_TEST_HOME` points at an
+empty profile directory to isolate its separate Claude/Agents skill discovery.
+Do not use provider setups that
 inject remote organizational instructions. Preflight cannot prove absence of
 all managed settings: the dedicated environment must have none.
 
 Workers can inspect library Go source through their module replacement. They are
-not given eval tests, reference solutions, or orchestrator instructions. This is
-workflow isolation, **not a hostile-code sandbox**: a shell process under the same
-OS user can access other files. Use the dedicated environment and inspect logs
-for contamination. Web/MCP tools and additional agent delegation are disabled;
-local shell access remains necessary for editing and Go checks.
+not given eval tests, reference solutions, or orchestrator instructions. The V1
+adapter provides workflow isolation only: use a dedicated clean environment for
+it. V2 also isolates the worker filesystem and PID namespace, while retaining
+network access for the provider. Inspect logs for contamination in either mode.
+Web/MCP tools and additional agent delegation are disabled; local shell access
+remains necessary for editing and Go checks.
 
 ## Commands
 
@@ -44,6 +89,13 @@ Run from the repository root. Output paths must be new directories outside the
 checkout. Replace placeholders with paths and the exact model ID on your machine.
 
 ```bash
+# V2: use the existing OpenCode Console login, without a separate config.
+python3 evals/muonsoft-validation/run.py doctor \
+  --model opencode-go/deepseek-v4.1-flash --output /tmp/validation-eval-v2-preflight
+python3 evals/muonsoft-validation/run.py run \
+  --model opencode-go/deepseek-v4.1-flash \
+  --profile smoke --output /tmp/validation-eval-v2-smoke
+
 # No inference: inspect availability and skill discovery.
 python3 evals/muonsoft-validation/run.py doctor \
   --model '<provider/model>' --config /path/to/provider.json \
@@ -106,6 +158,10 @@ and independent test logs. `run.json` records source hashes, configuration, tool
 versions, status, duration, skill-loading evidence, and provider-reported tokens
 and cost when available. Absent usage is unknown, not zero; cost is not independently
 verified.
+V2 additionally saves `completion.json`: the session database must report success
+in the expected workspace, and the completed final assistant text must match the
+CLI log. This handles V2's final-text reconciliation without treating a missing
+`step_finish` event alone as failure or trusting a zero exit code alone.
 
 `report.md` and `results.json` keep deterministic outcomes separate from Codex
 review. A requirement passes only when its named test passes. A scenario passes

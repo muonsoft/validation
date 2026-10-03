@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Support OpenCode v2 and existing local Console authentication in the manual skill evaluation workflow, with isolated profiles and version-aware skill discovery.
+
 - Reorganize the documentation around a shorter quick start and constraint catalog; correct API examples, validation groups, translations, and release instructions.
 
 - CI and local lint use golangci-lint `v2.13.2` (`gomodguard_v2`); `goconst` disabled in `.golangci.yml`.

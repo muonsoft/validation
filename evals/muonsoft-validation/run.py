@@ -2,7 +2,9 @@
 """Manual skill evals. Python standard library only; never called by CI."""
 
 import argparse
+import base64
 from collections import Counter
+from contextlib import contextmanager
 import difflib
 import hashlib
 import io
@@ -10,12 +12,17 @@ import json
 import os
 from pathlib import Path
 import re
+import secrets
 import shutil
 import signal
+import socket
+import sqlite3
 import subprocess
 import sys
 import tarfile
 import time
+import urllib.parse
+import urllib.request
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
@@ -193,7 +200,7 @@ def grade(case, source, output, snapshots, env):
     return results
 
 
-def events_result(path):
+def events_result(path, completion=None):
     parsed, malformed, stopped, errors = 0, 0, False, []
     evidence, usage = [], []
     for number, line in enumerate(path.read_text().splitlines(), 1):
@@ -223,14 +230,64 @@ def events_result(path):
         args = state.get("input") or {}
         if not isinstance(args, dict) or state.get("status") != "completed":
             continue
-        if part.get("tool") == "skill" and args.get("name") == "muonsoft-validation":
+        if part.get("tool") == "skill" and (args.get("name") or args.get("id")) == "muonsoft-validation":
             evidence.append(number)
-        if part.get("tool") == "read" and str(args.get("filePath", "")).endswith("/muonsoft-validation/SKILL.md"):
+        if part.get("tool") == "read" and str(args.get("filePath") or args.get("path", "")).endswith("/muonsoft-validation/SKILL.md"):
             evidence.append(number)
+    if completion is not None:
+        stopped = completion.get("verified") is True
+        if stopped and not completion.get("finish_logged") and any(key in completion for key in ("tokens", "cost")):
+            usage.append({key: completion[key] for key in ("tokens", "cost") if key in completion})
     return {"complete": bool(parsed and stopped and not malformed and not errors),
             "malformed_lines": malformed, "error_lines": errors,
             "skill_loading": "observed" if evidence else "not_observed",
             "skill_evidence_lines": evidence, "reported_usage": usage}
+
+
+def v2_completion(log, workspace, database):
+    """V2 may reconcile final text without emitting step_finish; verify persisted completion."""
+    events = []
+    for line in log.read_text().splitlines():
+        if not line.strip():
+            continue
+        try:
+            event = json.loads(line)
+        except ValueError:
+            return {"verified": False, "reason": "malformed event log"}
+        if not isinstance(event, dict):
+            return {"verified": False, "reason": "invalid event"}
+        events.append(event)
+    sessions = {e["sessionID"] for e in events if e.get("sessionID")}
+    if len(sessions) != 1:
+        return {"verified": False, "reason": "expected one logged session"}
+    session_id = sessions.pop()
+    try:
+        connection = sqlite3.connect(database.as_uri() + "?mode=ro", uri=True)
+        try:
+            session = connection.execute("SELECT directory, idle_outcome, time_idle FROM session_v2 WHERE id = ?",
+                                         (session_id,)).fetchone()
+            final = connection.execute("SELECT id, data FROM session_message WHERE session_id = ? AND type = 'assistant' ORDER BY seq DESC LIMIT 1",
+                                       (session_id,)).fetchone()
+        finally:
+            connection.close()
+    except sqlite3.Error:
+        return {"verified": False, "reason": "v2 completion database unavailable or unsupported"}
+    if not session or not final:
+        return {"verified": False, "reason": "missing persisted session or assistant message"}
+    message_id, encoded = final
+    message = json.loads(encoded)
+    expected = "".join(item["text"] for item in message.get("content", []) if item.get("type") == "text")
+    logged = "".join(e["part"].get("text", "") for e in events if e.get("type") == "text"
+                     and e.get("part", {}).get("messageID") == message_id)
+    verified = (Path(session[0]).resolve() == workspace.resolve() and session[1] == "succeeded"
+                and bool(session[2]) and message.get("finish") == "stop"
+                and bool(message.get("time", {}).get("completed")) and bool(expected) and logged == expected)
+    return {"verified": verified, "source": "opencode-v2-session-db", "session_id": session_id,
+            "directory": session[0], "outcome": session[1], "time_idle": session[2],
+            "message_id": message_id, "finish": message.get("finish"),
+            "text_sha256": digest(expected.encode()), "logged_text_sha256": digest(logged.encode()),
+            "finish_logged": any(e.get("type") == "step_finish" and e.get("part", {}).get("messageID") == message_id for e in events),
+            **{key: message[key] for key in ("tokens", "cost") if key in message}}
 
 
 def check_materials(output, snapshots):
@@ -305,12 +362,18 @@ def new_output(path):
     output = Path(path).expanduser().resolve()
     if output.is_relative_to(ROOT) or ROOT.is_relative_to(output):
         raise ValueError("output must be outside the library checkout and not its ancestor")
-    output.mkdir(parents=True, exist_ok=False)
+    output.mkdir(mode=0o700, parents=True, exist_ok=False)
     return output
 
 
 def isolated_env(output, config):
-    env = {key: value for key, value in os.environ.items() if not key.startswith("OPENCODE_")}
+    # Shell tool output is model-visible. Never inherit unrelated service secrets
+    # or shell startup hooks from the orchestrator's environment.
+    allowed = {"PATH", "HOME", "USER", "LOGNAME", "SHELL", "LANG", "LC_ALL", "LC_CTYPE",
+               "TERM", "TMPDIR", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS",
+               "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
+               "http_proxy", "https_proxy", "all_proxy", "no_proxy"}
+    env = {key: value for key, value in os.environ.items() if key in allowed}
     env.update(GOWORK="off", GOTOOLCHAIN="local", GOCACHE=str(output / "go-cache"))
     for key, directory in (("XDG_CONFIG_HOME", "config"), ("XDG_DATA_HOME", "data"),
                            ("XDG_CACHE_HOME", "cache"), ("XDG_STATE_HOME", "state")):
@@ -323,22 +386,42 @@ def isolated_env(output, config):
     return env
 
 
-def opencode_config(path):
-    config = json.loads(path.read_text())
+def opencode_config(path, major=1):
+    return configure_provider(json.loads(path.read_text()), major)
+
+
+def configure_provider(config, major):
     # Only provider setup is inherited, never prompts, plugins, MCP, skills, or agents.
-    if set(config) - {"$schema", "provider"}:
-        raise ValueError("eval provider config may contain only $schema and provider")
-    if not config.get("provider"):
+    if set(config) - {"$schema", "provider", "providers"}:
+        raise ValueError("eval provider config may contain only $schema and provider/providers")
+    if not config.get("provider") and not config.get("providers"):
         raise ValueError("provider config is empty; use explicit provider setup with env credentials")
     # Authentication must remain in environment, not generated artifacts.
-    for provider in config["provider"].values():
-        options = provider.get("options", {})
-        key = options.get("apiKey")
-        if key and not re.fullmatch(r"\{env:[A-Z_][A-Z_0-9]*\}", key):
-            raise ValueError("use an {env:VARIABLE} apiKey reference, not a literal credential")
-        for key, value in options.get("headers", {}).items():
-            if not re.fullmatch(r"\{env:[A-Z_][A-Z_0-9]*\}", value):
-                raise ValueError(f"custom header {key} must use an environment reference")
+    def check_credentials(value):
+        if not isinstance(value, dict):
+            return
+        for key, item in value.items():
+            if key in {"apiKey", "authToken", "accessToken"} and item:
+                if not isinstance(item, str) or not re.fullmatch(r"\{env:[A-Z_][A-Z_0-9]*\}", item):
+                    raise ValueError("use an {env:VARIABLE} credential reference, not a literal credential")
+            elif key == "headers":
+                for header, content in item.items():
+                    if not isinstance(content, str) or not re.fullmatch(r"\{env:[A-Z_][A-Z_0-9]*\}", content):
+                        raise ValueError(f"custom header {header} must use an environment reference")
+            elif isinstance(item, dict):
+                check_credentials(item)
+            elif isinstance(item, list):
+                for child in item:
+                    check_credentials(child)
+    check_credentials(config)
+    if major == 2:
+        config.update(update="disable", share="disabled", instructions=[], plugins=[],
+                      mcp={"servers": {}}, snapshots=False,
+                      permissions=[{"action": "*", "resource": "*", "effect": "deny"}]
+                      + [{"action": action, "resource": "*", "effect": "allow"}
+                         for action in ("read", "glob", "grep", "edit", "shell")]
+                      + [{"action": "skill", "resource": "muonsoft-validation", "effect": "allow"}])
+        return config
     config.update(autoupdate=False, share="disabled", instructions=[], plugin=[], mcp={},
                   permission={"*": "deny", "read": "allow", "glob": "allow", "grep": "allow",
                               "edit": "allow", "bash": "allow", "skill": {"*": "deny", "muonsoft-validation": "allow"},
@@ -346,36 +429,247 @@ def opencode_config(path):
     return config
 
 
-def discover(binary, cwd, output, env, expected):
+def local_opencode_config(model, env):
+    """Reuse an active Console connection without copying login storage or user settings."""
+    state = Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local/state")) / "opencode"
+    data = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) / "opencode"
+    service = json.loads((state / "service.json").read_text())
+    url = urllib.parse.urlsplit(service["url"])
+    if url.scheme != "http" or url.hostname not in {"127.0.0.1", "localhost", "::1"}:
+        raise ValueError("automatic configuration requires a local OpenCode service")
+    authorization = base64.b64encode(("opencode:" + service["password"]).encode()).decode()
+    request = urllib.request.Request(service["url"] + "/api/model",
+                                     headers={"Authorization": "Basic " + authorization})
+    with urllib.request.urlopen(request, timeout=30) as response:
+        models = json.load(response)["data"]
+    base, separator, variant = model.partition("#")
+    candidates = [m for m in models if m.get("enabled") and
+                  (f"{m['providerID']}/{m['id']}" == base or m["id"] == base)]
+    if len(candidates) > 1 and "/" not in base:
+        preferences = json.loads((state / "model.json").read_text()) if (state / "model.json").exists() else {}
+        for recent in preferences.get("recent", []):
+            matches = [m for m in candidates if m["providerID"] == recent.get("providerID")
+                       and m["id"] == recent.get("modelID")]
+            if matches:
+                candidates = matches
+                break
+    if len(candidates) != 1:
+        raise ValueError(f"model must resolve uniquely in the local catalog: {model}; specify provider/model; no fallback")
+    selected = candidates[0]
+    provider = selected["providerID"]
+    if provider not in {"opencode", "opencode-go"}:
+        raise ValueError("automatic login reuse currently supports OpenCode Console; use --config for other providers")
+    if separator and variant not in {v["id"] for v in selected.get("variants", [])}:
+        raise ValueError(f"unknown model variant: {variant}")
+    connection = sqlite3.connect((data / "opencode.db").as_uri() + "?mode=ro", uri=True)
+    try:
+        rows = connection.execute("SELECT value FROM credential WHERE integration_id = ? AND active = 1",
+                                  ("opencode",)).fetchall()
+    finally:
+        connection.close()
+    if len(rows) != 1:
+        raise ValueError("expected one active OpenCode Console credential; use --config otherwise")
+    credential = json.loads(rows[0][0])
+    if credential["type"] == "oauth":
+        if credential.get("expires", 0) <= time.time() * 1000:
+            raise ValueError("OpenCode login token expired; refresh the connection in OpenCode and retry")
+        token = credential["access"]
+    elif credential["type"] == "key":
+        token = credential["key"]
+    else:
+        raise ValueError("unsupported OpenCode credential type; use --config")
+    env["EVAL_OPENCODE_TOKEN"] = token
+    # Copy only the selected model's runtime definition, never configuration documents.
+    definition = {key: selected[key] for key in
+                  ("modelID", "name", "package", "settings", "capabilities", "limit", "compatibility", "variants", "cost")
+                  if key in selected}
+    definition.setdefault("settings", {})["apiKey"] = "{env:EVAL_OPENCODE_TOKEN}"
+    headers = {}
+    for index, (key, value) in enumerate(selected.get("headers", {}).items()):
+        variable = f"EVAL_OPENCODE_HEADER_{index}"
+        env[variable] = value
+        headers[key] = "{env:" + variable + "}"
+    definition["headers"] = headers
+    resolved = f"{provider}/{selected['id']}" + ("#" + variant if separator else "")
+    return resolved, {"providers": {provider: {"models": {selected["id"]: definition},
+                                               "package": selected["package"],
+                                               "settings": definition["settings"]}}}
+
+
+def prepare_runtime(args, output):
+    config_path = output / "provider.json"
+    env = isolated_env(output, config_path)
+    version = subprocess.run([args.opencode, "--version"], env=env, capture_output=True,
+                             text=True, check=True).stdout.strip()
+    match = re.search(r"(?:^|\s)v?([12])\.\d+\.\d+", version)
+    if not match:
+        raise ValueError(f"unsupported OpenCode version: {version}")
+    major = int(match[1])
+    if args.config:
+        config = opencode_config(Path(args.config), major)
+        # Inherit only variables explicitly referenced by the provider config.
+        for key in re.findall(r"\{env:([A-Z_][A-Z_0-9]*)\}", json.dumps(config)):
+            if key in os.environ:
+                env[key] = os.environ[key]
+    else:
+        if major != 2:
+            raise ValueError("OpenCode v1 requires --config")
+        args.model, provider = local_opencode_config(args.model, env)
+        config = configure_provider(provider, major)
+    write_json(config_path, config)
+    if major == 2:
+        write_json(Path(env["OPENCODE_CONFIG_DIR"]) / "opencode.json", config)
+        # V2 discovers ~/.claude/skills independently of the V1 disable flags.
+        home = output / "profile/home"
+        home.mkdir()
+        env["OPENCODE_TEST_HOME"] = str(home)
+        paths = json.loads(subprocess.run(["go", "env", "-json", "GOMODCACHE", "GOROOT"],
+                                          capture_output=True, text=True, check=True).stdout)
+        env.update({key: value for key, value in paths.items()})
+        env["EVAL_LIBRARY_ROOT"] = str(output / "libraries")
+    if "/" not in args.model:
+        raise ValueError("--model must be provider/model when using --config")
+    env["EVAL_OPENCODE_MODEL"] = args.model.split("#", 1)[0]
+    return env, major, version
+
+
+def worker_profile(env, directory):
+    """Each V2 server has its own session database and tool cache."""
+    directory.mkdir(parents=True)
+    config_path = directory / "provider.json"
+    config = json.loads(Path(env["OPENCODE_CONFIG"]).read_text())
+    write_json(config_path, config)
+    result = dict(env)
+    for key, name in (("XDG_CONFIG_HOME", "config"), ("XDG_DATA_HOME", "data"),
+                      ("XDG_CACHE_HOME", "cache"), ("XDG_STATE_HOME", "state")):
+        target = directory / name
+        target.mkdir()
+        result[key] = str(target)
+    home = directory / "home"
+    home.mkdir()
+    result.update(OPENCODE_CONFIG=str(config_path), OPENCODE_CONFIG_DIR=str(directory / "config/opencode"),
+                  OPENCODE_TEST_HOME=str(home), GOCACHE=str(directory / "go-cache"),
+                  GOPATH=str(directory / "go"))
+    write_json(Path(result["OPENCODE_CONFIG_DIR"]) / "opencode.json", config)
+    return result
+
+
+def sandbox_command(binary, cwd, profile, env):
+    """Expose no checkout, evaluator artifacts, other attempts, or real home directory."""
+    bubblewrap = shutil.which("bwrap")
+    if not bubblewrap:
+        raise ValueError("OpenCode v2 eval requires bubblewrap (bwrap) for filesystem isolation")
+    arguments = [bubblewrap, "--unshare-user", "--unshare-pid", "--die-with-parent", "--new-session"]
+    roots = [Path(p) for p in ("/usr", "/bin", "/lib", "/lib64") if Path(p).exists()]
+    for root in roots:
+        arguments += ["--ro-bind", str(root), str(root)]
+    for name in ("/etc/ssl", "/etc/resolv.conf", "/etc/hosts", "/etc/nsswitch.conf", "/etc/passwd", "/etc/group"):
+        if Path(name).exists():
+            arguments += ["--ro-bind", name, name]
+    arguments += ["--proc", "/proc", "--dev", "/dev", "--tmpfs", "/tmp"]
+    executable = Path(shutil.which(binary) or binary).resolve()
+    readonly = [executable, Path(env["GOMODCACHE"]), Path(env["GOROOT"]), Path(env["EVAL_LIBRARY_ROOT"])]
+    for key in ("SSL_CERT_FILE", "NODE_EXTRA_CA_CERTS"):
+        if env.get(key):
+            readonly.append(Path(env[key]))
+    for path in readonly:
+        if path.exists() and not any(path.is_relative_to(root) for root in roots):
+            arguments += ["--ro-bind", str(path), str(path)]
+    for path in (cwd, profile):
+        arguments += ["--bind", str(path), str(path)]
+    return arguments + ["--chdir", str(cwd), "--", str(executable)]
+
+
+@contextmanager
+def v2_server(binary, cwd, log, env):
+    """Wait for asynchronous catalogs and own the server for this operation only."""
+    log.parent.mkdir(parents=True, exist_ok=True)
+    password = secrets.token_urlsafe(32)
+    profile = log.with_suffix(".profile")
+    server_env = {**worker_profile(env, profile), "OPENCODE_SERVER_PASSWORD": password, "PWD": str(cwd)}
+    with socket.socket() as listener:
+        listener.bind(("127.0.0.1", 0))
+        port = listener.getsockname()[1]
+    url = f"http://127.0.0.1:{port}"
+    authorization = base64.b64encode(("opencode:" + password).encode()).decode()
+    query = urllib.parse.urlencode({"location[directory]": str(cwd)})
+    request = urllib.request.Request(url + "/api/model?" + query,
+                                     headers={"Authorization": "Basic " + authorization})
+    with log.open("w") as stream:
+        process = subprocess.Popen(sandbox_command(binary, cwd, profile, server_env) +
+                                   ["serve", "--hostname", "127.0.0.1", "--port", str(port)],
+                                   cwd=cwd, env=server_env, stdout=stream, stderr=stream, start_new_session=True)
+        try:
+            deadline = time.monotonic() + 45
+            while time.monotonic() < deadline and process.poll() is None:
+                try:
+                    with urllib.request.urlopen(request, timeout=3) as response:
+                        models = json.load(response)["data"]
+                    if any(f"{m['providerID']}/{m['id']}" == env["EVAL_OPENCODE_MODEL"] for m in models):
+                        break
+                except (OSError, ValueError, KeyError):
+                    pass
+                time.sleep(0.25)
+            else:
+                raise ValueError(f"v2 model catalog did not become ready; see {log}; no fallback")
+            yield url, server_env
+        finally:
+            if process.poll() is None:
+                os.killpg(process.pid, signal.SIGTERM)
+                try:
+                    process.wait(timeout=3)
+                except subprocess.TimeoutExpired:
+                    os.killpg(process.pid, signal.SIGKILL)
+                    process.wait()
+
+
+def opencode_command(binary, arguments, cwd, log, env, major, timeout=180):
+    # V2's run command prefers PWD over process.cwd(), even with --server.
+    env = {**env, "PWD": str(cwd)}
+    if major == 1:
+        return command([binary, "--pure"] + arguments, cwd, log, env, timeout)
+    with v2_server(binary, cwd, log.with_suffix(".server.log"), env) as (url, server_env):
+        result = command([binary, arguments[0], "--server", url] + arguments[1:], cwd, log, server_env, timeout)
+        if arguments[0] == "run" and result["status"] == "completed":
+            result["completion"] = v2_completion(log, cwd, Path(server_env["XDG_DATA_HOME"]) / "opencode/opencode.db")
+        return result
+
+
+def discover(binary, cwd, output, env, expected, major=1):
     log = output / "discovery.json"
-    result = command([binary, "--pure", "debug", "skill"], cwd, log, env)
+    arguments = (["api", "GET", "/api/skill?" +
+                  urllib.parse.urlencode({"location[directory]": str(cwd)})] if major == 2
+                 else ["debug", "skill"])
+    result = opencode_command(binary, arguments, cwd, log, env, major)
     if result["status"] != "completed":
         raise ValueError(f"cannot inspect available skills; see {log}")
     try:
         entries = json.loads(log.read_text())
-        names = sorted(entry["name"] for entry in entries)
+        if major == 2:
+            entries = entries["data"]
+            builtins = {"opencode": "/builtin/opencode.md", "report": "/builtin/report.md"}
+            names = sorted(entry["id"] for entry in entries
+                           if builtins.get(entry["id"]) != entry["path"])
+        else:
+            names = sorted(entry["name"] for entry in entries)
     except (ValueError, KeyError, TypeError) as exc:
         raise ValueError(f"unsupported OpenCode skill discovery output: {log}") from exc
     if names != expected:
         raise ValueError(f"unexpected skills {names}; expected {expected}. Use a clean environment.")
 
 
-def model_preflight(args, output, env):
+def model_preflight(args, output, env, major=1):
     catalog = output / "models.txt"
-    status = command([args.opencode, "--pure", "models", args.model.split("/", 1)[0]], output, catalog, env)
-    if status["status"] != "completed" or args.model not in catalog.read_text().splitlines():
+    arguments = ["models"] if major == 2 else ["models", args.model.split("/", 1)[0]]
+    status = opencode_command(args.opencode, arguments, output, catalog, env, major)
+    if status["status"] != "completed" or args.model.split("#", 1)[0] not in catalog.read_text().splitlines():
         raise ValueError(f"requested model unavailable: {args.model}; see {catalog}; no fallback")
 
 
 def doctor(args):
-    if "/" not in args.model:
-        raise ValueError("--model must be the exact provider/model ID")
-    config = opencode_config(Path(args.config))
     output = new_output(args.output)
-    config_path = output / "provider.json"
-    write_json(config_path, config)
-    env = isolated_env(output, config_path)
-    model_preflight(args, output, env)
+    env, major, version = prepare_runtime(args, output)
+    model_preflight(args, output, env, major)
     for variant in ("without", "with"):
         directory = output / variant
         directory.mkdir()
@@ -383,8 +677,9 @@ def doctor(args):
         if variant == "with":
             shutil.copytree(SKILL, directory / ".opencode/skills/muonsoft-validation")
         discover(args.opencode, directory, output / (variant + "-logs"), env,
-                 ["muonsoft-validation"] if variant == "with" else [])
-    write_json(output / "doctor.json", {"model": args.model, "discovery": "passed", "inference_requests": 0})
+                 ["muonsoft-validation"] if variant == "with" else [], major)
+    write_json(output / "doctor.json", {"model": args.model, "opencode_version": version,
+                                        "discovery": "passed", "inference_requests": 0})
     print("Model ID and isolated skill discovery verified; no inference requests made.")
     return 0
 
@@ -401,23 +696,18 @@ def provenance(snapshots):
 
 
 def run(args):
-    if not args.model or "/" not in args.model:
-        raise ValueError("--model must be the exact provider/model ID for the requested model")
-    config = opencode_config(Path(args.config))
     selected = [case for case in cases() if (not args.case or case["id"] in args.case)
                 and (args.profile == "full" or case["smoke"] or args.case)]
     if args.case and set(args.case) - {case["id"] for case in selected}:
         raise ValueError("unknown case ID")
     output = new_output(args.output)
-    config_path = output / "provider.json"
-    write_json(config_path, config)
-    env = isolated_env(output, config_path)
-    model_preflight(args, output, env)
+    env, major, version = prepare_runtime(args, output)
+    model_preflight(args, output, env, major)
     snapshots = library_snapshots(output)
     manifest = provenance(snapshots)
     manifest.update(model=args.model, profile=args.profile, timeout=args.timeout,
                     repeats=1 if args.profile == "smoke" else 3, attempts=[], status="running",
-                    opencode_version=subprocess.run([args.opencode, "--version"], capture_output=True, text=True, check=True).stdout.strip())
+                    opencode_version=version)
     write_json(output / "run.json", manifest)
     try:
         for case in selected:
@@ -436,15 +726,19 @@ def run(args):
                     subprocess.run(["git", "init", "-q", str(src)], check=True)
                     if variant == "with":
                         shutil.copytree(SKILL, src / ".opencode/skills/muonsoft-validation")
-                    discover(args.opencode, src, directory, env, ["muonsoft-validation"] if variant == "with" else [])
+                    discover(args.opencode, src, directory, env, ["muonsoft-validation"] if variant == "with" else [], major)
                     before = files_digest(src)
                     prompt = (HERE / "testdata" / case["id"] / "prompt.md").read_text()
                     (directory / "prompt.md").write_text(prompt)
                     attempt["status"] = "running"
                     write_json(output / "run.json", manifest)
-                    result = command([args.opencode, "--pure", "run", "--agent", "build", "--model", args.model,
-                                      "--format", "json", prompt], src, directory / "events.jsonl", env, args.timeout)
-                    events = events_result(directory / "events.jsonl")
+                    result = opencode_command(args.opencode, ["run", "--agent", "build", "--model", args.model,
+                                              "--format", "json", prompt], src, directory / "events.jsonl",
+                                              env, major, args.timeout)
+                    completion = result.get("completion")
+                    if completion is not None:
+                        write_json(directory / "completion.json", completion)
+                    events = events_result(directory / "events.jsonl", completion)
                     attempt.update(result)
                     attempt["events"] = events
                     if attempt["status"] == "completed" and not events["complete"]:
@@ -585,12 +879,12 @@ def main():
     preflight = commands.add_parser("doctor", help="inspect exact model and isolated skill discovery; no inference")
     preflight.add_argument("--output", required=True)
     preflight.add_argument("--model", required=True)
-    preflight.add_argument("--config", required=True)
+    preflight.add_argument("--config", help="provider-only JSON; omit on v2 to reuse the local Console connection")
     preflight.add_argument("--opencode", default="opencode")
     runner = commands.add_parser("run", help="manually execute paired OpenCode evals")
     runner.add_argument("--output", required=True)
     runner.add_argument("--model", required=True)
-    runner.add_argument("--config", required=True, help="provider-only JSON config using environment credentials")
+    runner.add_argument("--config", help="provider-only JSON; omit on v2 to reuse the local Console connection")
     runner.add_argument("--opencode", default="opencode")
     runner.add_argument("--profile", choices=("smoke", "full"), default="smoke")
     runner.add_argument("--case", action="append")

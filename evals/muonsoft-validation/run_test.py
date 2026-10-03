@@ -9,10 +9,12 @@ import json
 import os
 from pathlib import Path
 import signal
+import sqlite3
 import sys
 import tempfile
+import time
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 SPEC = importlib.util.spec_from_file_location("runner", Path(__file__).with_name("run.py"))
 runner = importlib.util.module_from_spec(SPEC)
@@ -101,6 +103,26 @@ class RunnerTests(unittest.TestCase):
         config.write_text(json.dumps({"provider": {"p": {"options": {"apiKey": "{env:EVAL_KEY}"}}}}))
         self.assertEqual(runner.opencode_config(config)["share"], "disabled")
 
+    def test_worker_environment_excludes_unrelated_secrets_and_startup_hooks(self):
+        unwanted = {"UNRELATED_API_KEY": "private-key", "AGENTMEM_MCP_KEY": "private-key",
+                    "CURSOR_API_KEY": "private-key", "BASH_ENV": "/private/startup.sh",
+                    "PYTHONPATH": "/private/modules", "LD_PRELOAD": "/private/hook.so"}
+        with patch.dict(os.environ, unwanted):
+            env = runner.isolated_env(self.root, self.root / "provider.json")
+        self.assertFalse(set(unwanted) & env.keys())
+        self.assertEqual(env["PATH"], os.environ["PATH"])
+
+    def test_provider_config_inherits_only_referenced_environment_credentials(self):
+        config = self.root / "input.json"
+        config.write_text('{"provider":{"fixture":{"options":{"apiKey":"{env:EVAL_KEY}"}}}}')
+        args = argparse.Namespace(opencode=self.fake_opencode(), config=str(config), model="fixture/model")
+        with patch.dict(os.environ, {"EVAL_KEY": "requested-secret", "OTHER_API_KEY": "unrelated-secret"}):
+            env, major, _ = runner.prepare_runtime(args, self.root / "output")
+        self.assertEqual(major, 1)
+        self.assertEqual(env["EVAL_KEY"], "requested-secret")
+        self.assertNotIn("OTHER_API_KEY", env)
+        self.assertNotIn("requested-secret", (self.root / "output/provider.json").read_text())
+
     def test_symlink_submission_rejected(self):
         (self.root / "solution.go").symlink_to(self.root.parent / "outside.go")
         with self.assertRaises(ValueError):
@@ -113,24 +135,176 @@ class RunnerTests(unittest.TestCase):
         with self.assertRaises(FileExistsError):
             runner.new_output(self.root)
 
-    def fake_opencode(self):
+    def fake_opencode(self, major=1):
         executable = self.root / "fake-opencode"
         executable.write_text('''#!/usr/bin/env python3
-import json, pathlib, sys
+import json, os, pathlib, sys
 args=sys.argv[1:]
 with_skill=pathlib.Path('.opencode/skills/muonsoft-validation/SKILL.md').exists()
-if '--version' in args: print('fake-no-model')
+if '--version' in args: print('opencode vVERSION.0.0')
 elif 'models' in args: print('fixture/model')
 elif 'debug' in args: print(json.dumps([{'name':'muonsoft-validation'}] if with_skill else []))
+elif 'api' in args:
+    assert '--server' in args and '--pure' not in args
+    print(json.dumps({'data':[{'id':'opencode','path':'/builtin/opencode.md'}, {'id':'report','path':'/builtin/report.md'}] + ([{'id':'muonsoft-validation','path':str(pathlib.Path('.opencode/skills/muonsoft-validation/SKILL.md').resolve())}] if with_skill else [])}))
 elif 'run' in args:
+    assert os.environ['PWD'] == str(pathlib.Path.cwd())
+    if 'VERSION' == '2': assert '--server' in args and '--pure' not in args
     if with_skill:
         pathlib.Path('solution.go').write_text('package scenario\\n// simulated worker change\\n')
         print(json.dumps({'type':'tool_use','part':{'tool':'skill','state':{'status':'completed','input':{'name':'muonsoft-validation'}}}}))
     print(json.dumps({'type':'step_finish','part':{'reason':'stop'}}))
 else: sys.exit(3)
-''')
+'''.replace('VERSION', str(major)))
         executable.chmod(0o755)
         return str(executable)
+
+    def test_v2_doctor_and_native_credentials(self):
+        config = self.root / "provider.json"
+        config.write_text('{"providers":{"fixture":{"settings":{"apiKey":"{env:EVAL_KEY}"}}}}')
+        args = argparse.Namespace(model="fixture/model", config=str(config), output=str(self.root / "doctor"),
+                                  opencode=self.fake_opencode(2))
+        with patch.object(runner, 'v2_server', return_value=contextlib.nullcontext(('http://127.0.0.1:1234', {}))), contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(runner.doctor(args), 0)
+        data = json.loads((Path(args.output) / "doctor.json").read_text())
+        self.assertEqual(data["opencode_version"], "opencode v2.0.0")
+        self.assertEqual(data["inference_requests"], 0)
+        native = runner.opencode_config(config, 2)
+        self.assertEqual(native["permissions"][0]["effect"], "deny")
+        self.assertNotIn("permission", native)
+        config.write_text('{"providers":{"fixture":{"models":{"m":{"settings":{"apiKey":"secret"}}}}}}')
+        with self.assertRaises(ValueError):
+            runner.opencode_config(config, 2)
+
+    def test_v2_skill_evidence_uses_id_and_completed_state(self):
+        log = self.root / "events.jsonl"
+        tool = {"type": "tool_use", "part": {"tool": "skill", "state": {"status": "completed", "input": {"id": "muonsoft-validation"}}}}
+        finish = {"type": "step_finish", "part": {"reason": "stop"}}
+        log.write_text(json.dumps(tool) + '\n' + json.dumps(finish))
+        self.assertEqual(runner.events_result(log)["skill_loading"], "observed")
+        tool["part"]["state"]["status"] = "error"
+        log.write_text(json.dumps(tool) + '\n' + json.dumps(finish))
+        self.assertEqual(runner.events_result(log)["skill_loading"], "not_observed")
+
+    def test_v2_paired_run_and_report_without_a_model(self):
+        fake = self.fake_opencode
+        with patch.object(self, 'fake_opencode', side_effect=lambda: fake(2)), patch.object(
+                runner, 'v2_server', side_effect=lambda *args: contextlib.nullcontext(('http://127.0.0.1:1234', args[-1]))), patch.object(
+                runner, 'v2_completion', return_value={'verified': True}):
+            self.test_paired_run_and_report_without_a_model()
+
+    def test_v2_completion_requires_matching_workspace_and_final_text(self):
+        database = self.root / 'opencode.db'
+        db = sqlite3.connect(database)
+        db.execute('CREATE TABLE session_v2 (id TEXT, directory TEXT, idle_outcome TEXT, time_idle INTEGER)')
+        db.execute('CREATE TABLE session_message (id TEXT, session_id TEXT, type TEXT, seq INTEGER, data TEXT)')
+        db.execute('INSERT INTO session_v2 VALUES (?, ?, ?, ?)', ('ses_fixture', str(self.root), 'succeeded', 2))
+        final = {'content': [{'type': 'text', 'text': 'Done.'}], 'time': {'completed': 2}, 'finish': 'stop', 'tokens': {'input': 10, 'output': 5}}
+        db.execute('INSERT INTO session_message VALUES (?, ?, ?, ?, ?)', ('msg_fixture', 'ses_fixture', 'assistant', 1, json.dumps(final)))
+        db.commit()
+        db.close()
+        log = self.root / 'events.jsonl'
+        event = {'type': 'text', 'sessionID': 'ses_fixture', 'part': {'messageID': 'msg_fixture', 'text': 'Done.'}}
+        log.write_text(json.dumps(event))
+        self.assertFalse(runner.events_result(log)['complete'])
+        completion = runner.v2_completion(log, self.root, database)
+        self.assertTrue(completion['verified'])
+        self.assertTrue(runner.events_result(log, completion)['complete'])
+        self.assertEqual(runner.events_result(log, completion)['reported_usage'][0]['tokens']['output'], 5)
+        self.assertFalse(runner.v2_completion(log, self.root / 'wrong', database)['verified'])
+        event['part']['text'] = 'Do'
+        log.write_text(json.dumps(event))
+        self.assertFalse(runner.v2_completion(log, self.root, database)['verified'])
+        log.write_text(json.dumps({'type': 'step_finish', 'part': {'reason': 'stop'}}))
+        self.assertFalse(runner.events_result(log, {'verified': False})['complete'])
+
+    def test_invalid_auto_config_is_not_written(self):
+        args = argparse.Namespace(opencode=self.fake_opencode(2), config=None, model='fixture/model')
+        provider = {'providers': {'fixture': {'settings': {'authToken': 'secret'}}}}
+        with patch.object(runner, 'local_opencode_config', return_value=('fixture/model', provider)):
+            with self.assertRaises(ValueError):
+                runner.prepare_runtime(args, self.root)
+        self.assertFalse((self.root / 'provider.json').exists())
+
+    def test_v2_server_waits_for_model_and_stops_on_worker_failure(self):
+        process = Mock(pid=123456)
+        process.poll.return_value = None
+        listener = Mock()
+        listener.getsockname.return_value = ('127.0.0.1', 1234)
+        replies = [io.BytesIO(b'{"data":[]}'), io.BytesIO(b'{"data":[{"providerID":"fixture","id":"model"}]}')]
+        with patch.object(runner.socket, 'socket') as socket_factory, patch.object(
+                runner.subprocess, 'Popen', return_value=process), patch.object(
+                runner.urllib.request, 'urlopen', side_effect=replies) as request, patch.object(
+                runner.time, 'sleep'), patch.object(runner.os, 'killpg') as kill, patch.object(
+                runner, 'worker_profile', side_effect=lambda env, directory: dict(env)), patch.object(
+                runner, 'sandbox_command', return_value=['opencode']):
+            socket_factory.return_value.__enter__.return_value = listener
+            with self.assertRaisesRegex(RuntimeError, 'worker failure'):
+                with runner.v2_server('opencode', self.root, self.root / 'server.log',
+                                      {'EVAL_OPENCODE_MODEL': 'fixture/model'}) as (url, env):
+                    self.assertEqual(url, 'http://127.0.0.1:1234')
+                    self.assertTrue(env['OPENCODE_SERVER_PASSWORD'])
+                    raise RuntimeError('worker failure')
+            self.assertEqual(request.call_count, 2)
+            kill.assert_called_once_with(process.pid, signal.SIGTERM)
+            process.wait.assert_called_once_with(timeout=3)
+
+    def test_v2_profiles_do_not_copy_sessions_or_share_tool_caches(self):
+        config = self.root / 'provider.json'
+        config.write_text('{"providers":{"fixture":{}}}')
+        env = runner.isolated_env(self.root, config)
+        database = Path(env['XDG_DATA_HOME']) / 'opencode/opencode.db'
+        database.parent.mkdir()
+        database.write_text('previous session contents')
+        first = runner.worker_profile(env, self.root / 'first')
+        second = runner.worker_profile(env, self.root / 'second')
+        self.assertNotEqual(first['XDG_DATA_HOME'], second['XDG_DATA_HOME'])
+        self.assertNotEqual(first['GOCACHE'], second['GOCACHE'])
+        self.assertFalse((Path(first['XDG_DATA_HOME']) / 'opencode/opencode.db').exists())
+        self.assertEqual(first['HOME'], os.environ['HOME'])
+
+    def test_v2_sandbox_does_not_bind_checkout_or_sibling_attempts(self):
+        workspace, profile, library, modules = [self.root / name for name in ('workspace', 'profile', 'libraries', 'modules')]
+        for path in (workspace, profile, library, modules):
+            path.mkdir()
+        env = {'GOMODCACHE': str(modules), 'GOROOT': '/usr/local/go', 'EVAL_LIBRARY_ROOT': str(library)}
+        with patch.object(runner.shutil, 'which', side_effect=lambda name: '/usr/bin/' + name):
+            argv = runner.sandbox_command('opencode', workspace, profile, env)
+        writable = [argv[i + 1] for i, value in enumerate(argv) if value == '--bind']
+        self.assertEqual(writable, [str(workspace), str(profile)])
+        self.assertNotIn(str(runner.ROOT), argv)
+        self.assertNotIn(str(self.root), argv)
+        self.assertIn('--unshare-pid', argv)
+
+    def test_existing_console_login_keeps_secrets_out_of_config(self):
+        state, data = self.root / "state/opencode", self.root / "data/opencode"
+        state.mkdir(parents=True)
+        data.mkdir(parents=True)
+        (state / "service.json").write_text('{"url":"http://127.0.0.1:1234","password":"local-secret"}')
+        (state / "model.json").write_text('{"recent":[{"providerID":"opencode-go","modelID":"deepseek-v4.1-flash"}]}')
+        db = sqlite3.connect(data / "opencode.db")
+        db.execute('CREATE TABLE credential (integration_id TEXT, active INTEGER, value TEXT)')
+        credential = {"type": "oauth", "access": "test-secret", "expires": (time.time() + 3600) * 1000}
+        db.execute('INSERT INTO credential VALUES (?, ?, ?)', ('opencode', 1, json.dumps(credential)))
+        db.commit()
+        db.close()
+        models = [{"id": "deepseek-v4.1-flash", "modelID": "deepseek-v4.1-flash", "providerID": p,
+                   "enabled": True, "package": "@opencode/ai/providers/openai-compatible",
+                   "headers": {"x-opencode-org-id": "private-org"}, "settings": {"baseURL": "https://example.invalid"}}
+                  for p in ('opencode', 'opencode-go')]
+        response = json.dumps({"data": models}).encode()
+        environment = {"XDG_STATE_HOME": str(state.parent), "XDG_DATA_HOME": str(data.parent)}
+        with patch.dict(os.environ, environment), patch.object(runner.urllib.request, 'urlopen', return_value=io.BytesIO(response)):
+            env = {}
+            model, config = runner.local_opencode_config('deepseek-v4.1-flash', env)
+        self.assertEqual(model, 'opencode-go/deepseek-v4.1-flash')
+        self.assertEqual(env['EVAL_OPENCODE_TOKEN'], 'test-secret')
+        self.assertNotIn('test-secret', json.dumps(config))
+        self.assertNotIn('private-org', json.dumps(config))
+        self.assertNotIn('local-secret', json.dumps(config))
+        with patch.dict(os.environ, environment), patch.object(runner.urllib.request, 'urlopen', return_value=io.BytesIO(response)):
+            with self.assertRaisesRegex(ValueError, 'no fallback'):
+                runner.local_opencode_config('missing-model', {})
 
     def test_paired_run_and_report_without_a_model(self):
         binary = self.fake_opencode()
