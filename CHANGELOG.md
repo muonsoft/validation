@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Show the Scrutinizer test coverage badge in the README next to the code quality badge.
+
 - Reorganize the documentation around a shorter quick start and constraint catalog; correct API examples, validation groups, translations, and release instructions.
 
 - CI and local lint use golangci-lint `v2.13.2` (`gomodguard_v2`); `goconst` disabled in `.golangci.yml`.
