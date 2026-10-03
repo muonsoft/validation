@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-10-03
+
 ### Added
 
 - Add file upload validation with `it.IsFileName`, optional Windows restrictions, `it.HasFileExtension`, `it.IsMIMEType`, and `it.HasContentType`, matching `validate` helpers, and replaceable content detection. See [file uploads](docs/file-uploads.md).
