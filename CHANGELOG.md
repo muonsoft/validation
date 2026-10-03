@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add the installable `muonsoft-validation` agent skill with practical entity/DTO validation patterns, portable examples, and a manual evaluation workflow.
+
 - Add file upload checks with `it.IsFileName`, optional Windows restrictions, `it.HasFileExtension`, `it.IsMIMEType`, and `it.HasContentType`, matching `validate` helpers, replaceable content detection, English/Russian messages, and upload examples. No new dependencies.
 
 - Add `it.HasPasswordStrength`, `validate.PasswordStrength`, and `validate.EstimatePasswordStrength` using Symfony 8.0’s byte-based heuristic, configurable minimum scores and estimators, and English/Russian messages. Empty passwords are evaluated; passwords are not automatically included in violations. No new dependencies.
