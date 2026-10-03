@@ -29,6 +29,20 @@ The library is in the v0 series. Minor releases (`0.x.0`) may introduce breaking
 changes; patch releases contain bug fixes. Review the [changelog](CHANGELOG.md)
 before upgrading.
 
+## Agent skill
+
+Install the [muonsoft-validation skill](skills/muonsoft-validation/SKILL.md) in a
+project to guide coding agents through entity/DTO validation, nested collections,
+dependent checks, and application tests:
+
+```bash
+npx skills add muonsoft/validation --skill muonsoft-validation
+```
+
+The skill includes portable examples checked against v0.19.0 and the current
+library code. Maintainers can run [manual skill evaluations](evals/muonsoft-validation/README.md)
+using Codex as orchestrator and OpenCode as the coding agent.
+
 ## Quick start
 
 ### Installation
