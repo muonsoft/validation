@@ -6,9 +6,11 @@ import base64
 from collections import Counter
 from contextlib import contextmanager
 import difflib
+import fcntl
 import hashlib
 import io
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -17,6 +19,7 @@ import shutil
 import signal
 import socket
 import sqlite3
+import statistics
 import subprocess
 import sys
 import tarfile
@@ -203,6 +206,7 @@ def grade(case, source, output, snapshots, env):
 def events_result(path, completion=None):
     parsed, malformed, stopped, errors = 0, 0, False, []
     evidence, usage = [], []
+    step_ids = set()
     for number, line in enumerate(path.read_text().splitlines(), 1):
         if not line.strip():
             continue
@@ -222,8 +226,13 @@ def events_result(path, completion=None):
             continue
         if event.get("type") == "step_finish":
             stopped = part.get("reason") == "stop"
-            if "tokens" in part or "cost" in part:
-                usage.append({key: part[key] for key in ("tokens", "cost") if key in part})
+            step_id = part.get("id")
+            if step_id is not None:
+                if step_id in step_ids:
+                    errors.append(number)
+                step_ids.add(step_id)
+            # Retain a placeholder when a finished step omitted usage.
+            usage.append({key: part[key] for key in ("tokens", "cost") if key in part})
         state = part.get("state") or {}
         if not isinstance(state, dict):
             continue
@@ -236,7 +245,7 @@ def events_result(path, completion=None):
             evidence.append(number)
     if completion is not None:
         stopped = completion.get("verified") is True
-        if stopped and not completion.get("finish_logged") and any(key in completion for key in ("tokens", "cost")):
+        if stopped and not completion.get("finish_logged"):
             usage.append({key: completion[key] for key in ("tokens", "cost") if key in completion})
     return {"complete": bool(parsed and stopped and not malformed and not errors),
             "malformed_lines": malformed, "error_lines": errors,
@@ -695,19 +704,154 @@ def provenance(snapshots):
             "go_version": subprocess.run(["go", "version"], capture_output=True, text=True, check=True).stdout.strip()}
 
 
+TOKEN_KEYS = ("input", "output", "reasoning", "cache_read", "cache_write")
+
+
+def token_usage(attempt):
+    """Missing counters are unknown, including on otherwise successful attempts."""
+    records = attempt.get("events", {}).get("reported_usage", [])
+    totals = dict.fromkeys(TOKEN_KEYS, 0)
+    known = dict.fromkeys(TOKEN_KEYS, bool(records))
+    for record in records:
+        tokens = record.get("tokens") or {}
+        cache = tokens.get("cache") or {}
+        values = {**{key: tokens.get(key) for key in TOKEN_KEYS[:3]},
+                  "cache_read": cache.get("read"), "cache_write": cache.get("write")}
+        for key, value in values.items():
+            if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
+                known[key] = False
+            else:
+                totals[key] += value
+    totals = {key: value if known[key] else None for key, value in totals.items()}
+    for key, components in (("uncached_plus_generated", TOKEN_KEYS[:3]), ("all_categories", TOKEN_KEYS)):
+        totals[key] = sum(totals[k] for k in components) if all(known[k] for k in components) else None
+    return {"complete": attempt.get("events", {}).get("complete") is True and all(known.values()),
+            "records": len(records), "tokens": totals}
+
+
+def token_comparison(attempts):
+    """Compare only matched, graded pairs with complete normalized usage."""
+    pairs, excluded, matched = {}, [], []
+    usage = {a["id"]: token_usage(a) for a in attempts}
+    for attempt in attempts:
+        pair = pairs.setdefault((attempt["case"], attempt["repeat"]), {})
+        if attempt["variant"] in pair:
+            raise ValueError("duplicate case/repeat/variant in token comparison")
+        pair[attempt["variant"]] = attempt
+    for (case, repeat), pair in pairs.items():
+        if set(pair) != {"with", "without"} or any(
+                set(a.get("grades", {})) != {"v0.19.0", "current"} or a["status"] != "completed"
+                or not usage[a["id"]]["complete"] for a in pair.values()):
+            excluded.append({"case": case, "repeat": repeat, "reason": "missing graded variant or complete usage"})
+        else:
+            matched.append(pair)
+
+    def summarize(group):
+        keys = (*TOKEN_KEYS, "uncached_plus_generated", "all_categories")
+        totals = {variant: {key: sum(usage[pair[variant]["id"]]["tokens"][key] for pair in group)
+                            for key in keys} for variant in ("without", "with")}
+        changes = {key: 100 * (totals["with"][key] / totals["without"][key] - 1)
+                   if totals["without"][key] else None for key in keys}
+        percent = [100 * (usage[pair["with"]["id"]]["tokens"]["all_categories"] /
+                         usage[pair["without"]["id"]]["tokens"]["all_categories"] - 1)
+                   for pair in group if usage[pair["without"]["id"]]["tokens"]["all_categories"]]
+        return {"pairs": len(group), "totals": totals, "change_percent": changes,
+                "median_per_attempt": {variant: statistics.median(
+                    usage[pair[variant]["id"]]["tokens"]["all_categories"] for pair in group) if group else None
+                    for variant in ("without", "with")},
+                "median_paired_percent_change": statistics.median(percent) if percent else None,
+                "pairs_with_fewer_tokens": sum(usage[pair["with"]["id"]]["tokens"]["all_categories"] <
+                                               usage[pair["without"]["id"]]["tokens"]["all_categories"] for pair in group)}
+
+    return {"method": "Normalized per-step counters; verified final completion is included only if not logged. "
+                       "Matched graded pairs only; failed tests included, execution failures excluded symmetrically. "
+                       "Missing usage is unknown. Token volume is not currency cost.",
+            "matched": summarize(matched), "excluded_pairs": excluded,
+            "by_case": {case: summarize([p for p in matched if p["with"]["case"] == case])
+                        for case in sorted({a["case"] for a in attempts})},
+            "matched_applicable": summarize([p for p in matched if p["with"]["should_trigger"]]),
+            "matched_both_passed": summarize([p for p in matched if all(
+                g["passed"] for a in p.values() for g in a["grades"].values())]),
+            "attempts": usage}
+
+
+@contextmanager
+def run_lock(path, create=False):
+    """A separate inode survives atomic manifest replacement and process death."""
+    with path.open("a" if create else "r") as stream:
+        try:
+            fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            raise ValueError("run is active or already being continued") from exc
+        try:
+            yield
+        finally:
+            fcntl.flock(stream, fcntl.LOCK_UN)
+
+
+def inherit_run(source, output, manifest):
+    """Carry attempts forward without rewriting or retrying their artifacts."""
+    raw = (source / "run.json").read_bytes()
+    previous = json.loads(raw)
+    keys = ("skill_sha256", "suite_sha256", "runner_sha256", "cases_sha256", "go_version",
+            "model", "profile", "timeout", "repeats", "opencode_version", "config_sha256", "selected_cases")
+    for key in keys:
+        if key not in previous or previous[key] != manifest[key]:
+            raise ValueError(f"cannot resume: {key} differs or is absent")
+    if {k: v["sha256"] for k, v in previous["libraries"].items()} != {
+            k: v["sha256"] for k, v in manifest["libraries"].items()}:
+        raise ValueError("cannot resume: library snapshots differ")
+    expected = {f"{case}-{variant}-{repeat}" for case in manifest["selected_cases"]
+                for variant in ("without", "with") for repeat in range(1, manifest["repeats"] + 1)}
+    seen = set()
+    for attempt in previous["attempts"]:
+        identifier = attempt["id"]
+        if (identifier not in expected or identifier in seen or identifier !=
+                f"{attempt['case']}-{attempt['variant']}-{attempt['repeat']}"):
+            raise ValueError("cannot resume: unexpected or duplicate attempt")
+        if not (source / "attempts" / identifier).is_dir():
+            raise ValueError(f"cannot resume: missing artifacts for {identifier}")
+        seen.add(identifier)
+    (output / "attempts").mkdir()
+    for attempt in previous["attempts"]:
+        identifier = attempt["id"]
+        (output / "attempts" / identifier).symlink_to((source / "attempts" / identifier).resolve(), target_is_directory=True)
+        if attempt["status"] in ("running", "preparing"):
+            attempt["status"] = "interrupted"
+        manifest["attempts"].append(attempt)
+    manifest["continuation"] = {"source": str(source), "source_manifest_sha256": digest(raw),
+                                "inherited_attempts": sorted(seen), "policy": "recorded attempts are never retried"}
+    if (source / "review.json").is_file():
+        shutil.copyfile(source / "review.json", output / "review.json")
+    return seen
+
+
 def run(args):
+    output = new_output(args.output)
+    source = Path(args.resume).expanduser().resolve() if getattr(args, "resume", None) else None
+    with run_lock(output / "runner.lock", create=True):
+        if source is not None:
+            with run_lock(source / "runner.lock"):
+                return run_attempts(args, output, source)
+        return run_attempts(args, output, None)
+
+
+def run_attempts(args, output, source):
     selected = [case for case in cases() if (not args.case or case["id"] in args.case)
                 and (args.profile == "full" or case["smoke"] or args.case)]
     if args.case and set(args.case) - {case["id"] for case in selected}:
         raise ValueError("unknown case ID")
-    output = new_output(args.output)
     env, major, version = prepare_runtime(args, output)
-    model_preflight(args, output, env, major)
     snapshots = library_snapshots(output)
     manifest = provenance(snapshots)
     manifest.update(model=args.model, profile=args.profile, timeout=args.timeout,
                     repeats=1 if args.profile == "smoke" else 3, attempts=[], status="running",
-                    opencode_version=version)
+                    opencode_version=version,
+                    config_sha256=digest((output / "provider.json").read_bytes()),
+                    selected_cases=[case["id"] for case in selected],
+                    case_requirements={case["id"]: case["requirements"] for case in selected})
+    inherited = inherit_run(source, output, manifest) if source else set()
+    model_preflight(args, output, env, major)
     write_json(output / "run.json", manifest)
     try:
         for case in selected:
@@ -716,7 +860,10 @@ def run(args):
                 variants = ("without", "with") if repeat % 2 == 0 else ("with", "without")
                 for variant in variants:
                     identifier = f"{case['id']}-{variant}-{repeat + 1}"
+                    if identifier in inherited:
+                        continue
                     directory = output / "attempts" / identifier
+                    directory.mkdir(parents=True)
                     attempt = {"id": identifier, "case": case["id"], "variant": variant,
                                "repeat": repeat + 1, "should_trigger": case["should_trigger"], "status": "preparing"}
                     manifest["attempts"].append(attempt)
@@ -776,7 +923,8 @@ def run(args):
         raise
     finally:
         write_json(output / "run.json", manifest)
-        report(output, None)
+        review = output / "review.json"
+        report(output, review if review.is_file() else None)
     return manifest["status"] != "completed"
 
 
@@ -809,7 +957,11 @@ def report(output, review_path):
         for version in ("v0.19.0", "current"):
             g = attempt.get("grades", {}).get(version)
             cells.append(f"{len(g['requirements_passed'])}/{g['requirements_total']} ({g['status']})" if g else "не оценено")
-        lines.append(f"| [{attempt['id']}](attempts/{attempt['id']}/solution.diff) | {attempt['status']} | {' | '.join(cells)} | {attempt.get('events', {}).get('skill_loading', 'unknown')} |")
+        identifier = attempt["id"]
+        artifact = next((name for name in ("solution.diff", "events.jsonl")
+                         if (output / "attempts" / identifier / name).is_file()), None)
+        label = f"[{identifier}](attempts/{identifier}/{artifact})" if artifact else identifier
+        lines.append(f"| {label} | {attempt['status']} | {' | '.join(cells)} | {attempt.get('events', {}).get('skill_loading', 'unknown')} |")
     pairs = {}
     for a in attempts:
         pairs.setdefault((a["case"], a["repeat"]), {})[a["variant"]] = a
@@ -840,10 +992,14 @@ def report(output, review_path):
             summary["by_case"][case_id][variant] = {"requirement_percent_by_repeat": rates, "ungraded": sum("grades" not in a for a in group)}
             lines.append(f"- {case_id}/{variant}: доля пройденных требований по оценённым повторам {rates}; не оценено {sum('grades' not in a for a in group)}.")
     missing = []
-    requirements = {case["id"]: case["requirements"] for case in cases()}
+    requirements = manifest.get("case_requirements")
+    if requirements is None:
+        # Never reinterpret an old run with a changed suite's expectations.
+        requirements = ({case["id"]: case["requirements"] for case in cases()}
+                        if manifest.get("cases_sha256") == digest((HERE / "cases.json").read_bytes()) else {})
     for a in attempts:
         for version, grade_result in a.get("grades", {}).items():
-            failed = [name for name in requirements[a["case"]] if name not in grade_result["requirements_passed"]]
+            failed = [name for name in requirements.get(a["case"], []) if name not in grade_result["requirements_passed"]]
             if failed or not grade_result["passed"]:
                 missing.append({"attempt": a["id"], "version": version, "requirements": failed, "status": grade_result["status"]})
                 lines.append(f"- [{a['id']}/{version}](attempts/{a['id']}/checks/{version}/tests.jsonl): {', '.join(failed) or 'сбой процесса тестирования'}.")
@@ -866,6 +1022,27 @@ def report(output, review_path):
               f"Скилл SHA-256: `{manifest.get('skill_sha256', 'unknown')}`.",
               "Параметры, версии, длительность, токены и стоимость (если переданы OpenCode) сохранены в [run.json](run.json).",
               "", "Результаты относятся к этой модели, конфигурации и выборке. Отсутствие наблюдаемой загрузки скилла не доказывает её наличие или отсутствие.", ""]
+    tokens = token_comparison(attempts)
+    summary["tokens"] = tokens
+    write_json(output / "tokens.json", tokens)
+    matched_tokens = tokens["matched"]
+    lines += ["## Токены", "", f"Полных оценённых пар с известным usage: {matched_tokens['pairs']}.",
+              "Кешированный вход считается отдельно; сумма категорий — объём токенов, не денежная стоимость.",
+              "Ошибки тестов включены; сбои выполнения и неизвестный usage исключены попарно.", "",
+              "| Категория | Без скилла | Со скиллом | Изменение |", "| --- | ---: | ---: | ---: |"]
+    for key in (*TOKEN_KEYS, "uncached_plus_generated", "all_categories"):
+        delta = matched_tokens["change_percent"][key]
+        change = f"{delta:+.1f}%" if delta is not None else "не определено"
+        lines.append(f"| {key} | {matched_tokens['totals']['without'][key]} | {matched_tokens['totals']['with'][key]} | {change} |")
+    lines += ["", f"Медианы объёма на попытку: {matched_tokens['median_per_attempt']}.",
+              f"Пар с меньшим объёмом со скиллом: {matched_tokens['pairs_with_fewer_tokens']}.",
+              f"Исключённые пары: {tokens['excluded_pairs']}.", "",
+              "| Сценарий | Пар | Без скилла | Со скиллом | Изменение |", "| --- | ---: | ---: | ---: | ---: |"]
+    for case, values in tokens["by_case"].items():
+        delta = values["change_percent"]["all_categories"]
+        change = f"{delta:+.1f}%" if delta is not None else "не определено"
+        lines.append(f"| {case} | {values['pairs']} | {values['totals']['without']['all_categories']} | {values['totals']['with']['all_categories']} | {change} |")
+    lines += ["", "Категории, неполный usage и дополнительные срезы: [tokens.json](tokens.json).", ""]
     write_json(output / "results.json", summary)
     (output / "report.md").write_text("\n".join(lines))
     return summary
@@ -888,6 +1065,7 @@ def main():
     runner.add_argument("--opencode", default="opencode")
     runner.add_argument("--profile", choices=("smoke", "full"), default="smoke")
     runner.add_argument("--case", action="append")
+    runner.add_argument("--resume", type=Path, help="continue unstarted attempts from an unchanged run into a new output")
     runner.add_argument("--timeout", type=int, default=900)
     reporter = commands.add_parser("report", help="rebuild report without rerunning agents")
     reporter.add_argument("--run", required=True)

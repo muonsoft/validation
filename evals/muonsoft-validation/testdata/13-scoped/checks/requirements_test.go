@@ -29,8 +29,8 @@ func (l *lookup) Find(ctx context.Context, ids []string) (map[string]bool, error
 func TestBatchIndices(t *testing.T) {
 	l := &lookup{}
 	ctx := t.Context()
-	err := s.CheckReferences(ctx, newValidator(t).AtProperty("input"), []string{"missing", "ok", "other", "missing"}, l)
-	wantViolations(t, err, map[string]error{"input.references[0]": s.ErrMissing, "input.references[2]": s.ErrMissing, "input.references[3]": s.ErrMissing})
+	err := s.CheckMembers(ctx, newValidator(t).AtProperty("team").AtProperty("members"), []string{"missing", "ok", "other", "missing"}, l)
+	wantViolations(t, err, map[string]error{"team.members[0]": s.ErrMissing, "team.members[2]": s.ErrMissing, "team.members[3]": s.ErrMissing})
 	gotIDs := make(map[string]bool)
 	for _, id := range l.ids {
 		gotIDs[id] = true
@@ -45,15 +45,15 @@ func TestBatchIndices(t *testing.T) {
 func TestEmptyAndFound(t *testing.T) {
 	l := &lookup{}
 	v := newValidator(t)
-	wantViolations(t, s.CheckReferences(t.Context(), v, nil, l), nil)
+	wantViolations(t, s.CheckMembers(t.Context(), v, nil, l), nil)
 	if l.calls != 0 {
 		t.Fatal("empty lookup")
 	}
-	wantViolations(t, s.CheckReferences(t.Context(), v, []string{"ok"}, l), nil)
+	wantViolations(t, s.CheckMembers(t.Context(), v, []string{"ok"}, l), nil)
 }
 func TestBatchFailure(t *testing.T) {
 	l := &lookup{err: context.DeadlineExceeded}
-	err := s.CheckReferences(t.Context(), newValidator(t), []string{"x"}, l)
+	err := s.CheckMembers(t.Context(), newValidator(t), []string{"x"}, l)
 	if !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatal(err)
 	}
@@ -63,15 +63,15 @@ func TestBatchFailure(t *testing.T) {
 }
 
 func TestBatchPaths(t *testing.T) {
-	for _, prefix := range []string{"", "request.payload"} {
+	for _, prefix := range []string{"", "teams[2].members"} {
 		t.Run(prefix, func(t *testing.T) {
 			v := newValidator(t)
-			path := "references[1]"
+			path := "[1]"
 			if prefix != "" {
-				v = v.AtProperty("request").AtProperty("payload")
-				path = prefix + "." + path
+				v = v.AtProperty("teams").AtIndex(2).AtProperty("members")
+				path = prefix + path
 			}
-			wantViolations(t, s.CheckReferences(t.Context(), v, []string{"ok", "missing"}, &lookup{}), map[string]error{path: s.ErrMissing})
+			wantViolations(t, s.CheckMembers(t.Context(), v, []string{"ok", "missing"}, &lookup{}), map[string]error{path: s.ErrMissing})
 		})
 	}
 }

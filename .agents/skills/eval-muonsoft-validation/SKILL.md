@@ -22,7 +22,7 @@ module `github.com/muonsoft/validation`, not a fixed machine path, and read the
    V1 and other providers require a provider-only JSON config with environment
    credentials. Never substitute a model; select reasoning variants only when requested.
 2. Use `smoke` unless the user selects `full` or particular cases. Smoke runs four
-   cases × two variants × one repeat; full runs twelve × two × three.
+   cases × two variants × one repeat; full runs fifteen × two × three.
 3. Run `doctor`: model availability and isolated skill discovery, no inference
    request. A failed preflight is an environment issue, not a model score.
 4. On a new suite revision, run `check` and the runner unit tests. They check
@@ -41,7 +41,9 @@ where a worker read hidden tests, references, or another variant's skill.
 
 Do not coach the worker, provide expected answers, edit its solution, or retry an
 attempt invisibly. Cancellation stops further attempts and preserves artifacts.
-A retry uses a new output directory. Never modify the public skill during a
+A retry uses a new output directory. To continue unstarted attempts of an unchanged
+run, use `--resume` with a new output as described in the runbook; recorded attempts
+are preserved and never retried by continuation. Never modify the public skill during a
 measured run or mix revisions in one comparison.
 
 ## Review independently of test scores
@@ -74,6 +76,7 @@ percentages; neither score can conceal a critical failed requirement.
 Run `report --review ...` to combine review JSON with captured results without
 rerunning agents. Give the user links to `report.md`, `results.json`, and
 `run.json`, and explain improvements, regressions, repeat variation, critical
-failures, and missing evidence. A smoke run checks the workflow, not a statistical
+failures, missing evidence, and paired token volume from `tokens.json`. Distinguish
+cache reads from other counters and token volume from monetary cost. A smoke run checks the workflow, not a statistical
 claim of improvement. Recommend skill corrections from observed failures, leaving
 the measured revision and original artifacts intact.

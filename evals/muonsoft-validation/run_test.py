@@ -372,6 +372,126 @@ else: sys.exit(3)
             self.assertEqual(execute.call_count, 1)
         self.assertFalse(grades["v0.19.0"]["passed"])
 
+    def test_token_pairs_exclude_unknown_and_execution_failures(self):
+        def attempt(case, variant, records, status="completed", passed=True):
+            return {"id": f"{case}-{variant}-1", "case": case, "repeat": 1, "variant": variant,
+                    "status": status, "should_trigger": True,
+                    "grades": {version: {"passed": passed} for version in ("v0.19.0", "current")},
+                    "events": {"complete": True, "reported_usage": records}}
+        def record(value):
+            return {"tokens": {"input": value, "output": 2, "reasoning": 3, "cache": {"read": 10, "write": 0}}}
+        attempts = [attempt("01-eager", "without", [record(10), record(20)]),
+                    attempt("01-eager", "with", [record(10)], passed=False),
+                    attempt("02-collection", "without", [record(10)]),
+                    attempt("02-collection", "with", [{"tokens": {"input": 1}}]),
+                    attempt("03-optional", "without", [record(10)]),
+                    attempt("03-optional", "with", [record(10)], status="timeout")]
+        result = runner.token_comparison(attempts)
+        self.assertEqual(result["matched"]["pairs"], 1)
+        self.assertEqual(result["matched"]["totals"]["without"]["all_categories"], 60)
+        self.assertEqual(result["matched"]["totals"]["with"]["all_categories"], 25)
+        self.assertEqual(result["matched"]["totals"]["without"]["uncached_plus_generated"], 40)
+        self.assertEqual(result["matched_both_passed"]["pairs"], 0)
+        self.assertEqual(len(result["excluded_pairs"]), 2)
+        self.assertIsNone(result["attempts"]["02-collection-with-1"]["tokens"]["all_categories"])
+        self.assertFalse(result["attempts"]["02-collection-with-1"]["complete"])
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            runner.token_comparison(attempts + [attempts[0]])
+
+    def test_final_usage_is_not_counted_twice(self):
+        log = self.root / "events.jsonl"
+        tokens = {"input": 10, "output": 5, "reasoning": 2, "cache": {"read": 8, "write": 0}}
+        log.write_text(json.dumps({"type": "step_finish", "part": {"reason": "stop", "tokens": tokens}}))
+        completion = {"verified": True, "finish_logged": True, "tokens": tokens}
+        self.assertEqual(len(runner.events_result(log, completion)["reported_usage"]), 1)
+        log.write_text(json.dumps({"type": "text", "part": {"text": "done"}}))
+        completion["finish_logged"] = False
+        self.assertEqual(runner.events_result(log, completion)["reported_usage"], [{"tokens": tokens}])
+
+    def test_missing_step_usage_and_duplicate_events_are_not_complete_usage(self):
+        log = self.root / "events.jsonl"
+        tokens = {"input": 10, "output": 5, "reasoning": 2, "cache": {"read": 8, "write": 0}}
+        first = {"type": "step_finish", "part": {"id": "step1", "reason": "tool-calls", "tokens": tokens}}
+        last = {"type": "step_finish", "part": {"id": "step2", "reason": "stop"}}
+        log.write_text(json.dumps(first) + "\n" + json.dumps(last))
+        events = runner.events_result(log)
+        self.assertTrue(events["complete"])
+        self.assertFalse(runner.token_usage({"events": events})["complete"])
+        last["part"]["tokens"] = tokens
+        log.write_text("\n".join(json.dumps(e) for e in (first, first, last)))
+        events = runner.events_result(log)
+        self.assertFalse(events["complete"])
+        self.assertEqual(events["error_lines"], [2])
+
+    def test_resume_preserves_attempts_and_checks_provenance(self):
+        source = self.root / "original"
+        original = source / "attempts/01-eager-without-1"
+        original.mkdir(parents=True)
+        (original / "events.jsonl").write_text("partial output")
+        manifest = {key: "same" for key in ("skill_sha256", "suite_sha256", "runner_sha256", "cases_sha256",
+                    "go_version", "model", "profile", "timeout", "opencode_version", "config_sha256")}
+        manifest.update(repeats=1, selected_cases=["01-eager"], libraries={"current": {"sha256": "lib"}}, attempts=[])
+        previous = {**manifest, "attempts": [{"id": "01-eager-without-1", "case": "01-eager", "variant": "without",
+                                             "repeat": 1, "status": "running"}]}
+        runner.write_json(source / "run.json", previous)
+        original_bytes = (source / "run.json").read_bytes()
+        output = self.root / "continued"
+        output.mkdir()
+        seen = runner.inherit_run(source, output, manifest)
+        self.assertEqual(seen, {"01-eager-without-1"})
+        self.assertEqual(manifest["attempts"][0]["status"], "interrupted")
+        self.assertEqual((source / "run.json").read_bytes(), original_bytes)
+        self.assertEqual((output / "attempts/01-eager-without-1/events.jsonl").read_text(), "partial output")
+        for key in ("skill_sha256", "suite_sha256", "runner_sha256", "cases_sha256", "go_version", "model",
+                    "profile", "timeout", "opencode_version", "config_sha256", "selected_cases", "repeats"):
+            with self.subTest(key=key), self.assertRaisesRegex(ValueError, key):
+                runner.inherit_run(source, output, {**manifest, key: "different"})
+        with self.assertRaisesRegex(ValueError, "library snapshots"):
+            runner.inherit_run(source, output, {**manifest, "libraries": {"current": {"sha256": "changed"}}})
+
+    def test_active_run_cannot_be_resumed(self):
+        path = self.root / "runner.lock"
+        with runner.run_lock(path, create=True):
+            with self.assertRaisesRegex(ValueError, "active"):
+                with runner.run_lock(path):
+                    self.fail("acquired active run")
+        with runner.run_lock(path):
+            pass
+
+    def test_resume_executes_only_unstarted_attempts(self):
+        config = self.root / "provider.json"
+        config.write_text('{"provider":{"fixture":{}}}')
+        library = self.root / "library"
+        library.mkdir()
+        (library / "go.mod").write_text("module github.com/muonsoft/validation\n\ngo 1.24.0\n")
+        (library / "go.sum").write_text("")
+        snapshots = {v: {"path": str(library), "sha256": "fixture"} for v in ("v0.19.0", "current")}
+        args = argparse.Namespace(model="fixture/model", config=str(config), output=str(self.root / "first"),
+                                  opencode=self.fake_opencode(), case=["01-eager"], profile="smoke", timeout=5)
+        execute = runner.command
+        calls = []
+        def cancel(argv, cwd, log, env=None, timeout=180):
+            if "run" not in argv:
+                return execute(argv, cwd, log, env, timeout)
+            calls.append(cwd)
+            log.write_text("")
+            return {"status": "cancelled"}
+        with patch.object(runner, "library_snapshots", return_value=snapshots), patch.object(
+                runner, "command", side_effect=cancel), contextlib.redirect_stdout(io.StringIO()):
+            self.assertTrue(runner.run(args))
+            source = Path(args.output)
+            before = (source / "run.json").read_bytes()
+            args.resume = source
+            args.output = str(self.root / "second")
+            self.assertTrue(runner.run(args))
+        self.assertEqual(len(calls), 2)
+        self.assertIn("01-eager-without-1", str(calls[0]))
+        self.assertIn("01-eager-with-1", str(calls[1]))
+        self.assertEqual((source / "run.json").read_bytes(), before)
+        manifest = json.loads((Path(args.output) / "run.json").read_text())
+        self.assertEqual(len(manifest["attempts"]), 2)
+        self.assertEqual(manifest["continuation"]["inherited_attempts"], ["01-eager-without-1"])
+
     def test_doctor_never_invokes_inference(self):
         config = self.root / "provider.json"
         config.write_text('{"provider":{"fixture":{}}}')

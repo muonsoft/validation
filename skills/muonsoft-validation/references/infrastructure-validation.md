@@ -55,9 +55,54 @@ expensive batch lookup when the request contract specifies that limit.
 
 Collect IDs, make a batch request if the dependency supports it, and iterate the
 original collection to identify unavailable references. Preserve original indices
-even if lookup IDs were deduplicated. Build a violation list with `AtIndex(i)` or
-typed path elements; return `Create().AsError()` for an empty result. Existence,
-ownership, and availability checks use the application's disclosure rules.
+even if lookup IDs were deduplicated. Compose the error path from the caller's
+prefix, the collection property from the external contract, and the original
+index. Scope the supplied validator to the collection before adding indices. If
+the caller already scoped it to that collection, add only the indices; do not
+repeat the property or rebuild the validator from the root.
+
+This example's caller supplies `input`; the function owns `references`:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+
+    "github.com/muonsoft/validation"
+)
+
+var ErrMissing = validation.NewError("missing_reference", "Reference is missing.")
+
+func missingReferences(ctx context.Context, v *validation.Validator, ids []string, found map[string]bool) error {
+    list := v.AtProperty("references").BuildViolationList(ctx)
+    for i, id := range ids {
+        if !found[id] {
+            list.AddViolation(ErrMissing, ErrMissing.Message(), validation.ArrayIndex(i))
+        }
+    }
+    return list.Create().AsError()
+}
+
+func main() {
+    v, err := validation.NewValidator()
+    if err != nil { panic(err) }
+    err = missingReferences(context.Background(), v.AtProperty("input"),
+        []string{"missing", "ok", "missing"}, map[string]bool{"ok": true})
+    violations, ok := validation.UnwrapViolations(err)
+    if !ok { panic(err) }
+    for _, violation := range violations.AsSlice() {
+        fmt.Println(violation.PropertyPath().String())
+    }
+}
+// Output:
+// input.references[0]
+// input.references[2]
+```
+
+`Create().AsError()` returns nil for an empty list. Existence, ownership, and
+availability checks use the application's disclosure rules.
 
 Distinguish a missing reference from timeout, cancellation, and connection errors.
 Return technical errors with `%w`, preserving `errors.Is`. Pass the original

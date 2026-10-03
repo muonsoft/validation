@@ -88,7 +88,8 @@
       "requirements": [
         "TestBatchIndices",
         "TestEmptyAndFound",
-        "TestBatchFailure"
+        "TestBatchFailure",
+        "TestBatchPaths"
       ],
       "editable": [
         "solution.go"
@@ -156,6 +157,47 @@
       "requirements": [
         "TestFormatting",
         "TestExistingValidation"
+      ],
+      "editable": [
+        "solution.go"
+      ]
+    },
+    {
+      "id": "13-scoped",
+      "title": "Batch lookup with an already scoped collection",
+      "smoke": false,
+      "should_trigger": true,
+      "requirements": [
+        "TestBatchIndices",
+        "TestEmptyAndFound",
+        "TestBatchFailure",
+        "TestBatchPaths"
+      ],
+      "editable": [
+        "solution.go"
+      ]
+    },
+    {
+      "id": "14-errors",
+      "title": "Present existing validation errors",
+      "smoke": false,
+      "should_trigger": false,
+      "requirements": [
+        "TestErrorPresentation",
+        "TestExistingCodeValidation"
+      ],
+      "editable": [
+        "solution.go"
+      ]
+    },
+    {
+      "id": "15-copy",
+      "title": "Copy existing validation messages",
+      "smoke": false,
+      "should_trigger": false,
+      "requirements": [
+        "TestIndependentCopy",
+        "TestNilAndExistingValidation"
       ],
       "editable": [
         "solution.go"

@@ -111,7 +111,7 @@ python3 evals/muonsoft-validation/run.py run \
   --model '<provider/model>' --config /path/to/provider.json \
   --profile smoke --output /tmp/validation-eval-smoke
 
-# Seventy-two attempts: twelve cases, two variants, three repeats.
+# Ninety attempts: fifteen cases, two variants, three repeats.
 python3 evals/muonsoft-validation/run.py run \
   --model '<provider/model>' --config /path/to/provider.json \
   --profile full --output /tmp/validation-eval-full
@@ -125,6 +125,23 @@ python3 evals/muonsoft-validation/run.py report \
 for several cases. The profile still determines repetitions. `--timeout` defaults
 to 900 seconds per coding attempt. Independent Go checks have a 180-second limit
 per version. Failures are not silently retried. Restart into a new output directory.
+
+To continue only attempts that have never started, pass `--resume /path/to/old-run`
+to `run` along with a new `--output` and the same model, config, profile, selected
+cases, and timeout. The runner requires matching skill, suite, case manifest,
+runner, library snapshots, Go/OpenCode versions, and provider configuration hashes.
+It rejects active runs and concurrent continuations using a process lock. Completed,
+failed, cancelled, and interrupted attempts are inherited without retries; stale
+`running`/`preparing` statuses become `interrupted` only in the new manifest.
+Previous artifact directories are linked read-only by convention and must be kept
+at their original locations; the continuation never writes through those links.
+An existing `review.json` is carried forward. Further continuations can use the
+latest output. A changed revision requires a separate measured run.
+
+Continuation is supported only for runs recorded by this version of the runner
+(with `runner.lock`, configuration hash, and selected case IDs). Historical runs
+without those fields cannot be automatically resumed. To retry a failed attempt,
+start a separately recorded run; do not overwrite or merge it as a replacement.
 
 ## Cases and compatibility
 
@@ -151,7 +168,16 @@ of the public skill by itself to check portable links and executes every complet
 Go example on both versions. Every reference must pass and every deliberately
 incomplete/buggy starter must fail.
 
+The full suite now includes 15 cases: the original 12, an already-scoped batch
+collection (`13-scoped`), and two further negative controls (`14-errors`, `15-copy`).
+The new cases are failure-informed follow-ups, not an independent holdout. Smoke
+remains four cases; use `--case 07-batch --case 13-scoped` for focused path checks.
+
 ## Reports and scoring
+
+The [2026-10-03 report](reports/2026-10-03-deepseek-v4.1-flash.md) and its sanitized
+JSON preserve the original 12-case run. They do not measure the subsequent skill
+correction or suite expansion.
 
 Every attempt preserves its prompt, solution, diff, JSON events, separate stderr,
 and independent test logs. `run.json` records source hashes, configuration, tool
@@ -182,6 +208,15 @@ Codex writes a JSON object keyed by attempt ID. Each reviewed attempt has `api`,
 number). The [orchestrator skill](../../.agents/skills/eval-muonsoft-validation/SKILL.md)
 defines score anchors. Missing reviews remain explicitly unreviewed. Scores never
 change objective test results, and equivalent implementations are accepted.
+
+`tokens.json` and the report compare complete graded pairs with complete normalized
+usage, retaining test failures but excluding execution failures symmetrically.
+They show input, output, reasoning, cache reads/writes, totals, medians, per-case
+comparisons, and successful-pair/applicable-case subsets. Absent counters remain
+unknown, including for interrupted attempts. Summed cache reads count repeated
+contexts on every request; token volume is not a monetary charge. No price table
+or billing verification is implied. Saved case requirements prevent new suite
+revisions from changing the interpretation of earlier results.
 
 Keep original artifacts when improving the skill: each revision gets a separate
 run. Do not automatically commit reports, provider configs, workspaces, or keys.

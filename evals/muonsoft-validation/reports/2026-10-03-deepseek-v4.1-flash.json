@@ -1,0 +1,3657 @@
+{
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "created_at": "2026-10-03T10:09:13Z",
+  "revision": "341aded02f81402997d57bdb9e438cda1b0f365c",
+  "skill_sha256": "523b12389edcc12fffbbab96ebbda753f2ca304448f41af560e31e0f31d06f67",
+  "suite_sha256": "1e5cd4b223887c14b8e09a76a483320eb218d680a694d2210d944f4730d84513",
+  "runner_sha256": "3498c6d9e3a531034688f6299b5939fbbe08a996f5607e3ef9b5c069f1c2abc0",
+  "cases_sha256": "dfc93171ce88dad7ab1816f1e1f3286645aa2a260ffcecfe523f68a0cb55cda2",
+  "go_version": "go version go1.27.1 linux/amd64",
+  "opencode_version": "opencode v2.0.18",
+  "libraries": {
+    "v0.19.0": "585d8f476abc3f2afbfb8b1bcb1ac77b749af52bbaa345dc6a7ddb8b2f55e5ad",
+    "current": "bf046920bb7151a8cc8a125fb20252f20d74879705784b3da066ff2c07d6c11d"
+  },
+  "artifact_sha256": {
+    "run.json": "4ecae1e476d5c44587ddc3f1e0a1b955d880e447464d0b4da2dda7c107c324e0",
+    "results.json": "4c5fed073cd86d8201533900718b3366120350874b80d9a7f1ed282b74dee248",
+    "tokens.json": "fa10ea87e4531fab86cf60404d7f6b1dd18c014d3b8b731906e2f78db486a400",
+    "review.json": "8316c55fedc9a5d58d53eb4ada0afc201e565bec14770ea64cdb2d242dfaaae7"
+  },
+  "source_runs": [
+    "validation-eval-v2-full-02",
+    "validation-eval-v2-full-03"
+  ],
+  "measured_revision_note": "Measured before the batch correction and suite expansion; revision names HEAD with uncommitted runner changes. bf05908 contains those runner changes.",
+  "outcomes": {
+    "attempts": 72,
+    "graded": 69,
+    "matched_pairs": 33,
+    "improved": 1,
+    "regressed": 0,
+    "unchanged": 32,
+    "without": {
+      "graded": 35,
+      "passed": 32
+    },
+    "with": {
+      "graded": 34,
+      "passed": 31
+    }
+  },
+  "tokens": {
+    "method": "Sum per-step OpenCode normalized counters; append verified final completion only when absent from step_finish. Assert unique step IDs and equality to persisted reported_usage. Primary cohort contains both graded variants for the same case and repeat. Failed tests remain included; execution failures are excluded symmetrically.",
+    "definitions": {
+      "input": "Reported input counter, separate from cached input",
+      "output": "Reported output counter, separate from reasoning",
+      "reasoning": "Reported reasoning counter",
+      "cache_read": "Reported cached input read counter; repeated contexts are counted for each request",
+      "cache_write": "Reported cache creation counter",
+      "uncached_plus_generated": "input + output + reasoning",
+      "all_categories": "input + cache_read + cache_write + output + reasoning; token volume, not a currency charge",
+      "usage_records": "Per-step usage records plus the final completion when needed; not tool-call count"
+    },
+    "limitations": [
+      "Provider/OpenCode-reported counters; not independently audited billing.",
+      "Interrupted or provider-error attempts have partial usage; all-run observed totals are a lower bound.",
+      "Three repeats across twelve scenarios do not establish a stable general reduction.",
+      "The with-skill measurements include skill loading overhead."
+    ],
+    "matched": {
+      "pairs": 33,
+      "totals": {
+        "without": {
+          "input": 1352857,
+          "cache_read": 20107648,
+          "cache_write": 0,
+          "output": 134779,
+          "reasoning": 216787,
+          "uncached_plus_generated": 1704423,
+          "all_categories": 21812071,
+          "usage_records": 813
+        },
+        "with": {
+          "input": 1051307,
+          "cache_read": 13855232,
+          "cache_write": 0,
+          "output": 128476,
+          "reasoning": 177174,
+          "uncached_plus_generated": 1356957,
+          "all_categories": 15212189,
+          "usage_records": 700
+        }
+      },
+      "change_percent": {
+        "input": -22.289865078127246,
+        "cache_read": -31.094715801669093,
+        "cache_write": null,
+        "output": -4.676544565548046,
+        "reasoning": -18.272774658997083,
+        "uncached_plus_generated": -20.386136540049037,
+        "all_categories": -30.25793378354582,
+        "usage_records": -13.899138991389915
+      },
+      "median_per_attempt_all_categories": {
+        "without": 443337,
+        "with": 325347
+      },
+      "pairs_with_fewer_all_category_tokens": 22,
+      "median_paired_percent_change": -31.283155224110093
+    },
+    "matched_applicable": {
+      "pairs": 31,
+      "totals": {
+        "without": {
+          "input": 1344461,
+          "cache_read": 20073088,
+          "cache_write": 0,
+          "output": 132610,
+          "reasoning": 215729,
+          "uncached_plus_generated": 1692800,
+          "all_categories": 21765888,
+          "usage_records": 800
+        },
+        "with": {
+          "input": 1043827,
+          "cache_read": 13824384,
+          "cache_write": 0,
+          "output": 126670,
+          "reasoning": 176823,
+          "uncached_plus_generated": 1347320,
+          "all_categories": 15171704,
+          "usage_records": 688
+        }
+      },
+      "change_percent": {
+        "input": -22.36093125795393,
+        "cache_read": -31.129759407222245,
+        "cache_write": null,
+        "output": -4.479300203604552,
+        "reasoning": -18.034663860677057,
+        "uncached_plus_generated": -20.408790170132328,
+        "all_categories": -30.295956682309487,
+        "usage_records": -14.000000000000002
+      },
+      "median_per_attempt_all_categories": {
+        "without": 457510,
+        "with": 386556
+      },
+      "pairs_with_fewer_all_category_tokens": 21,
+      "median_paired_percent_change": -31.283155224110093
+    },
+    "matched_both_passed": {
+      "pairs": 30,
+      "totals": {
+        "without": {
+          "input": 1173099,
+          "cache_read": 17234816,
+          "cache_write": 0,
+          "output": 120114,
+          "reasoning": 182736,
+          "uncached_plus_generated": 1475949,
+          "all_categories": 18710765,
+          "usage_records": 720
+        },
+        "with": {
+          "input": 887685,
+          "cache_read": 11320832,
+          "cache_write": 0,
+          "output": 112113,
+          "reasoning": 141566,
+          "uncached_plus_generated": 1141364,
+          "all_categories": 12462196,
+          "usage_records": 613
+        }
+      },
+      "change_percent": {
+        "input": -24.32991588945178,
+        "cache_read": -34.31416964358657,
+        "cache_write": null,
+        "output": -6.661171886707629,
+        "reasoning": -22.529769722441117,
+        "uncached_plus_generated": -22.669143717025452,
+        "all_categories": -33.395582703326134,
+        "usage_records": -14.861111111111114
+      },
+      "median_per_attempt_all_categories": {
+        "without": 396603.5,
+        "with": 315018.5
+      },
+      "pairs_with_fewer_all_category_tokens": 20,
+      "median_paired_percent_change": -31.58017056335986
+    },
+    "excluded_pairs": [
+      {
+        "case": "05-stages",
+        "repeat": 3
+      },
+      {
+        "case": "07-batch",
+        "repeat": 1
+      },
+      {
+        "case": "12-control",
+        "repeat": 2
+      }
+    ],
+    "by_case": {
+      "01-eager": {
+        "pairs": 3,
+        "totals": {
+          "without": {
+            "input": 103320,
+            "output": 10409,
+            "reasoning": 6857,
+            "cache_read": 1287936,
+            "cache_write": 0,
+            "uncached_plus_generated": 120586,
+            "all_categories": 1408522
+          },
+          "with": {
+            "input": 39429,
+            "output": 7560,
+            "reasoning": 2340,
+            "cache_read": 438400,
+            "cache_write": 0,
+            "uncached_plus_generated": 49329,
+            "all_categories": 487729
+          }
+        },
+        "change_percent": {
+          "input": -61.83797909407666,
+          "output": -27.37054472091459,
+          "reasoning": -65.87428904768849,
+          "cache_read": -65.96104154243689,
+          "cache_write": null,
+          "uncached_plus_generated": -59.092266100542346,
+          "all_categories": -65.37299381905288
+        },
+        "median_per_attempt": {
+          "without": 399212,
+          "with": 167895
+        },
+        "median_paired_percent_change": -59.02288170456641,
+        "pairs_with_fewer_tokens": 3
+      },
+      "02-collection": {
+        "pairs": 3,
+        "totals": {
+          "without": {
+            "input": 274358,
+            "output": 18377,
+            "reasoning": 62449,
+            "cache_read": 7106432,
+            "cache_write": 0,
+            "uncached_plus_generated": 355184,
+            "all_categories": 7461616
+          },
+          "with": {
+            "input": 192050,
+            "output": 19167,
+            "reasoning": 46648,
+            "cache_read": 3848064,
+            "cache_write": 0,
+            "uncached_plus_generated": 257865,
+            "all_categories": 4105929
+          }
+        },
+        "change_percent": {
+          "input": -30.000218692365454,
+          "output": 4.2988518256516395,
+          "reasoning": -25.302246633252736,
+          "cache_read": -45.85096993821934,
+          "cache_write": null,
+          "uncached_plus_generated": -27.3996013333934,
+          "all_categories": -44.97265739753962
+        },
+        "median_per_attempt": {
+          "without": 1974287,
+          "with": 1408341
+        },
+        "median_paired_percent_change": -64.90925584780733,
+        "pairs_with_fewer_tokens": 2
+      },
+      "03-optional": {
+        "pairs": 3,
+        "totals": {
+          "without": {
+            "input": 95310,
+            "output": 9603,
+            "reasoning": 8796,
+            "cache_read": 910208,
+            "cache_write": 0,
+            "uncached_plus_generated": 113709,
+            "all_categories": 1023917
+          },
+          "with": {
+            "input": 77392,
+            "output": 12645,
+            "reasoning": 9435,
+            "cache_read": 1081984,
+            "cache_write": 0,
+            "uncached_plus_generated": 99472,
+            "all_categories": 1181456
+          }
+        },
+        "change_percent": {
+          "input": -18.799706221802538,
+          "output": 31.677600749765688,
+          "reasoning": 7.264665757162336,
+          "cache_read": 18.872169877654343,
+          "cache_write": null,
+          "uncached_plus_generated": -12.520556860055054,
+          "all_categories": 15.385915069287837
+        },
+        "median_per_attempt": {
+          "without": 335314,
+          "with": 297488
+        },
+        "median_paired_percent_change": -19.763515335901005,
+        "pairs_with_fewer_tokens": 2
+      },
+      "04-groups": {
+        "pairs": 3,
+        "totals": {
+          "without": {
+            "input": 160161,
+            "output": 18609,
+            "reasoning": 26413,
+            "cache_read": 2718848,
+            "cache_write": 0,
+            "uncached_plus_generated": 205183,
+            "all_categories": 2924031
+          },
+          "with": {
+            "input": 124396,
+            "output": 13043,
+            "reasoning": 17647,
+            "cache_read": 1533952,
+            "cache_write": 0,
+            "uncached_plus_generated": 155086,
+            "all_categories": 1689038
+          }
+        },
+        "change_percent": {
+          "input": -22.330654778629,
+          "output": -29.910258477080987,
+          "reasoning": -33.18820277893462,
+          "cache_read": -43.580810696294904,
+          "cache_write": null,
+          "uncached_plus_generated": -24.4157654386572,
+          "all_categories": -42.23597492639441
+        },
+        "median_per_attempt": {
+          "without": 831619,
+          "with": 552615
+        },
+        "median_paired_percent_change": -39.678335538380594,
+        "pairs_with_fewer_tokens": 3
+      },
+      "05-stages": {
+        "pairs": 2,
+        "totals": {
+          "without": {
+            "input": 103721,
+            "output": 10583,
+            "reasoning": 14411,
+            "cache_read": 1605120,
+            "cache_write": 0,
+            "uncached_plus_generated": 128715,
+            "all_categories": 1733835
+          },
+          "with": {
+            "input": 70997,
+            "output": 8143,
+            "reasoning": 8843,
+            "cache_read": 636032,
+            "cache_write": 0,
+            "uncached_plus_generated": 87983,
+            "all_categories": 724015
+          }
+        },
+        "change_percent": {
+          "input": -31.55002362106034,
+          "output": -23.055844278559956,
+          "reasoning": -38.637152175421555,
+          "cache_read": -60.37480063795853,
+          "cache_write": null,
+          "uncached_plus_generated": -31.645107407839024,
+          "all_categories": -58.24198957801636
+        },
+        "median_per_attempt": {
+          "without": 866917.5,
+          "with": 362007.5
+        },
+        "median_paired_percent_change": -36.81550149563268,
+        "pairs_with_fewer_tokens": 1
+      },
+      "06-branch": {
+        "pairs": 3,
+        "totals": {
+          "without": {
+            "input": 125175,
+            "output": 12878,
+            "reasoning": 20062,
+            "cache_read": 1335040,
+            "cache_write": 0,
+            "uncached_plus_generated": 158115,
+            "all_categories": 1493155
+          },
+          "with": {
+            "input": 91161,
+            "output": 11603,
+            "reasoning": 13263,
+            "cache_read": 826368,
+            "cache_write": 0,
+            "uncached_plus_generated": 116027,
+            "all_categories": 942395
+          }
+        },
+        "change_percent": {
+          "input": -27.17315757938885,
+          "output": -9.90060568411244,
+          "reasoning": -33.88994118233476,
+          "cache_read": -38.101629913710454,
+          "cache_write": null,
+          "uncached_plus_generated": -26.618600385795144,
+          "all_categories": -36.88565487173133
+        },
+        "median_per_attempt": {
+          "without": 457510,
+          "with": 319036
+        },
+        "median_paired_percent_change": -30.26687941247186,
+        "pairs_with_fewer_tokens": 3
+      },
+      "07-batch": {
+        "pairs": 2,
+        "totals": {
+          "without": {
+            "input": 105679,
+            "output": 8826,
+            "reasoning": 14114,
+            "cache_read": 998400,
+            "cache_write": 0,
+            "uncached_plus_generated": 128619,
+            "all_categories": 1127019
+          },
+          "with": {
+            "input": 117337,
+            "output": 11622,
+            "reasoning": 28466,
+            "cache_read": 1899776,
+            "cache_write": 0,
+            "uncached_plus_generated": 157425,
+            "all_categories": 2057201
+          }
+        },
+        "change_percent": {
+          "input": 11.03151998031775,
+          "output": 31.679129843643782,
+          "reasoning": 101.68626895281281,
+          "cache_read": 90.28205128205128,
+          "cache_write": null,
+          "uncached_plus_generated": 22.396380006064433,
+          "all_categories": 82.53472212979551
+        },
+        "median_per_attempt": {
+          "without": 563509.5,
+          "with": 1028600.5
+        },
+        "median_paired_percent_change": 90.04503329075492,
+        "pairs_with_fewer_tokens": 1
+      },
+      "08-fatal": {
+        "pairs": 3,
+        "totals": {
+          "without": {
+            "input": 72655,
+            "output": 10497,
+            "reasoning": 14246,
+            "cache_read": 569344,
+            "cache_write": 0,
+            "uncached_plus_generated": 97398,
+            "all_categories": 666742
+          },
+          "with": {
+            "input": 109610,
+            "output": 10312,
+            "reasoning": 14754,
+            "cache_read": 1119744,
+            "cache_write": 0,
+            "uncached_plus_generated": 134676,
+            "all_categories": 1254420
+          }
+        },
+        "change_percent": {
+          "input": 50.863670772830496,
+          "output": -1.7624083071353769,
+          "reasoning": 3.565913238803864,
+          "cache_read": 96.6726618705036,
+          "cache_write": null,
+          "uncached_plus_generated": 38.2738865274441,
+          "all_categories": 88.14173998338188
+        },
+        "median_per_attempt": {
+          "without": 208112,
+          "with": 407386
+        },
+        "median_paired_percent_change": 113.3782382334147,
+        "pairs_with_fewer_tokens": 1
+      },
+      "09-adapter": {
+        "pairs": 3,
+        "totals": {
+          "without": {
+            "input": 111672,
+            "output": 11104,
+            "reasoning": 20090,
+            "cache_read": 1510144,
+            "cache_write": 0,
+            "uncached_plus_generated": 142866,
+            "all_categories": 1653010
+          },
+          "with": {
+            "input": 71854,
+            "output": 11335,
+            "reasoning": 11799,
+            "cache_read": 847744,
+            "cache_write": 0,
+            "uncached_plus_generated": 94988,
+            "all_categories": 942732
+          }
+        },
+        "change_percent": {
+          "input": -35.6562074647181,
+          "output": 2.080331412103753,
+          "reasoning": -41.269288203086106,
+          "cache_read": -43.86336667231734,
+          "cache_write": null,
+          "uncached_plus_generated": -33.512522223622135,
+          "all_categories": -42.96876606917078
+        },
+        "median_per_attempt": {
+          "without": 356375,
+          "with": 299148
+        },
+        "median_paired_percent_change": 20.368712732374618,
+        "pairs_with_fewer_tokens": 1
+      },
+      "10-update": {
+        "pairs": 3,
+        "totals": {
+          "without": {
+            "input": 96404,
+            "output": 10257,
+            "reasoning": 13067,
+            "cache_read": 825728,
+            "cache_write": 0,
+            "uncached_plus_generated": 119728,
+            "all_categories": 945456
+          },
+          "with": {
+            "input": 69652,
+            "output": 10948,
+            "reasoning": 15144,
+            "cache_read": 689024,
+            "cache_write": 0,
+            "uncached_plus_generated": 95744,
+            "all_categories": 784768
+          }
+        },
+        "change_percent": {
+          "input": -27.749885896850756,
+          "output": 6.736862630398743,
+          "reasoning": 15.8950026785031,
+          "cache_read": -16.555572779414042,
+          "cache_write": null,
+          "uncached_plus_generated": -20.032072698115734,
+          "all_categories": -16.995820006430762
+        },
+        "median_per_attempt": {
+          "without": 235333,
+          "with": 274576
+        },
+        "median_paired_percent_change": 32.78910511858242,
+        "pairs_with_fewer_tokens": 1
+      },
+      "11-custom": {
+        "pairs": 3,
+        "totals": {
+          "without": {
+            "input": 96006,
+            "output": 11467,
+            "reasoning": 15224,
+            "cache_read": 1205888,
+            "cache_write": 0,
+            "uncached_plus_generated": 122697,
+            "all_categories": 1328585
+          },
+          "with": {
+            "input": 79949,
+            "output": 10292,
+            "reasoning": 8484,
+            "cache_read": 903296,
+            "cache_write": 0,
+            "uncached_plus_generated": 98725,
+            "all_categories": 1002021
+          }
+        },
+        "change_percent": {
+          "input": -16.724996354394516,
+          "output": -10.246795151303745,
+          "reasoning": -44.27220178665265,
+          "cache_read": -25.092877613841413,
+          "cache_write": null,
+          "uncached_plus_generated": -19.537560005542108,
+          "all_categories": -24.57983493717
+        },
+        "median_per_attempt": {
+          "without": 462116,
+          "with": 311001
+        },
+        "median_paired_percent_change": -34.17606048163498,
+        "pairs_with_fewer_tokens": 3
+      },
+      "12-control": {
+        "pairs": 2,
+        "totals": {
+          "without": {
+            "input": 8396,
+            "output": 2169,
+            "reasoning": 1058,
+            "cache_read": 34560,
+            "cache_write": 0,
+            "uncached_plus_generated": 11623,
+            "all_categories": 46183
+          },
+          "with": {
+            "input": 7480,
+            "output": 1806,
+            "reasoning": 351,
+            "cache_read": 30848,
+            "cache_write": 0,
+            "uncached_plus_generated": 9637,
+            "all_categories": 40485
+          }
+        },
+        "change_percent": {
+          "input": -10.909957122439263,
+          "output": -16.735822959889347,
+          "reasoning": -66.8241965973535,
+          "cache_read": -10.74074074074074,
+          "cache_write": null,
+          "uncached_plus_generated": -17.08681063408759,
+          "all_categories": -12.337873243401255
+        },
+        "median_per_attempt": {
+          "without": 23091.5,
+          "with": 20242.5
+        },
+        "median_paired_percent_change": -4.444095474561333,
+        "pairs_with_fewer_tokens": 1
+      }
+    }
+  },
+  "attempts": [
+    {
+      "id": "01-eager-without-1",
+      "case": "01-eager",
+      "variant": "without",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestEager",
+            "TestValid"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestEager",
+            "TestValid"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 34,
+        "tokens": {
+          "input": 36119,
+          "output": 4730,
+          "reasoning": 2841,
+          "cache_read": 683648,
+          "cache_write": 0,
+          "uncached_plus_generated": 43690,
+          "all_categories": 727338
+        }
+      }
+    },
+    {
+      "id": "01-eager-with-1",
+      "case": "01-eager",
+      "variant": "with",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestEager",
+            "TestValid"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestEager",
+            "TestValid"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 20,
+        "tokens": {
+          "input": 15329,
+          "output": 2832,
+          "reasoning": 657,
+          "cache_read": 185472,
+          "cache_write": 0,
+          "uncached_plus_generated": 18818,
+          "all_categories": 204290
+        }
+      }
+    },
+    {
+      "id": "01-eager-with-2",
+      "case": "01-eager",
+      "variant": "with",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestEager",
+            "TestValid"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestEager",
+            "TestValid"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 19,
+        "tokens": {
+          "input": 13100,
+          "output": 2723,
+          "reasoning": 776,
+          "cache_read": 151296,
+          "cache_write": 0,
+          "uncached_plus_generated": 16599,
+          "all_categories": 167895
+        }
+      }
+    },
+    {
+      "id": "01-eager-without-2",
+      "case": "01-eager",
+      "variant": "without",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestEager",
+            "TestValid"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestEager",
+            "TestValid"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 28,
+        "tokens": {
+          "input": 31157,
+          "output": 2877,
+          "reasoning": 2682,
+          "cache_read": 362496,
+          "cache_write": 0,
+          "uncached_plus_generated": 36716,
+          "all_categories": 399212
+        }
+      }
+    },
+    {
+      "id": "01-eager-without-3",
+      "case": "01-eager",
+      "variant": "without",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestEager",
+            "TestValid"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestEager",
+            "TestValid"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 13,
+        "tokens": {
+          "input": 36044,
+          "output": 2802,
+          "reasoning": 1334,
+          "cache_read": 241792,
+          "cache_write": 0,
+          "uncached_plus_generated": 40180,
+          "all_categories": 281972
+        }
+      }
+    },
+    {
+      "id": "01-eager-with-3",
+      "case": "01-eager",
+      "variant": "with",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestEager",
+            "TestValid"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestEager",
+            "TestValid"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 14,
+        "tokens": {
+          "input": 11000,
+          "output": 2005,
+          "reasoning": 907,
+          "cache_read": 101632,
+          "cache_write": 0,
+          "uncached_plus_generated": 13912,
+          "all_categories": 115544
+        }
+      }
+    },
+    {
+      "id": "02-collection-without-1",
+      "case": "02-collection",
+      "variant": "without",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCollectionAccumulation",
+            "TestCollectionBounds"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCollectionAccumulation",
+            "TestCollectionBounds"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 31,
+        "tokens": {
+          "input": 81696,
+          "output": 4568,
+          "reasoning": 14308,
+          "cache_read": 1295360,
+          "cache_write": 0,
+          "uncached_plus_generated": 100572,
+          "all_categories": 1395932
+        }
+      }
+    },
+    {
+      "id": "02-collection-with-1",
+      "case": "02-collection",
+      "variant": "with",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCollectionAccumulation",
+            "TestCollectionBounds"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCollectionAccumulation",
+            "TestCollectionBounds"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 43,
+        "tokens": {
+          "input": 82851,
+          "output": 8046,
+          "reasoning": 24619,
+          "cache_read": 1889280,
+          "cache_write": 0,
+          "uncached_plus_generated": 115516,
+          "all_categories": 2004796
+        }
+      }
+    },
+    {
+      "id": "02-collection-with-2",
+      "case": "02-collection",
+      "variant": "with",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCollectionAccumulation",
+            "TestCollectionBounds"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCollectionAccumulation",
+            "TestCollectionBounds"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 28,
+        "tokens": {
+          "input": 46285,
+          "output": 4741,
+          "reasoning": 7142,
+          "cache_read": 634624,
+          "cache_write": 0,
+          "uncached_plus_generated": 58168,
+          "all_categories": 692792
+        }
+      }
+    },
+    {
+      "id": "02-collection-without-2",
+      "case": "02-collection",
+      "variant": "without",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": false,
+          "requirements_passed": [
+            "TestCollectionBounds"
+          ],
+          "requirements_total": 2,
+          "status": "process_error"
+        },
+        "current": {
+          "passed": false,
+          "requirements_passed": [
+            "TestCollectionBounds"
+          ],
+          "requirements_total": 2,
+          "status": "process_error"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 50,
+        "tokens": {
+          "input": 74079,
+          "output": 5839,
+          "reasoning": 19937,
+          "cache_read": 1874432,
+          "cache_write": 0,
+          "uncached_plus_generated": 99855,
+          "all_categories": 1974287
+        }
+      }
+    },
+    {
+      "id": "02-collection-without-3",
+      "case": "02-collection",
+      "variant": "without",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCollectionAccumulation",
+            "TestCollectionBounds"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCollectionAccumulation",
+            "TestCollectionBounds"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 63,
+        "tokens": {
+          "input": 118583,
+          "output": 7970,
+          "reasoning": 28204,
+          "cache_read": 3936640,
+          "cache_write": 0,
+          "uncached_plus_generated": 154757,
+          "all_categories": 4091397
+        }
+      }
+    },
+    {
+      "id": "02-collection-with-3",
+      "case": "02-collection",
+      "variant": "with",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCollectionAccumulation",
+            "TestCollectionBounds"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCollectionAccumulation",
+            "TestCollectionBounds"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 40,
+        "tokens": {
+          "input": 62914,
+          "output": 6380,
+          "reasoning": 14887,
+          "cache_read": 1324160,
+          "cache_write": 0,
+          "uncached_plus_generated": 84181,
+          "all_categories": 1408341
+        }
+      }
+    },
+    {
+      "id": "03-optional-without-1",
+      "case": "03-optional",
+      "variant": "without",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestOptional",
+            "TestIndependentConditions"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestOptional",
+            "TestIndependentConditions"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 17,
+        "tokens": {
+          "input": 30806,
+          "output": 2850,
+          "reasoning": 3034,
+          "cache_read": 298624,
+          "cache_write": 0,
+          "uncached_plus_generated": 36690,
+          "all_categories": 335314
+        }
+      }
+    },
+    {
+      "id": "03-optional-with-1",
+      "case": "03-optional",
+      "variant": "with",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestOptional",
+            "TestIndependentConditions"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestOptional",
+            "TestIndependentConditions"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 32,
+        "tokens": {
+          "input": 34427,
+          "output": 5302,
+          "reasoning": 4473,
+          "cache_read": 636800,
+          "cache_write": 0,
+          "uncached_plus_generated": 44202,
+          "all_categories": 681002
+        }
+      }
+    },
+    {
+      "id": "03-optional-with-2",
+      "case": "03-optional",
+      "variant": "with",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestOptional",
+            "TestIndependentConditions"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestOptional",
+            "TestIndependentConditions"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 21,
+        "tokens": {
+          "input": 22335,
+          "output": 3840,
+          "reasoning": 2641,
+          "cache_read": 268672,
+          "cache_write": 0,
+          "uncached_plus_generated": 28816,
+          "all_categories": 297488
+        }
+      }
+    },
+    {
+      "id": "03-optional-without-2",
+      "case": "03-optional",
+      "variant": "without",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestOptional",
+            "TestIndependentConditions"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestOptional",
+            "TestIndependentConditions"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 21,
+        "tokens": {
+          "input": 32328,
+          "output": 3716,
+          "reasoning": 2816,
+          "cache_read": 331904,
+          "cache_write": 0,
+          "uncached_plus_generated": 38860,
+          "all_categories": 370764
+        }
+      }
+    },
+    {
+      "id": "03-optional-without-3",
+      "case": "03-optional",
+      "variant": "without",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestOptional",
+            "TestIndependentConditions"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestOptional",
+            "TestIndependentConditions"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 18,
+        "tokens": {
+          "input": 32176,
+          "output": 3037,
+          "reasoning": 2946,
+          "cache_read": 279680,
+          "cache_write": 0,
+          "uncached_plus_generated": 38159,
+          "all_categories": 317839
+        }
+      }
+    },
+    {
+      "id": "03-optional-with-3",
+      "case": "03-optional",
+      "variant": "with",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestOptional",
+            "TestIndependentConditions"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestOptional",
+            "TestIndependentConditions"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 15,
+        "tokens": {
+          "input": 20630,
+          "output": 3503,
+          "reasoning": 2321,
+          "cache_read": 176512,
+          "cache_write": 0,
+          "uncached_plus_generated": 26454,
+          "all_categories": 202966
+        }
+      }
+    },
+    {
+      "id": "04-groups-without-1",
+      "case": "04-groups",
+      "variant": "without",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestDraft",
+            "TestPublish"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestDraft",
+            "TestPublish"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 42,
+        "tokens": {
+          "input": 62108,
+          "output": 9006,
+          "reasoning": 11750,
+          "cache_read": 1226496,
+          "cache_write": 0,
+          "uncached_plus_generated": 82864,
+          "all_categories": 1309360
+        }
+      }
+    },
+    {
+      "id": "04-groups-with-1",
+      "case": "04-groups",
+      "variant": "with",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestDraft",
+            "TestPublish"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestDraft",
+            "TestPublish"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 27,
+        "tokens": {
+          "input": 47484,
+          "output": 5025,
+          "reasoning": 4972,
+          "cache_read": 606592,
+          "cache_write": 0,
+          "uncached_plus_generated": 57481,
+          "all_categories": 664073
+        }
+      }
+    },
+    {
+      "id": "04-groups-with-2",
+      "case": "04-groups",
+      "variant": "with",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestDraft",
+            "TestPublish"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestDraft",
+            "TestPublish"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 26,
+        "tokens": {
+          "input": 37019,
+          "output": 4463,
+          "reasoning": 7965,
+          "cache_read": 503168,
+          "cache_write": 0,
+          "uncached_plus_generated": 49447,
+          "all_categories": 552615
+        }
+      }
+    },
+    {
+      "id": "04-groups-without-2",
+      "case": "04-groups",
+      "variant": "without",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestDraft",
+            "TestPublish"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestDraft",
+            "TestPublish"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 37,
+        "tokens": {
+          "input": 44791,
+          "output": 5056,
+          "reasoning": 6092,
+          "cache_read": 775680,
+          "cache_write": 0,
+          "uncached_plus_generated": 55939,
+          "all_categories": 831619
+        }
+      }
+    },
+    {
+      "id": "04-groups-without-3",
+      "case": "04-groups",
+      "variant": "without",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestDraft",
+            "TestPublish"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestDraft",
+            "TestPublish"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 26,
+        "tokens": {
+          "input": 53262,
+          "output": 4547,
+          "reasoning": 8571,
+          "cache_read": 716672,
+          "cache_write": 0,
+          "uncached_plus_generated": 66380,
+          "all_categories": 783052
+        }
+      }
+    },
+    {
+      "id": "04-groups-with-3",
+      "case": "04-groups",
+      "variant": "with",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestDraft",
+            "TestPublish"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestDraft",
+            "TestPublish"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 23,
+        "tokens": {
+          "input": 39893,
+          "output": 3555,
+          "reasoning": 4710,
+          "cache_read": 424192,
+          "cache_write": 0,
+          "uncached_plus_generated": 48158,
+          "all_categories": 472350
+        }
+      }
+    },
+    {
+      "id": "05-stages-without-1",
+      "case": "05-stages",
+      "variant": "without",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestLocalBarrier",
+            "TestAllRemoteViolations",
+            "TestSaveAfterSuccess"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestLocalBarrier",
+            "TestAllRemoteViolations",
+            "TestSaveAfterSuccess"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 34,
+        "tokens": {
+          "input": 72483,
+          "output": 6954,
+          "reasoning": 9480,
+          "cache_read": 1254656,
+          "cache_write": 0,
+          "uncached_plus_generated": 88917,
+          "all_categories": 1343573
+        }
+      }
+    },
+    {
+      "id": "05-stages-with-1",
+      "case": "05-stages",
+      "variant": "with",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestLocalBarrier",
+            "TestAllRemoteViolations",
+            "TestSaveAfterSuccess"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestLocalBarrier",
+            "TestAllRemoteViolations",
+            "TestSaveAfterSuccess"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 19,
+        "tokens": {
+          "input": 29822,
+          "output": 3971,
+          "reasoning": 3938,
+          "cache_read": 287616,
+          "cache_write": 0,
+          "uncached_plus_generated": 37731,
+          "all_categories": 325347
+        }
+      }
+    },
+    {
+      "id": "05-stages-with-2",
+      "case": "05-stages",
+      "variant": "with",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestLocalBarrier",
+            "TestAllRemoteViolations",
+            "TestSaveAfterSuccess"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestLocalBarrier",
+            "TestAllRemoteViolations",
+            "TestSaveAfterSuccess"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 17,
+        "tokens": {
+          "input": 41175,
+          "output": 4172,
+          "reasoning": 4905,
+          "cache_read": 348416,
+          "cache_write": 0,
+          "uncached_plus_generated": 50252,
+          "all_categories": 398668
+        }
+      }
+    },
+    {
+      "id": "05-stages-without-2",
+      "case": "05-stages",
+      "variant": "without",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestLocalBarrier",
+            "TestAllRemoteViolations",
+            "TestSaveAfterSuccess"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestLocalBarrier",
+            "TestAllRemoteViolations",
+            "TestSaveAfterSuccess"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 23,
+        "tokens": {
+          "input": 31238,
+          "output": 3629,
+          "reasoning": 4931,
+          "cache_read": 350464,
+          "cache_write": 0,
+          "uncached_plus_generated": 39798,
+          "all_categories": 390262
+        }
+      }
+    },
+    {
+      "id": "05-stages-without-3",
+      "case": "05-stages",
+      "variant": "without",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestLocalBarrier",
+            "TestAllRemoteViolations",
+            "TestSaveAfterSuccess"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestLocalBarrier",
+            "TestAllRemoteViolations",
+            "TestSaveAfterSuccess"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 23,
+        "tokens": {
+          "input": 38627,
+          "output": 5175,
+          "reasoning": 6623,
+          "cache_read": 428928,
+          "cache_write": 0,
+          "uncached_plus_generated": 50425,
+          "all_categories": 479353
+        }
+      }
+    },
+    {
+      "id": "05-stages-with-3",
+      "case": "05-stages",
+      "variant": "with",
+      "repeat": 3,
+      "status": "interrupted",
+      "should_trigger": true,
+      "grades": {},
+      "skill_loading": "unknown",
+      "usage": {
+        "complete": false,
+        "records": 0,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "reasoning": null,
+          "cache_read": null,
+          "cache_write": null,
+          "uncached_plus_generated": null,
+          "all_categories": null
+        }
+      }
+    },
+    {
+      "id": "06-branch-without-1",
+      "case": "06-branch",
+      "variant": "without",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestBranchBarrier",
+            "TestSiblingIndependence"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestBranchBarrier",
+            "TestSiblingIndependence"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 23,
+        "tokens": {
+          "input": 34534,
+          "output": 4398,
+          "reasoning": 5813,
+          "cache_read": 398592,
+          "cache_write": 0,
+          "uncached_plus_generated": 44745,
+          "all_categories": 443337
+        }
+      }
+    },
+    {
+      "id": "06-branch-with-1",
+      "case": "06-branch",
+      "variant": "with",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestBranchBarrier",
+            "TestSiblingIndependence"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestBranchBarrier",
+            "TestSiblingIndependence"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 16,
+        "tokens": {
+          "input": 19701,
+          "output": 4213,
+          "reasoning": 2625,
+          "cache_read": 173440,
+          "cache_write": 0,
+          "uncached_plus_generated": 26539,
+          "all_categories": 199979
+        }
+      }
+    },
+    {
+      "id": "06-branch-with-2",
+      "case": "06-branch",
+      "variant": "with",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestBranchBarrier",
+            "TestSiblingIndependence"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestBranchBarrier",
+            "TestSiblingIndependence"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 18,
+        "tokens": {
+          "input": 38041,
+          "output": 3778,
+          "reasoning": 7545,
+          "cache_read": 374016,
+          "cache_write": 0,
+          "uncached_plus_generated": 49364,
+          "all_categories": 423380
+        }
+      }
+    },
+    {
+      "id": "06-branch-without-2",
+      "case": "06-branch",
+      "variant": "without",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestBranchBarrier",
+            "TestSiblingIndependence"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestBranchBarrier",
+            "TestSiblingIndependence"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 20,
+        "tokens": {
+          "input": 46522,
+          "output": 4154,
+          "reasoning": 7872,
+          "cache_read": 533760,
+          "cache_write": 0,
+          "uncached_plus_generated": 58548,
+          "all_categories": 592308
+        }
+      }
+    },
+    {
+      "id": "06-branch-without-3",
+      "case": "06-branch",
+      "variant": "without",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestBranchBarrier",
+            "TestSiblingIndependence"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestBranchBarrier",
+            "TestSiblingIndependence"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 32,
+        "tokens": {
+          "input": 44119,
+          "output": 4326,
+          "reasoning": 6377,
+          "cache_read": 402688,
+          "cache_write": 0,
+          "uncached_plus_generated": 54822,
+          "all_categories": 457510
+        }
+      }
+    },
+    {
+      "id": "06-branch-with-3",
+      "case": "06-branch",
+      "variant": "with",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestBranchBarrier",
+            "TestSiblingIndependence"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestBranchBarrier",
+            "TestSiblingIndependence"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 16,
+        "tokens": {
+          "input": 33419,
+          "output": 3612,
+          "reasoning": 3093,
+          "cache_read": 278912,
+          "cache_write": 0,
+          "uncached_plus_generated": 40124,
+          "all_categories": 319036
+        }
+      }
+    },
+    {
+      "id": "07-batch-without-1",
+      "case": "07-batch",
+      "variant": "without",
+      "repeat": 1,
+      "status": "process_error",
+      "should_trigger": true,
+      "grades": {},
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": false,
+        "records": 32,
+        "tokens": {
+          "input": 34843,
+          "output": 5223,
+          "reasoning": 7437,
+          "cache_read": 557440,
+          "cache_write": 0,
+          "uncached_plus_generated": 47503,
+          "all_categories": 604943
+        }
+      }
+    },
+    {
+      "id": "07-batch-with-1",
+      "case": "07-batch",
+      "variant": "with",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": false,
+          "requirements_passed": [
+            "TestEmptyAndFound",
+            "TestBatchFailure"
+          ],
+          "requirements_total": 3,
+          "status": "process_error"
+        },
+        "current": {
+          "passed": false,
+          "requirements_passed": [
+            "TestEmptyAndFound",
+            "TestBatchFailure"
+          ],
+          "requirements_total": 3,
+          "status": "process_error"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 17,
+        "tokens": {
+          "input": 29013,
+          "output": 3486,
+          "reasoning": 3762,
+          "cache_read": 256512,
+          "cache_write": 0,
+          "uncached_plus_generated": 36261,
+          "all_categories": 292773
+        }
+      }
+    },
+    {
+      "id": "07-batch-with-2",
+      "case": "07-batch",
+      "variant": "with",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": false,
+          "requirements_passed": [
+            "TestEmptyAndFound",
+            "TestBatchFailure"
+          ],
+          "requirements_total": 3,
+          "status": "process_error"
+        },
+        "current": {
+          "passed": false,
+          "requirements_passed": [
+            "TestEmptyAndFound",
+            "TestBatchFailure"
+          ],
+          "requirements_total": 3,
+          "status": "process_error"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 38,
+        "tokens": {
+          "input": 89740,
+          "output": 7554,
+          "reasoning": 22210,
+          "cache_read": 1496064,
+          "cache_write": 0,
+          "uncached_plus_generated": 119504,
+          "all_categories": 1615568
+        }
+      }
+    },
+    {
+      "id": "07-batch-without-2",
+      "case": "07-batch",
+      "variant": "without",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": false,
+          "requirements_passed": [
+            "TestEmptyAndFound",
+            "TestBatchFailure"
+          ],
+          "requirements_total": 3,
+          "status": "process_error"
+        },
+        "current": {
+          "passed": false,
+          "requirements_passed": [
+            "TestEmptyAndFound",
+            "TestBatchFailure"
+          ],
+          "requirements_total": 3,
+          "status": "process_error"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 22,
+        "tokens": {
+          "input": 42677,
+          "output": 4118,
+          "reasoning": 5611,
+          "cache_read": 474752,
+          "cache_write": 0,
+          "uncached_plus_generated": 52406,
+          "all_categories": 527158
+        }
+      }
+    },
+    {
+      "id": "07-batch-without-3",
+      "case": "07-batch",
+      "variant": "without",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": false,
+          "requirements_passed": [
+            "TestEmptyAndFound",
+            "TestBatchFailure"
+          ],
+          "requirements_total": 3,
+          "status": "process_error"
+        },
+        "current": {
+          "passed": false,
+          "requirements_passed": [
+            "TestEmptyAndFound",
+            "TestBatchFailure"
+          ],
+          "requirements_total": 3,
+          "status": "process_error"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 21,
+        "tokens": {
+          "input": 63002,
+          "output": 4708,
+          "reasoning": 8503,
+          "cache_read": 523648,
+          "cache_write": 0,
+          "uncached_plus_generated": 76213,
+          "all_categories": 599861
+        }
+      }
+    },
+    {
+      "id": "07-batch-with-3",
+      "case": "07-batch",
+      "variant": "with",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": false,
+          "requirements_passed": [
+            "TestEmptyAndFound",
+            "TestBatchFailure"
+          ],
+          "requirements_total": 3,
+          "status": "process_error"
+        },
+        "current": {
+          "passed": false,
+          "requirements_passed": [
+            "TestEmptyAndFound",
+            "TestBatchFailure"
+          ],
+          "requirements_total": 3,
+          "status": "process_error"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 21,
+        "tokens": {
+          "input": 27597,
+          "output": 4068,
+          "reasoning": 6256,
+          "cache_read": 403712,
+          "cache_write": 0,
+          "uncached_plus_generated": 37921,
+          "all_categories": 441633
+        }
+      }
+    },
+    {
+      "id": "08-fatal-without-1",
+      "case": "08-fatal",
+      "variant": "without",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFatalStops",
+            "TestSuccessfulSequence",
+            "TestViolationsAccumulate"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFatalStops",
+            "TestSuccessfulSequence",
+            "TestViolationsAccumulate"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 18,
+        "tokens": {
+          "input": 22167,
+          "output": 3723,
+          "reasoning": 4046,
+          "cache_read": 178176,
+          "cache_write": 0,
+          "uncached_plus_generated": 29936,
+          "all_categories": 208112
+        }
+      }
+    },
+    {
+      "id": "08-fatal-with-1",
+      "case": "08-fatal",
+      "variant": "with",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFatalStops",
+            "TestSuccessfulSequence",
+            "TestViolationsAccumulate"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFatalStops",
+            "TestSuccessfulSequence",
+            "TestViolationsAccumulate"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 13,
+        "tokens": {
+          "input": 17994,
+          "output": 2466,
+          "reasoning": 1844,
+          "cache_read": 120704,
+          "cache_write": 0,
+          "uncached_plus_generated": 22304,
+          "all_categories": 143008
+        }
+      }
+    },
+    {
+      "id": "08-fatal-with-2",
+      "case": "08-fatal",
+      "variant": "with",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFatalStops",
+            "TestSuccessfulSequence",
+            "TestViolationsAccumulate"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFatalStops",
+            "TestSuccessfulSequence",
+            "TestViolationsAccumulate"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 18,
+        "tokens": {
+          "input": 34567,
+          "output": 3308,
+          "reasoning": 4839,
+          "cache_read": 364672,
+          "cache_write": 0,
+          "uncached_plus_generated": 42714,
+          "all_categories": 407386
+        }
+      }
+    },
+    {
+      "id": "08-fatal-without-2",
+      "case": "08-fatal",
+      "variant": "without",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFatalStops",
+            "TestSuccessfulSequence",
+            "TestViolationsAccumulate"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFatalStops",
+            "TestSuccessfulSequence",
+            "TestViolationsAccumulate"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 14,
+        "tokens": {
+          "input": 23797,
+          "output": 2817,
+          "reasoning": 3028,
+          "cache_read": 161280,
+          "cache_write": 0,
+          "uncached_plus_generated": 29642,
+          "all_categories": 190922
+        }
+      }
+    },
+    {
+      "id": "08-fatal-without-3",
+      "case": "08-fatal",
+      "variant": "without",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFatalStops",
+            "TestSuccessfulSequence",
+            "TestViolationsAccumulate"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFatalStops",
+            "TestSuccessfulSequence",
+            "TestViolationsAccumulate"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 18,
+        "tokens": {
+          "input": 26691,
+          "output": 3957,
+          "reasoning": 7172,
+          "cache_read": 229888,
+          "cache_write": 0,
+          "uncached_plus_generated": 37820,
+          "all_categories": 267708
+        }
+      }
+    },
+    {
+      "id": "08-fatal-with-3",
+      "case": "08-fatal",
+      "variant": "with",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFatalStops",
+            "TestSuccessfulSequence",
+            "TestViolationsAccumulate"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFatalStops",
+            "TestSuccessfulSequence",
+            "TestViolationsAccumulate"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 23,
+        "tokens": {
+          "input": 57049,
+          "output": 4538,
+          "reasoning": 8071,
+          "cache_read": 634368,
+          "cache_write": 0,
+          "uncached_plus_generated": 69658,
+          "all_categories": 704026
+        }
+      }
+    },
+    {
+      "id": "09-adapter-without-1",
+      "case": "09-adapter",
+      "variant": "without",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestAdapterContext",
+            "TestAdapterGroupsAndLimit"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestAdapterContext",
+            "TestAdapterGroupsAndLimit"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 27,
+        "tokens": {
+          "input": 23276,
+          "output": 3499,
+          "reasoning": 3584,
+          "cache_read": 326016,
+          "cache_write": 0,
+          "uncached_plus_generated": 30359,
+          "all_categories": 356375
+        }
+      }
+    },
+    {
+      "id": "09-adapter-with-1",
+      "case": "09-adapter",
+      "variant": "with",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestAdapterContext",
+            "TestAdapterGroupsAndLimit"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestAdapterContext",
+            "TestAdapterGroupsAndLimit"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 29,
+        "tokens": {
+          "input": 24696,
+          "output": 4890,
+          "reasoning": 4882,
+          "cache_read": 394496,
+          "cache_write": 0,
+          "uncached_plus_generated": 34468,
+          "all_categories": 428964
+        }
+      }
+    },
+    {
+      "id": "09-adapter-with-2",
+      "case": "09-adapter",
+      "variant": "with",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestAdapterContext",
+            "TestAdapterGroupsAndLimit"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestAdapterContext",
+            "TestAdapterGroupsAndLimit"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 15,
+        "tokens": {
+          "input": 23189,
+          "output": 3052,
+          "reasoning": 2651,
+          "cache_read": 185728,
+          "cache_write": 0,
+          "uncached_plus_generated": 28892,
+          "all_categories": 214620
+        }
+      }
+    },
+    {
+      "id": "09-adapter-without-2",
+      "case": "09-adapter",
+      "variant": "without",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestAdapterContext",
+            "TestAdapterGroupsAndLimit"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestAdapterContext",
+            "TestAdapterGroupsAndLimit"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 30,
+        "tokens": {
+          "input": 70891,
+          "output": 4595,
+          "reasoning": 13184,
+          "cache_read": 1027456,
+          "cache_write": 0,
+          "uncached_plus_generated": 88670,
+          "all_categories": 1116126
+        }
+      }
+    },
+    {
+      "id": "09-adapter-without-3",
+      "case": "09-adapter",
+      "variant": "without",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestAdapterContext",
+            "TestAdapterGroupsAndLimit"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestAdapterContext",
+            "TestAdapterGroupsAndLimit"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 17,
+        "tokens": {
+          "input": 17505,
+          "output": 3010,
+          "reasoning": 3322,
+          "cache_read": 156672,
+          "cache_write": 0,
+          "uncached_plus_generated": 23837,
+          "all_categories": 180509
+        }
+      }
+    },
+    {
+      "id": "09-adapter-with-3",
+      "case": "09-adapter",
+      "variant": "with",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestAdapterContext",
+            "TestAdapterGroupsAndLimit"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestAdapterContext",
+            "TestAdapterGroupsAndLimit"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 23,
+        "tokens": {
+          "input": 23969,
+          "output": 3393,
+          "reasoning": 4266,
+          "cache_read": 267520,
+          "cache_write": 0,
+          "uncached_plus_generated": 31628,
+          "all_categories": 299148
+        }
+      }
+    },
+    {
+      "id": "10-update-without-1",
+      "case": "10-update",
+      "variant": "without",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestNormalizedUpdate",
+            "TestUpdateBarrier",
+            "TestDuplicateAndLoadFailure"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestNormalizedUpdate",
+            "TestUpdateBarrier",
+            "TestDuplicateAndLoadFailure"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 14,
+        "tokens": {
+          "input": 25447,
+          "output": 2762,
+          "reasoning": 2567,
+          "cache_read": 176000,
+          "cache_write": 0,
+          "uncached_plus_generated": 30776,
+          "all_categories": 206776
+        }
+      }
+    },
+    {
+      "id": "10-update-with-1",
+      "case": "10-update",
+      "variant": "with",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestNormalizedUpdate",
+            "TestUpdateBarrier",
+            "TestDuplicateAndLoadFailure"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestNormalizedUpdate",
+            "TestUpdateBarrier",
+            "TestDuplicateAndLoadFailure"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 19,
+        "tokens": {
+          "input": 24825,
+          "output": 3919,
+          "reasoning": 7368,
+          "cache_read": 238464,
+          "cache_write": 0,
+          "uncached_plus_generated": 36112,
+          "all_categories": 274576
+        }
+      }
+    },
+    {
+      "id": "10-update-with-2",
+      "case": "10-update",
+      "variant": "with",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestNormalizedUpdate",
+            "TestUpdateBarrier",
+            "TestDuplicateAndLoadFailure"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestNormalizedUpdate",
+            "TestUpdateBarrier",
+            "TestDuplicateAndLoadFailure"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 21,
+        "tokens": {
+          "input": 30416,
+          "output": 4091,
+          "reasoning": 5809,
+          "cache_read": 346240,
+          "cache_write": 0,
+          "uncached_plus_generated": 40316,
+          "all_categories": 386556
+        }
+      }
+    },
+    {
+      "id": "10-update-without-2",
+      "case": "10-update",
+      "variant": "without",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestNormalizedUpdate",
+            "TestUpdateBarrier",
+            "TestDuplicateAndLoadFailure"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestNormalizedUpdate",
+            "TestUpdateBarrier",
+            "TestDuplicateAndLoadFailure"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 14,
+        "tokens": {
+          "input": 30099,
+          "output": 3213,
+          "reasoning": 3365,
+          "cache_read": 198656,
+          "cache_write": 0,
+          "uncached_plus_generated": 36677,
+          "all_categories": 235333
+        }
+      }
+    },
+    {
+      "id": "10-update-without-3",
+      "case": "10-update",
+      "variant": "without",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestNormalizedUpdate",
+            "TestUpdateBarrier",
+            "TestDuplicateAndLoadFailure"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestNormalizedUpdate",
+            "TestUpdateBarrier",
+            "TestDuplicateAndLoadFailure"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 23,
+        "tokens": {
+          "input": 40858,
+          "output": 4282,
+          "reasoning": 7135,
+          "cache_read": 451072,
+          "cache_write": 0,
+          "uncached_plus_generated": 52275,
+          "all_categories": 503347
+        }
+      }
+    },
+    {
+      "id": "10-update-with-3",
+      "case": "10-update",
+      "variant": "with",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestNormalizedUpdate",
+            "TestUpdateBarrier",
+            "TestDuplicateAndLoadFailure"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestNormalizedUpdate",
+            "TestUpdateBarrier",
+            "TestDuplicateAndLoadFailure"
+          ],
+          "requirements_total": 3,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 13,
+        "tokens": {
+          "input": 14411,
+          "output": 2938,
+          "reasoning": 1967,
+          "cache_read": 104320,
+          "cache_write": 0,
+          "uncached_plus_generated": 19316,
+          "all_categories": 123636
+        }
+      }
+    },
+    {
+      "id": "11-custom-without-1",
+      "case": "11-custom",
+      "variant": "without",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCustomRule",
+            "TestTranslation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCustomRule",
+            "TestTranslation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 27,
+        "tokens": {
+          "input": 26954,
+          "output": 3529,
+          "reasoning": 3345,
+          "cache_read": 428288,
+          "cache_write": 0,
+          "uncached_plus_generated": 33828,
+          "all_categories": 462116
+        }
+      }
+    },
+    {
+      "id": "11-custom-with-1",
+      "case": "11-custom",
+      "variant": "with",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCustomRule",
+            "TestTranslation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCustomRule",
+            "TestTranslation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 22,
+        "tokens": {
+          "input": 36264,
+          "output": 3186,
+          "reasoning": 2936,
+          "cache_read": 418048,
+          "cache_write": 0,
+          "uncached_plus_generated": 42386,
+          "all_categories": 460434
+        }
+      }
+    },
+    {
+      "id": "11-custom-with-2",
+      "case": "11-custom",
+      "variant": "with",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCustomRule",
+            "TestTranslation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCustomRule",
+            "TestTranslation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 19,
+        "tokens": {
+          "input": 20940,
+          "output": 3885,
+          "reasoning": 2625,
+          "cache_read": 203136,
+          "cache_write": 0,
+          "uncached_plus_generated": 27450,
+          "all_categories": 230586
+        }
+      }
+    },
+    {
+      "id": "11-custom-without-2",
+      "case": "11-custom",
+      "variant": "without",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCustomRule",
+            "TestTranslation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCustomRule",
+            "TestTranslation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 22,
+        "tokens": {
+          "input": 29865,
+          "output": 3900,
+          "reasoning": 4774,
+          "cache_read": 355456,
+          "cache_write": 0,
+          "uncached_plus_generated": 38539,
+          "all_categories": 393995
+        }
+      }
+    },
+    {
+      "id": "11-custom-without-3",
+      "case": "11-custom",
+      "variant": "without",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCustomRule",
+            "TestTranslation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCustomRule",
+            "TestTranslation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 21,
+        "tokens": {
+          "input": 39187,
+          "output": 4038,
+          "reasoning": 7105,
+          "cache_read": 422144,
+          "cache_write": 0,
+          "uncached_plus_generated": 50330,
+          "all_categories": 472474
+        }
+      }
+    },
+    {
+      "id": "11-custom-with-3",
+      "case": "11-custom",
+      "variant": "with",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": true,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCustomRule",
+            "TestTranslation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestCustomRule",
+            "TestTranslation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "observed",
+      "usage": {
+        "complete": true,
+        "records": 20,
+        "tokens": {
+          "input": 22745,
+          "output": 3221,
+          "reasoning": 2923,
+          "cache_read": 282112,
+          "cache_write": 0,
+          "uncached_plus_generated": 28889,
+          "all_categories": 311001
+        }
+      }
+    },
+    {
+      "id": "12-control-without-1",
+      "case": "12-control",
+      "variant": "without",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": false,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFormatting",
+            "TestExistingValidation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFormatting",
+            "TestExistingValidation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 8,
+        "tokens": {
+          "input": 4645,
+          "output": 1356,
+          "reasoning": 567,
+          "cache_read": 23168,
+          "cache_write": 0,
+          "uncached_plus_generated": 6568,
+          "all_categories": 29736
+        }
+      }
+    },
+    {
+      "id": "12-control-with-1",
+      "case": "12-control",
+      "variant": "with",
+      "repeat": 1,
+      "status": "completed",
+      "should_trigger": false,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFormatting",
+            "TestExistingValidation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFormatting",
+            "TestExistingValidation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 6,
+        "tokens": {
+          "input": 3724,
+          "output": 870,
+          "reasoning": 175,
+          "cache_read": 15488,
+          "cache_write": 0,
+          "uncached_plus_generated": 4769,
+          "all_categories": 20257
+        }
+      }
+    },
+    {
+      "id": "12-control-with-2",
+      "case": "12-control",
+      "variant": "with",
+      "repeat": 2,
+      "status": "process_error",
+      "should_trigger": false,
+      "grades": {},
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": false,
+        "records": 4,
+        "tokens": {
+          "input": 3192,
+          "output": 519,
+          "reasoning": 146,
+          "cache_read": 8832,
+          "cache_write": 0,
+          "uncached_plus_generated": 3857,
+          "all_categories": 12689
+        }
+      }
+    },
+    {
+      "id": "12-control-without-2",
+      "case": "12-control",
+      "variant": "without",
+      "repeat": 2,
+      "status": "completed",
+      "should_trigger": false,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFormatting",
+            "TestExistingValidation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFormatting",
+            "TestExistingValidation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 5,
+        "tokens": {
+          "input": 3756,
+          "output": 806,
+          "reasoning": 239,
+          "cache_read": 11392,
+          "cache_write": 0,
+          "uncached_plus_generated": 4801,
+          "all_categories": 16193
+        }
+      }
+    },
+    {
+      "id": "12-control-without-3",
+      "case": "12-control",
+      "variant": "without",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": false,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFormatting",
+            "TestExistingValidation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFormatting",
+            "TestExistingValidation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 5,
+        "tokens": {
+          "input": 3751,
+          "output": 813,
+          "reasoning": 491,
+          "cache_read": 11392,
+          "cache_write": 0,
+          "uncached_plus_generated": 5055,
+          "all_categories": 16447
+        }
+      }
+    },
+    {
+      "id": "12-control-with-3",
+      "case": "12-control",
+      "variant": "with",
+      "repeat": 3,
+      "status": "completed",
+      "should_trigger": false,
+      "grades": {
+        "v0.19.0": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFormatting",
+            "TestExistingValidation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        },
+        "current": {
+          "passed": true,
+          "requirements_passed": [
+            "TestFormatting",
+            "TestExistingValidation"
+          ],
+          "requirements_total": 2,
+          "status": "completed"
+        }
+      },
+      "skill_loading": "not_observed",
+      "usage": {
+        "complete": true,
+        "records": 6,
+        "tokens": {
+          "input": 3756,
+          "output": 936,
+          "reasoning": 176,
+          "cache_read": 15360,
+          "cache_write": 0,
+          "uncached_plus_generated": 4868,
+          "all_categories": 20228
+        }
+      }
+    }
+  ]
+}

@@ -52,7 +52,9 @@ For infrastructure checks, use fakes that record inputs, contexts, and call coun
 
 - Local invalid input: all expected violations; zero dependent lookup/write calls.
 - Valid local input with multiple missing references: every required violation,
-  original indices, and the intended number of batch requests.
+  original indices, the full collection path with and without a caller prefix,
+  and the intended number and contents of batch requests. Allow deduplicated IDs
+  when the contract permits them, while checking every original occurrence.
 - Timeout/cancellation: the original error remains discoverable with `errors.Is`;
   later checks and writes do not run.
 - Update: necessary load occurs, current identity is excluded from uniqueness,
