@@ -1,207 +1,225 @@
 {
   "schema_version": 1,
+  "suite": "main",
+  "revision": 2,
   "cases": [
     {
-      "id": "01-eager",
-      "title": "Validate a complete input",
+      "id": "16-request",
+      "title": "Implement a complete service request",
       "smoke": true,
       "should_trigger": true,
-      "requirements": [
-        "TestEager",
-        "TestValid"
-      ],
       "editable": [
-        "solution.go"
-      ]
+        "validation.go",
+        "children.go"
+      ],
+      "allow_helpers": true,
+      "requirements": [
+        "TestRequestAccumulation",
+        "TestRequestPaths",
+        "TestRequestBoundsAndValid"
+      ],
+      "mutations": [
+        {
+          "id": "lost-prefix",
+          "file": "validation.go",
+          "old": "tBetween(1, 2)),\n\t\tvalidation.ValidSliceProperty(\"visits\", x.Visits))\n}\nfunc (x Contact) Validate(c",
+          "new": "tBetween(1, 2)),\n\t\tvalidation.ValidSlice(x.Visits))\n}\nfunc (x Contact) Validate(c",
+          "test": "TestRequestPaths"
+        }
+      ],
+      "categories": {
+        "TestRequestAccumulation": "accumulation",
+        "TestRequestPaths": "paths",
+        "TestRequestBoundsAndValid": "boundaries"
+      }
     },
     {
-      "id": "02-collection",
-      "title": "Extend nested collection validation",
+      "id": "17-settings",
+      "title": "Extend optional scheduling settings",
+      "smoke": false,
+      "should_trigger": true,
+      "editable": [
+        "validation.go",
+        "schedule.go"
+      ],
+      "allow_helpers": true,
+      "requirements": [
+        "TestSettingsAccumulation",
+        "TestSettingsOptional",
+        "TestSettingsContext"
+      ],
+      "mutations": [
+        {
+          "id": "early-return",
+          "file": "validation.go",
+          "old": "dation.Validator, maximum int) error {\n\treturn v.Validate(ctx,\n\t\tvalidation.Stri",
+          "new": "dation.Validator, maximum int) error {\n\tif err := v.Validate(ctx, validation.StringProperty(\"title\", x.Title, it.IsNotBlank())); err != nil {\n\t\treturn err\n\t}\n\treturn v.Validate(ctx,\n\t\tvalidation.Stri",
+          "test": "TestSettingsAccumulation"
+        }
+      ],
+      "categories": {
+        "TestSettingsAccumulation": "accumulation",
+        "TestSettingsOptional": "optional",
+        "TestSettingsContext": "context"
+      }
+    },
+    {
+      "id": "18-tree",
+      "title": "Repair recursive form validation",
+      "smoke": false,
+      "should_trigger": true,
+      "editable": [
+        "validation.go",
+        "field.go"
+      ],
+      "allow_helpers": true,
+      "requirements": [
+        "TestTreeAccumulation",
+        "TestTreePaths",
+        "TestTreeDepthAndScope"
+      ],
+      "mutations": [
+        {
+          "id": "duplicated-prefix",
+          "file": "field.go",
+          "old": "s = append(args, validation.AtProperty(\"attributes\", validation.StringProperty(key, value",
+          "new": "s = append(args, validation.AtProperty(\"fields\", validation.StringProperty(key, value",
+          "test": "TestTreePaths"
+        }
+      ],
+      "categories": {
+        "TestTreeAccumulation": "accumulation",
+        "TestTreePaths": "paths",
+        "TestTreeDepthAndScope": "recursion"
+      }
+    },
+    {
+      "id": "19-update",
+      "title": "Update a resource bundle with batch validation",
       "smoke": true,
       "should_trigger": true,
-      "requirements": [
-        "TestCollectionAccumulation",
-        "TestCollectionBounds"
-      ],
       "editable": [
-        "solution.go"
-      ]
+        "validation.go",
+        "service.go"
+      ],
+      "allow_helpers": true,
+      "requirements": [
+        "TestUpdateLocalBarrier",
+        "TestUpdateRemoteAccumulation",
+        "TestUpdateBatchPaths",
+        "TestUpdatePersistenceAndFatal"
+      ],
+      "mutations": [
+        {
+          "id": "wrong-index",
+          "file": "validation.go",
+          "old": "Missing, ErrMissing.Message()).AtIndex(i).AtProperty(\"id\").Add()\n\t\t}\n\t}\n\treturn ",
+          "new": "Missing, ErrMissing.Message()).AtIndex(i + 1).AtProperty(\"id\").Add()\n\t\t}\n\t}\n\treturn ",
+          "test": "TestUpdateBatchPaths"
+        },
+        {
+          "id": "swallowed-fatal",
+          "file": "service.go",
+          "old": " next.ID)\n\t\t\tif err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\t\t\tif taken {\n\t\t\t\treturn v.CreateV",
+          "new": " next.ID)\n\t\t\tif err != nil {\n\t\t\t\treturn v.CreateViolation(ctx, ErrDuplicate, ErrDuplicate.Message())\n\t\t\t}\n\t\t\tif taken {\n\t\t\t\treturn v.CreateV",
+          "test": "TestUpdatePersistenceAndFatal"
+        }
+      ],
+      "categories": {
+        "TestUpdateLocalBarrier": "staging",
+        "TestUpdateRemoteAccumulation": "accumulation",
+        "TestUpdateBatchPaths": "paths",
+        "TestUpdatePersistenceAndFatal": "technical_errors"
+      }
     },
     {
-      "id": "03-optional",
-      "title": "Optional fields and dependent bounds",
+      "id": "20-reuse",
+      "title": "Extend and simplify account validation",
       "smoke": false,
       "should_trigger": true,
-      "requirements": [
-        "TestOptional",
-        "TestIndependentConditions"
-      ],
       "editable": [
-        "solution.go"
-      ]
+        "validation.go",
+        "preferences.go"
+      ],
+      "allow_helpers": true,
+      "requirements": [
+        "TestReuseAccumulation",
+        "TestReuseBoundaries",
+        "TestReuseDependencyErrors"
+      ],
+      "mutations": [
+        {
+          "id": "bypassed-rule",
+          "file": "validation.go",
+          "old": "xt, child *validation.Validator) error {\n\t\t\treturn x.Address.Validate(ctx, child, region)\n\t\t})),\n\t\tvalidation.ValidProperty(\"prefere",
+          "new": "xt, child *validation.Validator) error { return nil })),\n\t\tvalidation.ValidProperty(\"prefere",
+          "test": "TestReuseAccumulation"
+        }
+      ],
+      "categories": {
+        "TestReuseAccumulation": "accumulation",
+        "TestReuseBoundaries": "boundaries",
+        "TestReuseDependencyErrors": "technical_errors"
+      }
     },
     {
-      "id": "04-groups",
-      "title": "Draft and publish rules",
+      "id": "21-constraint",
+      "title": "Create a reusable category-aware code constraint",
       "smoke": false,
       "should_trigger": true,
-      "requirements": [
-        "TestDraft",
-        "TestPublish"
-      ],
       "editable": [
-        "solution.go"
-      ]
+        "constraint.go",
+        "validation.go"
+      ],
+      "allow_helpers": true,
+      "requirements": [
+        "TestConstraintRequiredness",
+        "TestConstraintErrors",
+        "TestConstraintReuseAndTranslations",
+        "TestConstraintCallerFactory"
+      ],
+      "mutations": [
+        {
+          "id": "technical-as-violation",
+          "file": "constraint.go",
+          "old": "(ctx, *value)\n\tif err != nil {\n\t\treturn err\n\t}\n\tif !found {\n\t\treturn v.CreateViolat",
+          "new": "(ctx, *value)\n\tif err != nil {\n\t\treturn v.CreateViolation(ctx, ErrUnknown, ErrUnknown.Message())\n\t}\n\tif !found {\n\t\treturn v.CreateViolat",
+          "test": "TestConstraintErrors"
+        }
+      ],
+      "categories": {
+        "TestConstraintRequiredness": "optional",
+        "TestConstraintErrors": "technical_errors",
+        "TestConstraintReuseAndTranslations": "context",
+        "TestConstraintCallerFactory": "context"
+      }
     },
     {
-      "id": "05-stages",
-      "title": "Validate locally before checking references",
+      "id": "22-display",
+      "title": "Group existing errors for display",
       "smoke": true,
-      "should_trigger": true,
-      "requirements": [
-        "TestLocalBarrier",
-        "TestAllRemoteViolations",
-        "TestSaveAfterSuccess"
-      ],
-      "editable": [
-        "solution.go"
-      ]
-    },
-    {
-      "id": "06-branch",
-      "title": "Repair prematurely executed validation",
-      "smoke": false,
-      "should_trigger": true,
-      "requirements": [
-        "TestBranchBarrier",
-        "TestSiblingIndependence"
-      ],
-      "editable": [
-        "solution.go"
-      ]
-    },
-    {
-      "id": "07-batch",
-      "title": "Validate references in one batch",
-      "smoke": false,
-      "should_trigger": true,
-      "requirements": [
-        "TestBatchIndices",
-        "TestEmptyAndFound",
-        "TestBatchFailure",
-        "TestBatchPaths"
-      ],
-      "editable": [
-        "solution.go"
-      ]
-    },
-    {
-      "id": "08-fatal",
-      "title": "Stop on technical errors without losing identity",
-      "smoke": true,
-      "should_trigger": true,
-      "requirements": [
-        "TestFatalStops",
-        "TestSuccessfulSequence",
-        "TestViolationsAccumulate"
-      ],
-      "editable": [
-        "solution.go"
-      ]
-    },
-    {
-      "id": "09-adapter",
-      "title": "Adapt an existing richer method",
-      "smoke": false,
-      "should_trigger": true,
-      "requirements": [
-        "TestAdapterContext",
-        "TestAdapterGroupsAndLimit"
-      ],
-      "editable": [
-        "solution.go"
-      ]
-    },
-    {
-      "id": "10-update",
-      "title": "Validate the normalized state on update",
-      "smoke": false,
-      "should_trigger": true,
-      "requirements": [
-        "TestNormalizedUpdate",
-        "TestUpdateBarrier",
-        "TestDuplicateAndLoadFailure"
-      ],
-      "editable": [
-        "solution.go"
-      ]
-    },
-    {
-      "id": "11-custom",
-      "title": "Custom reusable constraint and translation",
-      "smoke": false,
-      "should_trigger": true,
-      "requirements": [
-        "TestCustomRule",
-        "TestTranslation"
-      ],
-      "editable": [
-        "solution.go"
-      ]
-    },
-    {
-      "id": "12-control",
-      "title": "Fix a display formatter without changing validation",
-      "smoke": false,
       "should_trigger": false,
-      "requirements": [
-        "TestFormatting",
-        "TestExistingValidation"
-      ],
       "editable": [
-        "solution.go"
-      ]
-    },
-    {
-      "id": "13-scoped",
-      "title": "Batch lookup with an already scoped collection",
-      "smoke": false,
-      "should_trigger": true,
-      "requirements": [
-        "TestBatchIndices",
-        "TestEmptyAndFound",
-        "TestBatchFailure",
-        "TestBatchPaths"
+        "group.go"
       ],
-      "editable": [
-        "solution.go"
-      ]
-    },
-    {
-      "id": "14-errors",
-      "title": "Present existing validation errors",
-      "smoke": false,
-      "should_trigger": false,
+      "allow_helpers": true,
       "requirements": [
-        "TestErrorPresentation",
-        "TestExistingCodeValidation"
+        "TestDisplayGrouping",
+        "TestDisplayExistingBehavior"
       ],
-      "editable": [
-        "solution.go"
-      ]
-    },
-    {
-      "id": "15-copy",
-      "title": "Copy existing validation messages",
-      "smoke": false,
-      "should_trigger": false,
-      "requirements": [
-        "TestIndependentCopy",
-        "TestNilAndExistingValidation"
+      "mutations": [
+        {
+          "id": "lost-duplicates",
+          "file": "group.go",
+          "old": "e.Path})\n\t\t}\n\t\tresult[index].Messages = append(result[index].Messages, issue.Message)\n\t}\n\treturn result\n}\n",
+          "new": "e.Path})\n\t\t}\n\t\tresult[index].Messages = []string{issue.Message}\n\t}\n\treturn result\n}\n",
+          "test": "TestDisplayGrouping"
+        }
       ],
-      "editable": [
-        "solution.go"
-      ]
+      "categories": {
+        "TestDisplayGrouping": "presentation",
+        "TestDisplayExistingBehavior": "scope"
+      }
     }
   ]
 }

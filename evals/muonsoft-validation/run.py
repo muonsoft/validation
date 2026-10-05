@@ -7,6 +7,7 @@ from collections import Counter
 from contextlib import contextmanager
 import difflib
 import fcntl
+import gzip
 import hashlib
 import io
 import json
@@ -57,8 +58,14 @@ def files_digest(directory):
     return files
 
 
-def cases():
-    data = json.loads((HERE / "cases.json").read_text())
+def case_manifest(suite):
+    if suite not in ("main", "legacy"):
+        raise ValueError("unknown suite")
+    return HERE / ("cases.json" if suite == "main" else "legacy-cases.json")
+
+
+def cases(suite="main"):
+    data = json.loads(case_manifest(suite).read_text())
     if data["schema_version"] != 1:
         raise ValueError("unsupported case schema")
     ids = set()
@@ -68,14 +75,21 @@ def cases():
             raise ValueError(f"invalid/duplicate case ID: {identifier}")
         ids.add(identifier)
         path = HERE / "testdata" / identifier
-        for name in ("prompt.md", "workspace/contract.go", "workspace/solution.go",
-                     "reference/solution.go", "checks/requirements_test.go"):
+        for name in ("prompt.md", "workspace/contract.go", "checks/requirements_test.go",
+                     *(f"{folder}/{name}" for folder in ("workspace", "reference") for name in case["editable"])):
             if not (path / name).is_file():
                 raise ValueError(f"missing {identifier}/{name}")
         tests = re.findall(r"^func (Test\w+)\(", (path / "checks/requirements_test.go").read_text(), re.M)
         if tests != case["requirements"] or not tests:
             raise ValueError(f"test manifest mismatch: {identifier}")
     return data["cases"]
+
+
+def editable(case, name):
+    original = HERE / "testdata" / case["id"] / "workspace" / name
+    return name in case["editable"] or (case.get("allow_helpers", False)
+        and Path(name).name == name and name.endswith(".go")
+        and not name.endswith("_test.go") and not original.exists())
 
 
 def command(argv, cwd, output, env=None, timeout=180):
@@ -164,7 +178,7 @@ def prepare_module(workspace, library, negative=False):
 def workspace(case, target, library, reference=False):
     shutil.copytree(HERE / "testdata" / case["id"] / "workspace", target)
     if reference:
-        shutil.copyfile(HERE / "testdata" / case["id"] / "reference/solution.go", target / "solution.go")
+        shutil.copytree(HERE / "testdata" / case["id"] / "reference", target, dirs_exist_ok=True)
     prepare_module(target, library, negative=not case["should_trigger"])
 
 
@@ -179,22 +193,31 @@ def test_result(path, requirements, process):
             completed[event["Test"]] = event["Action"]
     passed = [name for name in requirements if completed.get(name) == "pass"]
     return {**process, "requirements_passed": passed,
+            "requirements_failed": [name for name in requirements if completed.get(name) == "fail"],
             "requirements_total": len(requirements),
             "passed": process["status"] == "completed" and len(passed) == len(requirements)}
 
 
 def grade(case, source, output, snapshots, env):
     results = {}
+    for name in case["editable"]:
+        if not (source / name).is_file() or (source / name).is_symlink():
+            raise ValueError(f"missing or symlink implementation: {name}")
     for version, library in snapshots.items():
         target = output / version
-        target.mkdir(parents=True)
-        # Only immutable contract and allowed submission are compiled, not worker tests.
-        shutil.copyfile(HERE / "testdata" / case["id"] / "workspace/contract.go", target / "contract.go")
-        shutil.copyfile(source / "solution.go", target / "solution.go")
+        shutil.copytree(HERE / "testdata" / case["id"] / "workspace", target)
+        # Restore protected files; include all allowed implementation files, never worker tests.
+        for path in source.glob("*.go"):
+            if editable(case, path.name):
+                if path.is_symlink():
+                    raise ValueError("symlink submission")
+                shutil.copyfile(path, target / path.name)
         prepare_module(target, Path(library["path"]), negative=not case["should_trigger"])
         shutil.copyfile(HERE / "testdata" / case["id"] / "checks/requirements_test.go", target / "requirements_test.go")
         if case["should_trigger"]:
             shutil.copyfile(HERE / "testdata/helpers_test.go", target / "helpers_test.go")
+            if case.get("allow_helpers"):
+                shutil.copyfile(HERE / "testdata/behavior_test.go", target / "behavior_test.go")
         log = target / "tests.jsonl"
         process = command(["go", "test", "-mod=mod", "-race", "-count=1", "-json", "./..."], target, log, env)
         results[version] = test_result(log, case["requirements"], process)
@@ -346,13 +369,23 @@ def check(args):
     output = new_output(args.output)
     snapshots = library_snapshots(output)
     report = {"materials": check_materials(output, snapshots), "cases": {}}
-    for case in cases():
+    for case in cases(getattr(args, "suite", "main")):
         directory = output / case["id"]
         for mode in ("reference", "starter"):
             src = directory / mode / "workspace"
             workspace(case, src, Path(snapshots["v0.19.0"]["path"]), reference=mode == "reference")
             grades = grade(case, src, directory / mode / "checks", snapshots, go_env(output))
             report["cases"].setdefault(case["id"], {})[mode] = grades
+        for mutation in case.get("mutations", []):
+            src = directory / mutation["id"] / "workspace"
+            workspace(case, src, Path(snapshots["v0.19.0"]["path"]), reference=True)
+            path = src / mutation["file"]
+            text = path.read_text()
+            if text.count(mutation["old"]) != 1:
+                raise ValueError(f"ambiguous mutation: {case['id']}/{mutation['id']}")
+            path.write_text(text.replace(mutation["old"], mutation["new"]))
+            report["cases"][case["id"]][mutation["id"]] = grade(
+                case, src, directory / mutation["id"] / "checks", snapshots, go_env(output))
         print(f"checked {case['id']}", flush=True)
     write_json(output / "check.json", report)
     failures = list(report["materials"]["errors"])
@@ -360,8 +393,18 @@ def check(args):
         for version in snapshots:
             if not modes["reference"][version]["passed"]:
                 failures.append(f"reference failed: {identifier}/{version}")
+            if not modes["starter"][version]["requirements_failed"]:
+                failures.append(f"starter did not execute failing behavioral tests: {identifier}/{version}")
             if modes["starter"][version]["passed"]:
                 failures.append(f"checks did not reject starter: {identifier}/{version}")
+    for case in cases(getattr(args, "suite", "main")):
+        for mutation in case.get("mutations", []):
+            for version in snapshots:
+                result = report["cases"][case["id"]][mutation["id"]][version]
+                if mutation["test"] not in result["requirements_failed"]:
+                    failures.append(f"mutation did not fail its behavioral test: {case['id']}/{mutation['id']}/{version}")
+    if getattr(args, "retention", "compact") == "compact":
+        shutil.rmtree(output / "go-cache", ignore_errors=True)
     print("\n".join(failures) if failures else "Material, compatibility, and negative checks passed.")
     print(output / "check.json")
     return bool(failures)
@@ -789,6 +832,119 @@ def run_lock(path, create=False):
             fcntl.flock(stream, fcntl.LOCK_UN)
 
 
+def compress_log(path):
+    """Lossless compression; remove the source only after validating the archive."""
+    if path.is_symlink() or not path.is_file():
+        return
+    target = path.with_name(path.name + ".gz")
+    temporary = target.with_name(target.name + ".tmp")
+    checksum = hashlib.sha256()
+    with path.open("rb") as source, gzip.open(temporary, "wb") as archive:
+        while block := source.read(1024 * 1024):
+            checksum.update(block)
+            archive.write(block)
+    verified = hashlib.sha256()
+    with gzip.open(temporary, "rb") as archive:
+        while block := archive.read(1024 * 1024):
+            verified.update(block)
+    if verified.digest() != checksum.digest():
+        raise ValueError(f"compressed log verification failed: {path}")
+    temporary.replace(target)
+    path.unlink()
+
+
+def disposable_paths(output):
+    """Only runner-owned caches/profiles; never follow inherited attempt links."""
+    paths = [output / name for name in ("go-cache", "profile", "models.server.profile")]
+    attempts = output / "attempts"
+    if attempts.is_dir() and not attempts.is_symlink():
+        for attempt in attempts.iterdir():
+            if not attempt.is_dir() or attempt.is_symlink():
+                continue
+            paths.extend(attempt / name for name in ("discovery.server.profile", "events.server.profile"))
+            workspace = attempt / "workspace"
+            if workspace.is_dir() and not workspace.is_symlink():
+                paths.extend(workspace / name for name in (".git", ".opencode"))
+    return [path for path in paths if path.exists() or path.is_symlink()]
+
+
+def disk_size(path):
+    if path.is_symlink():
+        return path.lstat().st_size
+    if path.is_file():
+        return path.stat().st_size
+    return sum(file.stat().st_size for file in path.rglob("*") if file.is_file() and not file.is_symlink())
+
+
+def compact(output, attempt=None):
+    paths = disposable_paths(output)
+    if attempt is not None:
+        paths = [path for path in paths if path.is_relative_to(attempt)]
+    removed = sum(disk_size(path) for path in paths)
+    for path in paths:
+        # Old runs did not snapshot the skill separately. Preserve their only
+        # copy before deleting the workspace installation/runtime directory.
+        if path.name == ".opencode" and path.is_dir() and not path.is_symlink() and not (output / "materials/skill").is_dir():
+            skill = path / "skills/muonsoft-validation"
+            saved = path.parent.parent / "installed-skill"
+            if skill.is_dir() and not skill.is_symlink() and not saved.exists():
+                shutil.copytree(skill, saved, symlinks=True)
+        if path.is_symlink() or path.is_file():
+            path.unlink()
+        else:
+            shutil.rmtree(path)
+    attempts = output / "attempts"
+    roots = []
+    if attempts.is_dir() and not attempts.is_symlink():
+        roots = [attempt] if attempt is not None else [p for p in attempts.iterdir() if p.is_dir() and not p.is_symlink()]
+    for root in roots:
+        for path in root.rglob("*"):
+            # A submitted symlink is invalid, and must never expose outside logs.
+            if any(parent.is_symlink() for parent in (path, *path.parents) if parent.is_relative_to(root)):
+                continue
+            if path.suffix in (".jsonl", ".stderr", ".log"):
+                compress_log(path)
+    return removed
+
+
+def cleanup(args):
+    output = Path(args.run).expanduser().resolve()
+    if output.is_relative_to(ROOT) or ROOT.is_relative_to(output):
+        raise ValueError("cleanup requires a run outside the checkout")
+    with run_lock(output / "runner.lock"):
+        manifest = json.loads((output / "run.json").read_text())
+        if "attempts" not in manifest or "model" not in manifest:
+            raise ValueError("not an eval run")
+        paths = disposable_paths(output)
+        print(json.dumps({"apply": args.apply, "disposable_bytes": sum(disk_size(p) for p in paths),
+                          "paths": [str(p.relative_to(output)) for p in paths]}, indent=2))
+        if args.apply:
+            compact(output)
+            if manifest.get("status") == "running":
+                manifest["status"] = "interrupted"
+                for attempt in manifest["attempts"]:
+                    if attempt["status"] in ("running", "preparing"):
+                        attempt["status"] = "interrupted"
+                write_json(output / "run.json", manifest)
+            report(output, output / "review.json" if (output / "review.json").is_file() else None)
+    return 0
+
+
+def snapshot_materials(output, selected, suite):
+    target = output / "materials"
+    target.mkdir()
+    shutil.copyfile(case_manifest(suite), target / "cases.json")
+    shutil.copyfile(Path(__file__), target / "run.py")
+    for name in ("README.md", "SUITE.md"):
+        shutil.copyfile(HERE / name, target / name)
+    shutil.copytree(SKILL, target / "skill")
+    for case in selected:
+        shutil.copytree(HERE / "testdata" / case["id"], target / "testdata" / case["id"])
+    for name in ("helpers_test.go", "behavior_test.go"):
+        shutil.copyfile(HERE / "testdata" / name, target / "testdata" / name)
+    write_json(target / "hashes.json", files_digest(target))
+
+
 def inherit_run(source, output, manifest):
     """Carry attempts forward without rewriting or retrying their artifacts."""
     raw = (source / "run.json").read_bytes()
@@ -815,7 +971,9 @@ def inherit_run(source, output, manifest):
     (output / "attempts").mkdir()
     for attempt in previous["attempts"]:
         identifier = attempt["id"]
-        (output / "attempts" / identifier).symlink_to((source / "attempts" / identifier).resolve(), target_is_directory=True)
+        # Continuations remain portable when the original run is moved or removed.
+        shutil.copytree((source / "attempts" / identifier).resolve(), output / "attempts" / identifier, symlinks=True,
+                        ignore=shutil.ignore_patterns("*.profile", "go-cache", ".git", ".opencode"))
         if attempt["status"] in ("running", "preparing"):
             attempt["status"] = "interrupted"
         manifest["attempts"].append(attempt)
@@ -830,6 +988,9 @@ def run(args):
     output = new_output(args.output)
     source = Path(args.resume).expanduser().resolve() if getattr(args, "resume", None) else None
     with run_lock(output / "runner.lock", create=True):
+        if not getattr(args, "skip_check", False):
+            if check(argparse.Namespace(output=output / "preparation", suite=getattr(args, "suite", "main"), retention="compact")):
+                raise ValueError("material verification failed; no model attempts started")
         if source is not None:
             with run_lock(source / "runner.lock"):
                 return run_attempts(args, output, source)
@@ -837,23 +998,29 @@ def run(args):
 
 
 def run_attempts(args, output, source):
-    selected = [case for case in cases() if (not args.case or case["id"] in args.case)
+    suite = getattr(args, "suite", "main")
+    retention = getattr(args, "retention", "compact")
+    selected = [case for case in cases(suite) if (not args.case or case["id"] in args.case)
                 and (args.profile == "full" or case["smoke"] or args.case)]
     if args.case and set(args.case) - {case["id"] for case in selected}:
         raise ValueError("unknown case ID")
     env, major, version = prepare_runtime(args, output)
     snapshots = library_snapshots(output)
     manifest = provenance(snapshots)
+    manifest["cases_sha256"] = digest(case_manifest(suite).read_bytes())
     manifest.update(model=args.model, profile=args.profile, timeout=args.timeout,
+                    suite=suite, retention=retention,
                     repeats=1 if args.profile == "smoke" else 3, attempts=[], status="running",
                     opencode_version=version,
                     config_sha256=digest((output / "provider.json").read_bytes()),
                     selected_cases=[case["id"] for case in selected],
-                    case_requirements={case["id"]: case["requirements"] for case in selected})
+                    case_requirements={case["id"]: case["requirements"] for case in selected},
+                    case_categories={case["id"]: case.get("categories", {}) for case in selected})
+    snapshot_materials(output, selected, suite)
     inherited = inherit_run(source, output, manifest) if source else set()
-    model_preflight(args, output, env, major)
     write_json(output / "run.json", manifest)
     try:
+        model_preflight(args, output, env, major)
         for case in selected:
             for repeat in range(manifest["repeats"]):
                 # Alternate order to reduce systematic ordering effects.
@@ -893,11 +1060,18 @@ def run_attempts(args, output, source):
                     try:
                         after = files_digest(src)
                         changed = sorted(name for name in before.keys() | after.keys() if before.get(name) != after.get(name))
-                        unexpected = [name for name in changed if name not in case["editable"]]
+                        unexpected = [name for name in changed if not editable(case, name)]
                         attempt["unexpected_changes"] = unexpected
-                        original = (HERE / "testdata" / case["id"] / "workspace/solution.go").read_text()
-                        solution = (src / "solution.go").read_text()
-                        (directory / "solution.diff").write_text("".join(difflib.unified_diff(original.splitlines(True), solution.splitlines(True), fromfile="before/solution.go", tofile="after/solution.go")))
+                        attempt["submission_hashes"] = after
+                        chunks = []
+                        for name in changed:
+                            if not name.endswith(".go"):
+                                continue
+                            original_path = HERE / "testdata" / case["id"] / "workspace" / name
+                            original = original_path.read_text() if original_path.is_file() else ""
+                            solution = (src / name).read_text() if (src / name).is_file() else ""
+                            chunks.extend(difflib.unified_diff(original.splitlines(True), solution.splitlines(True), fromfile=f"before/{name}", tofile=f"after/{name}"))
+                        (directory / "solution.diff").write_text("".join(chunks))
                         if unexpected:
                             attempt["status"] = "invalid_submission"
                         elif attempt["status"] == "completed":
@@ -910,6 +1084,9 @@ def run_attempts(args, output, source):
                         attempt["status"] = "cancelled"
                         raise KeyboardInterrupt
                     write_json(output / "run.json", manifest)
+                    if retention == "compact":
+                        compact(output, directory)
+                    report(output, None)
                     print(identifier, attempt["status"], flush=True)
         manifest["status"] = "completed"
     except KeyboardInterrupt:
@@ -923,6 +1100,8 @@ def run_attempts(args, output, source):
         raise
     finally:
         write_json(output / "run.json", manifest)
+        if retention == "compact":
+            compact(output)
         review = output / "review.json"
         report(output, review if review.is_file() else None)
     return manifest["status"] != "completed"
@@ -939,6 +1118,9 @@ def report(output, review_path):
             if type(item.get("score")) is not int or item["score"] not in (0, 1, 2) or not item.get("evidence"):
                 raise ValueError(f"score and evidence required: {identifier}")
     summary = {"status": manifest["status"], "model": manifest["model"], "variants": {}, "reviews": reviews}
+    summary["suite"] = manifest.get("suite", "legacy")
+    summary["execution_seconds"] = {variant: sum(a.get("seconds", 0) for a in attempts if a["variant"] == variant)
+                                    for variant in ("without", "with")}
     lines = ["# Оценка скилла muonsoft-validation", "", f"Модель: `{manifest['model']}`. Состояние запуска: **{manifest['status']}**.",
              "", "## Объективные результаты", "",
              "| Вариант | Попыток | Оценено | Прошли обе версии | Остальные статусы |",
@@ -958,7 +1140,7 @@ def report(output, review_path):
             g = attempt.get("grades", {}).get(version)
             cells.append(f"{len(g['requirements_passed'])}/{g['requirements_total']} ({g['status']})" if g else "не оценено")
         identifier = attempt["id"]
-        artifact = next((name for name in ("solution.diff", "events.jsonl")
+        artifact = next((name for name in ("solution.diff", "events.jsonl", "events.jsonl.gz")
                          if (output / "attempts" / identifier / name).is_file()), None)
         label = f"[{identifier}](attempts/{identifier}/{artifact})" if artifact else identifier
         lines.append(f"| {label} | {attempt['status']} | {' | '.join(cells)} | {attempt.get('events', {}).get('skill_loading', 'unknown')} |")
@@ -1002,8 +1184,25 @@ def report(output, review_path):
             failed = [name for name in requirements.get(a["case"], []) if name not in grade_result["requirements_passed"]]
             if failed or not grade_result["passed"]:
                 missing.append({"attempt": a["id"], "version": version, "requirements": failed, "status": grade_result["status"]})
-                lines.append(f"- [{a['id']}/{version}](attempts/{a['id']}/checks/{version}/tests.jsonl): {', '.join(failed) or 'сбой процесса тестирования'}.")
+                log = f"attempts/{a['id']}/checks/{version}/tests.jsonl"
+                if not (output / log).is_file() and (output / (log + ".gz")).is_file():
+                    log += ".gz"
+                lines.append(f"- [{a['id']}/{version}]({log}): {', '.join(failed) or 'сбой процесса тестирования'}.")
     summary["failed_requirements"] = missing
+    categories = {}
+    for attempt in attempts:
+        if "grades" not in attempt:
+            continue
+        for requirement, category in manifest.get("case_categories", {}).get(attempt["case"], {}).items():
+            result = categories.setdefault(category, {}).setdefault(attempt["variant"], {"passed": 0, "total": 0})
+            result["total"] += 1
+            result["passed"] += int(all(requirement in g["requirements_passed"] for g in attempt["grades"].values()))
+    summary["categories"] = categories
+    if categories:
+        lines += ["", "## Категории требований", "", "Один результат требования учитывает обе версии библиотеки; категории не заменяют успешность целого задания.", ""]
+        for category, values in categories.items():
+            lines.append(f"- {category}: {values}")
+    lines += ["", f"Время выполнения попыток, секунды (включая незавершённые с известной длительностью): {summary['execution_seconds']}."]
     false_positives = [a["id"] for a in attempts if a["variant"] == "with" and not a["should_trigger"] and a.get("events", {}).get("skill_loading") == "observed"]
     summary["potential_discovery_false_positives"] = false_positives
     lines += ["", f"Наблюдаемая загрузка скилла в отрицательном контроле: {false_positives}.",
@@ -1053,6 +1252,8 @@ def main():
     commands = parser.add_subparsers(dest="command", required=True)
     checker = commands.add_parser("check", help="check docs, references and failing starters, without a model")
     checker.add_argument("--output", required=True)
+    checker.add_argument("--suite", choices=("main", "legacy"), default="main")
+    checker.add_argument("--retention", choices=("compact", "debug"), default="compact")
     preflight = commands.add_parser("doctor", help="inspect exact model and isolated skill discovery; no inference")
     preflight.add_argument("--output", required=True)
     preflight.add_argument("--model", required=True)
@@ -1064,12 +1265,18 @@ def main():
     runner.add_argument("--config", help="provider-only JSON; omit on v2 to reuse the local Console connection")
     runner.add_argument("--opencode", default="opencode")
     runner.add_argument("--profile", choices=("smoke", "full"), default="smoke")
+    runner.add_argument("--suite", choices=("main", "legacy"), default="main")
+    runner.add_argument("--retention", choices=("compact", "debug"), default="compact")
+    runner.add_argument("--skip-check", action="store_true", help="skip deterministic material checks after separately verifying this exact revision")
     runner.add_argument("--case", action="append")
     runner.add_argument("--resume", type=Path, help="continue unstarted attempts from an unchanged run into a new output")
     runner.add_argument("--timeout", type=int, default=900)
     reporter = commands.add_parser("report", help="rebuild report without rerunning agents")
     reporter.add_argument("--run", required=True)
     reporter.add_argument("--review", type=Path)
+    cleaner = commands.add_parser("cleanup", help="preview disposable run data; --apply compacts it")
+    cleaner.add_argument("--run", required=True)
+    cleaner.add_argument("--apply", action="store_true")
     args = parser.parse_args()
     try:
         if args.command == "check":
@@ -1080,6 +1287,8 @@ def main():
             if args.timeout <= 0:
                 raise ValueError("timeout must be positive")
             return run(args)
+        if args.command == "cleanup":
+            return cleanup(args)
         report(Path(args.run).resolve(), args.review)
         return 0
     except (ValueError, OSError, subprocess.CalledProcessError) as exc:

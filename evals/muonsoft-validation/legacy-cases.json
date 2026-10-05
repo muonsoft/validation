@@ -1,0 +1,207 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "01-eager",
+      "title": "Validate a complete input",
+      "smoke": true,
+      "should_trigger": true,
+      "requirements": [
+        "TestEager",
+        "TestValid"
+      ],
+      "editable": [
+        "solution.go"
+      ]
+    },
+    {
+      "id": "02-collection",
+      "title": "Extend nested collection validation",
+      "smoke": true,
+      "should_trigger": true,
+      "requirements": [
+        "TestCollectionAccumulation",
+        "TestCollectionBounds"
+      ],
+      "editable": [
+        "solution.go"
+      ]
+    },
+    {
+      "id": "03-optional",
+      "title": "Optional fields and dependent bounds",
+      "smoke": false,
+      "should_trigger": true,
+      "requirements": [
+        "TestOptional",
+        "TestIndependentConditions"
+      ],
+      "editable": [
+        "solution.go"
+      ]
+    },
+    {
+      "id": "04-groups",
+      "title": "Draft and publish rules",
+      "smoke": false,
+      "should_trigger": true,
+      "requirements": [
+        "TestDraft",
+        "TestPublish"
+      ],
+      "editable": [
+        "solution.go"
+      ]
+    },
+    {
+      "id": "05-stages",
+      "title": "Validate locally before checking references",
+      "smoke": true,
+      "should_trigger": true,
+      "requirements": [
+        "TestLocalBarrier",
+        "TestAllRemoteViolations",
+        "TestSaveAfterSuccess"
+      ],
+      "editable": [
+        "solution.go"
+      ]
+    },
+    {
+      "id": "06-branch",
+      "title": "Repair prematurely executed validation",
+      "smoke": false,
+      "should_trigger": true,
+      "requirements": [
+        "TestBranchBarrier",
+        "TestSiblingIndependence"
+      ],
+      "editable": [
+        "solution.go"
+      ]
+    },
+    {
+      "id": "07-batch",
+      "title": "Validate references in one batch",
+      "smoke": false,
+      "should_trigger": true,
+      "requirements": [
+        "TestBatchIndices",
+        "TestEmptyAndFound",
+        "TestBatchFailure",
+        "TestBatchPaths"
+      ],
+      "editable": [
+        "solution.go"
+      ]
+    },
+    {
+      "id": "08-fatal",
+      "title": "Stop on technical errors without losing identity",
+      "smoke": true,
+      "should_trigger": true,
+      "requirements": [
+        "TestFatalStops",
+        "TestSuccessfulSequence",
+        "TestViolationsAccumulate"
+      ],
+      "editable": [
+        "solution.go"
+      ]
+    },
+    {
+      "id": "09-adapter",
+      "title": "Adapt an existing richer method",
+      "smoke": false,
+      "should_trigger": true,
+      "requirements": [
+        "TestAdapterContext",
+        "TestAdapterGroupsAndLimit"
+      ],
+      "editable": [
+        "solution.go"
+      ]
+    },
+    {
+      "id": "10-update",
+      "title": "Validate the normalized state on update",
+      "smoke": false,
+      "should_trigger": true,
+      "requirements": [
+        "TestNormalizedUpdate",
+        "TestUpdateBarrier",
+        "TestDuplicateAndLoadFailure"
+      ],
+      "editable": [
+        "solution.go"
+      ]
+    },
+    {
+      "id": "11-custom",
+      "title": "Custom reusable constraint and translation",
+      "smoke": false,
+      "should_trigger": true,
+      "requirements": [
+        "TestCustomRule",
+        "TestTranslation"
+      ],
+      "editable": [
+        "solution.go"
+      ]
+    },
+    {
+      "id": "12-control",
+      "title": "Fix a display formatter without changing validation",
+      "smoke": false,
+      "should_trigger": false,
+      "requirements": [
+        "TestFormatting",
+        "TestExistingValidation"
+      ],
+      "editable": [
+        "solution.go"
+      ]
+    },
+    {
+      "id": "13-scoped",
+      "title": "Batch lookup with an already scoped collection",
+      "smoke": false,
+      "should_trigger": true,
+      "requirements": [
+        "TestBatchIndices",
+        "TestEmptyAndFound",
+        "TestBatchFailure",
+        "TestBatchPaths"
+      ],
+      "editable": [
+        "solution.go"
+      ]
+    },
+    {
+      "id": "14-errors",
+      "title": "Present existing validation errors",
+      "smoke": false,
+      "should_trigger": false,
+      "requirements": [
+        "TestErrorPresentation",
+        "TestExistingCodeValidation"
+      ],
+      "editable": [
+        "solution.go"
+      ]
+    },
+    {
+      "id": "15-copy",
+      "title": "Copy existing validation messages",
+      "smoke": false,
+      "should_trigger": false,
+      "requirements": [
+        "TestIndependentCopy",
+        "TestNilAndExistingValidation"
+      ],
+      "editable": [
+        "solution.go"
+      ]
+    }
+  ]
+}

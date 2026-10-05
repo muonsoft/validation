@@ -1,6 +1,6 @@
 interface:
   display_name: "Validation skill evals"
-  short_description: "Run paired OpenCode evals and review validation code"
-  default_prompt: "Use $eval-muonsoft-validation to run manual paired evaluations and produce a scored report."
+  short_description: "Analyze saved evals and review validation code"
+  default_prompt: "Use $eval-muonsoft-validation to analyze saved evaluation results and review the generated validation code."
 policy:
   allow_implicit_invocation: false

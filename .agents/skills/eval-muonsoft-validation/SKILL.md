@@ -1,16 +1,23 @@
 ---
 name: eval-muonsoft-validation
-description: Run manual paired evaluations of the muonsoft-validation skill through OpenCode, review generated solutions, and produce a scored report. Requires this library checkout and an explicit eval request.
+description: Analyze saved muonsoft-validation evaluation results, review generated solutions, and optionally run the standalone OpenCode evaluator when requested.
 metadata:
   internal: true
 ---
 
 # Evaluate the validation skill
 
-Use only on an explicit eval request. Codex orchestrates OpenCode and reviews its
-artifacts; do not implement the evaluated tasks yourself. Locate the checkout by
-module `github.com/muonsoft/validation`, not a fixed machine path, and read the
-[runbook](../../../evals/muonsoft-validation/README.md).
+Read the [runbook](../../../evals/muonsoft-validation/README.md). The default workflow
+is a standalone CLI run followed by analysis in Codex. An analysis request does
+not authorize model inference. For saved results, start with `report.md`,
+`results.json`, `tokens.json` and `run.json`; use the exact materials saved with
+that run rather than interpreting it through a newer suite. Gzip logs are lossless
+and remain available for evidence inspection. No original machine or session
+database is needed for ordinary review.
+
+When explicitly asked to run evaluations, locate the checkout by module
+`github.com/muonsoft/validation`, not a fixed machine path. OpenCode implements
+the measured tasks; do not coach it or implement its submissions yourself.
 
 ## Prepare and run
 
@@ -21,15 +28,18 @@ module `github.com/muonsoft/validation`, not a fixed machine path, and read the
    preferences. Do not ask for a separate provider config before checking this.
    V1 and other providers require a provider-only JSON config with environment
    credentials. Never substitute a model; select reasoning variants only when requested.
-2. Use `smoke` unless the user selects `full` or particular cases. Smoke runs four
-   cases × two variants × one repeat; full runs fifteen × two × three.
+2. Use `smoke` unless the user selects `full` or particular cases. Main smoke runs
+   three cases × two variants × one repeat; full runs seven × two × three.
+   The earlier 15 cases are available with `--suite legacy`; keep their results separate.
 3. Run `doctor`: model availability and isolated skill discovery, no inference
    request. A failed preflight is an environment issue, not a model score.
 4. On a new suite revision, run `check` and the runner unit tests. They check
    examples, reference solutions, failing starters, and runner behavior without
    model access. These evaluations are manual and are not part of CI.
-5. Run the runner's `run` command. Poll with short tool waits to keep the user
-   informed. Do not launch a second run while waiting for the first.
+5. Run the runner's `run` command. It checks materials automatically, generates
+   reports, and defaults to compact retention. Use `--skip-check` only after
+   verifying the exact revision separately. Poll with short tool waits to keep
+   the user informed. Do not launch a second run while waiting for the first.
 
 Use a dedicated eval environment. The runner installs only the public skill for
 one variant and none for the baseline, using identical task prompts and fresh
@@ -48,7 +58,7 @@ measured run or mix revisions in one comparison.
 
 ## Review independently of test scores
 
-After execution, read the task, submitted solution, diff, Go-test logs, and JSON
+After execution, read the task, submitted source files, diff, Go-test logs, and JSON
 events for each graded attempt. A successful solution does not prove that it loaded
 the skill. Only recorded skill/read tool events establish `observed`; otherwise
 retain `not_observed` and inspect the raw log if needed.
@@ -63,6 +73,14 @@ and relative artifact link identifying lines or events:
 | `rule_ownership` | Rules missing or inconsistently duplicated | Working but unnecessarily duplicated rules | Appropriate owner and reuse of rules |
 | `execution_flow` | Lost violations, unsafe prerequisites, or masked technical errors | Correct result with unnecessary/unclear sequencing | Appropriate accumulation, dependencies, and error propagation |
 | `scope` | Unrelated behavior/dependency changes or missed task | Solution with unnecessary abstractions | Focused, readable solution preserving unrelated behavior |
+
+In the main suite, report built-in/project-rule reuse explicitly under
+`rule_ownership`, especially for `20-reuse`. Tests cannot establish that a manual
+check reused an existing rule. Cite concrete code; do not treat loops or helpers
+as intrinsically wrong. `21-constraint` intentionally requires a custom rule.
+Paths are JavaScript-style `PropertyPath.String()` and typed segments, not JSON
+Pointer. Multiple independent violations may share one path. See the
+[suite contract](../../../evals/muonsoft-validation/SUITE.md).
 
 For the negative control, `api` means preserving the existing API without an
 unrequested framework, and `execution_flow` means correct formatting without

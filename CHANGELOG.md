@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Prepare a second skill-evaluation suite with seven composed scenarios, standalone reports, and compact artifact retention; retain the earlier cases as an optional legacy suite.
+
 - Clarify batch-reference violation paths in the `muonsoft-validation` skill, including preservation of caller prefixes and already-scoped collections.
 
 - Support OpenCode v2 and existing local Console authentication in the manual skill evaluation workflow, with isolated profiles and version-aware skill discovery.

@@ -5,6 +5,9 @@ import argparse
 import contextlib
 import importlib.util
 import io
+import gzip
+import shutil
+import subprocess
 import json
 import os
 from pathlib import Path
@@ -321,7 +324,7 @@ else: sys.exit(3)
                         "requirements_passed": case["requirements"] if passes else [],
                         "requirements_total": len(case["requirements"])} for v in snapshots}
         args = argparse.Namespace(model="fixture/model", config=str(config), output=str(self.root / "run"),
-                                  opencode=binary, case=["01-eager"], profile="smoke", timeout=5)
+                                  opencode=binary, case=["01-eager"], profile="smoke", timeout=5, suite="legacy", skip_check=True, retention="debug")
         with patch.object(runner, "library_snapshots", return_value=snapshots), patch.object(runner, "grade", side_effect=fake_grade), contextlib.redirect_stdout(io.StringIO()):
             self.assertFalse(runner.run(args))
         output = Path(args.output)
@@ -368,7 +371,7 @@ else: sys.exit(3)
             log.write_text("")
             return {"status": "cancelled", "exit_code": None}
         with patch.object(runner, "command", side_effect=cancel_tests) as execute:
-            grades = runner.grade(runner.cases()[0], output / "attempts/01-eager-with-1/workspace", self.root / "cancelled-checks", snapshots, {})
+            grades = runner.grade(runner.cases("legacy")[0], output / "attempts/01-eager-with-1/workspace", self.root / "cancelled-checks", snapshots, {})
             self.assertEqual(execute.call_count, 1)
         self.assertFalse(grades["v0.19.0"]["passed"])
 
@@ -467,7 +470,7 @@ else: sys.exit(3)
         (library / "go.sum").write_text("")
         snapshots = {v: {"path": str(library), "sha256": "fixture"} for v in ("v0.19.0", "current")}
         args = argparse.Namespace(model="fixture/model", config=str(config), output=str(self.root / "first"),
-                                  opencode=self.fake_opencode(), case=["01-eager"], profile="smoke", timeout=5)
+                                  opencode=self.fake_opencode(), case=["01-eager"], profile="smoke", timeout=5, suite="legacy", skip_check=True, retention="debug")
         execute = runner.command
         calls = []
         def cancel(argv, cwd, log, env=None, timeout=180):
@@ -504,6 +507,195 @@ else: sys.exit(3)
         args.output = str(self.root / "missing-model")
         with self.assertRaisesRegex(ValueError, "no fallback"):
             runner.doctor(args)
+
+
+    def test_compact_run_resumes_with_evidence_and_no_extra_model_calls(self):
+        config = self.root / "provider.json"
+        config.write_text('{"provider":{"fixture":{}}}')
+        library = self.root / "library"
+        library.mkdir()
+        (library / "go.mod").write_text("module github.com/muonsoft/validation\n\ngo 1.24.0\n")
+        (library / "go.sum").write_text("")
+        snapshots = {v: {"path": str(library), "sha256": "fixture"} for v in ("v0.19.0", "current")}
+        args = argparse.Namespace(model="fixture/model", config=str(config), output=str(self.root / "first"),
+                                  opencode=self.fake_opencode(), case=["16-request"], profile="smoke", timeout=5,
+                                  suite="main", skip_check=True, retention="compact")
+        def grade(case, source, output, snapshots, env):
+            self.assertTrue((source / "validation.go").is_file())
+            self.assertTrue((source / "children.go").is_file())
+            return {v: {"status": "completed", "passed": True, "requirements_passed": case["requirements"],
+                        "requirements_total": len(case["requirements"])} for v in snapshots}
+        with patch.object(runner, "library_snapshots", return_value=snapshots), patch.object(runner, "grade", side_effect=grade), contextlib.redirect_stdout(io.StringIO()):
+            self.assertFalse(runner.run(args))
+            first = Path(args.output)
+            self.assertEqual(runner.disposable_paths(first), [])
+            self.assertTrue((first / "attempts/16-request-with-1/events.jsonl.gz").is_file())
+            args.resume = first
+            args.output = str(self.root / "resumed")
+            with patch.object(runner, "command", wraps=runner.command) as execute:
+                self.assertFalse(runner.run(args))
+                self.assertFalse(any("run" in call.args[0] for call in execute.call_args_list))
+        shutil.rmtree(first)
+        resumed = Path(args.output)
+        summary = runner.report(resumed, None)
+        self.assertEqual(summary["pairs"], {"unchanged": 1})
+        self.assertTrue((resumed / "attempts/16-request-with-1/events.jsonl.gz").is_file())
+
+    def test_failed_materials_prevent_model_setup(self):
+        args = argparse.Namespace(output=str(self.root / "run"), suite="main", skip_check=False)
+        with patch.object(runner, "check", return_value=True), patch.object(runner, "prepare_runtime") as setup:
+            with self.assertRaisesRegex(ValueError, "no model attempts"):
+                runner.run(args)
+            setup.assert_not_called()
+
+    def test_main_suite_contract_and_portable_fixtures(self):
+        cases = runner.cases()
+        self.assertEqual(len(cases), 7)
+        self.assertEqual(sum(c['smoke'] for c in cases), 3)
+        self.assertEqual(sum(not c['should_trigger'] for c in cases), 1)
+        self.assertEqual(len(runner.cases('legacy')), 15)
+        for case in cases:
+            self.assertTrue(case['mutations'])
+            for name in case['editable']:
+                self.assertTrue(runner.editable(case, name))
+            self.assertTrue(runner.editable(case, 'private.go'))
+            for name in ('contract.go', 'go.mod', 'escape/extra.go', 'extra_test.go', '../escape.go'):
+                self.assertFalse(runner.editable(case, name), name)
+            for path in (runner.HERE / 'testdata' / case['id']).rglob('*'):
+                if path.is_file():
+                    self.assertNotRegex(path.read_text(), r'gitlab\.istock|/home/strider|monorepo|PLM-')
+
+    def test_grader_preserves_contract_and_includes_new_helpers(self):
+        case = runner.cases()[0]
+        source = self.root / 'source'
+        shutil.copytree(runner.HERE / 'testdata' / case['id'] / 'reference', source)
+        (source / 'contract.go').write_text('malicious replacement')
+        (source / 'helper.go').write_text('package scenario\n// helper implementation\n')
+        library = self.root / 'library'
+        library.mkdir()
+        (library / 'go.mod').write_text('module github.com/muonsoft/validation\n\ngo 1.24.0\n')
+        (library / 'go.sum').write_text('')
+        def execute(argv, cwd, log, env, timeout=180):
+            self.assertNotIn('malicious', (cwd / 'contract.go').read_text())
+            self.assertEqual((cwd / 'helper.go').read_text(), (source / 'helper.go').read_text())
+            self.assertTrue((cwd / 'children.go').is_file())
+            log.write_text('\n'.join(json.dumps({'Test': name, 'Action': 'pass'}) for name in case['requirements']))
+            return {'status': 'completed'}
+        with patch.object(runner, 'command', side_effect=execute):
+            result = runner.grade(case, source, self.root / 'checks', {'current': {'path': str(library)}}, {})
+        self.assertTrue(result['current']['passed'])
+        (source / 'validation.go').unlink()
+        with self.assertRaisesRegex(ValueError, 'missing'):
+            runner.grade(case, source, self.root / 'missing', {}, {})
+
+    def test_compaction_is_lossless_idempotent_and_preserves_evidence(self):
+        attempt = self.root / 'attempts/16-request-with-1'
+        for folder in ('events.server.profile/go-cache', 'discovery.server.profile/data', 'workspace/.git', 'workspace/.opencode'):
+            directory = attempt / folder
+            directory.mkdir(parents=True)
+            (directory / 'cache').write_bytes(b'x' * 1024)
+        events = attempt / 'events.jsonl'
+        content = b'{"event":"evidence"}\n' * 100
+        events.write_bytes(content)
+        (attempt / 'workspace/validation.go').write_text('package scenario\n')
+        (attempt / 'completion.json').write_text('{"verified":true}')
+        (attempt / 'solution.diff').write_text('diff')
+        source = self.root / 'outside'
+        source.mkdir()
+        (source / 'keep').write_text('keep')
+        (self.root / 'profile').symlink_to(source, target_is_directory=True)
+        runner.compact(self.root)
+        self.assertEqual((source / 'keep').read_text(), 'keep')
+        self.assertFalse(events.exists())
+        self.assertEqual(gzip.decompress(events.with_suffix('.jsonl.gz').read_bytes()), content)
+        self.assertTrue((attempt / 'workspace/validation.go').exists())
+        self.assertTrue((attempt / 'completion.json').exists())
+        self.assertEqual(runner.disposable_paths(self.root), [])
+        self.assertEqual(runner.compact(self.root), 0)
+
+    def test_compaction_never_follows_attempt_directory_link(self):
+        outside = self.root / "outside/one"
+        outside.mkdir(parents=True)
+        (outside / "events.jsonl").write_text("evidence")
+        (self.root / "attempts").symlink_to(outside.parent, target_is_directory=True)
+        runner.compact(self.root)
+        self.assertTrue((outside / "events.jsonl").exists())
+        self.assertFalse((outside / "events.jsonl.gz").exists())
+
+    def test_legacy_cleanup_preserves_the_measured_skill(self):
+        attempt = self.root / "attempts/01-eager-with-1"
+        skill = attempt / "workspace/.opencode/skills/muonsoft-validation"
+        skill.mkdir(parents=True)
+        (skill / "SKILL.md").write_text("original measured skill")
+        runner.compact(self.root)
+        self.assertEqual((attempt / "installed-skill/SKILL.md").read_text(), "original measured skill")
+        self.assertFalse((attempt / "workspace/.opencode").exists())
+
+    def test_cleanup_preview_and_active_lock(self):
+        runner.write_json(self.root / 'run.json', {'model': 'fixture', 'attempts': [], 'status': 'completed', 'case_requirements': {}})
+        (self.root / 'runner.lock').touch()
+        (self.root / 'go-cache').mkdir()
+        (self.root / 'go-cache/item').write_text('cache')
+        args = argparse.Namespace(run=str(self.root), apply=False)
+        with contextlib.redirect_stdout(io.StringIO()):
+            runner.cleanup(args)
+        self.assertTrue((self.root / 'go-cache/item').exists())
+        with runner.run_lock(self.root / 'runner.lock'), self.assertRaisesRegex(ValueError, 'active'):
+            runner.cleanup(args)
+        args.apply = True
+        with contextlib.redirect_stdout(io.StringIO()):
+            runner.cleanup(args)
+        self.assertFalse((self.root / 'go-cache').exists())
+        self.assertTrue((self.root / 'report.md').is_file())
+
+    def test_resume_copies_compact_attempts_without_source_dependency(self):
+        source = self.root / 'source'
+        artifact = source / 'attempts/16-request-with-1'
+        artifact.mkdir(parents=True)
+        (artifact / 'events.jsonl.gz').write_bytes(gzip.compress(b'evidence'))
+        manifest = {key: 'same' for key in ('skill_sha256', 'suite_sha256', 'runner_sha256', 'cases_sha256',
+                    'go_version', 'model', 'profile', 'timeout', 'opencode_version', 'config_sha256')}
+        manifest.update(repeats=1, selected_cases=['16-request'], libraries={'current': {'sha256': 'same'}}, attempts=[])
+        previous = {**manifest, 'attempts': [{'id': '16-request-with-1', 'case': '16-request', 'variant': 'with', 'repeat': 1, 'status': 'completed'}]}
+        runner.write_json(source / 'run.json', previous)
+        output = self.root / 'continued'
+        output.mkdir()
+        runner.inherit_run(source, output, manifest)
+        shutil.rmtree(source)
+        copied = output / 'attempts/16-request-with-1'
+        self.assertFalse(copied.is_symlink())
+        self.assertEqual(gzip.decompress((copied / 'events.jsonl.gz').read_bytes()), b'evidence')
+
+    def test_report_rebuilds_after_moving_compact_bundle(self):
+        output = self.root / 'original'
+        output.mkdir()
+        runner.snapshot_materials(output, runner.cases(), 'main')
+        attempt = {'id': '16-request-with-1', 'case': '16-request', 'variant': 'with', 'repeat': 1, 'status': 'completed',
+                   'seconds': 12, 'should_trigger': True, 'grades': {v: {'status': 'process_error', 'requirements_passed': [], 'requirements_total': 1, 'passed': False}
+                                           for v in ('v0.19.0', 'current')}}
+        for version in ('v0.19.0', 'current'):
+            log = output / 'attempts' / attempt['id'] / 'checks' / version / 'tests.jsonl.gz'
+            log.parent.mkdir(parents=True)
+            log.write_bytes(gzip.compress(b'{"Action":"fail"}'))
+        runner.write_json(output / 'run.json', {'model': 'fixture/model', 'status': 'completed', 'attempts': [attempt],
+                         'case_requirements': {'16-request': ['TestPaths']}, 'case_categories': {'16-request': {'TestPaths': 'paths'}}})
+        moved = self.root / 'moved'
+        output.rename(moved)
+        result = subprocess.run([sys.executable, str(moved / 'materials/run.py'), 'report', '--run', str(moved)], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = (moved / 'report.md').read_text()
+        self.assertIn('tests.jsonl.gz', report)
+        self.assertNotIn(str(output), report)
+        summary = json.loads((moved / 'results.json').read_text())
+        self.assertEqual(summary['categories']['paths']['with'], {'passed': 0, 'total': 1})
+        self.assertEqual(summary['execution_seconds']['with'], 12)
+
+    def test_check_rejects_compile_failure_as_mutation_evidence(self):
+        log = self.root / 'tests.jsonl'
+        log.write_text(json.dumps({'Action': 'fail', 'Package': 'example.com/fixture'}))
+        result = runner.test_result(log, ['TestPaths'], {'status': 'process_error'})
+        self.assertEqual(result['requirements_failed'], [])
+        self.assertFalse(result['passed'])
 
 
 if __name__ == "__main__":

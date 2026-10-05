@@ -1,13 +1,17 @@
-# Manual validation skill evaluations
+# Validation skill evaluations
 
-Codex orchestrates the run and reviews the code. OpenCode is the coding agent;
-the intended model is **DeepSeek V4.1 Flash**. Supply its exact model ID; V2 can
-resolve its provider from the existing local connection. No model is substituted.
-These evals are not part of CI or the library's normal test script.
+Run the CLI on a dedicated Linux machine; Codex is not required during execution.
+OpenCode performs the coding attempts. The intended model is **DeepSeek V4.1
+Flash**; supply the exact model ID. No model is substituted. After the run, bring
+the result directory to Codex for analysis using the
+[review skill](../../.agents/skills/eval-muonsoft-validation/SKILL.md).
+These evals are separate from CI and the library's normal test script.
 
-Invoke `$eval-muonsoft-validation` from this repository. The
-[orchestrator skill](../../.agents/skills/eval-muonsoft-validation/SKILL.md)
-contains the rubric. It is repository-local; public skill users do not need it.
+The second-round main suite has **7 scenarios, 42 full attempts**, or **6 smoke
+attempts**. It tests composed DTOs, nested property paths, eager validation,
+existing-rule reuse, and custom constraints. See [suite design](SUITE.md).
+The 15 earlier focused cases remain available with `--suite legacy`.
+Historical model results are not scores for this new suite.
 
 ## Prerequisites and isolation
 
@@ -106,12 +110,12 @@ python3 -B evals/muonsoft-validation/run_test.py
 python3 evals/muonsoft-validation/run.py check \
   --output /tmp/validation-eval-materials
 
-# Eight attempts: four cases, two variants, one repeat.
+# Six attempts: three main cases, two variants, one repeat.
 python3 evals/muonsoft-validation/run.py run \
   --model '<provider/model>' --config /path/to/provider.json \
   --profile smoke --output /tmp/validation-eval-smoke
 
-# Ninety attempts: fifteen cases, two variants, three repeats.
+# Forty-two attempts: seven main cases, two variants, three repeats.
 python3 evals/muonsoft-validation/run.py run \
   --model '<provider/model>' --config /path/to/provider.json \
   --profile full --output /tmp/validation-eval-full
@@ -121,7 +125,7 @@ python3 evals/muonsoft-validation/run.py report \
   --run /tmp/validation-eval-smoke --review /tmp/validation-eval-smoke/review.json
 ```
 
-`--case 05-stages` selects a case regardless of the profile's list; repeat this flag
+`--case 19-update` selects a case regardless of the profile's list; repeat this flag
 for several cases. The profile still determines repetitions. `--timeout` defaults
 to 900 seconds per coding attempt. Independent Go checks have a 180-second limit
 per version. Failures are not silently retried. Restart into a new output directory.
@@ -133,8 +137,9 @@ runner, library snapshots, Go/OpenCode versions, and provider configuration hash
 It rejects active runs and concurrent continuations using a process lock. Completed,
 failed, cancelled, and interrupted attempts are inherited without retries; stale
 `running`/`preparing` statuses become `interrupted` only in the new manifest.
-Previous artifact directories are linked read-only by convention and must be kept
-at their original locations; the continuation never writes through those links.
+Previous attempt artifacts are copied without runtime caches into the new run.
+The continuation never changes the previous run and no longer depends on its
+location. Recorded attempts are not retried, even after cleanup.
 An existing `review.json` is carried forward. Further continuations can use the
 latest output. A changed revision requires a separate measured run.
 
@@ -155,8 +160,10 @@ Each `testdata/<case>/` contains:
 - `reference/`: one correct solution for validating tests, never shown to workers.
 
 Fixtures become independent temporary Go modules and are not library packages.
-Only `solution.go` is editable. Changes to the contract, module files, installed
-skill, or additional files invalidate the submission. Temporary scratch tests must
+Main cases declare multiple editable implementation files and allow new private
+helpers in top-level non-test Go files. Existing files outside the editable list,
+module files, and the installed skill are protected. Legacy cases still permit
+only `solution.go`. Deleting a required implementation file is invalid. Temporary scratch tests must
 be removed before completion. The grader compiles the submitted solution with the
 original contract and independent tests, not worker-authored tests.
 
@@ -166,12 +173,69 @@ including uncommitted library changes. Snapshots contain Go implementation/modul
 files, not repository instructions or eval answers. `check` also installs a copy
 of the public skill by itself to check portable links and executes every complete
 Go example on both versions. Every reference must pass and every deliberately
-incomplete/buggy starter must fail.
+incomplete/buggy starter must execute and fail behavioral tests. Each declared
+mutation must fail its named behavioral test on both versions; a compile failure
+is not evidence that a mutation was caught.
 
-The full suite now includes 15 cases: the original 12, an already-scoped batch
-collection (`13-scoped`), and two further negative controls (`14-errors`, `15-copy`).
-The new cases are failure-informed follow-ups, not an independent holdout. Smoke
-remains four cases; use `--case 07-batch --case 13-scoped` for focused path checks.
+The main suite is frozen separately from the legacy suite. Its multi-file tasks
+combine rules instead of spelling out an API recipe. Property paths are checked
+as JavaScript-style `PropertyPath.String()` values and typed path elements.
+JSON Pointer is not a requirement. Expected violations are multisets of path and
+error identity, allowing several different errors on the same field. Equivalent
+implementations pass; built-in/project-rule reuse is assessed in later review.
+
+## Standalone execution and retention
+
+`run` first executes deterministic material checks (without model inference),
+then checks model availability and isolated discovery, runs the selected attempts,
+and generates reports. A material failure prevents model attempts. Use
+`--skip-check` only after separately checking this exact revision. `--suite legacy`
+selects the earlier tasks for either `check` or `run`. Select `--profile full`
+explicitly for the 42-attempt run; the default remains smoke.
+
+Reports are refreshed after each attempt and on graceful cancellation or failure.
+A nonzero exit code indicates an interrupted/failed runner, not merely a solution
+that failed its tests. Read the report to assess model correctness. There are no
+silent retries. A hard kill can leave the last attempt marked running; `resume`
+records that attempt as interrupted and continues only unstarted attempts.
+
+Default `--retention compact` removes each finished attempt's OpenCode profiles,
+session databases, Go build caches, and disposable workspace Git/skill copies.
+Completion evidence and usage are extracted before deletion. Event, stderr and
+test logs are losslessly gzip-compressed and verified before removing originals.
+Source submissions, diffs, prompts, hidden-test logs, discovery, completion
+records, and metadata remain. The grader's shared build cache is removed when
+the run ends; module caches outside the run are never deleted. Isolation between
+workers remains unchanged. `--retention debug` retains runtime data for diagnosis.
+
+The output contains `materials/` with the exact task contracts, reference/check
+sources, skill, runner, and hashes, plus one snapshot per library version. Hidden
+materials are never mounted into the worker. Copy the entire output directory to
+another machine for analysis. For a normal run its analysis bundle has no symlink
+dependency on a previous run. Rebuild reports without the original checkout:
+
+```bash
+python3 /path/to/result/materials/run.py report --run /path/to/result
+```
+
+The saved runner supports detached **reporting**; executing a new run still needs
+a library checkout and its prerequisites. Absolute historical paths in provenance
+and go.mod are evidence, not portable build paths.
+
+To compact an existing run, first preview the disposable paths and byte count:
+
+```bash
+python3 evals/muonsoft-validation/run.py cleanup --run /path/to/result
+python3 evals/muonsoft-validation/run.py cleanup --run /path/to/result --apply
+```
+
+Cleanup uses the run lock, refuses an active process, and deletes only known
+runner-owned directories. It does not follow legacy continuation symlinks; clean
+their original runs separately and retain them while old links are needed.
+A stale running manifest is marked interrupted when cleanup is applied. Compact
+artifacts remain reviewable and usable for continuation of unstarted attempts;
+resuming a model conversation itself is not supported. Compressed logs remain
+private artifacts just like their uncompressed originals.
 
 ## Reports and scoring
 
@@ -179,7 +243,7 @@ The [2026-10-03 report](reports/2026-10-03-deepseek-v4.1-flash.md) and its sanit
 JSON preserve the original 12-case run. They do not measure the subsequent skill
 correction or suite expansion.
 
-Every attempt preserves its prompt, solution, diff, JSON events, separate stderr,
+Every attempt preserves its prompt, source files, diff, JSON events, separate stderr,
 and independent test logs. `run.json` records source hashes, configuration, tool
 versions, status, duration, skill-loading evidence, and provider-reported tokens
 and cost when available. Absent usage is unknown, not zero; cost is not independently
@@ -195,7 +259,8 @@ only when all requirements and the test process pass on both versions. Compilati
 failures, failing tests, timeout, unavailable environment, incomplete event logs,
 and cancellation remain distinguishable. Ungraded attempts never count as success.
 The report shows each repeat, version compatibility, paired improvements/regressions,
-and variation across repeats.
+requirement categories, recorded attempt durations, and variation across repeats.
+Category rates and review scores never turn a failed scenario into a pass.
 
 A completed skill call or read of its entrypoint establishes `observed` loading.
 Other access, including shell reads, remains `not_observed`; this is not proof of
