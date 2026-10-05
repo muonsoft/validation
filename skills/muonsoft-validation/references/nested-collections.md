@@ -63,3 +63,26 @@ Never encode a path as `PropertyName("entries[0].code")`. It is one literal key,
 not an index and property. Use `PropertyName("entries"), ArrayIndex(0),
 PropertyName("code")`, or the composition helpers. Test JSON Pointer as well as
 display paths when the external API consumes it. Map iteration order is not stable.
+
+## Recursive trees and literal map keys
+
+Treat each sibling collection as its own validation scope. Check its count and
+uniqueness as well as each element; a collection violation does not suppress
+independent child violations. Keep uniqueness state local to that collection,
+not the whole tree. If the contract requires errors on every duplicate, include
+the first occurrence too. Exclude empty keys only when the contract allows it.
+
+When the contract limits depth, define which depth the roots have and whether
+the maximum is inclusive before recursing. At an over-limit node, emit the depth violation at that node's path
+and stop only that branch. Continue its siblings with their original indices.
+For nodes within the limit, keep common field and attribute rules outside the
+kind-specific branch: an invalid discriminator must not hide independent errors.
+Descend only into node kinds that own children under the domain contract.
+
+Carry the supplied validator down one segment at a time, for example
+`v.AtProperty("children").AtIndex(i)`. For an attribute map, retain both the map
+property and its literal key: `v.AtProperty("attributes").AtProperty(key)`.
+`"0"` and `""` are property keys, not an array index or an absent segment.
+Pass dots, slashes, quotes, and backslashes unchanged; let the library render and
+escape them. Do not derive external names from Go field names or parse a rendered
+path back into segments. Check the full path from a nonempty caller prefix.

@@ -1,6 +1,6 @@
 ---
 name: muonsoft-validation
-description: Implement, extend, debug, and test Go entity and DTO validation with github.com/muonsoft/validation. Use for Validatable, composed constraints, nested violation paths, or checks backed by repositories and clients in projects using this library.
+description: Implement, extend, debug, and test Go entity and DTO validation with github.com/muonsoft/validation. Use when changing validation rules, Validatable implementations, composed constraints, nested validation paths, or repository/client-backed checks. Do not use for merely grouping, formatting, or displaying existing errors without changing validation behavior.
 ---
 
 # Apply muonsoft/validation
@@ -61,7 +61,8 @@ func main() {
 - Paths describe the external data contract. Supply relative property names and
   typed array indices; neither Go fields nor JSON tags automatically define rules.
 - Most format constraints permit empty values. Express requiredness separately
-  and verify each constraint's nil/empty semantics. `IsNotBlank` does not trim whitespace.
+  and verify each constraint's nil/empty semantics and required error identity.
+  `IsNotBlank` does not trim whitespace.
 - Validate the state that will actually be used or saved. Follow the application's
   normalization and update semantics; do not silently change input in `Validate`.
 - Helpers, conditional argument construction, and manual loops are useful when
@@ -74,7 +75,7 @@ func main() {
 | --- | --- |
 | Add rules to an entity, command, or query | [Entities and DTOs](references/entity-and-dto.md) |
 | Collect errors while sequencing dependent checks | [Validation flow](references/validation-flow.md) |
-| Validate children, slices, maps, and unique keys | [Nested objects and collections](references/nested-collections.md) |
+| Validate children, slices, maps, recursive trees, and unique keys | [Nested objects and collections](references/nested-collections.md) |
 | Handle optional fields, enums, conditions, and groups | [Optional and conditional values](references/optional-and-conditional.md) |
 | Check references or uniqueness using DB/HTTP | [Infrastructure validation](references/infrastructure-validation.md) |
 | Add a reusable rule or adapt an existing method | [Custom constraints](references/custom-constraints.md) |

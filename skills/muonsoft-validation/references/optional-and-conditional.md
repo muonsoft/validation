@@ -13,6 +13,7 @@ package main
 
 import (
     "context"
+    "errors"
     "fmt"
 
     "github.com/muonsoft/validation"
@@ -23,11 +24,14 @@ type Status string
 func (s Status) Validate(ctx context.Context, v *validation.Validator) error {
     return v.Validate(ctx, validation.Comparable(s, it.IsOneOf(Status("draft"), Status("ready")).WithoutBlank()))
 }
-type Input struct { Note *string; Status Status; Title string }
+type Input struct { Note *string; Status Status; Title string; Mode string }
 func (x Input) Validate(ctx context.Context, v *validation.Validator) error {
+    mode := it.IsOneOf("quiet", "active")
+    if !v.IsIgnoredForGroups("publish") { mode = mode.WithoutBlank() }
     return v.Validate(ctx,
         validation.NilStringProperty("note", x.Note, it.IsNotBlank().WithAllowedNil()),
         validation.ValidProperty("status", x.Status),
+        validation.StringProperty("mode", x.Mode, mode),
         validation.StringProperty("title", x.Title, it.IsNotBlank().WhenGroups("publish")),
     )
 }
@@ -36,15 +40,26 @@ func main() {
     if err != nil { panic(err) }
     x := Input{Status: "draft"}
     fmt.Println(v.ValidateIt(context.Background(), x) == nil)
-    fmt.Println(v.WithGroups(validation.DefaultGroup, "publish").ValidateIt(context.Background(), x) != nil)
+    x.Title = "Example"
+    err = v.WithGroups(validation.DefaultGroup, "publish").ValidateIt(context.Background(), x)
+    violations, ok := validation.UnwrapViolations(err)
+    if !ok || violations.Len() != 1 { panic("expected one mode violation") }
+    violation := violations.First().Violation()
+    fmt.Println(violation.PropertyPath().String(), errors.Is(violation, validation.ErrNoSuchChoice))
 }
 // Output:
 // true
-// true
+// mode true
 ```
 
 `IsOneOf` normally accepts a zero value even when absent from the choices. Use
 `WithoutBlank` when enum membership must include rejecting that zero value.
+The violation remains `ErrNoSuchChoice`; adding `IsNotBlank` instead produces
+`ErrIsBlank`, which is not interchangeable when callers depend on error identity.
+In the example, empty mode is allowed by default but rejected for publishing.
+Nonempty unknown modes must still be rejected in either group. Select the blank
+policy on one choice constraint rather than stacking overlapping membership
+checks that could produce duplicate violations.
 
 Use `CheckProperty` for a simple predicate attributed to one field and `Check`
 for an object-level invariant, with a meaningful code/message. Use `When` when

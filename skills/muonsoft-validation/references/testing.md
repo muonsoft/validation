@@ -7,7 +7,15 @@ assertions for codes, paths, and messages; standard Go assertions also work.
 For a DTO or entity, cover valid input, multiple simultaneous independent errors,
 nil and empty inputs, and applicable boundaries. For collections, combine a parent
 error with errors in more than one element. Verify indices and relative prefixes;
-do not rely on map traversal order.
+do not rely on map traversal order. Compare a multiset of (path, error identity),
+not just an error count or one error per property: distinct violations may share
+a path, and accidental duplicates also matter.
+
+For optional enums, distinguish absent, explicit empty, valid, and unknown values
+under each relevant group. Assert error identity as well as rejection. For a
+recursive structure, combine a depth-limited branch with an invalid sibling,
+reuse a name across separate branches, and check literal map keys (including
+empty and numeric strings) as typed property segments.
 
 This complete program demonstrates the same observable assertions a Go test needs:
 

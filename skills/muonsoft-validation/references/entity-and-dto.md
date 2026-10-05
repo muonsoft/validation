@@ -5,6 +5,12 @@ IDs, operation flags, and field presence. Put reusable state invariants on the
 entity or value object that owns them. A DTO that maps directly to an entity can
 delegate or validate the assembled entity instead of duplicating every field rule.
 
+When extending existing validation, retain its independent rules as well as the
+new ones. A replacement by a built-in must preserve nil/empty behavior, error
+identity, groups, and paths; a maximum length check does not replace requiredness.
+Delegate child rules to their existing owner and keep injected project constraints
+in the call chain rather than copying their current implementation.
+
 For creation, assemble and explicitly normalize the object before validating the
 state to be saved. For updates, load the current state when required, apply the
 operation's actual replacement or patch semantics, normalize, then validate.
