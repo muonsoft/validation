@@ -72,3 +72,8 @@ For infrastructure checks, use fakes that record inputs, contexts, and call coun
 Test one failing prerequisite alongside a separate failing sibling to distinguish
 local branch sequencing from accidental global short-circuiting. An early-return
 test involving only one invalid field cannot prove eager accumulation.
+
+After relevant behavioral tests and required project checks pass, finish unless
+an edit or a specific unresolved failure warrants another run. Compilation alone
+does not verify behavior; repeatedly rebuilding unchanged, passing code does not
+add coverage. Keep exploration focused on the remaining contract uncertainty.

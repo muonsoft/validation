@@ -12,6 +12,10 @@ attempts**. It tests composed DTOs, nested property paths, eager validation,
 existing-rule reuse, and custom constraints. See [suite design](SUITE.md).
 The 15 earlier focused cases remain available with `--suite legacy`.
 Historical model results are not scores for this new suite.
+A separate `--suite transfer` offers three new contract variations (6 smoke or
+18 full attempts). It is a prospective transfer set, not an independently authored
+holdout: its author has seen the development results. Keep its scores separate.
+See the transfer section of [suite design](SUITE.md).
 
 ## Prerequisites and isolation
 
@@ -119,6 +123,15 @@ python3 evals/muonsoft-validation/run.py run \
 python3 evals/muonsoft-validation/run.py run \
   --model '<provider/model>' --config /path/to/provider.json \
   --profile full --output /tmp/validation-eval-full
+
+# Deterministically verify the transfer fixtures; no inference.
+python3 evals/muonsoft-validation/run.py check \
+  --suite transfer --output /tmp/validation-transfer-materials
+
+# Measure the frozen transfer set in a NEW run when model inference is requested.
+python3 evals/muonsoft-validation/run.py run \
+  --model opencode-go/deepseek-v4.1-flash --suite transfer \
+  --profile full --output /tmp/validation-transfer-full
 
 # Rebuild with Codex review; no agent reruns.
 python3 evals/muonsoft-validation/run.py report \
@@ -242,6 +255,12 @@ private artifacts just like their uncompressed originals.
 The [2026-10-03 report](reports/2026-10-03-deepseek-v4.1-flash.md) and its sanitized
 JSON preserve the original 12-case run. They do not measure the subsequent skill
 correction or suite expansion.
+
+The [update investigation](reports/2026-10-06-update-investigation.json) records
+six unblinded source reviews and event evidence from the 2026-10-05 run. Its event
+and code locations are relative to that private run; raw logs are not published.
+It motivates narrower discovery and verification guidance, but does not measure
+the effect of those changes.
 
 Every attempt preserves its prompt, source files, diff, JSON events, separate stderr,
 and independent test logs. `run.json` records source hashes, configuration, tool

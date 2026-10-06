@@ -82,7 +82,14 @@ func main() {
 | Return codes, messages, translations, and paths | [Errors and translations](references/errors-and-translations.md) |
 | Verify observable behavior | [Testing](references/testing.md) |
 
-Read only the relevant references. Prefer existing project constraints when their
+For repository-backed updates, start with infrastructure validation; open other
+references only for unresolved details such as patch semantics or collection paths.
+For an uncertain API, use a symbol-specific `go doc` or inspect its implementation
+in the installed module. Avoid dumping whole packages when a signature or one
+method resolves the question. Task requirements come from the supplied contract;
+agent session databases, runtime logs, and build caches are not application specs.
+
+Prefer existing project constraints when their
 semantics match; distinguish them from the public `it` package. Use `is` for a
 standalone boolean predicate and `validate` for a standalone error check; use
 `validation` arguments and `it` for composed object validation.

@@ -565,6 +565,23 @@ else: sys.exit(3)
                 if path.is_file():
                     self.assertNotRegex(path.read_text(), r'gitlab\.istock|/home/strider|monorepo|PLM-')
 
+    def test_transfer_suite_is_separate_and_snapshotted(self):
+        cases = runner.cases("transfer")
+        self.assertEqual(len(cases), 3)
+        self.assertFalse({c["id"] for c in cases} & {c["id"] for c in runner.cases()})
+        output = self.root / "transfer"
+        output.mkdir()
+        runner.snapshot_materials(output, cases, "transfer")
+        saved = json.loads((output / "materials/cases.json").read_text())
+        self.assertEqual(saved["suite"], "transfer")
+        for case in cases:
+            self.assertTrue((output / "materials/testdata" / case["id"] / "prompt.md").is_file())
+            for mutation in case["mutations"]:
+                source = (runner.HERE / "testdata" / case["id"] / "reference" / mutation["file"]).read_text()
+                self.assertEqual(source.count(mutation["old"]), 1)
+        with self.assertRaises(ValueError):
+            runner.case_manifest("../transfer")
+
     def test_grader_preserves_contract_and_includes_new_helpers(self):
         case = runner.cases()[0]
         source = self.root / 'source'

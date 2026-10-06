@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Focus `muonsoft-validation` API discovery and verification on unresolved contract questions, informed by saved evaluation traces.
+
 - Clarify recursive paths and branch limits, optional enum error identity, and preservation of existing rules in the `muonsoft-validation` skill; exclude display-only error formatting from automatic selection.
 
 - Prepare a second skill-evaluation suite with seven composed scenarios, standalone reports, and compact artifact retention; retain the earlier cases as an optional legacy suite.

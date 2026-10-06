@@ -59,9 +59,9 @@ def files_digest(directory):
 
 
 def case_manifest(suite):
-    if suite not in ("main", "legacy"):
+    if suite not in ("main", "legacy", "transfer"):
         raise ValueError("unknown suite")
-    return HERE / ("cases.json" if suite == "main" else "legacy-cases.json")
+    return HERE / ("cases.json" if suite == "main" else f"{suite}-cases.json")
 
 
 def cases(suite="main"):
@@ -1252,7 +1252,7 @@ def main():
     commands = parser.add_subparsers(dest="command", required=True)
     checker = commands.add_parser("check", help="check docs, references and failing starters, without a model")
     checker.add_argument("--output", required=True)
-    checker.add_argument("--suite", choices=("main", "legacy"), default="main")
+    checker.add_argument("--suite", choices=("main", "legacy", "transfer"), default="main")
     checker.add_argument("--retention", choices=("compact", "debug"), default="compact")
     preflight = commands.add_parser("doctor", help="inspect exact model and isolated skill discovery; no inference")
     preflight.add_argument("--output", required=True)
@@ -1265,7 +1265,7 @@ def main():
     runner.add_argument("--config", help="provider-only JSON; omit on v2 to reuse the local Console connection")
     runner.add_argument("--opencode", default="opencode")
     runner.add_argument("--profile", choices=("smoke", "full"), default="smoke")
-    runner.add_argument("--suite", choices=("main", "legacy"), default="main")
+    runner.add_argument("--suite", choices=("main", "legacy", "transfer"), default="main")
     runner.add_argument("--retention", choices=("compact", "debug"), default="compact")
     runner.add_argument("--skip-check", action="store_true", help="skip deterministic material checks after separately verifying this exact revision")
     runner.add_argument("--case", action="append")

@@ -1,0 +1,400 @@
+{
+  "schema_version": 1,
+  "source_run": "2026-10-05/run",
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "revision": "c66045f4cb17f04937c01e0ff6914c5540694519",
+  "skill_sha256": "3e6fb23f06ac27e2c05a2e7d523d6c11446f9eb27e9b038646d14df87d8a7b2f",
+  "review_blinded": false,
+  "scope": "All six 19-update submissions; event analysis and targeted code review. Other cases are not reviewed here.",
+  "comparison": {
+    "pairs": 3,
+    "totals": {
+      "without": {
+        "input": 247921,
+        "output": 27173,
+        "reasoning": 70172,
+        "cache_read": 4178560,
+        "cache_write": 0,
+        "uncached_plus_generated": 345266,
+        "all_categories": 4523826
+      },
+      "with": {
+        "input": 386539,
+        "output": 30398,
+        "reasoning": 78923,
+        "cache_read": 6481152,
+        "cache_write": 0,
+        "uncached_plus_generated": 495860,
+        "all_categories": 6977012
+      }
+    },
+    "change_percent": {
+      "input": 55.91216556887073,
+      "output": 11.86839877819894,
+      "reasoning": 12.470786068517349,
+      "cache_read": 55.10491652626741,
+      "cache_write": null,
+      "uncached_plus_generated": 43.6168055933686,
+      "all_categories": 54.228124600725145
+    },
+    "median_per_attempt": {
+      "without": 1405581,
+      "with": 2786280
+    },
+    "median_paired_percent_change": 61.75715103180814,
+    "pairs_with_fewer_tokens": 1
+  },
+  "attempts": [
+    {
+      "attempt": "19-update-without-1",
+      "seconds": 271.443,
+      "tokens": {
+        "input": 86781,
+        "output": 9088,
+        "reasoning": 21008,
+        "cache_read": 1288704,
+        "cache_write": 0,
+        "uncached_plus_generated": 116877,
+        "all_categories": 1405581
+      },
+      "tool_calls": {
+        "read": 10,
+        "glob": 1,
+        "shell": 32,
+        "write": 3,
+        "edit": 3
+      },
+      "tool_calls_before_first_implementation_edit": 33,
+      "first_implementation_edit_event": 78,
+      "reference_files": [],
+      "tool_output_characters": 217396
+    },
+    {
+      "attempt": "19-update-with-1",
+      "seconds": 322.702,
+      "tokens": {
+        "input": 84206,
+        "output": 8410,
+        "reasoning": 24365,
+        "cache_read": 1153664,
+        "cache_write": 0,
+        "uncached_plus_generated": 116981,
+        "all_categories": 1270645
+      },
+      "tool_calls": {
+        "shell": 21,
+        "read": 14,
+        "skill": 1,
+        "write": 3
+      },
+      "tool_calls_before_first_implementation_edit": 31,
+      "first_implementation_edit_event": 80,
+      "reference_files": [
+        "entity-and-dto.md",
+        "validation-flow.md",
+        "nested-collections.md",
+        "infrastructure-validation.md",
+        "custom-constraints.md",
+        "errors-and-translations.md",
+        "testing.md"
+      ],
+      "tool_output_characters": 184977
+    },
+    {
+      "attempt": "19-update-with-2",
+      "seconds": 460.263,
+      "tokens": {
+        "input": 104132,
+        "output": 11707,
+        "reasoning": 29848,
+        "cache_read": 2774400,
+        "cache_write": 0,
+        "uncached_plus_generated": 145687,
+        "all_categories": 2920087
+      },
+      "tool_calls": {
+        "shell": 55,
+        "read": 17,
+        "skill": 1,
+        "write": 3,
+        "edit": 1
+      },
+      "tool_calls_before_first_implementation_edit": 54,
+      "first_implementation_edit_event": 117,
+      "reference_files": [
+        "nested-collections.md",
+        "entity-and-dto.md",
+        "infrastructure-validation.md",
+        "validation-flow.md",
+        "custom-constraints.md",
+        "errors-and-translations.md",
+        "testing.md",
+        "optional-and-conditional.md"
+      ],
+      "tool_output_characters": 212648
+    },
+    {
+      "attempt": "19-update-without-2",
+      "seconds": 302.464,
+      "tokens": {
+        "input": 80061,
+        "output": 9621,
+        "reasoning": 23515,
+        "cache_read": 1692032,
+        "cache_write": 0,
+        "uncached_plus_generated": 113197,
+        "all_categories": 1805229
+      },
+      "tool_calls": {
+        "shell": 53,
+        "read": 13,
+        "write": 3,
+        "edit": 1
+      },
+      "tool_calls_before_first_implementation_edit": 59,
+      "first_implementation_edit_event": 136,
+      "reference_files": [],
+      "tool_output_characters": 176903
+    },
+    {
+      "attempt": "19-update-without-3",
+      "seconds": 287.558,
+      "tokens": {
+        "input": 81079,
+        "output": 8464,
+        "reasoning": 25649,
+        "cache_read": 1197824,
+        "cache_write": 0,
+        "uncached_plus_generated": 115192,
+        "all_categories": 1313016
+      },
+      "tool_calls": {
+        "read": 9,
+        "shell": 28,
+        "write": 3,
+        "edit": 3
+      },
+      "tool_calls_before_first_implementation_edit": 29,
+      "first_implementation_edit_event": 63,
+      "reference_files": [],
+      "tool_output_characters": 185333
+    },
+    {
+      "attempt": "19-update-with-3",
+      "seconds": 389.215,
+      "tokens": {
+        "input": 198201,
+        "output": 10281,
+        "reasoning": 24710,
+        "cache_read": 2553088,
+        "cache_write": 0,
+        "uncached_plus_generated": 233192,
+        "all_categories": 2786280
+      },
+      "tool_calls": {
+        "skill": 1,
+        "read": 13,
+        "shell": 41,
+        "write": 3,
+        "edit": 3
+      },
+      "tool_calls_before_first_implementation_edit": 39,
+      "first_implementation_edit_event": 88,
+      "reference_files": [
+        "validation-flow.md",
+        "nested-collections.md",
+        "entity-and-dto.md",
+        "infrastructure-validation.md"
+      ],
+      "tool_output_characters": 226704
+    }
+  ],
+  "findings": [
+    {
+      "finding": "Both long treatment attempts spend effort outside implementation and behavioral verification.",
+      "evidence": [
+        "attempts/19-update-with-2/events.jsonl.gz:98 (Git objects), :138-168 (runtime/cache searches)",
+        "attempts/19-update-with-3/events.jsonl.gz:53-84 (runtime files and SQLite), :121-130 (filesystem/cache searches)"
+      ],
+      "interpretation": "These searches contribute context and tool steps but do not supply application requirements. Do not infer hidden-test access merely from attempted searches."
+    },
+    {
+      "finding": "Broad API and reference reading inflates context.",
+      "evidence": [
+        "attempts/19-update-with-2/events.jsonl.gz:14-23 (all eight references), :73-113 (library source)",
+        "attempts/19-update-with-3/events.jsonl.gz:30-46 (large source outputs), :56 (rereading shell outputs)"
+      ],
+      "interpretation": "Summed cache reads charge repeated context volume; they are not unique source size or monetary cost."
+    },
+    {
+      "finding": "This behavior also occurs without the skill.",
+      "evidence": [
+        "attempts/19-update-without-2/events.jsonl.gz:55-82 (package dumps), :85-106 (Git/runtime exploration)"
+      ],
+      "interpretation": "Three repeats do not establish the skill as the sole cause of exploration or slowdown."
+    },
+    {
+      "finding": "All six final submissions satisfy the recorded four requirements on both versions.",
+      "evidence": [
+        "report.md",
+        "attempts/19-update-with-2/workspace/service.go:18",
+        "attempts/19-update-with-3/workspace/validation.go:15"
+      ],
+      "interpretation": "No correctness fix to infrastructure semantics is supported; improve discovery and stopping guidance rather than remove required tests."
+    }
+  ],
+  "limitations": [
+    "Not a blinded review.",
+    "Raw logs were inspected selectively; no exhaustive contamination/security audit is claimed.",
+    "No new model inference; the effect of guidance changes is unmeasured.",
+    "The prior run favored the skill on 19-update token volume; the sign changes across runs. Do not attribute a causal regression to the skill edit from three repeats alone."
+  ],
+  "reviews": {
+    "19-update-without-1": {
+      "api": {
+        "score": 2,
+        "evidence": "attempts/19-update-without-1/workspace/validation.go:27 — supplied validator and context reach the repository and violation construction."
+      },
+      "rule_ownership": {
+        "score": 2,
+        "evidence": "attempts/19-update-without-1/workspace/validation.go:10 — local rules use built-ins; reference checks are separate from persistence. No existing child validation is bypassed."
+      },
+      "execution_flow": {
+        "score": 2,
+        "evidence": "attempts/19-update-without-1/workspace/service.go:10 — copy and normalize, local barrier, accumulate name/reference violations, preserve fatal errors, save only on success."
+      },
+      "scope": {
+        "score": 2,
+        "evidence": "attempts/19-update-without-1/workspace/service.go:10 — focused service implementation; final source adds no framework or dependency. Scores concern submitted code, not exploration cost."
+      }
+    },
+    "19-update-with-1": {
+      "api": {
+        "score": 2,
+        "evidence": "attempts/19-update-with-1/workspace/validation.go:25 — supplied validator and context reach the repository and violation construction."
+      },
+      "rule_ownership": {
+        "score": 2,
+        "evidence": "attempts/19-update-with-1/workspace/validation.go:10 — local rules use built-ins; reference checks are separate from persistence. No existing child validation is bypassed."
+      },
+      "execution_flow": {
+        "score": 2,
+        "evidence": "attempts/19-update-with-1/workspace/service.go:10 — copy and normalize, local barrier, accumulate name/reference violations, preserve fatal errors, save only on success."
+      },
+      "scope": {
+        "score": 2,
+        "evidence": "attempts/19-update-with-1/workspace/service.go:10 — focused service implementation; final source adds no framework or dependency. Scores concern submitted code, not exploration cost."
+      }
+    },
+    "19-update-with-2": {
+      "api": {
+        "score": 2,
+        "evidence": "attempts/19-update-with-2/workspace/validation.go:41 — supplied validator and context reach the repository and violation construction."
+      },
+      "rule_ownership": {
+        "score": 2,
+        "evidence": "attempts/19-update-with-2/workspace/validation.go:16 — local rules use built-ins; reference checks are separate from persistence. No existing child validation is bypassed."
+      },
+      "execution_flow": {
+        "score": 2,
+        "evidence": "attempts/19-update-with-2/workspace/service.go:18 — copy and normalize, local barrier, accumulate name/reference violations, preserve fatal errors, save only on success."
+      },
+      "scope": {
+        "score": 2,
+        "evidence": "attempts/19-update-with-2/workspace/service.go:18 — focused service implementation; final source adds no framework or dependency. Scores concern submitted code, not exploration cost."
+      }
+    },
+    "19-update-without-2": {
+      "api": {
+        "score": 2,
+        "evidence": "attempts/19-update-without-2/workspace/validation.go:31 — supplied validator and context reach the repository and violation construction."
+      },
+      "rule_ownership": {
+        "score": 2,
+        "evidence": "attempts/19-update-without-2/workspace/validation.go:10 — local rules use built-ins; reference checks are separate from persistence. No existing child validation is bypassed."
+      },
+      "execution_flow": {
+        "score": 2,
+        "evidence": "attempts/19-update-without-2/workspace/service.go:10 — copy and normalize, local barrier, accumulate name/reference violations, preserve fatal errors, save only on success."
+      },
+      "scope": {
+        "score": 2,
+        "evidence": "attempts/19-update-without-2/workspace/service.go:10 — focused service implementation; final source adds no framework or dependency. Scores concern submitted code, not exploration cost."
+      }
+    },
+    "19-update-without-3": {
+      "api": {
+        "score": 2,
+        "evidence": "attempts/19-update-without-3/workspace/validation.go:37 — supplied validator and context reach the repository and violation construction."
+      },
+      "rule_ownership": {
+        "score": 2,
+        "evidence": "attempts/19-update-without-3/workspace/validation.go:13 — local rules use built-ins; reference checks are separate from persistence. No existing child validation is bypassed."
+      },
+      "execution_flow": {
+        "score": 2,
+        "evidence": "attempts/19-update-without-3/workspace/service.go:13 — copy and normalize, local barrier, accumulate name/reference violations, preserve fatal errors, save only on success."
+      },
+      "scope": {
+        "score": 2,
+        "evidence": "attempts/19-update-without-3/workspace/service.go:13 — focused service implementation; final source adds no framework or dependency. Scores concern submitted code, not exploration cost."
+      }
+    },
+    "19-update-with-3": {
+      "api": {
+        "score": 2,
+        "evidence": "attempts/19-update-with-3/workspace/validation.go:36 — supplied validator and context reach the repository and violation construction."
+      },
+      "rule_ownership": {
+        "score": 2,
+        "evidence": "attempts/19-update-with-3/workspace/validation.go:13 — local rules use built-ins; reference checks are separate from persistence. No existing child validation is bypassed."
+      },
+      "execution_flow": {
+        "score": 2,
+        "evidence": "attempts/19-update-with-3/workspace/service.go:13 — copy and normalize, local barrier, accumulate name/reference violations, preserve fatal errors, save only on success."
+      },
+      "scope": {
+        "score": 2,
+        "evidence": "attempts/19-update-with-3/workspace/service.go:13 — focused service implementation; final source adds no framework or dependency. Scores concern submitted code, not exploration cost."
+      }
+    }
+  },
+  "previous_run_comparison": {
+    "pairs": 3,
+    "totals": {
+      "without": {
+        "input": 300282,
+        "output": 27328,
+        "reasoning": 89373,
+        "cache_read": 5187968,
+        "cache_write": 0,
+        "uncached_plus_generated": 416983,
+        "all_categories": 5604951
+      },
+      "with": {
+        "input": 268795,
+        "output": 25881,
+        "reasoning": 74651,
+        "cache_read": 4409728,
+        "cache_write": 0,
+        "uncached_plus_generated": 369327,
+        "all_categories": 4779055
+      }
+    },
+    "change_percent": {
+      "input": -10.485810005261719,
+      "output": -5.294935597189698,
+      "reasoning": -16.472536448368082,
+      "cache_read": -15.000863536552266,
+      "cache_write": null,
+      "uncached_plus_generated": -11.428763282915611,
+      "all_categories": -14.735115436334766
+    },
+    "median_per_attempt": {
+      "without": 1953397,
+      "with": 1638884
+    },
+    "median_paired_percent_change": -16.100823334939086,
+    "pairs_with_fewer_tokens": 3
+  }
+}

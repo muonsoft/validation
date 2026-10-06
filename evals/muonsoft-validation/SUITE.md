@@ -97,3 +97,35 @@ The runner tests simulate OpenCode without model inference. They verify isolatio
 completion/usage accounting, multi-file grading, compaction, lock handling,
 continuation, and detached report regeneration. See the [runbook](README.md) for
 commands and retention policy.
+
+
+## Prospective transfer suite (revision 1)
+
+Select `--suite transfer`; `transfer-cases.json` owns its manifest. Main and legacy
+fixtures and score denominators remain unchanged. All three cases are in smoke
+(6 attempts); full repeats each three times (18 attempts). They target v0.19.0 and
+the current snapshot with the same paired isolation, race checks, and scoring.
+
+| ID | Different contract | Observable requirements |
+| --- | --- | --- |
+| `23-catalog` | Map-rooted tree, depth starts at zero, nil nodes, repeated labels allowed | Independent branches, literal typed keys, inclusive depth barrier, no borrowed sibling-uniqueness rule |
+| `24-patch` | Explicit presence flag plus nullable integer enum | Omitted vs clear vs set, custom error identities, activate without default group, Unicode boundaries and translations |
+| `25-branches` | Lookup prerequisites are local to each item | Invalid siblings do not create a global barrier, original order and repeated IDs, technical error stops later calls |
+
+This set is new to the measured model but authored with knowledge of prior evals;
+it is **not an independently authored holdout**. Do not use its own results to
+revise the skill and still call subsequent runs unseen validation. Freeze skill,
+runner, manifest, and fixtures before inference; their saved hashes identify the
+measured bytes. Keep every revision and retry in a separate output directory.
+No new model results are claimed by adding or checking these fixtures.
+
+Reference solutions must pass both versions. Nil-return starters must compile and
+fail behavioral tests. The mutations respectively change root depth, permit zero
+enum values, and replace a local branch continuation with a global return; each
+must fail its named test without compilation errors. Tests assess the contract,
+not resemblance to the reference solution.
+
+For an independent holdout, have an author who has not seen development failures
+supply additional tasks and freeze them before showing results to skill authors.
+Separately rerun `19-update` to measure the discovery-guidance change; transfer
+scores do not establish a token improvement on that existing scenario.
