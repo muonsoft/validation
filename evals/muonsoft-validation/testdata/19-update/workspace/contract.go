@@ -20,7 +20,8 @@ type Command struct {
 }
 type Repository interface {
 	Load(context.Context, string) (*Bundle, error)
-	NameTaken(context.Context, string, string) (bool, error)
+	// NameTaken checks name availability, excluding the bundle with excludedID.
+	NameTaken(ctx context.Context, name, excludedID string) (bool, error)
 	Find(context.Context, []string) (map[string]bool, error)
 	Save(context.Context, *Bundle) error
 }

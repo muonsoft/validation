@@ -4,8 +4,10 @@ Implement Bundle.Validate, Service.Update and CheckReferences. Update first load
 the bundle by command ID. Copy loaded state before changes: repository-owned data
 must not be mutated, including on errors. Replace Name and the entire References
 slice from the command; trim Name and every reference ID before validation. Ignore
-PreviousName for validation: it represents persisted history. Use loaded ID for
-NameTaken exclusion. Bundle requires Name (max 30 chars), 1–4 references; every
+PreviousName for validation: it represents persisted history. The repository method
+is NameTaken(ctx, name, excludedID): pass the normalized new name first and the
+loaded bundle ID second, i.e. NameTaken(ctx, normalizedName, loaded.ID).
+Bundle requires Name (max 30 chars), 1–4 references; every
 reference needs ID (ErrIsBlank at references[i].id) and positive Weight.
 Accumulate all local errors before NameTaken or Find. After local success call
 NameTaken then CheckReferences, accumulating ErrDuplicate at name and every

@@ -7,6 +7,18 @@ its revision before measuring a model and keep each revision's results separate.
 Do not combine its pass rate with the historical 12-case report or the 15-case
 legacy suite. The public skill is unchanged by this suite revision.
 
+## Main revision 3: explicit repository argument order
+
+Revision 3 names the `19-update` repository parameters and explicitly specifies
+`NameTaken(ctx, normalizedName, loaded.ID)` in the worker prompt. Revision 2 exposed
+two unnamed string parameters without specifying their order, although hidden
+tests required name followed by excluded ID. Reversed arguments in those older
+runs are therefore not clean evidence of a validation-skill failure.
+
+The expected behavior, checks, and reference implementation are unchanged. Keep
+revision 2 artifacts and scores intact; measure revision 3 in a new output directory
+rather than resuming or regrading an old run. The transfer suite remains revision 1.
+
 ## Scenarios
 
 | ID | Change requested | Critical observations | Smoke |
