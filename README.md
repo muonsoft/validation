@@ -23,6 +23,7 @@ This project is inspired by [Symfony Validator component](https://symfony.com/in
 * Validation of custom data types that implement the `Validatable` interface
 * Customizable validation errors with translations and pluralization supported out of the box
 * Custom validation rules with context propagation and message translations
+* AI ready: an installable [agent skill](docs/agent-skill.md) for working with the library in AI coding agents
 
 ## Version policy
 
@@ -30,19 +31,19 @@ The library is in the v0 series. Minor releases (`0.x.0`) may introduce breaking
 changes; patch releases contain bug fixes. Review the [changelog](CHANGELOG.md)
 before upgrading.
 
-## Agent skill
+## Use with AI agents
 
-Install the [muonsoft-validation skill](skills/muonsoft-validation/SKILL.md) in a
-project to guide coding agents through entity/DTO validation, nested collections,
-dependent checks, and application tests:
+Install the optional `muonsoft-validation` skill alongside the library to give
+AI coding agents practical guidance on reusable validation rules, nested paths,
+optional fields, and dependent checks:
 
 ```bash
 npx skills add muonsoft/validation --skill muonsoft-validation
 ```
 
-The skill includes portable examples checked against v0.19.0 and the current
-library code. Maintainers can run [manual skill evaluations](evals/muonsoft-validation/README.md)
-using Codex as orchestrator and OpenCode as the coding agent.
+See the [agent skill guide](docs/agent-skill.md) for installation, usage, and
+examples, and the [evaluation report](docs/agent-skill-evaluation.md) for measured
+results and limitations.
 
 ## Quick start
 
@@ -167,6 +168,7 @@ See [Usage](docs/usage.md) for validator setup and validation arguments.
 | [Installation](docs/installation.md) | How to install the package |
 | [Constraint catalog](docs/constraints.md) | Find constraints by input type and standalone helpers |
 | [Usage](docs/usage.md) | Basic concepts, validator, validation arguments |
+| [AI agent skill](docs/agent-skill.md) | Install the skill and use it for validation tasks |
 | [Property paths & structs](docs/property-paths-and-structs.md) | Property paths, struct validation, conditional validation, groups |
 | [Violations and errors](docs/violations-and-errors.md) | Handling violations, error structure, storing in database |
 | [Country, language & locale](docs/international.md) | Formats, special codes, and application-support limitations |
