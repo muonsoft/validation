@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add the installable `muonsoft-validation` agent skill with practical entity/DTO validation patterns, portable examples, and a manual evaluation workflow. See the [agent skill guide](docs/agent-skill.md) and [evaluation report](docs/agent-skill-evaluation.md).
+
 ## [0.20.0] - 2026-10-03
 
 ### Added
