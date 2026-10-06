@@ -59,7 +59,7 @@ def files_digest(directory):
 
 
 def case_manifest(suite):
-    if suite not in ("main", "legacy", "transfer"):
+    if suite not in ("main", "transfer"):
         raise ValueError("unknown suite")
     return HERE / ("cases.json" if suite == "main" else f"{suite}-cases.json")
 
@@ -215,9 +215,7 @@ def grade(case, source, output, snapshots, env):
         prepare_module(target, Path(library["path"]), negative=not case["should_trigger"])
         shutil.copyfile(HERE / "testdata" / case["id"] / "checks/requirements_test.go", target / "requirements_test.go")
         if case["should_trigger"]:
-            shutil.copyfile(HERE / "testdata/helpers_test.go", target / "helpers_test.go")
-            if case.get("allow_helpers"):
-                shutil.copyfile(HERE / "testdata/behavior_test.go", target / "behavior_test.go")
+            shutil.copyfile(HERE / "testdata/behavior_test.go", target / "behavior_test.go")
         log = target / "tests.jsonl"
         process = command(["go", "test", "-mod=mod", "-race", "-count=1", "-json", "./..."], target, log, env)
         results[version] = test_result(log, case["requirements"], process)
@@ -940,8 +938,7 @@ def snapshot_materials(output, selected, suite):
     shutil.copytree(SKILL, target / "skill")
     for case in selected:
         shutil.copytree(HERE / "testdata" / case["id"], target / "testdata" / case["id"])
-    for name in ("helpers_test.go", "behavior_test.go"):
-        shutil.copyfile(HERE / "testdata" / name, target / "testdata" / name)
+    shutil.copyfile(HERE / "testdata/behavior_test.go", target / "testdata/behavior_test.go")
     write_json(target / "hashes.json", files_digest(target))
 
 
@@ -1118,7 +1115,7 @@ def report(output, review_path):
             if type(item.get("score")) is not int or item["score"] not in (0, 1, 2) or not item.get("evidence"):
                 raise ValueError(f"score and evidence required: {identifier}")
     summary = {"status": manifest["status"], "model": manifest["model"], "variants": {}, "reviews": reviews}
-    summary["suite"] = manifest.get("suite", "legacy")
+    summary["suite"] = manifest.get("suite", "unknown")
     summary["execution_seconds"] = {variant: sum(a.get("seconds", 0) for a in attempts if a["variant"] == variant)
                                     for variant in ("without", "with")}
     lines = ["# Оценка скилла muonsoft-validation", "", f"Модель: `{manifest['model']}`. Состояние запуска: **{manifest['status']}**.",
@@ -1252,7 +1249,7 @@ def main():
     commands = parser.add_subparsers(dest="command", required=True)
     checker = commands.add_parser("check", help="check docs, references and failing starters, without a model")
     checker.add_argument("--output", required=True)
-    checker.add_argument("--suite", choices=("main", "legacy", "transfer"), default="main")
+    checker.add_argument("--suite", choices=("main", "transfer"), default="main")
     checker.add_argument("--retention", choices=("compact", "debug"), default="compact")
     preflight = commands.add_parser("doctor", help="inspect exact model and isolated skill discovery; no inference")
     preflight.add_argument("--output", required=True)
@@ -1265,7 +1262,7 @@ def main():
     runner.add_argument("--config", help="provider-only JSON; omit on v2 to reuse the local Console connection")
     runner.add_argument("--opencode", default="opencode")
     runner.add_argument("--profile", choices=("smoke", "full"), default="smoke")
-    runner.add_argument("--suite", choices=("main", "legacy", "transfer"), default="main")
+    runner.add_argument("--suite", choices=("main", "transfer"), default="main")
     runner.add_argument("--retention", choices=("compact", "debug"), default="compact")
     runner.add_argument("--skip-check", action="store_true", help="skip deterministic material checks after separately verifying this exact revision")
     runner.add_argument("--case", action="append")

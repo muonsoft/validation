@@ -2,9 +2,19 @@ package scenario_test
 
 import (
 	"errors"
-	"github.com/muonsoft/validation"
 	"testing"
+
+	"github.com/muonsoft/validation"
 )
+
+func newValidator(t *testing.T) *validation.Validator {
+	t.Helper()
+	v, err := validation.NewValidator()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return v
+}
 
 type expected struct {
 	path string

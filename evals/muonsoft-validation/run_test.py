@@ -127,7 +127,7 @@ class RunnerTests(unittest.TestCase):
         self.assertNotIn("requested-secret", (self.root / "output/provider.json").read_text())
 
     def test_symlink_submission_rejected(self):
-        (self.root / "solution.go").symlink_to(self.root.parent / "outside.go")
+        (self.root / "validation.go").symlink_to(self.root.parent / "outside.go")
         with self.assertRaises(ValueError):
             runner.files_digest(self.root)
 
@@ -154,7 +154,7 @@ elif 'run' in args:
     assert os.environ['PWD'] == str(pathlib.Path.cwd())
     if 'VERSION' == '2': assert '--server' in args and '--pure' not in args
     if with_skill:
-        pathlib.Path('solution.go').write_text('package scenario\\n// simulated worker change\\n')
+        pathlib.Path('validation.go').write_text('package scenario\\n// simulated worker change\\n')
         print(json.dumps({'type':'tool_use','part':{'tool':'skill','state':{'status':'completed','input':{'name':'muonsoft-validation'}}}}))
     print(json.dumps({'type':'step_finish','part':{'reason':'stop'}}))
 else: sys.exit(3)
@@ -319,12 +319,12 @@ else: sys.exit(3)
         (library / "go.sum").write_text("")
         snapshots = {v: {"path": str(library), "sha256": "fixture"} for v in ("v0.19.0", "current")}
         def fake_grade(case, source, output, snapshots, env):
-            passes = "simulated worker" in (source / "solution.go").read_text()
+            passes = "simulated worker" in (source / "validation.go").read_text()
             return {v: {"status": "completed" if passes else "process_error", "passed": passes,
                         "requirements_passed": case["requirements"] if passes else [],
                         "requirements_total": len(case["requirements"])} for v in snapshots}
         args = argparse.Namespace(model="fixture/model", config=str(config), output=str(self.root / "run"),
-                                  opencode=binary, case=["01-eager"], profile="smoke", timeout=5, suite="legacy", skip_check=True, retention="debug")
+                                  opencode=binary, case=["16-request"], profile="smoke", timeout=5, suite="main", skip_check=True, retention="debug")
         with patch.object(runner, "library_snapshots", return_value=snapshots), patch.object(runner, "grade", side_effect=fake_grade), contextlib.redirect_stdout(io.StringIO()):
             self.assertFalse(runner.run(args))
         output = Path(args.output)
@@ -335,7 +335,7 @@ else: sys.exit(3)
         self.assertEqual(summary["pairs"], {"improved": 1})
         self.assertEqual(summary["paired_delta_percentage_points"], 100)
         review = self.root / "review.json"
-        review.write_text(json.dumps({data["attempts"][1]["id"]: {key: {"score": 2, "evidence": "[solution](attempts/01-eager-with-1/workspace/solution.go), line 2"} for key in runner.RUBRIC}}))
+        review.write_text(json.dumps({data["attempts"][1]["id"]: {key: {"score": 2, "evidence": "[solution](attempts/16-request-with-1/workspace/validation.go), line 2"} for key in runner.RUBRIC}}))
         runner.report(output, review)
         self.assertIn("**2/2**", (output / "report.md").read_text())
         self.assertEqual(json.loads((output / "results.json").read_text())["pairs"], summary["pairs"])
@@ -371,7 +371,7 @@ else: sys.exit(3)
             log.write_text("")
             return {"status": "cancelled", "exit_code": None}
         with patch.object(runner, "command", side_effect=cancel_tests) as execute:
-            grades = runner.grade(runner.cases("legacy")[0], output / "attempts/01-eager-with-1/workspace", self.root / "cancelled-checks", snapshots, {})
+            grades = runner.grade(runner.cases("main")[0], output / "attempts/16-request-with-1/workspace", self.root / "cancelled-checks", snapshots, {})
             self.assertEqual(execute.call_count, 1)
         self.assertFalse(grades["v0.19.0"]["passed"])
 
@@ -383,12 +383,12 @@ else: sys.exit(3)
                     "events": {"complete": True, "reported_usage": records}}
         def record(value):
             return {"tokens": {"input": value, "output": 2, "reasoning": 3, "cache": {"read": 10, "write": 0}}}
-        attempts = [attempt("01-eager", "without", [record(10), record(20)]),
-                    attempt("01-eager", "with", [record(10)], passed=False),
-                    attempt("02-collection", "without", [record(10)]),
-                    attempt("02-collection", "with", [{"tokens": {"input": 1}}]),
-                    attempt("03-optional", "without", [record(10)]),
-                    attempt("03-optional", "with", [record(10)], status="timeout")]
+        attempts = [attempt("16-request", "without", [record(10), record(20)]),
+                    attempt("16-request", "with", [record(10)], passed=False),
+                    attempt("18-tree", "without", [record(10)]),
+                    attempt("18-tree", "with", [{"tokens": {"input": 1}}]),
+                    attempt("17-settings", "without", [record(10)]),
+                    attempt("17-settings", "with", [record(10)], status="timeout")]
         result = runner.token_comparison(attempts)
         self.assertEqual(result["matched"]["pairs"], 1)
         self.assertEqual(result["matched"]["totals"]["without"]["all_categories"], 60)
@@ -396,8 +396,8 @@ else: sys.exit(3)
         self.assertEqual(result["matched"]["totals"]["without"]["uncached_plus_generated"], 40)
         self.assertEqual(result["matched_both_passed"]["pairs"], 0)
         self.assertEqual(len(result["excluded_pairs"]), 2)
-        self.assertIsNone(result["attempts"]["02-collection-with-1"]["tokens"]["all_categories"])
-        self.assertFalse(result["attempts"]["02-collection-with-1"]["complete"])
+        self.assertIsNone(result["attempts"]["18-tree-with-1"]["tokens"]["all_categories"])
+        self.assertFalse(result["attempts"]["18-tree-with-1"]["complete"])
         with self.assertRaisesRegex(ValueError, "duplicate"):
             runner.token_comparison(attempts + [attempts[0]])
 
@@ -428,23 +428,23 @@ else: sys.exit(3)
 
     def test_resume_preserves_attempts_and_checks_provenance(self):
         source = self.root / "original"
-        original = source / "attempts/01-eager-without-1"
+        original = source / "attempts/16-request-without-1"
         original.mkdir(parents=True)
         (original / "events.jsonl").write_text("partial output")
         manifest = {key: "same" for key in ("skill_sha256", "suite_sha256", "runner_sha256", "cases_sha256",
                     "go_version", "model", "profile", "timeout", "opencode_version", "config_sha256")}
-        manifest.update(repeats=1, selected_cases=["01-eager"], libraries={"current": {"sha256": "lib"}}, attempts=[])
-        previous = {**manifest, "attempts": [{"id": "01-eager-without-1", "case": "01-eager", "variant": "without",
+        manifest.update(repeats=1, selected_cases=["16-request"], libraries={"current": {"sha256": "lib"}}, attempts=[])
+        previous = {**manifest, "attempts": [{"id": "16-request-without-1", "case": "16-request", "variant": "without",
                                              "repeat": 1, "status": "running"}]}
         runner.write_json(source / "run.json", previous)
         original_bytes = (source / "run.json").read_bytes()
         output = self.root / "continued"
         output.mkdir()
         seen = runner.inherit_run(source, output, manifest)
-        self.assertEqual(seen, {"01-eager-without-1"})
+        self.assertEqual(seen, {"16-request-without-1"})
         self.assertEqual(manifest["attempts"][0]["status"], "interrupted")
         self.assertEqual((source / "run.json").read_bytes(), original_bytes)
-        self.assertEqual((output / "attempts/01-eager-without-1/events.jsonl").read_text(), "partial output")
+        self.assertEqual((output / "attempts/16-request-without-1/events.jsonl").read_text(), "partial output")
         for key in ("skill_sha256", "suite_sha256", "runner_sha256", "cases_sha256", "go_version", "model",
                     "profile", "timeout", "opencode_version", "config_sha256", "selected_cases", "repeats"):
             with self.subTest(key=key), self.assertRaisesRegex(ValueError, key):
@@ -470,7 +470,7 @@ else: sys.exit(3)
         (library / "go.sum").write_text("")
         snapshots = {v: {"path": str(library), "sha256": "fixture"} for v in ("v0.19.0", "current")}
         args = argparse.Namespace(model="fixture/model", config=str(config), output=str(self.root / "first"),
-                                  opencode=self.fake_opencode(), case=["01-eager"], profile="smoke", timeout=5, suite="legacy", skip_check=True, retention="debug")
+                                  opencode=self.fake_opencode(), case=["16-request"], profile="smoke", timeout=5, suite="main", skip_check=True, retention="debug")
         execute = runner.command
         calls = []
         def cancel(argv, cwd, log, env=None, timeout=180):
@@ -488,12 +488,12 @@ else: sys.exit(3)
             args.output = str(self.root / "second")
             self.assertTrue(runner.run(args))
         self.assertEqual(len(calls), 2)
-        self.assertIn("01-eager-without-1", str(calls[0]))
-        self.assertIn("01-eager-with-1", str(calls[1]))
+        self.assertIn("16-request-without-1", str(calls[0]))
+        self.assertIn("16-request-with-1", str(calls[1]))
         self.assertEqual((source / "run.json").read_bytes(), before)
         manifest = json.loads((Path(args.output) / "run.json").read_text())
         self.assertEqual(len(manifest["attempts"]), 2)
-        self.assertEqual(manifest["continuation"]["inherited_attempts"], ["01-eager-without-1"])
+        self.assertEqual(manifest["continuation"]["inherited_attempts"], ["16-request-without-1"])
 
     def test_doctor_never_invokes_inference(self):
         config = self.root / "provider.json"
@@ -553,7 +553,8 @@ else: sys.exit(3)
         self.assertEqual(len(cases), 7)
         self.assertEqual(sum(c['smoke'] for c in cases), 3)
         self.assertEqual(sum(not c['should_trigger'] for c in cases), 1)
-        self.assertEqual(len(runner.cases('legacy')), 15)
+        with self.assertRaisesRegex(ValueError, 'unknown suite'):
+            runner.cases('legacy')
         for case in cases:
             self.assertTrue(case['mutations'])
             for name in case['editable']:
@@ -639,8 +640,8 @@ else: sys.exit(3)
         self.assertTrue((outside / "events.jsonl").exists())
         self.assertFalse((outside / "events.jsonl.gz").exists())
 
-    def test_legacy_cleanup_preserves_the_measured_skill(self):
-        attempt = self.root / "attempts/01-eager-with-1"
+    def test_cleanup_preserves_skill_without_materials_snapshot(self):
+        attempt = self.root / "attempts/16-request-with-1"
         skill = attempt / "workspace/.opencode/skills/muonsoft-validation"
         skill.mkdir(parents=True)
         (skill / "SKILL.md").write_text("original measured skill")

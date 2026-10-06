@@ -7,14 +7,12 @@ the result directory to Codex for analysis using the
 [review skill](../../.agents/skills/eval-muonsoft-validation/SKILL.md).
 These evals are separate from CI and the library's normal test script.
 
-The second-round main suite has **7 scenarios, 42 full attempts**, or **6 smoke
+The main suite has **7 scenarios, 42 full attempts**, or **6 smoke
 attempts**. It tests composed DTOs, nested property paths, eager validation,
 existing-rule reuse, and custom constraints. See [suite design](SUITE.md).
-The 15 earlier focused cases remain available with `--suite legacy`.
-Historical model results are not scores for this new suite.
 A separate `--suite transfer` offers three new contract variations (6 smoke or
-18 full attempts). It is a prospective transfer set, not an independently authored
-holdout: its author has seen the development results. Keep its scores separate.
+18 full attempts). It exercises additional contracts, but is not an independently
+authored holdout: its author has seen development results. Keep its scores separate.
 See the transfer section of [suite design](SUITE.md).
 
 ## Prerequisites and isolation
@@ -173,10 +171,10 @@ Each `testdata/<case>/` contains:
 - `reference/`: one correct solution for validating tests, never shown to workers.
 
 Fixtures become independent temporary Go modules and are not library packages.
-Main cases declare multiple editable implementation files and allow new private
-helpers in top-level non-test Go files. Existing files outside the editable list,
-module files, and the installed skill are protected. Legacy cases still permit
-only `solution.go`. Deleting a required implementation file is invalid. Temporary scratch tests must
+Cases declare their editable implementation files and whether new private
+helpers in top-level non-test Go files are allowed. Existing files outside the editable list,
+module files, and the installed skill are protected. Deleting a required
+implementation file is invalid. Temporary scratch tests must
 be removed before completion. The grader compiles the submitted solution with the
 original contract and independent tests, not worker-authored tests.
 
@@ -190,7 +188,7 @@ incomplete/buggy starter must execute and fail behavioral tests. Each declared
 mutation must fail its named behavioral test on both versions; a compile failure
 is not evidence that a mutation was caught.
 
-The main suite is frozen separately from the legacy suite. Its multi-file tasks
+The main and transfer suites are measured separately. Their multi-file tasks
 combine rules instead of spelling out an API recipe. Property paths are checked
 as JavaScript-style `PropertyPath.String()` values and typed path elements.
 JSON Pointer is not a requirement. Expected violations are multisets of path and
@@ -202,8 +200,7 @@ implementations pass; built-in/project-rule reuse is assessed in later review.
 `run` first executes deterministic material checks (without model inference),
 then checks model availability and isolated discovery, runs the selected attempts,
 and generates reports. A material failure prevents model attempts. Use
-`--skip-check` only after separately checking this exact revision. `--suite legacy`
-selects the earlier tasks for either `check` or `run`. Select `--profile full`
+`--skip-check` only after separately checking this exact revision. Select `--profile full`
 explicitly for the 42-attempt run; the default remains smoke.
 
 Reports are refreshed after each attempt and on graceful cancellation or failure.
@@ -243,7 +240,7 @@ python3 evals/muonsoft-validation/run.py cleanup --run /path/to/result --apply
 ```
 
 Cleanup uses the run lock, refuses an active process, and deletes only known
-runner-owned directories. It does not follow legacy continuation symlinks; clean
+runner-owned directories. It does not follow continuation symlinks from older runs; clean
 their original runs separately and retain them while old links are needed.
 A stale running manifest is marked interrupted when cleanup is applied. Compact
 artifacts remain reviewable and usable for continuation of unstarted attempts;
@@ -252,15 +249,10 @@ private artifacts just like their uncompressed originals.
 
 ## Reports and scoring
 
-The [2026-10-03 report](reports/2026-10-03-deepseek-v4.1-flash.md) and its sanitized
-JSON preserve the original 12-case run. They do not measure the subsequent skill
-correction or suite expansion.
-
-The [update investigation](reports/2026-10-06-update-investigation.json) records
-six unblinded source reviews and event evidence from the 2026-10-05 run. Its event
-and code locations are relative to that private run; raw logs are not published.
-It motivates narrower discovery and verification guidance, but does not measure
-the effect of those changes.
+Keep measured runs and analysis reports outside the checkout. Each run includes
+its exact materials and runner for later review; repository history also retains
+retired fixtures. Do not combine results from different suite revisions or infer
+model quality from deterministic fixture checks.
 
 Every attempt preserves its prompt, source files, diff, JSON events, separate stderr,
 and independent test logs. `run.json` records source hashes, configuration, tool

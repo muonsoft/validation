@@ -30,7 +30,8 @@ the measured tasks; do not coach it or implement its submissions yourself.
    credentials. Never substitute a model; select reasoning variants only when requested.
 2. Use `smoke` unless the user selects `full` or particular cases. Main smoke runs
    three cases × two variants × one repeat; full runs seven × two × three.
-   The earlier 15 cases are available with `--suite legacy`; keep their results separate.
+   `--suite transfer` selects three additional cases: six smoke or eighteen full
+   attempts. Keep its results separate from main; it is not an independent holdout.
 3. Run `doctor`: model availability and isolated skill discovery, no inference
    request. A failed preflight is an environment issue, not a model score.
 4. On a new suite revision, run `check` and the runner unit tests. They check

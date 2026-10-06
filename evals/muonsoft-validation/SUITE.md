@@ -1,23 +1,16 @@
-# Second-round suite contract
+# Evaluation suite contract
 
 This suite uses fictional applications and independent fixtures. No private
 project source, imports, services, identifiers or documentation are required.
 It is a deliberate development set, not an independently authored holdout. Freeze
 its revision before measuring a model and keep each revision's results separate.
-Do not combine its pass rate with the historical 12-case report or the 15-case
-legacy suite. The public skill is unchanged by this suite revision.
+Main and transfer results are reported separately. Keep historical runs with their
+saved materials; do not resume or regrade them against a changed suite.
 
-## Main revision 3: explicit repository argument order
-
-Revision 3 names the `19-update` repository parameters and explicitly specifies
-`NameTaken(ctx, normalizedName, loaded.ID)` in the worker prompt. Revision 2 exposed
-two unnamed string parameters without specifying their order, although hidden
-tests required name followed by excluded ID. Reversed arguments in those older
-runs are therefore not clean evidence of a validation-skill failure.
-
-The expected behavior, checks, and reference implementation are unchanged. Keep
-revision 2 artifacts and scores intact; measure revision 3 in a new output directory
-rather than resuming or regrading an old run. The transfer suite remains revision 1.
+Main revision 3 explicitly defines the repository call in `19-update` as
+`NameTaken(ctx, normalizedName, loaded.ID)`. Earlier revisions did not specify the
+order of the two string arguments, so their argument-order failures are not clean
+evidence of a skill failure.
 
 ## Scenarios
 
@@ -38,8 +31,8 @@ Cases require no actual database, HTTP server or private service. Dependencies
 are fakes exercised by hidden tests. Workers never see checks or references.
 
 Main full: 7 cases × 2 variants × 3 repeats = 42 attempts. Main smoke: cases 16,
-19 and 22 × 2 variants × 1 repeat = 6 attempts. Legacy full remains 90 attempts;
-legacy smoke remains 8. More complex attempts may use more tokens, so fewer
+19 and 22 × 2 variants × 1 repeat = 6 attempts. More complex attempts may use
+more tokens, so fewer
 attempts do not by themselves establish a cost reduction.
 
 ## Paths and error sets
@@ -110,11 +103,10 @@ completion/usage accounting, multi-file grading, compaction, lock handling,
 continuation, and detached report regeneration. See the [runbook](README.md) for
 commands and retention policy.
 
+## Transfer suite (revision 1)
 
-## Prospective transfer suite (revision 1)
-
-Select `--suite transfer`; `transfer-cases.json` owns its manifest. Main and legacy
-fixtures and score denominators remain unchanged. All three cases are in smoke
+Select `--suite transfer`; `transfer-cases.json` owns its manifest. Main fixtures
+and score denominators remain unchanged. All three cases are in smoke
 (6 attempts); full repeats each three times (18 attempts). They target v0.19.0 and
 the current snapshot with the same paired isolation, race checks, and scoring.
 
@@ -124,8 +116,8 @@ the current snapshot with the same paired isolation, race checks, and scoring.
 | `24-patch` | Explicit presence flag plus nullable integer enum | Omitted vs clear vs set, custom error identities, activate without default group, Unicode boundaries and translations |
 | `25-branches` | Lookup prerequisites are local to each item | Invalid siblings do not create a global barrier, original order and repeated IDs, technical error stops later calls |
 
-This set is new to the measured model but authored with knowledge of prior evals;
-it is **not an independently authored holdout**. Do not use its own results to
+This set was authored with knowledge of development evals and has already been
+measured; it is **not an independently authored holdout**. Do not use its own results to
 revise the skill and still call subsequent runs unseen validation. Freeze skill,
 runner, manifest, and fixtures before inference; their saved hashes identify the
 measured bytes. Keep every revision and retry in a separate output directory.
@@ -139,5 +131,5 @@ not resemblance to the reference solution.
 
 For an independent holdout, have an author who has not seen development failures
 supply additional tasks and freeze them before showing results to skill authors.
-Separately rerun `19-update` to measure the discovery-guidance change; transfer
-scores do not establish a token improvement on that existing scenario.
+Measure existing main scenarios separately; transfer scores do not establish
+a token improvement on a different task.
