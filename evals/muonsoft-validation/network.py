@@ -118,6 +118,13 @@ class Gateway(http.server.BaseHTTPRequestHandler):
     """An inference endpoint, never a general-purpose forward proxy."""
     protocol_version = "HTTP/1.0"
 
+    def handle(self):
+        try:
+            super().handle()
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError, TimeoutError):
+            # A cancelled/timed-out client cannot receive an HTTP error response.
+            self.close_connection = True
+
     def log_message(self, *args):
         pass  # Never log credentials, prompts, completions, or upstream errors.
 
@@ -168,16 +175,23 @@ class Gateway(http.server.BaseHTTPRequestHandler):
         connection = http.client.HTTPSConnection(upstream["host"], timeout=900)
         started = False
         try:
-            connection.request("POST", upstream["path"], body=raw, headers=upstream["headers"])
+            # OpenCode Go requires the original conversation ID for routing/cache.
+            # Only non-authorizing client metadata crosses this boundary; never
+            # forward Host, credentials, proxy headers, or arbitrary x-* headers.
+            headers = {key: self.headers[key] for key in ("x-opencode-session", "user-agent")
+                       if self.headers.get(key)}
+            headers.update(upstream["headers"])
+            connection.request("POST", upstream["path"], body=raw, headers=headers)
             response = connection.getresponse()
             # Never follow redirects, including redirects to the same host.
             if 300 <= response.status < 400:
+                started = True
                 self.send_error(502, "upstream redirect refused")
                 return
+            started = True
             self.send_response(response.status)
             self.send_header("Content-Type", response.getheader("Content-Type", "application/json"))
             self.end_headers()
-            started = True
             while chunk := response.read1(65536):
                 self.wfile.write(chunk)
                 self.wfile.flush()

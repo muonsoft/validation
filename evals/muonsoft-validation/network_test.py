@@ -11,6 +11,7 @@ import shutil
 import socket
 import subprocess
 import tempfile
+import threading
 import time
 import unittest
 from unittest.mock import Mock, patch
@@ -104,7 +105,9 @@ class NetworkTests(unittest.TestCase):
         body = json.dumps({'model': 'actual-model', 'messages': [{'role': 'user', 'content': 'hello'}], 'stream': True})
         with self.gateway() as path, patch.object(network.http.client, 'HTTPSConnection', return_value=connection) as upstream:
             status, data = self.request(path, 'POST', '/v1/chat/completions', body,
-                                        {'Authorization': 'attacker', 'Host': 'github.com', 'X-Tenant': 'attacker'})
+                                        {'Authorization': 'attacker', 'Host': 'github.com', 'X-Tenant': 'attacker',
+                                         'x-opencode-session': 'ses_test_conversation', 'User-Agent': 'opencode/test',
+                                         'X-Forwarded-Host': 'github.com', 'Proxy-Authorization': 'attacker'})
         self.assertEqual(status, 200)
         self.assertIn(b'[DONE]', data)
         upstream.assert_called_once_with('provider.example', timeout=900)
@@ -112,7 +115,129 @@ class NetworkTests(unittest.TestCase):
         self.assertEqual(args, ('POST', '/v1/chat/completions'))
         self.assertEqual(kw['headers']['Authorization'], 'Bearer host-only-secret')
         self.assertEqual(kw['headers']['X-Tenant'], 'host-only-tenant')
+        self.assertEqual(kw['headers']['x-opencode-session'], 'ses_test_conversation')
+        self.assertEqual(kw['headers']['user-agent'], 'opencode/test')
+        self.assertNotIn('host', {key.lower() for key in kw['headers']})
+        self.assertNotIn('x-forwarded-host', {key.lower() for key in kw['headers']})
+        self.assertNotIn('proxy-authorization', {key.lower() for key in kw['headers']})
         connection.close.assert_called_once()
+
+    def test_client_disconnect_before_headers_and_during_stream(self):
+        for stage in ('headers', 'stream', 'redirect', 'upstream-error'):
+            with self.subTest(stage=stage), tempfile.TemporaryDirectory(dir=self.root) as directory:
+                _, upstream = network.provider_setup(fixture(), 'fixture/model', self.env)
+                waiting, release, closed = threading.Event(), threading.Event(), threading.Event()
+                response = Mock(status=307 if stage == 'redirect' else 200)
+                response.getheader.return_value = 'text/event-stream'
+
+                def wait_for_disconnect():
+                    waiting.set()
+                    if not release.wait(5):
+                        raise RuntimeError('disconnect test timed out')
+
+                def getresponse():
+                    if stage != 'stream':
+                        wait_for_disconnect()
+                    if stage == 'upstream-error':
+                        raise TimeoutError('provider timed out')
+                    return response
+
+                def read_chunk(size):
+                    wait_for_disconnect()
+                    return b'data: chunk\n\n'
+
+                response.read1.side_effect = read_chunk
+                connection = Mock()
+                connection.getresponse.side_effect = getresponse
+                connection.close.side_effect = closed.set
+                server = network.UnixServer(directory + '/gateway.sock', network.Gateway)
+                server.upstream = upstream
+                server.handle_error = Mock()
+                body = json.dumps({'model': 'actual-model', 'messages': []}).encode()
+                request = (b'POST /v1/chat/completions HTTP/1.0\r\nContent-Length: '
+                           + str(len(body)).encode() + b'\r\n\r\n' + body)
+                errors = []
+                send_error = network.Gateway.send_error
+
+                def record_error(handler, *args, **kwargs):
+                    errors.append(args[0])
+                    return send_error(handler, *args, **kwargs)
+
+                with network.serving(server), patch.object(network.http.client, 'HTTPSConnection', return_value=connection), patch.object(network.Gateway, 'send_error', record_error):
+                    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+                        client.connect(directory + '/gateway.sock')
+                        client.sendall(request)
+                        self.assertTrue(waiting.wait(5))
+                        client.shutdown(socket.SHUT_RDWR)
+                    release.set()
+                    self.assertTrue(closed.wait(5))
+                server.handle_error.assert_not_called()
+                connection.close.assert_called_once()
+                self.assertEqual(errors, [502] if stage in ('redirect', 'upstream-error') else [])
+
+    def test_upstream_failure_returns_502_to_connected_client(self):
+        connection = Mock()
+        connection.getresponse.side_effect = TimeoutError('upstream failed')
+        with self.gateway() as path, patch.object(network.http.client, 'HTTPSConnection', return_value=connection):
+            status, _ = self.request(path, 'POST', '/v1/chat/completions',
+                                     json.dumps({'model': 'actual-model', 'messages': []}))
+        self.assertEqual(status, 502)
+        connection.close.assert_called_once()
+
+    @unittest.skipUnless(os.environ.get('EVAL_TEST_OPENCODE') == '1', 'set EVAL_TEST_OPENCODE=1 for real CLI with simulated provider')
+    def test_real_opencode_sends_session_header_through_gateway(self):
+        spec = importlib.util.spec_from_file_location('runner_cli_probe', Path(__file__).with_name('run.py'))
+        runner = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(runner)
+        workspace = self.root / 'workspace'
+        workspace.mkdir()
+        subprocess.run(['git', 'init', '-q', str(workspace)], check=True)
+        config = fixture()
+        provider = config['providers'].pop('fixture')
+        definition = provider['models'].pop('model')
+        definition.update(modelID='deepseek-v4.1-flash', name='DeepSeek test transport',
+                          limit={'context': 128000, 'output': 4096})
+        provider['models']['deepseek-v4.1-flash'] = definition
+        config['providers']['opencode-go'] = provider
+        path = self.root / 'provider.json'
+        runner.write_json(path, runner.configure_provider(config, 2))
+        env = runner.isolated_env(self.root, path)
+        env.update(self.env)
+        env.update(json.loads(subprocess.check_output(['go', 'env', '-json', 'GOROOT', 'GOMODCACHE'])))
+        env.update(EVAL_LIBRARY_ROOT=str(self.root / 'libraries'), EVAL_OPENCODE_MODEL='opencode-go/deepseek-v4.1-flash')
+        requests = []
+
+        def connect(host, timeout):
+            connection = Mock()
+            response = Mock(status=200)
+            response.getheader.return_value = 'text/event-stream'
+            chunk = {'id': 'chatcmpl-probe', 'object': 'chat.completion.chunk', 'created': 1,
+                     'model': 'deepseek-v4.1-flash',
+                     'choices': [{'index': 0, 'delta': {'role': 'assistant', 'content': 'NETWORK_OK'}, 'finish_reason': None}]}
+            finish = {**chunk, 'choices': [{'index': 0, 'delta': {}, 'finish_reason': 'stop'}],
+                      'usage': {'prompt_tokens': 1, 'completion_tokens': 1, 'total_tokens': 2}}
+            response.read1.side_effect = [f'data: {json.dumps(chunk)}\n\n'.encode(),
+                                         f'data: {json.dumps(finish)}\n\n'.encode(), b'data: [DONE]\n\n', b'']
+            connection.getresponse.return_value = response
+            connection.request.side_effect = lambda *args, **kw: requests.append(kw)
+            return connection
+
+        # Only the host gateway's HTTPS connection is replaced. The installed CLI,
+        # sandbox, HTTP request serialization and both Unix bridges are real.
+        with patch.object(network.http.client, 'HTTPSConnection', side_effect=connect):
+            result = runner.opencode_command(shutil.which('opencode'),
+                ['run', '--agent', 'build', '--model', env['EVAL_OPENCODE_MODEL'], '--format', 'json',
+                 'Reply exactly NETWORK_OK. Do not use tools.'],
+                workspace, self.root / 'events.jsonl', env, 2, timeout=45)
+        self.assertEqual(result['status'], 'completed')
+        self.assertTrue(result.get('completion', {}).get('verified'))
+        self.assertTrue(requests)
+        for request in requests:
+            headers = {key.lower(): value for key, value in request['headers'].items()}
+            self.assertTrue(headers.get('x-opencode-session'))
+            self.assertTrue(headers.get('user-agent'))
+            self.assertEqual(headers['authorization'], 'Bearer host-only-secret')
+        self.assertIn('NETWORK_OK', (self.root / 'events.jsonl').read_text())
 
     def test_redirect_is_not_followed(self):
         response = Mock(status=307)

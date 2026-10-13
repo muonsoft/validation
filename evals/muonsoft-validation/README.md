@@ -92,6 +92,10 @@ remote search tools, and unsupported request fields. Shell tools can reach this
 same restricted endpoint, but cannot retrieve GitHub or other external material.
 Provider credentials never enter the namespace. The gateway supports streaming
 responses; it does not log request bodies, responses, or credentials.
+It preserves the client's `x-opencode-session` and `User-Agent` metadata required
+by [OpenCode Go](https://opencode.ai/v2/docs/console/go/#where-can-i-use-it), while
+authentication and destination headers remain controlled by the host. Client
+disconnects close the upstream request without trying to send a second response.
 
 Every V2 startup checks the namespace, blocked external IPv4/IPv6 connectivity,
 gateway health, and rejection of proxy/fetch/invalid-model requests before starting
@@ -143,6 +147,11 @@ python3 -B evals/muonsoft-validation/run_test.py
 # Local gateway tests plus a real bubblewrap probe: external/host connections
 # blocked, Unix control bridge working, and Go tests passing offline. No inference.
 EVAL_TEST_NETWORK_SANDBOX=1 python3 -B evals/muonsoft-validation/network_test.py
+# Also exercise the installed OpenCode CLI end to end with a simulated provider:
+# verify session headers, request serialization, streaming and completion capture.
+# This sends no requests to a real model and does not use login credentials.
+EVAL_TEST_NETWORK_SANDBOX=1 EVAL_TEST_OPENCODE=1 \
+  python3 -B evals/muonsoft-validation/network_test.py
 python3 evals/muonsoft-validation/run.py check \
   --output /tmp/validation-eval-materials
 
