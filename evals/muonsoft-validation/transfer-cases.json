@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "suite": "transfer",
+  "revision": 1,
+  "cases": [
+    {
+      "id": "23-catalog",
+      "title": "Validate a map-rooted catalog tree",
+      "smoke": true,
+      "should_trigger": true,
+      "editable": [
+        "validation.go"
+      ],
+      "allow_helpers": true,
+      "requirements": [
+        "TestCatalogAccumulation",
+        "TestCatalogPaths",
+        "TestCatalogDepth"
+      ],
+      "categories": {
+        "TestCatalogAccumulation": "accumulation",
+        "TestCatalogPaths": "paths",
+        "TestCatalogDepth": "recursion"
+      },
+      "mutations": [
+        {
+          "id": "wrong-root-depth",
+          "file": "validation.go",
+          "old": "x.Roots, 0, maxDepth",
+          "new": "x.Roots, 1, maxDepth",
+          "test": "TestCatalogDepth"
+        }
+      ]
+    },
+    {
+      "id": "24-patch",
+      "title": "Validate three-state enum patches",
+      "smoke": true,
+      "should_trigger": true,
+      "editable": [
+        "validation.go"
+      ],
+      "allow_helpers": true,
+      "requirements": [
+        "TestPatchStates",
+        "TestPatchContext",
+        "TestPatchBoundaries"
+      ],
+      "categories": {
+        "TestPatchStates": "optional",
+        "TestPatchContext": "context",
+        "TestPatchBoundaries": "boundaries"
+      },
+      "mutations": [
+        {
+          "id": "blank-enum",
+          "file": "validation.go",
+          "old": "it.IsOneOf(1, 2).WithoutBlank()",
+          "new": "it.IsOneOf(1, 2)",
+          "test": "TestPatchStates"
+        }
+      ]
+    },
+    {
+      "id": "25-branches",
+      "title": "Validate independent lookup branches",
+      "smoke": true,
+      "should_trigger": true,
+      "editable": [
+        "validation.go"
+      ],
+      "allow_helpers": true,
+      "requirements": [
+        "TestBranchAccumulation",
+        "TestBranchFatal",
+        "TestBranchValid"
+      ],
+      "categories": {
+        "TestBranchAccumulation": "accumulation",
+        "TestBranchFatal": "technical_errors",
+        "TestBranchValid": "boundaries"
+      },
+      "mutations": [
+        {
+          "id": "global-barrier",
+          "file": "validation.go",
+          "old": "\t\t\tcontinue",
+          "new": "\t\t\treturn list.AsError()",
+          "test": "TestBranchAccumulation"
+        }
+      ]
+    }
+  ]
+}

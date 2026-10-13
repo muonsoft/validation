@@ -10,6 +10,8 @@ Start with [Installation](installation.md) and [Usage](usage.md). Use the
 | [Installation](installation.md) | How to install the package |
 | [Constraint catalog](constraints.md) | Constraints, input types, and standalone helpers |
 | [Usage](usage.md) | Basic concepts, validator setup, validation arguments |
+| [AI agent skill](agent-skill.md) | Installation, usage, and practical guidance for coding agents |
+| [Agent skill evaluation](agent-skill-evaluation.md) | Measured correctness, token usage, and limitations |
 | [Property Paths and Struct Validation](property-paths-and-structs.md) | Property paths, struct validation, conditional validation, groups |
 | [Violations and Errors](violations-and-errors.md) | Handling violations, error structure, storing in database |
 | [Country, language & locale](international.md) | Formats, special codes, and application-support limitations |
