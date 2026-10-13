@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "suite": "application",
+  "revision": 1,
+  "cases": [
+    {
+      "id": "30-editor",
+      "title": "Refactor article validation without changing its error contract",
+      "smoke": true,
+      "should_trigger": true,
+      "editable": [
+        "validation.go"
+      ],
+      "allow_helpers": true,
+      "requirements": [
+        "TestEditorGroups",
+        "TestEditorAccumulation",
+        "TestEditorUnicodeAndMessages"
+      ],
+      "categories": {
+        "TestEditorGroups": "groups",
+        "TestEditorAccumulation": "accumulation",
+        "TestEditorUnicodeAndMessages": "boundaries"
+      },
+      "mutations": [
+        {
+          "id": "lose-publish-format",
+          "file": "validation.go",
+          "old": "it.IsEmail().WithError(ErrContactFormat).WithMessage(ErrContactFormat.Message()).WhenGroups(groups...)",
+          "new": "it.IsEmail().WithError(ErrContactFormat).WithMessage(ErrContactFormat.Message())",
+          "test": "TestEditorAccumulation"
+        }
+      ]
+    },
+    {
+      "id": "31-profile",
+      "title": "Validate a partial profile update",
+      "smoke": true,
+      "should_trigger": true,
+      "editable": [
+        "validation.go"
+      ],
+      "allow_helpers": true,
+      "requirements": [
+        "TestProfilePresence",
+        "TestProfileFormatBeforePolicy",
+        "TestProfileValidAndUnchanged"
+      ],
+      "categories": {
+        "TestProfilePresence": "optional",
+        "TestProfileFormatBeforePolicy": "composition",
+        "TestProfileValidAndUnchanged": "boundaries"
+      },
+      "mutations": [
+        {
+          "id": "inspect-omitted",
+          "file": "validation.go",
+          "old": "x.Country.Present && x.Country.Value != nil",
+          "new": "x.Country.Value != nil",
+          "test": "TestProfilePresence"
+        }
+      ]
+    },
+    {
+      "id": "32-products",
+      "title": "Validate a product batch with optional stock codes",
+      "smoke": true,
+      "should_trigger": true,
+      "editable": [
+        "validation.go",
+        "product.go"
+      ],
+      "allow_helpers": true,
+      "requirements": [
+        "TestProductsAccumulation",
+        "TestProductsOptionalKeysAndBounds",
+        "TestProductsOwnRules"
+      ],
+      "categories": {
+        "TestProductsAccumulation": "accumulation",
+        "TestProductsOptionalKeysAndBounds": "boundaries",
+        "TestProductsOwnRules": "rule_ownership"
+      },
+      "mutations": [
+        {
+          "id": "count-empty-keys",
+          "file": "validation.go",
+          "old": ".SkipEmptyKeys()",
+          "new": "",
+          "test": "TestProductsOptionalKeysAndBounds"
+        },
+        {
+          "id": "skip-elements",
+          "file": "validation.go",
+          "old": "validation.ValidSlice(x.Items)",
+          "new": "validation.All()",
+          "test": "TestProductsAccumulation"
+        }
+      ]
+    },
+    {
+      "id": "33-attachments",
+      "title": "Match image attachments to their declared format",
+      "smoke": true,
+      "should_trigger": true,
+      "editable": [
+        "validation.go"
+      ],
+      "allow_helpers": true,
+      "requirements": [
+        "TestAttachmentsMetadata",
+        "TestAttachmentsPairs",
+        "TestAttachmentsReadContract"
+      ],
+      "categories": {
+        "TestAttachmentsMetadata": "composition",
+        "TestAttachmentsPairs": "formats",
+        "TestAttachmentsReadContract": "technical_errors"
+      },
+      "mutations": [
+        {
+          "id": "independent-content-list",
+          "file": "validation.go",
+          "old": "it.HasContentType(contentType)",
+          "new": "it.HasContentType(\"image/png\", \"image/jpeg\")",
+          "test": "TestAttachmentsPairs"
+        }
+      ]
+    },
+    {
+      "id": "34-domain",
+      "title": "Preserve a tenant-specific email policy",
+      "smoke": true,
+      "should_trigger": true,
+      "editable": [
+        "validation.go"
+      ],
+      "allow_helpers": true,
+      "requirements": [
+        "TestDomainPrerequisites",
+        "TestDomainContextAndAccumulation",
+        "TestDomainFatalAndReplacement"
+      ],
+      "categories": {
+        "TestDomainPrerequisites": "execution_flow",
+        "TestDomainContextAndAccumulation": "context",
+        "TestDomainFatalAndReplacement": "technical_errors"
+      },
+      "mutations": [
+        {
+          "id": "skip-tenant-policy",
+          "file": "validation.go",
+          "old": "validation.StringProperty(\"email\", x.Email, policy)",
+          "new": "validation.All()",
+          "test": "TestDomainContextAndAccumulation"
+        }
+      ]
+    }
+  ]
+}

@@ -59,13 +59,13 @@ def files_digest(directory):
 
 
 def case_manifest(suite):
-    if suite not in ("main", "transfer", "builtin"):
+    if suite not in ("main", "transfer", "builtin", "application"):
         raise ValueError("unknown suite")
     return HERE / ("cases.json" if suite == "main" else f"{suite}-cases.json")
 
 
 def suite_snapshots(output, suite):
-    return library_snapshots(output, "v0.20.0" if suite == "builtin" else "v0.19.0")
+    return library_snapshots(output, "v0.20.0" if suite in ("builtin", "application") else "v0.19.0")
 
 
 def baseline(snapshots):
@@ -1260,7 +1260,7 @@ def main():
     commands = parser.add_subparsers(dest="command", required=True)
     checker = commands.add_parser("check", help="check docs, references and failing starters, without a model")
     checker.add_argument("--output", required=True)
-    checker.add_argument("--suite", choices=("main", "transfer", "builtin"), default="main")
+    checker.add_argument("--suite", choices=("main", "transfer", "builtin", "application"), default="main")
     checker.add_argument("--retention", choices=("compact", "debug"), default="compact")
     preflight = commands.add_parser("doctor", help="inspect exact model and isolated skill discovery; no inference")
     preflight.add_argument("--output", required=True)
@@ -1273,7 +1273,7 @@ def main():
     runner.add_argument("--config", help="provider-only JSON; omit on v2 to reuse the local Console connection")
     runner.add_argument("--opencode", default="opencode")
     runner.add_argument("--profile", choices=("smoke", "full"), default="smoke")
-    runner.add_argument("--suite", choices=("main", "transfer", "builtin"), default="main")
+    runner.add_argument("--suite", choices=("main", "transfer", "builtin", "application"), default="main")
     runner.add_argument("--retention", choices=("compact", "debug"), default="compact")
     runner.add_argument("--skip-check", action="store_true", help="skip deterministic material checks after separately verifying this exact revision")
     runner.add_argument("--case", action="append")

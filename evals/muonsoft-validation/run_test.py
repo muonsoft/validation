@@ -605,6 +605,28 @@ else: sys.exit(3)
         runner.workspace(cases[0], self.root / "workspace", library)
         self.assertIn("require github.com/muonsoft/validation v0.20.0", (self.root / "workspace/go.mod").read_text())
 
+    def test_application_suite_is_separate_and_reproducible(self):
+        cases = runner.cases("application")
+        self.assertEqual(len(cases), 5)
+        old_ids = {case["id"] for suite in ("main", "transfer", "builtin") for case in runner.cases(suite)}
+        self.assertFalse(old_ids & {case["id"] for case in cases})
+        self.assertTrue(all(case["smoke"] for case in cases))
+        output = self.root / "application"
+        output.mkdir()
+        runner.snapshot_materials(output, cases, "application")
+        manifest = json.loads((output / "materials/cases.json").read_text())
+        self.assertEqual(manifest["suite"], "application")
+        for case in cases:
+            for mutation in case["mutations"]:
+                source = (output / "materials/testdata" / case["id"] / "reference" / mutation["file"]).read_text()
+                self.assertEqual(source.count(mutation["old"]), 1)
+        domain = next(case for case in cases if case["id"] == "34-domain")
+        self.assertFalse(runner.editable(domain, "policy.go"))
+        self.assertTrue((output / "materials/testdata/34-domain/workspace/policy.go").is_file())
+        with patch.object(runner, "library_snapshots") as snapshots:
+            runner.suite_snapshots(output, "application")
+            snapshots.assert_called_once_with(output, "v0.20.0")
+
     def test_skill_examples_use_current_checkout(self):
         skill = self.root / "skill"
         skill.mkdir()

@@ -178,3 +178,49 @@ failure. Inspect secret handling in password messages/parameters/logs and total
 read behavior in uploads. Generated code may pass tests without proving all of
 these properties. Keep measurements separate from main/transfer and freeze this
 revision before the manual model run.
+
+
+## Application suite (revision 1)
+
+Select `--suite application`; `application-cases.json` owns five additional cases,
+all included in smoke (10 attempts); full repeats them three times (30 attempts).
+Fixtures target v0.20.0 and current. Main, transfer, and builtin fixtures are
+unchanged. The public skill is unchanged for this suite so a manual run can assess
+its existing guidance on more composed tasks.
+
+| Case | Application requirement | Reuse and behavior to review |
+| --- | --- | --- |
+| `30-editor` | Refactor existing article validation, correcting incomplete checks without changing its public error contract | Unicode length, empty-value semantics, custom errors/messages, editor and publish-only groups, independent failures |
+| `31-profile` | Three-state country/locale patch with business allowlists | Omission ignores stale values; null clears; requiredness, format, and policy are sequenced per field without a global barrier |
+| `32-products` | Product batch with optional stock codes | Inclusive collection bounds; validate each product's own rules; skip empty uniqueness keys; report every duplicate with typed indices even in an oversized batch |
+| `33-attachments` | Accept PNG/JPEG attachments with metadata and content agreement | Reuse file rules; compose an explicit extension/MIME/content policy; reject metadata before reading; bound reads and preserve partial-read errors |
+| `34-domain` | Combine email syntax with an injected tenant policy | Preserve the protected policy; run it once only after email prerequisites, including when name fails; retain context, groups, language, factory and technical errors |
+
+Prompts describe product contracts and observable errors without naming the
+constructors to choose. Protected contracts expose error identities and existing
+project APIs; they are not recipes for the implementation. Equivalent code passes
+behavioral tests. Source review separately decides whether built-in and project
+rules were reused appropriately. A handwritten reimplementation passing tests is
+not evidence of good rule reuse; conversely, small field-sequencing helpers and
+extension-to-content policy maps are appropriate application logic.
+
+Use the existing four review criteria with these anchors for `rule_ownership`:
+2 means appropriate built-in/project reuse, 1 means correct but avoidably duplicated
+logic, and 0 means required rules are absent or semantically altered. Cite concrete
+code per case. Test scores do not prove that a refactoring used built-ins. In
+`34-domain`, tests also observe calls to a changing policy, so copying one tenant's
+policy cannot satisfy the contract. In `32-products`, calling Product.Validate
+alone verifies that item rules have a reusable owner.
+
+Reference solutions must pass both fixture versions. Starters must compile and
+fail behavioral tests. Mutation checks remove publish-group format validation,
+inspect an omitted patch field, count empty uniqueness keys, skip element checks,
+accept both content types independently of extension, or omit the tenant policy.
+Each mutation must compile and fail its named requirement, never merely fail to
+build. `check` also executes the current skill's portable examples.
+
+This suite was authored after reviewing builtin development results. It is a
+separate development set, not an independently authored holdout. Keep its scores
+separate from builtin; do not retroactively change that run's denominator. No new
+model results are claimed. Freeze these materials before inference and use a new
+output directory for each measured revision or retry.
