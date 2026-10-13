@@ -232,19 +232,17 @@ else: sys.exit(3)
     def test_v2_server_waits_for_model_and_stops_on_worker_failure(self):
         process = Mock(pid=123456)
         process.poll.return_value = None
-        listener = Mock()
-        listener.getsockname.return_value = ('127.0.0.1', 1234)
         replies = [io.BytesIO(b'{"data":[]}'), io.BytesIO(b'{"data":[{"providerID":"fixture","id":"model"}]}')]
-        with patch.object(runner.socket, 'socket') as socket_factory, patch.object(
-                runner.subprocess, 'Popen', return_value=process), patch.object(
+        with patch.object(runner.subprocess, 'Popen', return_value=process), patch.object(
                 runner.urllib.request, 'urlopen', side_effect=replies) as request, patch.object(
                 runner.time, 'sleep'), patch.object(runner.os, 'killpg') as kill, patch.object(
                 runner, 'worker_profile', side_effect=lambda env, directory: dict(env)), patch.object(
                 runner, 'sandbox_command', return_value=['opencode']):
-            socket_factory.return_value.__enter__.return_value = listener
             with self.assertRaisesRegex(RuntimeError, 'worker failure'):
-                with runner.v2_server('opencode', self.root, self.root / 'server.log',
-                                      {'EVAL_OPENCODE_MODEL': 'fixture/model'}) as (url, env):
+                with runner.isolated_v2_server('opencode', self.root, self.root / 'server.log',
+                                      {'EVAL_OPENCODE_MODEL': 'fixture/model',
+                                       'OPENCODE_CONFIG': str(self.root / 'provider.json'),
+                                       'OPENCODE_CONFIG_DIR': str(self.root)}, {}, 1234) as (url, env):
                     self.assertEqual(url, 'http://127.0.0.1:1234')
                     self.assertTrue(env['OPENCODE_SERVER_PASSWORD'])
                     raise RuntimeError('worker failure')
@@ -270,14 +268,17 @@ else: sys.exit(3)
         workspace, profile, library, modules = [self.root / name for name in ('workspace', 'profile', 'libraries', 'modules')]
         for path in (workspace, profile, library, modules):
             path.mkdir()
-        env = {'GOMODCACHE': str(modules), 'GOROOT': '/usr/local/go', 'EVAL_LIBRARY_ROOT': str(library)}
+        env = {'GOMODCACHE': str(modules), 'GOROOT': '/usr/local/go', 'EVAL_LIBRARY_ROOT': str(library),
+               'EVAL_NETWORK_DIR': str(self.root / 'network')}
         with patch.object(runner.shutil, 'which', side_effect=lambda name: '/usr/bin/' + name):
             argv = runner.sandbox_command('opencode', workspace, profile, env)
         writable = [argv[i + 1] for i, value in enumerate(argv) if value == '--bind']
-        self.assertEqual(writable, [str(workspace), str(profile)])
+        self.assertEqual(writable, [str(workspace), str(profile), env['EVAL_NETWORK_DIR']])
         self.assertNotIn(str(runner.ROOT), argv)
         self.assertNotIn(str(self.root), argv)
         self.assertIn('--unshare-pid', argv)
+        self.assertIn('--unshare-net', argv)
+        self.assertIn('--cap-drop', argv)
 
     def test_existing_console_login_keeps_secrets_out_of_config(self):
         state, data = self.root / "state/opencode", self.root / "data/opencode"
@@ -431,7 +432,7 @@ else: sys.exit(3)
         original = source / "attempts/16-request-without-1"
         original.mkdir(parents=True)
         (original / "events.jsonl").write_text("partial output")
-        manifest = {key: "same" for key in ("skill_sha256", "suite_sha256", "runner_sha256", "cases_sha256",
+        manifest = {key: "same" for key in ("skill_sha256", "suite_sha256", "runner_sha256", "network_sha256", "cases_sha256",
                     "go_version", "model", "profile", "timeout", "opencode_version", "config_sha256")}
         manifest.update(repeats=1, selected_cases=["16-request"], libraries={"current": {"sha256": "lib"}}, attempts=[])
         previous = {**manifest, "attempts": [{"id": "16-request-without-1", "case": "16-request", "variant": "without",
@@ -445,7 +446,7 @@ else: sys.exit(3)
         self.assertEqual(manifest["attempts"][0]["status"], "interrupted")
         self.assertEqual((source / "run.json").read_bytes(), original_bytes)
         self.assertEqual((output / "attempts/16-request-without-1/events.jsonl").read_text(), "partial output")
-        for key in ("skill_sha256", "suite_sha256", "runner_sha256", "cases_sha256", "go_version", "model",
+        for key in ("skill_sha256", "suite_sha256", "runner_sha256", "network_sha256", "cases_sha256", "go_version", "model",
                     "profile", "timeout", "opencode_version", "config_sha256", "selected_cases", "repeats"):
             with self.subTest(key=key), self.assertRaisesRegex(ValueError, key):
                 runner.inherit_run(source, output, {**manifest, key: "different"})
@@ -755,7 +756,7 @@ else: sys.exit(3)
         artifact = source / 'attempts/16-request-with-1'
         artifact.mkdir(parents=True)
         (artifact / 'events.jsonl.gz').write_bytes(gzip.compress(b'evidence'))
-        manifest = {key: 'same' for key in ('skill_sha256', 'suite_sha256', 'runner_sha256', 'cases_sha256',
+        manifest = {key: 'same' for key in ('skill_sha256', 'suite_sha256', 'runner_sha256', 'network_sha256', 'cases_sha256',
                     'go_version', 'model', 'profile', 'timeout', 'opencode_version', 'config_sha256')}
         manifest.update(repeats=1, selected_cases=['16-request'], libraries={'current': {'sha256': 'same'}}, attempts=[])
         previous = {**manifest, 'attempts': [{'id': '16-request-with-1', 'case': '16-request', 'variant': 'with', 'repeat': 1, 'status': 'completed'}]}

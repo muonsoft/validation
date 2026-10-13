@@ -18,7 +18,6 @@ import re
 import secrets
 import shutil
 import signal
-import socket
 import sqlite3
 import statistics
 import subprocess
@@ -27,6 +26,8 @@ import tarfile
 import time
 import urllib.parse
 import urllib.request
+
+import network
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
@@ -618,7 +619,8 @@ def sandbox_command(binary, cwd, profile, env):
     bubblewrap = shutil.which("bwrap")
     if not bubblewrap:
         raise ValueError("OpenCode v2 eval requires bubblewrap (bwrap) for filesystem isolation")
-    arguments = [bubblewrap, "--unshare-user", "--unshare-pid", "--die-with-parent", "--new-session"]
+    arguments = [bubblewrap, "--unshare-user", "--unshare-pid", "--unshare-net", "--unshare-ipc",
+                 "--unshare-uts", "--cap-drop", "ALL", "--die-with-parent", "--new-session"]
     roots = [Path(p) for p in ("/usr", "/bin", "/lib", "/lib64") if Path(p).exists()]
     for root in roots:
         arguments += ["--ro-bind", str(root), str(root)]
@@ -636,19 +638,36 @@ def sandbox_command(binary, cwd, profile, env):
             arguments += ["--ro-bind", str(path), str(path)]
     for path in (cwd, profile):
         arguments += ["--bind", str(path), str(path)]
-    return arguments + ["--chdir", str(cwd), "--", str(executable)]
+    directory = env["EVAL_NETWORK_DIR"]
+    arguments += ["--bind", directory, directory,
+                  "--ro-bind", str(HERE / "network.py"), "/eval-network.py"]
+    return arguments + ["--chdir", str(cwd), "--", "/usr/bin/python3", "/eval-network.py",
+                        directory, str(executable)]
 
 
 @contextmanager
 def v2_server(binary, cwd, log, env):
+    config = json.loads(Path(env["OPENCODE_CONFIG"]).read_text())
+    with network.network_runtime(config, env["EVAL_OPENCODE_MODEL"], env) as (safe, directory, port):
+        # Credentials exist only in the host gateway, never the server or tool env.
+        credential_keys = set(re.findall(r"\{env:([A-Z_][A-Z_0-9]*)\}", json.dumps(config)))
+        worker_env = {key: value for key, value in env.items()
+                      if key not in credential_keys and not key.lower().endswith("_proxy")
+                      and not key.startswith(("EVAL_OPENCODE_TOKEN", "EVAL_OPENCODE_HEADER_"))}
+        worker_env.update(EVAL_NETWORK_DIR=directory, GOPROXY="off", GOSUMDB="off", GOTOOLCHAIN="local")
+        with isolated_v2_server(binary, cwd, log, worker_env, safe, port) as result:
+            yield result
+
+
+@contextmanager
+def isolated_v2_server(binary, cwd, log, env, config, port):
     """Wait for asynchronous catalogs and own the server for this operation only."""
     log.parent.mkdir(parents=True, exist_ok=True)
     password = secrets.token_urlsafe(32)
     profile = log.with_suffix(".profile")
     server_env = {**worker_profile(env, profile), "OPENCODE_SERVER_PASSWORD": password, "PWD": str(cwd)}
-    with socket.socket() as listener:
-        listener.bind(("127.0.0.1", 0))
-        port = listener.getsockname()[1]
+    write_json(Path(server_env["OPENCODE_CONFIG"]), config)
+    write_json(Path(server_env["OPENCODE_CONFIG_DIR"]) / "opencode.json", config)
     url = f"http://127.0.0.1:{port}"
     authorization = base64.b64encode(("opencode:" + password).encode()).decode()
     query = urllib.parse.urlencode({"location[directory]": str(cwd)})
@@ -656,7 +675,7 @@ def v2_server(binary, cwd, log, env):
                                      headers={"Authorization": "Basic " + authorization})
     with log.open("w") as stream:
         process = subprocess.Popen(sandbox_command(binary, cwd, profile, server_env) +
-                                   ["serve", "--hostname", "127.0.0.1", "--port", str(port)],
+                                   ["serve", "--hostname", "127.0.0.1", "--port", "18081"],
                                    cwd=cwd, env=server_env, stdout=stream, stderr=stream, start_new_session=True)
         try:
             deadline = time.monotonic() + 45
@@ -738,7 +757,8 @@ def doctor(args):
         discover(args.opencode, directory, output / (variant + "-logs"), env,
                  ["muonsoft-validation"] if variant == "with" else [], major)
     write_json(output / "doctor.json", {"model": args.model, "opencode_version": version,
-                                        "discovery": "passed", "inference_requests": 0})
+                                        "discovery": "passed", "inference_requests": 0,
+                                        "network_isolation": "namespace-and-model-gateway" if major == 2 else "none"})
     print("Model ID and isolated skill discovery verified; no inference requests made.")
     return 0
 
@@ -749,6 +769,7 @@ def provenance(snapshots):
             "skill_sha256": digest(json.dumps(files_digest(SKILL), sort_keys=True).encode()),
             "suite_sha256": digest(json.dumps(files_digest(HERE / "testdata"), sort_keys=True).encode()),
             "runner_sha256": digest(Path(__file__).read_bytes()),
+            "network_sha256": digest((HERE / "network.py").read_bytes()),
             "cases_sha256": digest((HERE / "cases.json").read_bytes()),
             "libraries": snapshots,
             "go_version": subprocess.run(["go", "version"], capture_output=True, text=True, check=True).stdout.strip()}
@@ -943,6 +964,7 @@ def snapshot_materials(output, selected, suite):
     target.mkdir()
     shutil.copyfile(case_manifest(suite), target / "cases.json")
     shutil.copyfile(Path(__file__), target / "run.py")
+    shutil.copyfile(HERE / "network.py", target / "network.py")
     for name in ("README.md", "SUITE.md"):
         shutil.copyfile(HERE / name, target / name)
     shutil.copytree(SKILL, target / "skill")
@@ -956,7 +978,7 @@ def inherit_run(source, output, manifest):
     """Carry attempts forward without rewriting or retrying their artifacts."""
     raw = (source / "run.json").read_bytes()
     previous = json.loads(raw)
-    keys = ("skill_sha256", "suite_sha256", "runner_sha256", "cases_sha256", "go_version",
+    keys = ("skill_sha256", "suite_sha256", "runner_sha256", "network_sha256", "cases_sha256", "go_version",
             "model", "profile", "timeout", "repeats", "opencode_version", "config_sha256", "selected_cases")
     for key in keys:
         if key not in previous or previous[key] != manifest[key]:
@@ -1019,6 +1041,7 @@ def run_attempts(args, output, source):
                     suite=suite, retention=retention,
                     repeats=1 if args.profile == "smoke" else 3, attempts=[], status="running",
                     opencode_version=version,
+                    network_isolation="namespace-and-model-gateway" if major == 2 else "none",
                     config_sha256=digest((output / "provider.json").read_bytes()),
                     selected_cases=[case["id"] for case in selected],
                     case_requirements={case["id"]: case["requirements"] for case in selected},
