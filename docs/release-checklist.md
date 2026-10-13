@@ -91,8 +91,22 @@ a second local tag or move the published tag.
 
 Normal CI and Release call `.github/workflows/verify.yml` at the caller's
 revision. Required checks are the existing quality gate, `Minimum supported Go`
-(build/tests on the `go.mod` minimum), and `Security` (govulncheck v1.8.0, analysis
-Go 1.26.6). Security fails on both reachable findings and scanner/setup errors.
+(build/tests on the `go.mod` minimum), and `Security` (govulncheck v1.8.0, using
+the exact Go version pinned in the shared workflow). Security fails on both
+reachable findings and scanner/setup errors.
+
+CI also runs every Monday at 06:23 UTC to detect newly disclosed vulnerabilities
+without requiring a code change. Renovate maintains both CI Go version pins in
+one PR, with patch updates separate from new Go branches. Its update window is
+daily from 00:00 through 05:59 UTC; actual runs depend on the Renovate service.
+Updates require review and are not automatically merged. The `go.mod` minimum
+and other dependencies are outside this Renovate configuration's scope.
+
+To activate updates, install or enable the
+[Renovate GitHub App](https://github.com/apps/renovate) for this repository and
+complete onboarding after merging `renovate.json`. The configuration alone does
+not run a bot. Confirm that its dashboard or logs show both Go pins being
+detected, and that the first update PR runs the shared CI checks.
 
 The security check retains a GitHub Summary and an artifact with scanner output
 and the effective toolchain. It distinguishes findings from scanner/setup errors;

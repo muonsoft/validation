@@ -1,0 +1,25 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "enabledManagers": ["github-actions"],
+  "timezone": "Etc/UTC",
+  "schedule": ["* 0-5 * * *"],
+  "automerge": false,
+  "packageRules": [
+    {
+      "description": "Only maintain the Go toolchain used by CI.",
+      "matchManagers": ["github-actions"],
+      "enabled": false
+    },
+    {
+      "description": "Update both CI Go pins together; review new Go branches separately from patches.",
+      "matchManagers": ["github-actions"],
+      "matchDatasources": ["github-releases"],
+      "matchPackageNames": ["actions/go-versions"],
+      "matchCurrentVersion": "/^\\d+\\.\\d+\\.\\d+$/",
+      "enabled": true,
+      "groupName": "CI Go toolchain",
+      "separateMinorPatch": true
+    }
+  ]
+}
