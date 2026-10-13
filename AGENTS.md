@@ -246,7 +246,7 @@ This is a pure Go library with no external services or infrastructure dependenci
 
 - `golangci-lint` is installed to `$(go env GOPATH)/bin` (typically `$HOME/go/bin`). Ensure this is on `PATH`; one-time install: `go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.2`.
 - The shared CI workflow (`.github/workflows/verify.yml`), called by Tests and Release,
-  uses Go **1.26.6** for quality/security and **1.24.0** from `go.mod` for minimum compatibility
+  uses the exact Go version pinned in that workflow for quality/security and **1.24.0** from `go.mod` for minimum compatibility
   with `GOTOOLCHAIN: local`. It pins `golangci-lint` at **v2.13.2** (`gomodguard_v2`)
   and runs documentation checks, gofmt, vet, lint, race tests, `go mod tidy -diff`, and `go mod verify`.
 - The `.golangci.yml` uses config **version: "2"** (golangci-lint v2 format). Do not use golangci-lint v1.
