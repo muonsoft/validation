@@ -82,8 +82,8 @@ record whether review was blinded. Report missing reviews as unreviewed.
 
 ## Verifying the evaluator
 
-`check` executes public skill examples and each reference/starter on both library
-versions with the race detector for fixture tests. It then applies declared
+`check` executes public skill examples on the current checkout and each
+reference/starter on both fixture library versions with the race detector. It then applies declared
 mutations to reference code and requires a specific behavioral test to fail:
 
 - lost parent prefix;
@@ -159,7 +159,7 @@ The four mutations respectively remove the lower week bound, remove Luhn,
 lower the password threshold, and allow PNG content for a text upload. Each must
 compile and fail its named behavioral test on both supported versions. Nil-return
 starters must compile and fail tests. `check` also validates all portable skill
-examples on their supported versions; version markers apply to whole files.
+examples on the current checkout, independently of fixture release baselines.
 
 Review built-in reuse explicitly under `rule_ownership`, separately from tests:
 

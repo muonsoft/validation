@@ -1,6 +1,4 @@
-# Password strength (v0.20.0+)
-
-<!-- Minimum validation version: v0.20.0 -->
+# Password strength
 
 Use `it.HasPasswordStrength` for a minimum score, not a hand-written mix of length
 and character-class rules unless those are the application's explicit contract.

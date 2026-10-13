@@ -23,8 +23,8 @@ actual API reuse are assessed separately; see its review criteria in [suite desi
 Use a dedicated Linux environment with Python 3.10+, Git, Go 1.24+ with race
 support, and OpenCode. The adapters target OpenCode 1.14.19 and 2.0.18;
 preflight rejects unsupported skill-discovery output. Keep the existing Git tag
-`v0.19.0` and `v0.20.0` available for example compatibility checks; fetch missing
-tags, never create a release tag for evals.
+`v0.19.0` available for main/transfer, or `v0.20.0` for builtin; fetch missing
+tags, never create a release tag for evals. Skill examples use the current checkout.
 Go dependencies must be cached or downloadable.
 V2 additionally requires Linux bubblewrap (`bwrap`) and enabled user namespaces.
 Cache the Go module dependencies before starting: the worker's module cache is
@@ -195,9 +195,9 @@ current implementation. The worker module declares the selected release. Hashes 
 including uncommitted library changes. Snapshots contain Go implementation/module
 files, not repository instructions or eval answers. `check` also installs a copy
 of the public skill by itself to check portable links and executes every complete
-Go example on v0.19.0, v0.20.0, and current. A reference file marked
-`<!-- Minimum validation version: v0.20.0 -->` runs its examples only on v0.20.0
-and current; unmarked examples retain v0.19.0 coverage. Every reference must pass and every deliberately
+Go example on the current checkout. The public skill describes the current API;
+release baselines belong to the eval fixtures, not the skill. Every reference
+solution must pass and every deliberately
 incomplete/buggy starter must execute and fail behavioral tests. Each declared
 mutation must fail its named behavioral test on both versions; a compile failure
 is not evidence that a mutation was caught.

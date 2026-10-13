@@ -72,13 +72,6 @@ def baseline(snapshots):
     return next(version for version in snapshots if version != "current")
 
 
-def example_versions(text, snapshots):
-    marker = re.search(r"<!-- Minimum validation version: (v[0-9]+\.[0-9]+\.[0-9]+) -->", text)
-    minimum = tuple(map(int, marker[1][1:].split("."))) if marker else (0, 19, 0)
-    return {version: snapshot for version, snapshot in snapshots.items()
-            if version == "current" or tuple(map(int, version[1:].split("."))) >= minimum}
-
-
 def cases(suite="main"):
     data = json.loads(case_manifest(suite).read_text())
     if data["schema_version"] != 1:
@@ -337,12 +330,13 @@ def v2_completion(log, workspace, database):
 
 
 def check_materials(output, snapshots):
-    """Validate portable links and run complete examples on supported versions."""
+    """Validate portable links and run complete examples on the current checkout."""
     import importlib.util
     spec = importlib.util.spec_from_file_location("docs", ROOT / "scripts/check-docs.py")
     docs = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(docs)
     errors, count = [], 0
+    version, snapshot = "current", snapshots["current"]
     copied = output / "installed-skill/muonsoft-validation"
     shutil.copytree(SKILL, copied)
     docs.ROOT = copied
@@ -363,30 +357,25 @@ def check_materials(output, snapshots):
             if block.group(1).strip() != "go" or not re.search(r"^package main\s*$", source, re.M):
                 continue
             count += 1
-            for version, snapshot in example_versions(text, snapshots).items():
-                directory = output / "examples" / str(count) / version
-                prepare_module(directory, Path(snapshot["path"]))
-                (directory / "main.go").write_text(source)
-                log = directory / "output.txt"
-                result = command(["go", "run", "-mod=mod", "."], directory, log, go_env(output))
-                expected = re.search(r"^// Output:\n((?://[^\n]*\n?)*)\s*$", source, re.M)
-                if result["status"] != "completed":
-                    errors.append(f"{path.name}: example {count} failed on {version}; see {log}")
-                elif expected:
-                    want = "\n".join(re.sub(r"^// ?", "", line) for line in expected.group(1).splitlines()) + "\n"
-                    if log.read_text() != want:
-                        errors.append(f"{path.name}: output mismatch on {version}: {log.read_text()!r}")
+            directory = output / "examples" / str(count) / version
+            prepare_module(directory, Path(snapshot["path"]))
+            (directory / "main.go").write_text(source)
+            log = directory / "output.txt"
+            result = command(["go", "run", "-mod=mod", "."], directory, log, go_env(output))
+            expected = re.search(r"^// Output:\n((?://[^\n]*\n?)*)\s*$", source, re.M)
+            if result["status"] != "completed":
+                errors.append(f"{path.name}: example {count} failed on {version}; see {log}")
+            elif expected:
+                want = "\n".join(re.sub(r"^// ?", "", line) for line in expected.group(1).splitlines()) + "\n"
+                if log.read_text() != want:
+                    errors.append(f"{path.name}: output mismatch on {version}: {log.read_text()!r}")
     return {"examples": count, "errors": errors}
 
 
 def check(args):
     output = new_output(args.output)
     snapshots = suite_snapshots(output, getattr(args, "suite", "main"))
-    material_snapshots = dict(snapshots)
-    other_version = "v0.19.0" if "v0.20.0" in snapshots else "v0.20.0"
-    extra = library_snapshots(output / "example-compatibility", other_version)
-    material_snapshots[other_version] = extra[other_version]
-    report = {"materials": check_materials(output, material_snapshots), "cases": {}}
+    report = {"materials": check_materials(output, snapshots), "cases": {}}
     for case in cases(getattr(args, "suite", "main")):
         directory = output / case["id"]
         for mode in ("reference", "starter"):

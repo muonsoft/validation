@@ -1,6 +1,4 @@
-# File uploads (v0.20.0+)
-
-<!-- Minimum validation version: v0.20.0 -->
+# File uploads
 
 Validate filename, extension, declared MIME metadata, and detected content as
 separate properties. `IsMIMEType` checks the declared string; `HasContentType`

@@ -598,16 +598,31 @@ else: sys.exit(3)
         with patch.object(runner, "library_snapshots") as snapshots:
             runner.suite_snapshots(output, "builtin")
             snapshots.assert_called_once_with(output, "v0.20.0")
-        snapshots = {v: {} for v in ("v0.19.0", "v0.20.0", "current")}
-        self.assertEqual(set(runner.example_versions("", snapshots)), set(snapshots))
-        self.assertEqual(set(runner.example_versions(
-            "<!-- Minimum validation version: v0.20.0 -->", snapshots)), {"v0.20.0", "current"})
         library = self.root / "v0.20.0"
         library.mkdir()
         (library / "go.mod").write_text("module github.com/muonsoft/validation\n\ngo 1.24.0\n")
         (library / "go.sum").write_text("")
         runner.workspace(cases[0], self.root / "workspace", library)
         self.assertIn("require github.com/muonsoft/validation v0.20.0", (self.root / "workspace/go.mod").read_text())
+
+    def test_skill_examples_use_current_checkout(self):
+        skill = self.root / "skill"
+        skill.mkdir()
+        (skill / "SKILL.md").write_text(
+            '---\nname: muonsoft-validation\ndescription: Fixture.\n---\n'
+            '```go\npackage main\nfunc main() {}\n```\n')
+        library = self.root / "current"
+        library.mkdir()
+        (library / "go.mod").write_text("module github.com/muonsoft/validation\n\ngo 1.24.0\n")
+        (library / "go.sum").write_text("")
+        snapshots = {"current": {"path": str(library)},
+                     "v0.19.0": {"path": str(self.root / "unavailable-release")}}
+        with patch.object(runner, "SKILL", skill), patch.object(
+                runner, "command", return_value={"status": "completed"}) as execute:
+            result = runner.check_materials(self.root / "materials-check", snapshots)
+        self.assertEqual(result, {"examples": 1, "errors": []})
+        execute.assert_called_once()
+        self.assertEqual(execute.call_args.args[1].name, "current")
 
     def test_builtin_report_and_token_pairs(self):
         attempts = [{"id": f"26-publication-{variant}-1", "case": "26-publication", "repeat": 1,
