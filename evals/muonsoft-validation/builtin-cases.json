@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "suite": "builtin",
+  "revision": 1,
+  "cases": [
+    {
+      "id": "26-publication",
+      "title": "Validate publication settings",
+      "smoke": true,
+      "should_trigger": true,
+      "editable": [
+        "validation.go"
+      ],
+      "allow_helpers": true,
+      "requirements": [
+        "TestPublicationFormats",
+        "TestPublicationBoundaries",
+        "TestPublicationValid"
+      ],
+      "categories": {
+        "TestPublicationFormats": "accumulation",
+        "TestPublicationBoundaries": "boundaries",
+        "TestPublicationValid": "formats"
+      },
+      "mutations": [
+        {
+          "id": "missing-minimum",
+          "file": "validation.go",
+          "old": "WithMin(\"2020-W53\")",
+          "new": "WithMin(\"\")",
+          "test": "TestPublicationBoundaries"
+        }
+      ]
+    },
+    {
+      "id": "27-payment",
+      "title": "Validate payment details",
+      "smoke": true,
+      "should_trigger": true,
+      "editable": [
+        "validation.go"
+      ],
+      "allow_helpers": true,
+      "requirements": [
+        "TestPaymentIndependentRules",
+        "TestPaymentPresenceAndFormatting",
+        "TestPaymentValid"
+      ],
+      "categories": {
+        "TestPaymentIndependentRules": "composition",
+        "TestPaymentPresenceAndFormatting": "boundaries",
+        "TestPaymentValid": "formats"
+      },
+      "mutations": [
+        {
+          "id": "missing-checksum",
+          "file": "validation.go",
+          "old": ", it.IsLUHN()",
+          "new": "",
+          "test": "TestPaymentIndependentRules"
+        }
+      ]
+    },
+    {
+      "id": "28-password",
+      "title": "Validate a password update",
+      "smoke": true,
+      "should_trigger": true,
+      "editable": [
+        "validation.go"
+      ],
+      "allow_helpers": true,
+      "requirements": [
+        "TestPasswordPresence",
+        "TestPasswordScores",
+        "TestPasswordConfiguration",
+        "TestPasswordDefault"
+      ],
+      "categories": {
+        "TestPasswordPresence": "optional",
+        "TestPasswordScores": "boundaries",
+        "TestPasswordConfiguration": "technical_errors",
+        "TestPasswordDefault": "formats"
+      },
+      "mutations": [
+        {
+          "id": "weak-threshold",
+          "file": "validation.go",
+          "old": "WithMinScore(validate.PasswordStrengthStrong)",
+          "new": "WithMinScore(validate.PasswordStrengthMedium)",
+          "test": "TestPasswordScores"
+        }
+      ]
+    },
+    {
+      "id": "29-upload",
+      "title": "Validate a text upload before saving",
+      "smoke": true,
+      "should_trigger": true,
+      "editable": [
+        "validation.go"
+      ],
+      "allow_helpers": true,
+      "requirements": [
+        "TestUploadMetadata",
+        "TestUploadContent",
+        "TestUploadReadBoundary"
+      ],
+      "categories": {
+        "TestUploadMetadata": "composition",
+        "TestUploadContent": "formats",
+        "TestUploadReadBoundary": "technical_errors"
+      },
+      "mutations": [
+        {
+          "id": "metadata-only-content",
+          "file": "validation.go",
+          "old": "it.HasContentType(\"text/plain\")",
+          "new": "it.HasContentType(\"text/plain\", \"image/png\")",
+          "test": "TestUploadContent"
+        }
+      ]
+    }
+  ]
+}

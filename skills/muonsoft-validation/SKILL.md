@@ -8,8 +8,9 @@ description: Implement, extend, debug, and test Go entity and DTO validation wit
 Read the project's `go.mod`, existing validation entrypoints, error handling, and
 validator construction before changing rules. Use the installed API; do not
 upgrade dependencies or introduce this library into an unrelated project unless
-requested. These examples target v0.19.0 and are also checked against the library
-checkout accompanying this skill.
+requested. Core examples support v0.19.0; references marked v0.20.0 use newer
+APIs. Examples are checked on their supported releases and the accompanying
+library checkout. Do not assume a newer API exists in an older installation.
 
 ## Default pattern
 
@@ -73,6 +74,8 @@ func main() {
 
 | Task | Reference |
 | --- | --- |
+| Select a built-in format, counting, or uniqueness rule | [Built-in constraints](references/builtin-constraints.md) |
+| Validate passwords or uploaded files (v0.20.0+) | [Passwords](references/passwords.md), [file uploads](references/file-uploads.md) |
 | Add rules to an entity, command, or query | [Entities and DTOs](references/entity-and-dto.md) |
 | Collect errors while sequencing dependent checks | [Validation flow](references/validation-flow.md) |
 | Validate children, slices, maps, recursive trees, and unique keys | [Nested objects and collections](references/nested-collections.md) |
@@ -89,6 +92,8 @@ in the installed module. Avoid dumping whole packages when a signature or one
 method resolves the question. Task requirements come from the supplied contract;
 agent session databases, runtime logs, and build caches are not application specs.
 
+Before writing a parser, regex, counting loop, or custom constraint, consult the
+built-in selection guide for a matching rule and inspect only the relevant APIs.
 Prefer existing project constraints when their
 semantics match; distinguish them from the public `it` package. Use `is` for a
 standalone boolean predicate and `validate` for a standalone error check; use

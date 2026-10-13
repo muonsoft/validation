@@ -38,9 +38,10 @@ The skill guides agents through:
 - Testing valid input, simultaneous violations, boundary cases, and dependency calls.
 
 The [skill entrypoint](../skills/muonsoft-validation/SKILL.md) links to focused
-references for each task. Its examples target v0.19.0 and are checked against that
-version and the library checkout by the manual evaluation workflow. The agent
-is instructed to inspect your installed version and existing application rules
+references for each task, including a guide to choosing built-in constraints.
+Core examples support v0.19.0; password and file-upload examples require v0.20.0.
+The manual checks run examples on supported releases and the library checkout.
+The agent is instructed to inspect your installed version and existing application rules
 before making changes.
 
 ## Example task

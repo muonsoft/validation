@@ -1,5 +1,7 @@
 # Custom constraints and adapters
 
+First check [built-in constraints](builtin-constraints.md) and existing project
+rules. Create a custom rule when those do not express the required semantics.
 Choose the smallest abstraction that owns the rule:
 
 - One safe boolean expression: `Check` or `CheckProperty`.

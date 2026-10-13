@@ -133,3 +133,48 @@ For an independent holdout, have an author who has not seen development failures
 supply additional tasks and freeze them before showing results to skill authors.
 Measure existing main scenarios separately; transfer scores do not establish
 a token improvement on a different task.
+
+
+## Built-in constraints suite (revision 1)
+
+Select `--suite builtin`; `builtin-cases.json` owns four scenarios targeting
+v0.20.0 and current, with 8 smoke or 24 full attempts. Main/transfer fixtures and
+the historical evaluation report are unchanged. This is a development suite,
+authored alongside the skill; it is not an independent holdout. No model run or
+improvement is claimed by adding these fixtures.
+
+Prompts state domain semantics and required error contracts without naming the
+constructors or the skill. Both variants can inspect the installed library.
+References are hidden examples of correct implementations. Tests accept
+behaviorally equivalent solutions; they do not grep source for API names.
+
+| Case | Behavioral focus | Built-in reuse to inspect during review |
+| --- | --- | --- |
+| `26-publication` | Country/language/locale/currency distinctions, calendar week 53 and inclusive bounds, Unicode word boundaries, simultaneous failures | Existing format constraints, week options, word-count constraint instead of lists, regexes, calendar parsing, or `strings.Fields` |
+| `27-payment` | Selected schemes and independent checksum, requiredness, optional IBAN/BIC, unmodified input | Compose card scheme and Luhn rules; reuse IBAN/BIC validation instead of implementing checksums or formats |
+| `28-password` | Nil versus empty, inclusive score threshold, custom estimator calls, invalid scores, secret handling | Strength constraint with minimum/estimator options, preserving built-in configuration-error behavior |
+| `29-upload` | Accumulated metadata before I/O, Windows names, suffix/MIME/content separation, bounded reading, technical errors | Compose name/extension/MIME/content constraints; keep I/O and requiredness in application code |
+
+The four mutations respectively remove the lower week bound, remove Luhn,
+lower the password threshold, and allow PNG content for a text upload. Each must
+compile and fail its named behavioral test on both supported versions. Nil-return
+starters must compile and fail tests. `check` also validates all portable skill
+examples on their supported versions; version markers apply to whole files.
+
+Review built-in reuse explicitly under `rule_ownership`, separately from tests:
+
+- **2:** Appropriate built-ins express matching rules, with options/composition
+  preserving the full contract; custom glue is limited to actual application needs.
+- **1:** Correct behavior but avoidable reimplementation of an available rule,
+  or low-level wrappers that unnecessarily reproduce constraint behavior.
+- **0:** Duplicated/replaced rules omit required semantics or diverge from the contract.
+
+Cite the submitted code and name reused or unnecessarily reimplemented rules.
+Report behavior pass rates and reuse scores per case for both variants. Also
+record whether the built-in reference was read when the logs establish it;
+entrypoint loading alone does not establish use of that reference. Do not treat
+manual loops, safe adapters, or absence of a particular constructor as automatic
+failure. Inspect secret handling in password messages/parameters/logs and total
+read behavior in uploads. Generated code may pass tests without proving all of
+these properties. Keep measurements separate from main/transfer and freeze this
+revision before the manual model run.

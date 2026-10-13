@@ -59,9 +59,24 @@ def files_digest(directory):
 
 
 def case_manifest(suite):
-    if suite not in ("main", "transfer"):
+    if suite not in ("main", "transfer", "builtin"):
         raise ValueError("unknown suite")
     return HERE / ("cases.json" if suite == "main" else f"{suite}-cases.json")
+
+
+def suite_snapshots(output, suite):
+    return library_snapshots(output, "v0.20.0" if suite == "builtin" else "v0.19.0")
+
+
+def baseline(snapshots):
+    return next(version for version in snapshots if version != "current")
+
+
+def example_versions(text, snapshots):
+    marker = re.search(r"<!-- Minimum validation version: (v[0-9]+\.[0-9]+\.[0-9]+) -->", text)
+    minimum = tuple(map(int, marker[1][1:].split("."))) if marker else (0, 19, 0)
+    return {version: snapshot for version, snapshot in snapshots.items()
+            if version == "current" or tuple(map(int, version[1:].split("."))) >= minimum}
 
 
 def cases(suite="main"):
@@ -128,10 +143,10 @@ def go_env(output):
             "GOCACHE": str(output / "go-cache")}
 
 
-def library_snapshots(output):
+def library_snapshots(output, release_version="v0.19.0"):
     """Copy Go implementation only: the worker must not discover eval answers."""
     snapshots = {}
-    archive = subprocess.run(["git", "archive", "v0.19.0"], cwd=ROOT,
+    archive = subprocess.run(["git", "archive", release_version], cwd=ROOT,
                              capture_output=True, check=True).stdout
     with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
         release = {entry.name: tar.extractfile(entry).read() for entry in tar.getmembers()
@@ -145,7 +160,7 @@ def library_snapshots(output):
         name = path.relative_to(ROOT).as_posix()
         if library_file(name):
             current[name] = path.read_bytes()
-    for version, contents in (("v0.19.0", release), ("current", current)):
+    for version, contents in ((release_version, release), ("current", current)):
         target = output / "libraries" / version
         target.mkdir(parents=True)
         for name, data in contents.items():
@@ -168,7 +183,8 @@ def prepare_module(workspace, library, negative=False):
         (workspace / "go.mod").write_text(f"module {MODULE}\n\ngo 1.24.0\n")
         return
     text = (library / "go.mod").read_text().replace("module github.com/muonsoft/validation", f"module {MODULE}", 1)
-    text += '\nrequire github.com/muonsoft/validation v0.19.0\n'
+    version = library.name if re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", library.name) else "v0.20.0"
+    text += f'\nrequire github.com/muonsoft/validation {version}\n'
     # Go accepts quoted replacement directories, including paths with spaces.
     text += 'replace github.com/muonsoft/validation => ' + json.dumps(str(library)) + '\n'
     (workspace / "go.mod").write_text(text)
@@ -321,7 +337,7 @@ def v2_completion(log, workspace, database):
 
 
 def check_materials(output, snapshots):
-    """Validate standalone distribution and execute every complete Go fence twice."""
+    """Validate portable links and run complete examples on supported versions."""
     import importlib.util
     spec = importlib.util.spec_from_file_location("docs", ROOT / "scripts/check-docs.py")
     docs = importlib.util.module_from_spec(spec)
@@ -347,7 +363,7 @@ def check_materials(output, snapshots):
             if block.group(1).strip() != "go" or not re.search(r"^package main\s*$", source, re.M):
                 continue
             count += 1
-            for version, snapshot in snapshots.items():
+            for version, snapshot in example_versions(text, snapshots).items():
                 directory = output / "examples" / str(count) / version
                 prepare_module(directory, Path(snapshot["path"]))
                 (directory / "main.go").write_text(source)
@@ -365,18 +381,22 @@ def check_materials(output, snapshots):
 
 def check(args):
     output = new_output(args.output)
-    snapshots = library_snapshots(output)
-    report = {"materials": check_materials(output, snapshots), "cases": {}}
+    snapshots = suite_snapshots(output, getattr(args, "suite", "main"))
+    material_snapshots = dict(snapshots)
+    other_version = "v0.19.0" if "v0.20.0" in snapshots else "v0.20.0"
+    extra = library_snapshots(output / "example-compatibility", other_version)
+    material_snapshots[other_version] = extra[other_version]
+    report = {"materials": check_materials(output, material_snapshots), "cases": {}}
     for case in cases(getattr(args, "suite", "main")):
         directory = output / case["id"]
         for mode in ("reference", "starter"):
             src = directory / mode / "workspace"
-            workspace(case, src, Path(snapshots["v0.19.0"]["path"]), reference=mode == "reference")
+            workspace(case, src, Path(snapshots[baseline(snapshots)]["path"]), reference=mode == "reference")
             grades = grade(case, src, directory / mode / "checks", snapshots, go_env(output))
             report["cases"].setdefault(case["id"], {})[mode] = grades
         for mutation in case.get("mutations", []):
             src = directory / mutation["id"] / "workspace"
-            workspace(case, src, Path(snapshots["v0.19.0"]["path"]), reference=True)
+            workspace(case, src, Path(snapshots[baseline(snapshots)]["path"]), reference=True)
             path = src / mutation["file"]
             text = path.read_text()
             if text.count(mutation["old"]) != 1:
@@ -781,8 +801,9 @@ def token_comparison(attempts):
         pair[attempt["variant"]] = attempt
     for (case, repeat), pair in pairs.items():
         if set(pair) != {"with", "without"} or any(
-                set(a.get("grades", {})) != {"v0.19.0", "current"} or a["status"] != "completed"
-                or not usage[a["id"]]["complete"] for a in pair.values()):
+                set(a.get("grades", {})) not in ({"v0.19.0", "current"}, {"v0.20.0", "current"}) or a["status"] != "completed"
+                or not usage[a["id"]]["complete"] for a in pair.values()) or (
+                set(pair["with"].get("grades", {})) != set(pair["without"].get("grades", {}))):
             excluded.append({"case": case, "repeat": repeat, "reason": "missing graded variant or complete usage"})
         else:
             matched.append(pair)
@@ -1002,7 +1023,7 @@ def run_attempts(args, output, source):
     if args.case and set(args.case) - {case["id"] for case in selected}:
         raise ValueError("unknown case ID")
     env, major, version = prepare_runtime(args, output)
-    snapshots = library_snapshots(output)
+    snapshots = suite_snapshots(output, suite)
     manifest = provenance(snapshots)
     manifest["cases_sha256"] = digest(case_manifest(suite).read_bytes())
     manifest.update(model=args.model, profile=args.profile, timeout=args.timeout,
@@ -1033,7 +1054,7 @@ def run_attempts(args, output, source):
                     manifest["attempts"].append(attempt)
                     write_json(output / "run.json", manifest)
                     src = directory / "workspace"
-                    workspace(case, src, Path(snapshots["v0.19.0"]["path"]))
+                    workspace(case, src, Path(snapshots[baseline(snapshots)]["path"]))
                     subprocess.run(["git", "init", "-q", str(src)], check=True)
                     if variant == "with":
                         shutil.copytree(SKILL, src / ".opencode/skills/muonsoft-validation")
@@ -1107,6 +1128,7 @@ def run_attempts(args, output, source):
 def report(output, review_path):
     manifest = json.loads((output / "run.json").read_text())
     attempts = manifest["attempts"]
+    release_version = baseline(manifest.get("libraries", {"v0.19.0": {}, "current": {}}))
     reviews = json.loads(review_path.read_text()) if review_path else {}
     for identifier, review in reviews.items():
         if identifier not in {attempt["id"] for attempt in attempts if "grades" in attempt} or set(review) != set(RUBRIC):
@@ -1130,10 +1152,10 @@ def report(output, review_path):
         summary["variants"][variant] = {"attempts": len(group), "graded": len(graded), "passed_both_versions": passed, "ungraded": statuses}
         lines.append(f"| {variant} | {len(group)} | {len(graded)} | {passed} | {statuses} |")
     lines += ["", "Неоценённые попытки показаны отдельно; они не считаются успешными. Баллы ревью не смешиваются с тестами.", "",
-              "| Попытка | Статус | v0.19.0 | Текущая | Загрузка скилла |", "| --- | --- | --- | --- | --- |"]
+              f"| Попытка | Статус | {release_version} | Текущая | Загрузка скилла |", "| --- | --- | --- | --- | --- |"]
     for attempt in attempts:
         cells = []
-        for version in ("v0.19.0", "current"):
+        for version in (release_version, "current"):
             g = attempt.get("grades", {}).get(version)
             cells.append(f"{len(g['requirements_passed'])}/{g['requirements_total']} ({g['status']})" if g else "не оценено")
         identifier = attempt["id"]
@@ -1249,7 +1271,7 @@ def main():
     commands = parser.add_subparsers(dest="command", required=True)
     checker = commands.add_parser("check", help="check docs, references and failing starters, without a model")
     checker.add_argument("--output", required=True)
-    checker.add_argument("--suite", choices=("main", "transfer"), default="main")
+    checker.add_argument("--suite", choices=("main", "transfer", "builtin"), default="main")
     checker.add_argument("--retention", choices=("compact", "debug"), default="compact")
     preflight = commands.add_parser("doctor", help="inspect exact model and isolated skill discovery; no inference")
     preflight.add_argument("--output", required=True)
@@ -1262,7 +1284,7 @@ def main():
     runner.add_argument("--config", help="provider-only JSON; omit on v2 to reuse the local Console connection")
     runner.add_argument("--opencode", default="opencode")
     runner.add_argument("--profile", choices=("smoke", "full"), default="smoke")
-    runner.add_argument("--suite", choices=("main", "transfer"), default="main")
+    runner.add_argument("--suite", choices=("main", "transfer", "builtin"), default="main")
     runner.add_argument("--retention", choices=("compact", "debug"), default="compact")
     runner.add_argument("--skip-check", action="store_true", help="skip deterministic material checks after separately verifying this exact revision")
     runner.add_argument("--case", action="append")

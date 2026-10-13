@@ -583,6 +583,53 @@ else: sys.exit(3)
         with self.assertRaises(ValueError):
             runner.case_manifest("../transfer")
 
+    def test_builtin_suite_versions_and_materials(self):
+        cases = runner.cases("builtin")
+        self.assertEqual(len(cases), 4)
+        self.assertFalse({c["id"] for c in cases} & {c["id"] for c in runner.cases()})
+        output = self.root / "builtin"
+        output.mkdir()
+        runner.snapshot_materials(output, cases, "builtin")
+        self.assertEqual(json.loads((output / "materials/cases.json").read_text())["suite"], "builtin")
+        for case in cases:
+            for mutation in case["mutations"]:
+                source = (runner.HERE / "testdata" / case["id"] / "reference" / mutation["file"]).read_text()
+                self.assertEqual(source.count(mutation["old"]), 1)
+        with patch.object(runner, "library_snapshots") as snapshots:
+            runner.suite_snapshots(output, "builtin")
+            snapshots.assert_called_once_with(output, "v0.20.0")
+        snapshots = {v: {} for v in ("v0.19.0", "v0.20.0", "current")}
+        self.assertEqual(set(runner.example_versions("", snapshots)), set(snapshots))
+        self.assertEqual(set(runner.example_versions(
+            "<!-- Minimum validation version: v0.20.0 -->", snapshots)), {"v0.20.0", "current"})
+        library = self.root / "v0.20.0"
+        library.mkdir()
+        (library / "go.mod").write_text("module github.com/muonsoft/validation\n\ngo 1.24.0\n")
+        (library / "go.sum").write_text("")
+        runner.workspace(cases[0], self.root / "workspace", library)
+        self.assertIn("require github.com/muonsoft/validation v0.20.0", (self.root / "workspace/go.mod").read_text())
+
+    def test_builtin_report_and_token_pairs(self):
+        attempts = [{"id": f"26-publication-{variant}-1", "case": "26-publication", "repeat": 1,
+                     "variant": variant, "status": "completed", "should_trigger": True,
+                     "grades": {v: {"passed": True, "requirements_passed": ["TestValid"],
+                                    "requirements_total": 1, "status": "completed"}
+                                for v in ("v0.20.0", "current")},
+                     "events": {"complete": True, "reported_usage": [{"tokens": {
+                         "input": 10, "output": 2, "reasoning": 0, "cache": {"read": 0, "write": 0}}}]}}
+                    for variant in ("without", "with")]
+        self.assertEqual(runner.token_comparison(attempts)["matched"]["pairs"], 1)
+        manifest = {"status": "completed", "model": "fixture/model", "suite": "builtin",
+                    "libraries": {"v0.20.0": {}, "current": {}}, "attempts": attempts,
+                    "case_requirements": {"26-publication": ["TestValid"]},
+                    "case_categories": {"26-publication": {"TestValid": "formats"}}}
+        runner.write_json(self.root / "run.json", manifest)
+        runner.report(self.root, None)
+        self.assertIn("| v0.20.0 |", (self.root / "report.md").read_text())
+        self.assertNotIn("| v0.19.0 |", (self.root / "report.md").read_text())
+        attempts[0]["grades"]["v0.19.0"] = attempts[0]["grades"].pop("v0.20.0")
+        self.assertEqual(runner.token_comparison(attempts)["matched"]["pairs"], 0)
+
     def test_grader_preserves_contract_and_includes_new_helpers(self):
         case = runner.cases()[0]
         source = self.root / 'source'

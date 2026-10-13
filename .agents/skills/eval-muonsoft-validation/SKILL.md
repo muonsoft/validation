@@ -31,7 +31,8 @@ the measured tasks; do not coach it or implement its submissions yourself.
 2. Use `smoke` unless the user selects `full` or particular cases. Main smoke runs
    three cases × two variants × one repeat; full runs seven × two × three.
    `--suite transfer` selects three additional cases: six smoke or eighteen full
-   attempts. Keep its results separate from main; it is not an independent holdout.
+   attempts. `--suite builtin` selects four v0.20.0 cases: eight smoke or twenty-four
+   full attempts. Keep each suite separate; these are not independent holdouts.
 3. Run `doctor`: model availability and isolated skill discovery, no inference
    request. A failed preflight is an environment issue, not a model score.
 4. On a new suite revision, run `check` and the runner unit tests. They check
@@ -79,6 +80,9 @@ In the main suite, report built-in/project-rule reuse explicitly under
 `rule_ownership`, especially for `20-reuse`. Tests cannot establish that a manual
 check reused an existing rule. Cite concrete code; do not treat loops or helpers
 as intrinsically wrong. `21-constraint` intentionally requires a custom rule.
+For `--suite builtin`, apply the case-specific built-in reuse criteria in the
+suite contract. Report behavior and actual built-in reuse separately for both
+variants, citing code rather than inferring reuse from passing tests.
 Paths are JavaScript-style `PropertyPath.String()` and typed segments, not JSON
 Pointer. Multiple independent violations may share one path. See the
 [suite contract](../../../evals/muonsoft-validation/SUITE.md).

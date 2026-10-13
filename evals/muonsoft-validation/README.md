@@ -14,13 +14,17 @@ A separate `--suite transfer` offers three new contract variations (6 smoke or
 18 full attempts). It exercises additional contracts, but is not an independently
 authored holdout: its author has seen development results. Keep its scores separate.
 See the transfer section of [suite design](SUITE.md).
+A separate `--suite builtin` has four v0.20.0 scenarios (8 smoke or 24 full
+attempts) focused on selecting and composing built-in constraints. Behavior and
+actual API reuse are assessed separately; see its review criteria in [suite design](SUITE.md).
 
 ## Prerequisites and isolation
 
 Use a dedicated Linux environment with Python 3.10+, Git, Go 1.24+ with race
 support, and OpenCode. The adapters target OpenCode 1.14.19 and 2.0.18;
 preflight rejects unsupported skill-discovery output. Keep the existing Git tag
-`v0.19.0` available; fetch it if missing, never create a release tag for evals.
+`v0.19.0` and `v0.20.0` available for example compatibility checks; fetch missing
+tags, never create a release tag for evals.
 Go dependencies must be cached or downloadable.
 V2 additionally requires Linux bubblewrap (`bwrap`) and enabled user namespaces.
 Cache the Go module dependencies before starting: the worker's module cache is
@@ -131,6 +135,13 @@ python3 evals/muonsoft-validation/run.py run \
   --model opencode-go/deepseek-v4.1-flash --suite transfer \
   --profile full --output /tmp/validation-transfer-full
 
+# Verify built-in fixtures without inference, then run manually when ready.
+python3 evals/muonsoft-validation/run.py check \
+  --suite builtin --output /tmp/validation-builtin-materials
+python3 evals/muonsoft-validation/run.py run \
+  --model opencode-go/deepseek-v4.1-flash --suite builtin \
+  --profile full --output /tmp/validation-builtin-full
+
 # Rebuild with Codex review; no agent reruns.
 python3 evals/muonsoft-validation/run.py report \
   --run /tmp/validation-eval-smoke --review /tmp/validation-eval-smoke/review.json
@@ -178,17 +189,20 @@ implementation file is invalid. Temporary scratch tests must
 be removed before completion. The grader compiles the submitted solution with the
 original contract and independent tests, not worker-authored tests.
 
-Tasks target v0.19.0. Each solution is checked with `go test -race -json` on both
-v0.19.0 and a snapshot of the current implementation. Hashes record actual bytes,
+Main/transfer tasks target v0.19.0; builtin tasks target v0.20.0. Each solution
+is checked with `go test -race -json` on its target release and a snapshot of the
+current implementation. The worker module declares the selected release. Hashes record actual bytes,
 including uncommitted library changes. Snapshots contain Go implementation/module
 files, not repository instructions or eval answers. `check` also installs a copy
 of the public skill by itself to check portable links and executes every complete
-Go example on both versions. Every reference must pass and every deliberately
+Go example on v0.19.0, v0.20.0, and current. A reference file marked
+`<!-- Minimum validation version: v0.20.0 -->` runs its examples only on v0.20.0
+and current; unmarked examples retain v0.19.0 coverage. Every reference must pass and every deliberately
 incomplete/buggy starter must execute and fail behavioral tests. Each declared
 mutation must fail its named behavioral test on both versions; a compile failure
 is not evidence that a mutation was caught.
 
-The main and transfer suites are measured separately. Their multi-file tasks
+The main, transfer, and builtin suites are measured separately. Their multi-file tasks
 combine rules instead of spelling out an API recipe. Property paths are checked
 as JavaScript-style `PropertyPath.String()` values and typed path elements.
 JSON Pointer is not a requirement. Expected violations are multisets of path and
