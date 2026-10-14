@@ -38,9 +38,10 @@ The skill guides agents through:
 - Testing valid input, simultaneous violations, boundary cases, and dependency calls.
 
 The [skill entrypoint](../skills/muonsoft-validation/SKILL.md) links to focused
-references for each task. Its examples target v0.19.0 and are checked against that
-version and the library checkout by the manual evaluation workflow. The agent
-is instructed to inspect your installed version and existing application rules
+references for each task, including a complete inventory of built-in constraint
+constructors and their standalone helpers. The skill describes the current API,
+and its examples are checked against the library checkout.
+The agent is instructed to inspect your installed version and existing application rules
 before making changes.
 
 ## Example task
@@ -69,3 +70,9 @@ other models or applications. Review generated code and run application tests.
 See the [evaluation report](agent-skill-evaluation.md) for the setup, full
 breakdown, remaining failure, and interpretation. Maintainers can use the
 [evaluation runbook](../evals/muonsoft-validation/README.md) to run new comparisons.
+
+The separate [October 13 application evaluation](agent-skill-application-evaluation.md)
+passed 15/15 attempts in both variants, with lower token usage for the skill but
+remaining gaps in built-in reuse. It measures the skill before the subsequent
+choice, sequencing, typed-constraint and range examples; those changes have not
+yet been evaluated against a model.

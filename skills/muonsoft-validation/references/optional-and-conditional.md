@@ -61,7 +61,7 @@ Nonempty unknown modes must still be rejected in either group. Select the blank
 policy on one choice constraint rather than stacking overlapping membership
 checks that could produce duplicate violations.
 
-Use `CheckProperty` for a simple predicate attributed to one field and `Check`
+Use `CheckProperty` for a simple predicate with no matching built-in, attributed to one field, and `Check`
 for an object-level invariant, with a meaningful code/message. Use `When` when
 the input expression is safe to evaluate. For a range with optional endpoints,
 construct comparisons only after checking both pointers; do not dereference in
@@ -74,3 +74,71 @@ and unselected groups and ensure derived validators reach all children.
 A nullable value object's present state can delegate to the base value's
 validation. Keep one owner for the underlying rules. Distinguish an input patch
 from the resulting complete entity when deciding which rules apply.
+
+## Patch fields with format and business choices
+
+A business allowlist is still a choice constraint: configure `IsOneOf` with the
+policy's error and message. Use a custom predicate only when membership alone
+does not express the policy. `Sequentially` makes a valid format a prerequisite
+without evaluating the same format again through `is` or `validate` in `When`.
+Keep that sequence local to the field so independent violations still accumulate.
+
+```go
+package main
+
+import (
+    "context"
+    "errors"
+    "fmt"
+
+    "github.com/muonsoft/validation"
+    "github.com/muonsoft/validation/it"
+)
+
+var ErrCountryPolicy = validation.NewError("country_policy", "Country is not supported.")
+
+type TextPatch struct { Present bool; Value *string }
+type Input struct { Country TextPatch; Name string }
+
+func (x Input) Validate(ctx context.Context, v *validation.Validator) error {
+    args := []validation.Argument{
+        validation.StringProperty("name", x.Name, it.IsNotBlank()),
+    }
+    // Omission ignores even a stale pointer; present nil means clearing.
+    if x.Country.Present && x.Country.Value != nil {
+        args = append(args, validation.Sequentially(
+            validation.NilStringProperty("country", x.Country.Value, it.IsNotBlank(), it.IsCountry()),
+            validation.NilStringProperty("country", x.Country.Value,
+                it.IsOneOf("CA", "NZ").WithError(ErrCountryPolicy).WithMessage(ErrCountryPolicy.Message())),
+        ))
+    }
+    return v.Validate(ctx, args...)
+}
+
+func main() {
+    v, err := validation.NewValidator()
+    if err != nil { panic(err) }
+    ctx := context.Background()
+    country := "US"
+    x := Input{Country: TextPatch{Present: true, Value: &country}}
+    err = x.Validate(ctx, v.AtProperty("payload"))
+    violations, ok := validation.UnwrapViolations(err)
+    if !ok { panic(err) }
+    fmt.Println(violations.Len(), errors.Is(err, ErrCountryPolicy))
+    country = "??"
+    err = x.Validate(ctx, v)
+    violations, ok = validation.UnwrapViolations(err)
+    if !ok { panic(err) }
+    fmt.Println(violations.Len(), errors.Is(err, validation.ErrInvalidCountry), errors.Is(err, ErrCountryPolicy))
+    x.Name = "Ada"
+    x.Country.Present = false
+    fmt.Println(x.Validate(ctx, v) == nil)
+    x.Country = TextPatch{Present: true}
+    fmt.Println(x.Validate(ctx, v) == nil)
+}
+// Output:
+// 2 true
+// 2 true false
+// true
+// true
+```

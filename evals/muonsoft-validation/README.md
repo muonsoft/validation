@@ -14,14 +14,21 @@ A separate `--suite transfer` offers three new contract variations (6 smoke or
 18 full attempts). It exercises additional contracts, but is not an independently
 authored holdout: its author has seen development results. Keep its scores separate.
 See the transfer section of [suite design](SUITE.md).
+A separate `--suite builtin` has four v0.20.0 scenarios (8 smoke or 24 full
+attempts) focused on selecting and composing built-in constraints. Behavior and
+actual API reuse are assessed separately; see its review criteria in [suite design](SUITE.md).
+`--suite application` adds five composed application tasks (10 smoke or 30 full
+attempts): refactoring a DTO, profile patches, product batches, attachment formats,
+and injected tenant policies. It is measured separately from the frozen builtin set.
 
 ## Prerequisites and isolation
 
 Use a dedicated Linux environment with Python 3.10+, Git, Go 1.24+ with race
 support, and OpenCode. The adapters target OpenCode 1.14.19 and 2.0.18;
 preflight rejects unsupported skill-discovery output. Keep the existing Git tag
-`v0.19.0` available; fetch it if missing, never create a release tag for evals.
-Go dependencies must be cached or downloadable.
+`v0.19.0` available for main/transfer, or `v0.20.0` for builtin/application; fetch missing
+tags, never create a release tag for evals. Skill examples use the current checkout.
+Go dependencies must be downloaded before workers start.
 V2 additionally requires Linux bubblewrap (`bwrap`) and enabled user namespaces.
 Cache the Go module dependencies before starting: the worker's module cache is
 mounted read-only.
@@ -37,16 +44,22 @@ ID must resolve uniquely or match that exact model in recent-model preferences;
 an explicit `provider/model` avoids ambiguity. Select reasoning variants with
 `#variant`; UI variant preferences are not inherited.
 
-Only the selected model definition is copied into the isolated config. Its access
-token and custom headers are passed through environment variables, never saved in
-the config or copied as login storage. An expired OAuth token requires refreshing
+Only the selected model definition is copied into the isolated config. On V2,
+its access token and custom headers stay in the host-side model gateway; workers
+receive a local endpoint and a dummy key. An expired OAuth token requires refreshing
 the connection in OpenCode; the runner does not rotate the user's credentials.
 Other providers require `--config`.
-Workers receive an allowlisted runtime environment plus only the credentials
-referenced by that provider configuration. Unrelated API keys and shell startup
-hooks are excluded. The selected provider credentials remain available to the
-OpenCode process; treat raw worker logs as private because shell output can expose
-its environment. Do not publish raw logs without checking for secrets.
+Workers receive an allowlisted runtime environment. On V2, provider credential
+variables and inherited proxy variables are removed before launching OpenCode or
+its tools. Unrelated API keys and shell startup hooks are excluded. V1 still passes
+the selected provider credentials to OpenCode and has no network sandbox; do not
+use V1 for a controlled comparison. Treat historical raw logs as private because
+older runners exposed the selected provider credentials to shell tools.
+
+The V2 gateway currently supports `@opencode/ai/providers/openai-compatible`,
+including the OpenCode Console DeepSeek configuration used here. Explicit configs
+must define the selected model and an HTTPS `baseURL` on port 443. Unsupported
+adapters fail closed; there is no fallback to unrestricted networking.
 
 Alternatively, supply a provider-only JSON config containing only `$schema` and
 `provider` (V1) or `providers` (native V2).
@@ -64,10 +77,31 @@ catalog for an unavailable model. Skills are inspected through V2's `/api/skill`
 The runner sets each child's `PWD` to its actual workspace: V2's run command
 prefers that variable over the process working directory.
 Each V2 operation gets a fresh session database and Go build cache. Its server
-runs inside bubblewrap: only the task workspace and private profile are writable;
+runs inside bubblewrap: the task workspace, private profile, and a temporary
+socket directory are writable;
 system tools, Go module dependencies, and library snapshots are read-only. The
 checkout, previous attempts, reference solutions, and the real home directory
 are absent from that filesystem. There is no fallback to an unsandboxed V2 worker.
+
+The V2 server and all child tools have a private network namespace with loopback
+only, no external interfaces, and dropped capabilities. The host runner controls
+OpenCode through a Unix-socket bridge. A separate Unix-socket gateway accepts only
+text chat-completion POSTs for the selected model and fixed provider endpoint.
+It rejects arbitrary destinations, CONNECT, redirects, remote content blocks,
+remote search tools, and unsupported request fields. Shell tools can reach this
+same restricted endpoint, but cannot retrieve GitHub or other external material.
+Provider credentials never enter the namespace. The gateway supports streaming
+responses; it does not log request bodies, responses, or credentials.
+It preserves the client's `x-opencode-session` and `User-Agent` metadata required
+by [OpenCode Go](https://opencode.ai/v2/docs/console/go/#where-can-i-use-it), while
+authentication and destination headers remain controlled by the host. Client
+disconnects close the upstream request without trying to send a second response.
+
+Every V2 startup checks the namespace, blocked external IPv4/IPv6 connectivity,
+gateway health, and rejection of proxy/fetch/invalid-model requests before starting
+OpenCode. These checks make no inference requests. `doctor` records the isolation
+mode, but does not prove that a paid inference request will succeed. Go workers use
+`GOPROXY=off`, `GOSUMDB=off`, and `GOTOOLCHAIN=local` with the prepared module cache.
 See the [V2 CLI documentation](https://opencode.ai/v2/docs/cli/commands/).
 
 The runner creates isolated XDG directories, disables external/Claude skills and
@@ -83,9 +117,10 @@ all managed settings: the dedicated environment must have none.
 
 Workers can inspect library Go source through their module replacement. They are
 not given eval tests, reference solutions, or orchestrator instructions. The V1
-adapter provides workflow isolation only: use a dedicated clean environment for
-it. V2 also isolates the worker filesystem and PID namespace, while retaining
-network access for the provider. Inspect logs for contamination in either mode.
+adapter provides workflow isolation only. V2 isolates files, processes and network,
+with only the restricted model gateway crossing the network boundary. Inspect logs
+for contamination in either mode. Public eval materials can be retrieved through
+the network on older runners; filesystem isolation alone is insufficient.
 Web/MCP tools and additional agent delegation are disabled; local shell access
 remains necessary for editing and Go checks.
 
@@ -109,6 +144,14 @@ python3 evals/muonsoft-validation/run.py doctor \
 
 # No inference: check the runner, examples, references, and failing starters.
 python3 -B evals/muonsoft-validation/run_test.py
+# Local gateway tests plus a real bubblewrap probe: external/host connections
+# blocked, Unix control bridge working, and Go tests passing offline. No inference.
+EVAL_TEST_NETWORK_SANDBOX=1 python3 -B evals/muonsoft-validation/network_test.py
+# Also exercise the installed OpenCode CLI end to end with a simulated provider:
+# verify session headers, request serialization, streaming and completion capture.
+# This sends no requests to a real model and does not use login credentials.
+EVAL_TEST_NETWORK_SANDBOX=1 EVAL_TEST_OPENCODE=1 \
+  python3 -B evals/muonsoft-validation/network_test.py
 python3 evals/muonsoft-validation/run.py check \
   --output /tmp/validation-eval-materials
 
@@ -130,6 +173,22 @@ python3 evals/muonsoft-validation/run.py check \
 python3 evals/muonsoft-validation/run.py run \
   --model opencode-go/deepseek-v4.1-flash --suite transfer \
   --profile full --output /tmp/validation-transfer-full
+
+# Verify built-in fixtures without inference, then run manually when ready.
+python3 evals/muonsoft-validation/run.py check \
+  --suite builtin --output /tmp/validation-builtin-materials
+python3 evals/muonsoft-validation/run.py run \
+  --model opencode-go/deepseek-v4.1-flash --suite builtin \
+  --profile full --output /tmp/validation-builtin-full
+
+# Verify the composed application cases; no inference.
+python3 evals/muonsoft-validation/run.py check \
+  --suite application --output /tmp/validation-application-materials
+
+# Thirty attempts: five application cases, two variants, three repeats.
+python3 evals/muonsoft-validation/run.py run \
+  --model opencode-go/deepseek-v4.1-flash --suite application \
+  --profile full --output /tmp/validation-application-full
 
 # Rebuild with Codex review; no agent reruns.
 python3 evals/muonsoft-validation/run.py report \
@@ -178,17 +237,20 @@ implementation file is invalid. Temporary scratch tests must
 be removed before completion. The grader compiles the submitted solution with the
 original contract and independent tests, not worker-authored tests.
 
-Tasks target v0.19.0. Each solution is checked with `go test -race -json` on both
-v0.19.0 and a snapshot of the current implementation. Hashes record actual bytes,
+Main/transfer tasks target v0.19.0; builtin/application tasks target v0.20.0. Each solution
+is checked with `go test -race -json` on its target release and a snapshot of the
+current implementation. The worker module declares the selected release. Hashes record actual bytes,
 including uncommitted library changes. Snapshots contain Go implementation/module
 files, not repository instructions or eval answers. `check` also installs a copy
 of the public skill by itself to check portable links and executes every complete
-Go example on both versions. Every reference must pass and every deliberately
+Go example on the current checkout. The public skill describes the current API;
+release baselines belong to the eval fixtures, not the skill. Every reference
+solution must pass and every deliberately
 incomplete/buggy starter must execute and fail behavioral tests. Each declared
 mutation must fail its named behavioral test on both versions; a compile failure
 is not evidence that a mutation was caught.
 
-The main and transfer suites are measured separately. Their multi-file tasks
+The main, transfer, builtin, and application suites are measured separately. Their multi-file tasks
 combine rules instead of spelling out an API recipe. Property paths are checked
 as JavaScript-style `PropertyPath.String()` values and typed path elements.
 JSON Pointer is not a requirement. Expected violations are multisets of path and

@@ -1,13 +1,68 @@
 # Custom constraints and adapters
 
+First check [built-in constraints](builtin-constraints.md) and existing project
+rules. Create a custom rule when those do not express the required semantics.
 Choose the smallest abstraction that owns the rule:
 
-- One safe boolean expression: `Check` or `CheckProperty`.
-- A pure string predicate: `OfStringBy`, with explicit error and message.
+- An existing typed constraint: pass it directly to the matching argument.
+- One safe boolean expression with no matching built-in: `Check` or `CheckProperty`.
+- A pure string predicate with no matching built-in: `OfStringBy`, with explicit error and message.
 - A reusable rule with options or dependencies: the appropriate typed constraint
   interface, or `Constraint[T]` used with `This`/`Each`.
-- An existing method with extra inputs: `ValidatableFunc`, reusing the validator
+- An existing method with extra inputs that is not already a constraint: `ValidatableFunc`, reusing the validator
   supplied to the callback.
+
+An application-owned policy implementing `StringConstraint` already fits
+`StringProperty`. Use `Sequentially` to gate it on requiredness/format; an extra
+`ValidatableFunc` or a direct call to its internal callback adds no semantics.
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+
+    "github.com/muonsoft/validation"
+    "github.com/muonsoft/validation/it"
+)
+
+type EmailPolicy struct { Check func(context.Context, *validation.Validator, string) error }
+func (p EmailPolicy) ValidateString(ctx context.Context, v *validation.Validator, value *string) error {
+    if value == nil || *value == "" { return nil }
+    return p.Check(ctx, v, *value)
+}
+
+func checkInput(ctx context.Context, v *validation.Validator, name, email string, policy validation.StringConstraint) error {
+    return v.Validate(ctx,
+        validation.StringProperty("name", name, it.IsNotBlank()),
+        validation.Sequentially(
+            validation.StringProperty("email", email, it.IsNotBlank(), it.IsEmail()),
+            validation.StringProperty("email", email, policy),
+        ),
+    )
+}
+
+func main() {
+    v, err := validation.NewValidator()
+    if err != nil { panic(err) }
+    calls := 0
+    policy := EmailPolicy{Check: func(ctx context.Context, child *validation.Validator, email string) error {
+        calls++
+        return nil
+    }}
+    // Invalid name does not suppress the policy for a valid email.
+    _ = checkInput(context.Background(), v, "", "ada@example.com", policy)
+    fmt.Println(calls)
+    _ = checkInput(context.Background(), v, "Ada", "invalid", policy)
+    fmt.Println(calls)
+}
+// Output:
+// 1
+// 1
+```
+
+Use an adapter when the existing method actually has a different signature:
 
 ```go
 package main

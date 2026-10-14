@@ -18,7 +18,6 @@ import re
 import secrets
 import shutil
 import signal
-import socket
 import sqlite3
 import statistics
 import subprocess
@@ -27,6 +26,8 @@ import tarfile
 import time
 import urllib.parse
 import urllib.request
+
+import network
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
@@ -59,9 +60,17 @@ def files_digest(directory):
 
 
 def case_manifest(suite):
-    if suite not in ("main", "transfer"):
+    if suite not in ("main", "transfer", "builtin", "application"):
         raise ValueError("unknown suite")
     return HERE / ("cases.json" if suite == "main" else f"{suite}-cases.json")
+
+
+def suite_snapshots(output, suite):
+    return library_snapshots(output, "v0.20.0" if suite in ("builtin", "application") else "v0.19.0")
+
+
+def baseline(snapshots):
+    return next(version for version in snapshots if version != "current")
 
 
 def cases(suite="main"):
@@ -128,10 +137,10 @@ def go_env(output):
             "GOCACHE": str(output / "go-cache")}
 
 
-def library_snapshots(output):
+def library_snapshots(output, release_version="v0.19.0"):
     """Copy Go implementation only: the worker must not discover eval answers."""
     snapshots = {}
-    archive = subprocess.run(["git", "archive", "v0.19.0"], cwd=ROOT,
+    archive = subprocess.run(["git", "archive", release_version], cwd=ROOT,
                              capture_output=True, check=True).stdout
     with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
         release = {entry.name: tar.extractfile(entry).read() for entry in tar.getmembers()
@@ -145,7 +154,7 @@ def library_snapshots(output):
         name = path.relative_to(ROOT).as_posix()
         if library_file(name):
             current[name] = path.read_bytes()
-    for version, contents in (("v0.19.0", release), ("current", current)):
+    for version, contents in ((release_version, release), ("current", current)):
         target = output / "libraries" / version
         target.mkdir(parents=True)
         for name, data in contents.items():
@@ -168,7 +177,8 @@ def prepare_module(workspace, library, negative=False):
         (workspace / "go.mod").write_text(f"module {MODULE}\n\ngo 1.24.0\n")
         return
     text = (library / "go.mod").read_text().replace("module github.com/muonsoft/validation", f"module {MODULE}", 1)
-    text += '\nrequire github.com/muonsoft/validation v0.19.0\n'
+    version = library.name if re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", library.name) else "v0.20.0"
+    text += f'\nrequire github.com/muonsoft/validation {version}\n'
     # Go accepts quoted replacement directories, including paths with spaces.
     text += 'replace github.com/muonsoft/validation => ' + json.dumps(str(library)) + '\n'
     (workspace / "go.mod").write_text(text)
@@ -321,12 +331,13 @@ def v2_completion(log, workspace, database):
 
 
 def check_materials(output, snapshots):
-    """Validate standalone distribution and execute every complete Go fence twice."""
+    """Validate portable links and run complete examples on the current checkout."""
     import importlib.util
     spec = importlib.util.spec_from_file_location("docs", ROOT / "scripts/check-docs.py")
     docs = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(docs)
     errors, count = [], 0
+    version, snapshot = "current", snapshots["current"]
     copied = output / "installed-skill/muonsoft-validation"
     shutil.copytree(SKILL, copied)
     docs.ROOT = copied
@@ -347,36 +358,35 @@ def check_materials(output, snapshots):
             if block.group(1).strip() != "go" or not re.search(r"^package main\s*$", source, re.M):
                 continue
             count += 1
-            for version, snapshot in snapshots.items():
-                directory = output / "examples" / str(count) / version
-                prepare_module(directory, Path(snapshot["path"]))
-                (directory / "main.go").write_text(source)
-                log = directory / "output.txt"
-                result = command(["go", "run", "-mod=mod", "."], directory, log, go_env(output))
-                expected = re.search(r"^// Output:\n((?://[^\n]*\n?)*)\s*$", source, re.M)
-                if result["status"] != "completed":
-                    errors.append(f"{path.name}: example {count} failed on {version}; see {log}")
-                elif expected:
-                    want = "\n".join(re.sub(r"^// ?", "", line) for line in expected.group(1).splitlines()) + "\n"
-                    if log.read_text() != want:
-                        errors.append(f"{path.name}: output mismatch on {version}: {log.read_text()!r}")
+            directory = output / "examples" / str(count) / version
+            prepare_module(directory, Path(snapshot["path"]))
+            (directory / "main.go").write_text(source)
+            log = directory / "output.txt"
+            result = command(["go", "run", "-mod=mod", "."], directory, log, go_env(output))
+            expected = re.search(r"^// Output:\n((?://[^\n]*\n?)*)\s*$", source, re.M)
+            if result["status"] != "completed":
+                errors.append(f"{path.name}: example {count} failed on {version}; see {log}")
+            elif expected:
+                want = "\n".join(re.sub(r"^// ?", "", line) for line in expected.group(1).splitlines()) + "\n"
+                if log.read_text() != want:
+                    errors.append(f"{path.name}: output mismatch on {version}: {log.read_text()!r}")
     return {"examples": count, "errors": errors}
 
 
 def check(args):
     output = new_output(args.output)
-    snapshots = library_snapshots(output)
+    snapshots = suite_snapshots(output, getattr(args, "suite", "main"))
     report = {"materials": check_materials(output, snapshots), "cases": {}}
     for case in cases(getattr(args, "suite", "main")):
         directory = output / case["id"]
         for mode in ("reference", "starter"):
             src = directory / mode / "workspace"
-            workspace(case, src, Path(snapshots["v0.19.0"]["path"]), reference=mode == "reference")
+            workspace(case, src, Path(snapshots[baseline(snapshots)]["path"]), reference=mode == "reference")
             grades = grade(case, src, directory / mode / "checks", snapshots, go_env(output))
             report["cases"].setdefault(case["id"], {})[mode] = grades
         for mutation in case.get("mutations", []):
             src = directory / mutation["id"] / "workspace"
-            workspace(case, src, Path(snapshots["v0.19.0"]["path"]), reference=True)
+            workspace(case, src, Path(snapshots[baseline(snapshots)]["path"]), reference=True)
             path = src / mutation["file"]
             text = path.read_text()
             if text.count(mutation["old"]) != 1:
@@ -609,7 +619,8 @@ def sandbox_command(binary, cwd, profile, env):
     bubblewrap = shutil.which("bwrap")
     if not bubblewrap:
         raise ValueError("OpenCode v2 eval requires bubblewrap (bwrap) for filesystem isolation")
-    arguments = [bubblewrap, "--unshare-user", "--unshare-pid", "--die-with-parent", "--new-session"]
+    arguments = [bubblewrap, "--unshare-user", "--unshare-pid", "--unshare-net", "--unshare-ipc",
+                 "--unshare-uts", "--cap-drop", "ALL", "--die-with-parent", "--new-session"]
     roots = [Path(p) for p in ("/usr", "/bin", "/lib", "/lib64") if Path(p).exists()]
     for root in roots:
         arguments += ["--ro-bind", str(root), str(root)]
@@ -627,19 +638,36 @@ def sandbox_command(binary, cwd, profile, env):
             arguments += ["--ro-bind", str(path), str(path)]
     for path in (cwd, profile):
         arguments += ["--bind", str(path), str(path)]
-    return arguments + ["--chdir", str(cwd), "--", str(executable)]
+    directory = env["EVAL_NETWORK_DIR"]
+    arguments += ["--bind", directory, directory,
+                  "--ro-bind", str(HERE / "network.py"), "/eval-network.py"]
+    return arguments + ["--chdir", str(cwd), "--", "/usr/bin/python3", "/eval-network.py",
+                        directory, str(executable)]
 
 
 @contextmanager
 def v2_server(binary, cwd, log, env):
+    config = json.loads(Path(env["OPENCODE_CONFIG"]).read_text())
+    with network.network_runtime(config, env["EVAL_OPENCODE_MODEL"], env) as (safe, directory, port):
+        # Credentials exist only in the host gateway, never the server or tool env.
+        credential_keys = set(re.findall(r"\{env:([A-Z_][A-Z_0-9]*)\}", json.dumps(config)))
+        worker_env = {key: value for key, value in env.items()
+                      if key not in credential_keys and not key.lower().endswith("_proxy")
+                      and not key.startswith(("EVAL_OPENCODE_TOKEN", "EVAL_OPENCODE_HEADER_"))}
+        worker_env.update(EVAL_NETWORK_DIR=directory, GOPROXY="off", GOSUMDB="off", GOTOOLCHAIN="local")
+        with isolated_v2_server(binary, cwd, log, worker_env, safe, port) as result:
+            yield result
+
+
+@contextmanager
+def isolated_v2_server(binary, cwd, log, env, config, port):
     """Wait for asynchronous catalogs and own the server for this operation only."""
     log.parent.mkdir(parents=True, exist_ok=True)
     password = secrets.token_urlsafe(32)
     profile = log.with_suffix(".profile")
     server_env = {**worker_profile(env, profile), "OPENCODE_SERVER_PASSWORD": password, "PWD": str(cwd)}
-    with socket.socket() as listener:
-        listener.bind(("127.0.0.1", 0))
-        port = listener.getsockname()[1]
+    write_json(Path(server_env["OPENCODE_CONFIG"]), config)
+    write_json(Path(server_env["OPENCODE_CONFIG_DIR"]) / "opencode.json", config)
     url = f"http://127.0.0.1:{port}"
     authorization = base64.b64encode(("opencode:" + password).encode()).decode()
     query = urllib.parse.urlencode({"location[directory]": str(cwd)})
@@ -647,7 +675,7 @@ def v2_server(binary, cwd, log, env):
                                      headers={"Authorization": "Basic " + authorization})
     with log.open("w") as stream:
         process = subprocess.Popen(sandbox_command(binary, cwd, profile, server_env) +
-                                   ["serve", "--hostname", "127.0.0.1", "--port", str(port)],
+                                   ["serve", "--hostname", "127.0.0.1", "--port", "18081"],
                                    cwd=cwd, env=server_env, stdout=stream, stderr=stream, start_new_session=True)
         try:
             deadline = time.monotonic() + 45
@@ -729,7 +757,8 @@ def doctor(args):
         discover(args.opencode, directory, output / (variant + "-logs"), env,
                  ["muonsoft-validation"] if variant == "with" else [], major)
     write_json(output / "doctor.json", {"model": args.model, "opencode_version": version,
-                                        "discovery": "passed", "inference_requests": 0})
+                                        "discovery": "passed", "inference_requests": 0,
+                                        "network_isolation": "namespace-and-model-gateway" if major == 2 else "none"})
     print("Model ID and isolated skill discovery verified; no inference requests made.")
     return 0
 
@@ -740,6 +769,7 @@ def provenance(snapshots):
             "skill_sha256": digest(json.dumps(files_digest(SKILL), sort_keys=True).encode()),
             "suite_sha256": digest(json.dumps(files_digest(HERE / "testdata"), sort_keys=True).encode()),
             "runner_sha256": digest(Path(__file__).read_bytes()),
+            "network_sha256": digest((HERE / "network.py").read_bytes()),
             "cases_sha256": digest((HERE / "cases.json").read_bytes()),
             "libraries": snapshots,
             "go_version": subprocess.run(["go", "version"], capture_output=True, text=True, check=True).stdout.strip()}
@@ -781,8 +811,9 @@ def token_comparison(attempts):
         pair[attempt["variant"]] = attempt
     for (case, repeat), pair in pairs.items():
         if set(pair) != {"with", "without"} or any(
-                set(a.get("grades", {})) != {"v0.19.0", "current"} or a["status"] != "completed"
-                or not usage[a["id"]]["complete"] for a in pair.values()):
+                set(a.get("grades", {})) not in ({"v0.19.0", "current"}, {"v0.20.0", "current"}) or a["status"] != "completed"
+                or not usage[a["id"]]["complete"] for a in pair.values()) or (
+                set(pair["with"].get("grades", {})) != set(pair["without"].get("grades", {}))):
             excluded.append({"case": case, "repeat": repeat, "reason": "missing graded variant or complete usage"})
         else:
             matched.append(pair)
@@ -933,6 +964,7 @@ def snapshot_materials(output, selected, suite):
     target.mkdir()
     shutil.copyfile(case_manifest(suite), target / "cases.json")
     shutil.copyfile(Path(__file__), target / "run.py")
+    shutil.copyfile(HERE / "network.py", target / "network.py")
     for name in ("README.md", "SUITE.md"):
         shutil.copyfile(HERE / name, target / name)
     shutil.copytree(SKILL, target / "skill")
@@ -946,7 +978,7 @@ def inherit_run(source, output, manifest):
     """Carry attempts forward without rewriting or retrying their artifacts."""
     raw = (source / "run.json").read_bytes()
     previous = json.loads(raw)
-    keys = ("skill_sha256", "suite_sha256", "runner_sha256", "cases_sha256", "go_version",
+    keys = ("skill_sha256", "suite_sha256", "runner_sha256", "network_sha256", "cases_sha256", "go_version",
             "model", "profile", "timeout", "repeats", "opencode_version", "config_sha256", "selected_cases")
     for key in keys:
         if key not in previous or previous[key] != manifest[key]:
@@ -1002,13 +1034,14 @@ def run_attempts(args, output, source):
     if args.case and set(args.case) - {case["id"] for case in selected}:
         raise ValueError("unknown case ID")
     env, major, version = prepare_runtime(args, output)
-    snapshots = library_snapshots(output)
+    snapshots = suite_snapshots(output, suite)
     manifest = provenance(snapshots)
     manifest["cases_sha256"] = digest(case_manifest(suite).read_bytes())
     manifest.update(model=args.model, profile=args.profile, timeout=args.timeout,
                     suite=suite, retention=retention,
                     repeats=1 if args.profile == "smoke" else 3, attempts=[], status="running",
                     opencode_version=version,
+                    network_isolation="namespace-and-model-gateway" if major == 2 else "none",
                     config_sha256=digest((output / "provider.json").read_bytes()),
                     selected_cases=[case["id"] for case in selected],
                     case_requirements={case["id"]: case["requirements"] for case in selected},
@@ -1033,7 +1066,7 @@ def run_attempts(args, output, source):
                     manifest["attempts"].append(attempt)
                     write_json(output / "run.json", manifest)
                     src = directory / "workspace"
-                    workspace(case, src, Path(snapshots["v0.19.0"]["path"]))
+                    workspace(case, src, Path(snapshots[baseline(snapshots)]["path"]))
                     subprocess.run(["git", "init", "-q", str(src)], check=True)
                     if variant == "with":
                         shutil.copytree(SKILL, src / ".opencode/skills/muonsoft-validation")
@@ -1107,6 +1140,7 @@ def run_attempts(args, output, source):
 def report(output, review_path):
     manifest = json.loads((output / "run.json").read_text())
     attempts = manifest["attempts"]
+    release_version = baseline(manifest.get("libraries", {"v0.19.0": {}, "current": {}}))
     reviews = json.loads(review_path.read_text()) if review_path else {}
     for identifier, review in reviews.items():
         if identifier not in {attempt["id"] for attempt in attempts if "grades" in attempt} or set(review) != set(RUBRIC):
@@ -1130,10 +1164,10 @@ def report(output, review_path):
         summary["variants"][variant] = {"attempts": len(group), "graded": len(graded), "passed_both_versions": passed, "ungraded": statuses}
         lines.append(f"| {variant} | {len(group)} | {len(graded)} | {passed} | {statuses} |")
     lines += ["", "Неоценённые попытки показаны отдельно; они не считаются успешными. Баллы ревью не смешиваются с тестами.", "",
-              "| Попытка | Статус | v0.19.0 | Текущая | Загрузка скилла |", "| --- | --- | --- | --- | --- |"]
+              f"| Попытка | Статус | {release_version} | Текущая | Загрузка скилла |", "| --- | --- | --- | --- | --- |"]
     for attempt in attempts:
         cells = []
-        for version in ("v0.19.0", "current"):
+        for version in (release_version, "current"):
             g = attempt.get("grades", {}).get(version)
             cells.append(f"{len(g['requirements_passed'])}/{g['requirements_total']} ({g['status']})" if g else "не оценено")
         identifier = attempt["id"]
@@ -1249,7 +1283,7 @@ def main():
     commands = parser.add_subparsers(dest="command", required=True)
     checker = commands.add_parser("check", help="check docs, references and failing starters, without a model")
     checker.add_argument("--output", required=True)
-    checker.add_argument("--suite", choices=("main", "transfer"), default="main")
+    checker.add_argument("--suite", choices=("main", "transfer", "builtin", "application"), default="main")
     checker.add_argument("--retention", choices=("compact", "debug"), default="compact")
     preflight = commands.add_parser("doctor", help="inspect exact model and isolated skill discovery; no inference")
     preflight.add_argument("--output", required=True)
@@ -1262,7 +1296,7 @@ def main():
     runner.add_argument("--config", help="provider-only JSON; omit on v2 to reuse the local Console connection")
     runner.add_argument("--opencode", default="opencode")
     runner.add_argument("--profile", choices=("smoke", "full"), default="smoke")
-    runner.add_argument("--suite", choices=("main", "transfer"), default="main")
+    runner.add_argument("--suite", choices=("main", "transfer", "builtin", "application"), default="main")
     runner.add_argument("--retention", choices=("compact", "debug"), default="compact")
     runner.add_argument("--skip-check", action="store_true", help="skip deterministic material checks after separately verifying this exact revision")
     runner.add_argument("--case", action="append")

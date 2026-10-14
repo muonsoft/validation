@@ -232,19 +232,17 @@ else: sys.exit(3)
     def test_v2_server_waits_for_model_and_stops_on_worker_failure(self):
         process = Mock(pid=123456)
         process.poll.return_value = None
-        listener = Mock()
-        listener.getsockname.return_value = ('127.0.0.1', 1234)
         replies = [io.BytesIO(b'{"data":[]}'), io.BytesIO(b'{"data":[{"providerID":"fixture","id":"model"}]}')]
-        with patch.object(runner.socket, 'socket') as socket_factory, patch.object(
-                runner.subprocess, 'Popen', return_value=process), patch.object(
+        with patch.object(runner.subprocess, 'Popen', return_value=process), patch.object(
                 runner.urllib.request, 'urlopen', side_effect=replies) as request, patch.object(
                 runner.time, 'sleep'), patch.object(runner.os, 'killpg') as kill, patch.object(
                 runner, 'worker_profile', side_effect=lambda env, directory: dict(env)), patch.object(
                 runner, 'sandbox_command', return_value=['opencode']):
-            socket_factory.return_value.__enter__.return_value = listener
             with self.assertRaisesRegex(RuntimeError, 'worker failure'):
-                with runner.v2_server('opencode', self.root, self.root / 'server.log',
-                                      {'EVAL_OPENCODE_MODEL': 'fixture/model'}) as (url, env):
+                with runner.isolated_v2_server('opencode', self.root, self.root / 'server.log',
+                                      {'EVAL_OPENCODE_MODEL': 'fixture/model',
+                                       'OPENCODE_CONFIG': str(self.root / 'provider.json'),
+                                       'OPENCODE_CONFIG_DIR': str(self.root)}, {}, 1234) as (url, env):
                     self.assertEqual(url, 'http://127.0.0.1:1234')
                     self.assertTrue(env['OPENCODE_SERVER_PASSWORD'])
                     raise RuntimeError('worker failure')
@@ -270,14 +268,17 @@ else: sys.exit(3)
         workspace, profile, library, modules = [self.root / name for name in ('workspace', 'profile', 'libraries', 'modules')]
         for path in (workspace, profile, library, modules):
             path.mkdir()
-        env = {'GOMODCACHE': str(modules), 'GOROOT': '/usr/local/go', 'EVAL_LIBRARY_ROOT': str(library)}
+        env = {'GOMODCACHE': str(modules), 'GOROOT': '/usr/local/go', 'EVAL_LIBRARY_ROOT': str(library),
+               'EVAL_NETWORK_DIR': str(self.root / 'network')}
         with patch.object(runner.shutil, 'which', side_effect=lambda name: '/usr/bin/' + name):
             argv = runner.sandbox_command('opencode', workspace, profile, env)
         writable = [argv[i + 1] for i, value in enumerate(argv) if value == '--bind']
-        self.assertEqual(writable, [str(workspace), str(profile)])
+        self.assertEqual(writable, [str(workspace), str(profile), env['EVAL_NETWORK_DIR']])
         self.assertNotIn(str(runner.ROOT), argv)
         self.assertNotIn(str(self.root), argv)
         self.assertIn('--unshare-pid', argv)
+        self.assertIn('--unshare-net', argv)
+        self.assertIn('--cap-drop', argv)
 
     def test_existing_console_login_keeps_secrets_out_of_config(self):
         state, data = self.root / "state/opencode", self.root / "data/opencode"
@@ -431,7 +432,7 @@ else: sys.exit(3)
         original = source / "attempts/16-request-without-1"
         original.mkdir(parents=True)
         (original / "events.jsonl").write_text("partial output")
-        manifest = {key: "same" for key in ("skill_sha256", "suite_sha256", "runner_sha256", "cases_sha256",
+        manifest = {key: "same" for key in ("skill_sha256", "suite_sha256", "runner_sha256", "network_sha256", "cases_sha256",
                     "go_version", "model", "profile", "timeout", "opencode_version", "config_sha256")}
         manifest.update(repeats=1, selected_cases=["16-request"], libraries={"current": {"sha256": "lib"}}, attempts=[])
         previous = {**manifest, "attempts": [{"id": "16-request-without-1", "case": "16-request", "variant": "without",
@@ -445,7 +446,7 @@ else: sys.exit(3)
         self.assertEqual(manifest["attempts"][0]["status"], "interrupted")
         self.assertEqual((source / "run.json").read_bytes(), original_bytes)
         self.assertEqual((output / "attempts/16-request-without-1/events.jsonl").read_text(), "partial output")
-        for key in ("skill_sha256", "suite_sha256", "runner_sha256", "cases_sha256", "go_version", "model",
+        for key in ("skill_sha256", "suite_sha256", "runner_sha256", "network_sha256", "cases_sha256", "go_version", "model",
                     "profile", "timeout", "opencode_version", "config_sha256", "selected_cases", "repeats"):
             with self.subTest(key=key), self.assertRaisesRegex(ValueError, key):
                 runner.inherit_run(source, output, {**manifest, key: "different"})
@@ -583,6 +584,90 @@ else: sys.exit(3)
         with self.assertRaises(ValueError):
             runner.case_manifest("../transfer")
 
+    def test_builtin_suite_versions_and_materials(self):
+        cases = runner.cases("builtin")
+        self.assertEqual(len(cases), 4)
+        self.assertFalse({c["id"] for c in cases} & {c["id"] for c in runner.cases()})
+        output = self.root / "builtin"
+        output.mkdir()
+        runner.snapshot_materials(output, cases, "builtin")
+        self.assertEqual(json.loads((output / "materials/cases.json").read_text())["suite"], "builtin")
+        for case in cases:
+            for mutation in case["mutations"]:
+                source = (runner.HERE / "testdata" / case["id"] / "reference" / mutation["file"]).read_text()
+                self.assertEqual(source.count(mutation["old"]), 1)
+        with patch.object(runner, "library_snapshots") as snapshots:
+            runner.suite_snapshots(output, "builtin")
+            snapshots.assert_called_once_with(output, "v0.20.0")
+        library = self.root / "v0.20.0"
+        library.mkdir()
+        (library / "go.mod").write_text("module github.com/muonsoft/validation\n\ngo 1.24.0\n")
+        (library / "go.sum").write_text("")
+        runner.workspace(cases[0], self.root / "workspace", library)
+        self.assertIn("require github.com/muonsoft/validation v0.20.0", (self.root / "workspace/go.mod").read_text())
+
+    def test_application_suite_is_separate_and_reproducible(self):
+        cases = runner.cases("application")
+        self.assertEqual(len(cases), 5)
+        old_ids = {case["id"] for suite in ("main", "transfer", "builtin") for case in runner.cases(suite)}
+        self.assertFalse(old_ids & {case["id"] for case in cases})
+        self.assertTrue(all(case["smoke"] for case in cases))
+        output = self.root / "application"
+        output.mkdir()
+        runner.snapshot_materials(output, cases, "application")
+        manifest = json.loads((output / "materials/cases.json").read_text())
+        self.assertEqual(manifest["suite"], "application")
+        for case in cases:
+            for mutation in case["mutations"]:
+                source = (output / "materials/testdata" / case["id"] / "reference" / mutation["file"]).read_text()
+                self.assertEqual(source.count(mutation["old"]), 1)
+        domain = next(case for case in cases if case["id"] == "34-domain")
+        self.assertFalse(runner.editable(domain, "policy.go"))
+        self.assertTrue((output / "materials/testdata/34-domain/workspace/policy.go").is_file())
+        with patch.object(runner, "library_snapshots") as snapshots:
+            runner.suite_snapshots(output, "application")
+            snapshots.assert_called_once_with(output, "v0.20.0")
+
+    def test_skill_examples_use_current_checkout(self):
+        skill = self.root / "skill"
+        skill.mkdir()
+        (skill / "SKILL.md").write_text(
+            '---\nname: muonsoft-validation\ndescription: Fixture.\n---\n'
+            '```go\npackage main\nfunc main() {}\n```\n')
+        library = self.root / "current"
+        library.mkdir()
+        (library / "go.mod").write_text("module github.com/muonsoft/validation\n\ngo 1.24.0\n")
+        (library / "go.sum").write_text("")
+        snapshots = {"current": {"path": str(library)},
+                     "v0.19.0": {"path": str(self.root / "unavailable-release")}}
+        with patch.object(runner, "SKILL", skill), patch.object(
+                runner, "command", return_value={"status": "completed"}) as execute:
+            result = runner.check_materials(self.root / "materials-check", snapshots)
+        self.assertEqual(result, {"examples": 1, "errors": []})
+        execute.assert_called_once()
+        self.assertEqual(execute.call_args.args[1].name, "current")
+
+    def test_builtin_report_and_token_pairs(self):
+        attempts = [{"id": f"26-publication-{variant}-1", "case": "26-publication", "repeat": 1,
+                     "variant": variant, "status": "completed", "should_trigger": True,
+                     "grades": {v: {"passed": True, "requirements_passed": ["TestValid"],
+                                    "requirements_total": 1, "status": "completed"}
+                                for v in ("v0.20.0", "current")},
+                     "events": {"complete": True, "reported_usage": [{"tokens": {
+                         "input": 10, "output": 2, "reasoning": 0, "cache": {"read": 0, "write": 0}}}]}}
+                    for variant in ("without", "with")]
+        self.assertEqual(runner.token_comparison(attempts)["matched"]["pairs"], 1)
+        manifest = {"status": "completed", "model": "fixture/model", "suite": "builtin",
+                    "libraries": {"v0.20.0": {}, "current": {}}, "attempts": attempts,
+                    "case_requirements": {"26-publication": ["TestValid"]},
+                    "case_categories": {"26-publication": {"TestValid": "formats"}}}
+        runner.write_json(self.root / "run.json", manifest)
+        runner.report(self.root, None)
+        self.assertIn("| v0.20.0 |", (self.root / "report.md").read_text())
+        self.assertNotIn("| v0.19.0 |", (self.root / "report.md").read_text())
+        attempts[0]["grades"]["v0.19.0"] = attempts[0]["grades"].pop("v0.20.0")
+        self.assertEqual(runner.token_comparison(attempts)["matched"]["pairs"], 0)
+
     def test_grader_preserves_contract_and_includes_new_helpers(self):
         case = runner.cases()[0]
         source = self.root / 'source'
@@ -671,7 +756,7 @@ else: sys.exit(3)
         artifact = source / 'attempts/16-request-with-1'
         artifact.mkdir(parents=True)
         (artifact / 'events.jsonl.gz').write_bytes(gzip.compress(b'evidence'))
-        manifest = {key: 'same' for key in ('skill_sha256', 'suite_sha256', 'runner_sha256', 'cases_sha256',
+        manifest = {key: 'same' for key in ('skill_sha256', 'suite_sha256', 'runner_sha256', 'network_sha256', 'cases_sha256',
                     'go_version', 'model', 'profile', 'timeout', 'opencode_version', 'config_sha256')}
         manifest.update(repeats=1, selected_cases=['16-request'], libraries={'current': {'sha256': 'same'}}, attempts=[])
         previous = {**manifest, 'attempts': [{'id': '16-request-with-1', 'case': '16-request', 'variant': 'with', 'repeat': 1, 'status': 'completed'}]}

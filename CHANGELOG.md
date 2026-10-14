@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Extend the `muonsoft-validation` skill with a complete current-API constraint inventory, password and file-upload examples, and a separate built-in-focused evaluation suite.
+
+### Changed
+
+- Clarify built-in business choices, patch prerequisites, typed constraint reuse, and numeric ranges in the validation skill; publish the separate [application evaluation report](docs/agent-skill-application-evaluation.md).
+
 - Add the installable `muonsoft-validation` agent skill with practical entity/DTO validation patterns, portable examples, and a manual evaluation workflow. See the [agent skill guide](docs/agent-skill.md) and [evaluation report](docs/agent-skill-evaluation.md).
 
 ## [0.20.0] - 2026-10-03
