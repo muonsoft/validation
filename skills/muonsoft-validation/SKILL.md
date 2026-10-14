@@ -94,6 +94,11 @@ agent session databases, runtime logs, and build caches are not application spec
 
 Before writing a parser, regex, counting loop, or custom constraint, consult the
 built-in inventory for a matching rule and inspect only the relevant APIs.
+Business allowlists and numeric bounds can still use `it.IsOneOf` and
+`it.IsBetween` with custom errors/messages. For format-before-policy dependencies,
+use a field-local `Sequentially`; pass an existing typed constraint directly to
+its matching argument. See the optional-values and custom-constraints references
+for complete examples.
 Prefer existing project constraints when their
 semantics match; distinguish them from the public `it` package. Use `is` for a
 standalone boolean predicate and `validate` for a standalone error check; use

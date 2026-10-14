@@ -20,11 +20,15 @@ import (
     "github.com/muonsoft/validation/it"
 )
 
-func checkUpload(ctx context.Context, v *validation.Validator, name string, body io.Reader) error {
-    if err := v.Validate(ctx, validation.StringProperty("name", name,
-        it.IsNotBlank(), it.IsFileName().WithWindowsRestrictions(),
-        it.HasFileExtension("txt"),
-    )); err != nil { return err }
+var ErrSize = validation.NewError("upload_size", "Declared size must be between 1 byte and 1 MiB.")
+
+func checkUpload(ctx context.Context, v *validation.Validator, name string, size int64, body io.Reader) error {
+    if err := v.Validate(ctx,
+        validation.StringProperty("name", name,
+            it.IsNotBlank(), it.IsFileName().WithWindowsRestrictions(), it.HasFileExtension("txt")),
+        validation.NumberProperty("size", size,
+            it.IsBetween[int64](1, 1 << 20).WithError(ErrSize).WithMessage(ErrSize.Message())),
+    ); err != nil { return err }
     prefix, err := io.ReadAll(io.LimitReader(body, 512))
     if err != nil { return err }
     return v.Validate(ctx,
@@ -36,7 +40,7 @@ func checkUpload(ctx context.Context, v *validation.Validator, name string, body
 func main() {
     v, err := validation.NewValidator()
     if err != nil { panic(err) }
-    fmt.Println(checkUpload(context.Background(), v, "notes.txt", strings.NewReader("Hello")))
+    fmt.Println(checkUpload(context.Background(), v, "notes.txt", 5, strings.NewReader("Hello")))
 }
 // Output:
 // <nil>

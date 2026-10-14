@@ -22,6 +22,10 @@ format, and business policy separately; retain project rules that add semantics.
 `IsNotNil` allows a non-nil pointer to an empty value. `WithAllowedNil` makes
 `IsNotBlank` useful for an optional field that must be nonblank when supplied.
 `IsOneOf` accepts zero values by default; use `WithoutBlank` for strict membership.
+Business-specific choices can use `IsOneOf(...).WithError(err).WithMessage(err.Message())`;
+a custom error identity does not require a custom membership predicate. See the
+[patch example](optional-and-conditional.md#patch-fields-with-format-and-business-choices)
+for sequencing format and policy.
 
 Generic presence constructors are also available explicitly:
 
@@ -43,6 +47,11 @@ Generic presence constructors are also available explicitly:
 Range bounds are inclusive. Choose the integer or floating-point divisibility
 constructor for the input type; a zero divisor is a configuration error.
 Time comparisons operate on `time.Time`; date/time string parsing is listed below.
+For a business interval with one sentinel for either bound, use
+`it.IsBetween[int64](min, max).WithError(err).WithMessage(err.Message())`.
+This retains the built-in range rule instead of duplicating it in a predicate or
+custom numeric constraint. Use separate comparisons when the contract requires
+different errors for the two bounds.
 
 ## Collections
 

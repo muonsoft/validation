@@ -70,3 +70,9 @@ other models or applications. Review generated code and run application tests.
 See the [evaluation report](agent-skill-evaluation.md) for the setup, full
 breakdown, remaining failure, and interpretation. Maintainers can use the
 [evaluation runbook](../evals/muonsoft-validation/README.md) to run new comparisons.
+
+The separate [October 13 application evaluation](agent-skill-application-evaluation.md)
+passed 15/15 attempts in both variants, with lower token usage for the skill but
+remaining gaps in built-in reuse. It measures the skill before the subsequent
+choice, sequencing, typed-constraint and range examples; those changes have not
+yet been evaluated against a model.
