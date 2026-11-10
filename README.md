@@ -1,5 +1,10 @@
 # Go validation library
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
+  <img src="docs/assets/banner-light.svg" alt="validation: a gopher guard checks Go structs against typed constraints" width="100%">
+</picture>
+
 [![Go Reference](https://pkg.go.dev/badge/github.com/muonsoft/validation.svg)](https://pkg.go.dev/github.com/muonsoft/validation)
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/muonsoft/validation)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/muonsoft/validation)
@@ -194,3 +199,7 @@ If you'd like to contribute, see [the contribution guide](CONTRIBUTING.md). Pull
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+The README banner gopher is inspired by the original Go gopher designed by
+[Renée French](https://reneefrench.blogspot.com/), licensed under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).

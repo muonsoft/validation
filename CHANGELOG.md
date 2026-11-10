@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Add a README banner with light and dark theme variants.
 - Clarify built-in business choices, patch prerequisites, typed constraint reuse, and numeric ranges in the validation skill; publish the separate [application evaluation report](docs/agent-skill-application-evaluation.md).
 
 - Add the installable `muonsoft-validation` agent skill with practical entity/DTO validation patterns, portable examples, and a manual evaluation workflow. See the [agent skill guide](docs/agent-skill.md) and [evaluation report](docs/agent-skill-evaluation.md).
