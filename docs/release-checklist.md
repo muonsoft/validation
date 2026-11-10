@@ -19,7 +19,7 @@ workflow-verified release commit.
 ## Local validation
 
 Install the tools listed in [Contributing](../CONTRIBUTING.md), including
-golangci-lint v2.13.2. The local script skips lint if that binary is absent;
+golangci-lint v2.15.0. The local script skips lint if that binary is absent;
 CI always requires lint. Run from the repository root:
 
 ```bash
