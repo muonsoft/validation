@@ -46,10 +46,11 @@ jobs:
       - name: Vet
         run: go vet ./...
 
+      # v2.13.2 cannot decode export data version 5, written by Go 1.27.2+.
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.13.2
+          version: v2.15.0
 
       - name: Run tests
         run: go test -race -v ./...

@@ -7,11 +7,11 @@ Follow the [code of conduct](CODE_OF_CONDUCT.md) in project discussions.
 ## Development setup
 
 The library has no external services. Use Go 1.24.0 or later; the quality CI job
-uses Go 1.26.6. Install Python 3 for documentation and release-script checks,
-and golangci-lint v2.13.2 for linting. Use a toolchain compatible with the linter.
+uses Go 1.27.3. Install Python 3 for documentation and release-script checks,
+and golangci-lint v2.15.0 for linting. Use a toolchain compatible with the linter.
 
 ```bash
-go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.2
+go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0
 export PATH="$(go env GOPATH)/bin:$PATH"
 ```
 
